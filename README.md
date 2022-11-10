@@ -1,7 +1,5 @@
-<div style="text-align:center">
 # Horseshoe.NET
 ![Horseshoe.NET icon](/assets/images/horseshoe.net.128x128.png)
-</div>
 
 A suite of .NET utilities with a dual purpose: simplify coding tasks (contains lots of boilerplate code) and offer a variety of unique capabilities for developers.
 
