@@ -8,17 +8,17 @@ A suite of .NET utilities with a dual purpose: simplify coding tasks (contains l
   - Horseshoe.NET.Bootstrap
   - Horseshoe.NET.Collections
   - Horseshoe.NET.ConsoleX
-  - Horseshoe.NET.ConsoleX.Plugins
+    - Horseshoe.NET.ConsoleX.Plugins
   - Horseshoe.NET.Crypto
   - Horseshoe.NET.DataImport
   - Horseshoe.NET.DateAndTime
   - Horseshoe.NET.Db
   - Horseshoe.NET.Email
-  - Horseshoe.NET.Email.Sms
+    - Horseshoe.NET.Email.Sms
   - Horseshoe.NET.Ftp
   - Horseshoe.NET.IO
-  - Horseshoe.NET.IO.DirectoryCrawler
-  - Horseshoe.NET.IO.FileFilter
+    - Horseshoe.NET.IO.DirectoryCrawler
+    - Horseshoe.NET.IO.FileFilter
   - Horseshoe.NET.Iterator
   - Horseshoe.NET.Objects
   - Horseshoe.NET.OleDb  (.NET Framework only)
@@ -41,4 +41,3 @@ A suite of .NET utilities with a dual purpose: simplify coding tasks (contains l
 - Horseshoe.NET.OracleDb (NuGet)
 - Horseshoe.NET.SecureIO (NuGet)
 - Horseshoe.NET.SqlDb (NuGet)
-

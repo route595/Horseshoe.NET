@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+    <Version>2.0.4</Version>
+    <Authors>Carl Thomas</Authors>
+    <Company>Greenhazel Studio</Company>
+    <Description>A set of common methods and classes for generating and handling JWTs and a subset of basic OAuth operations.</Description>
+    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <AssemblyName>Horseshoe.NET.Jwt</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.30" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj" />
+  </ItemGroup>
+
+</Project>

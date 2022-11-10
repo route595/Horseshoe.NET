@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET.Odbc</RootNamespace>
+    <Description>A typesafe, object-oriented ADO.NET-based ODBC data access utility</Description>
+    <Authors>Carl Thomas</Authors>
+    <Company>Greenhazel Studio</Company>
+    <Version>2.0.4</Version>
+    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+    <AssemblyName>Horseshoe.NET.Odbc</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.Odbc" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
+  </ItemGroup>
+
+</Project>

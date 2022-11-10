@@ -1,0 +1,89 @@
+﻿@model WebIndexViewModel
+
+@{
+    ViewData["Title"] = "Web";
+}
+
+@section Styles {
+    <style type="text/css">
+
+        .test-table {
+            border: 2px solid black;
+            border-collapse: collapse;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+            .test-table td,
+            .test-table th {
+                padding: 0 3px;
+            }
+
+            .test-table .section-header {
+                background-color: #2f0664;
+                color: white;
+                font-size: 1.35em;
+            }
+    </style>
+}
+
+<div style="float: left">
+    @Html.ActionLink("Info alert", "DisplayInfoAlert")
+    <br />
+    @Html.ActionLink("Info alert (HTML) w/details", "DisplayInfoHtmlAlert")
+    <br />
+    @Html.ActionLink("Info alert (HTML encoded) w/details", "DisplayInfoHtmlEncodedAlert")
+    <br />
+    @Html.ActionLink("Error alert - closeable", "DisplayCloseableErrorAlert")
+</div>
+
+<div id="alert-area" style="float: left; padding: 20px; border: 2px solid black; margin-left: 30px; width: 700px;">
+    @if (Model.BootstrapAlert != null)
+    {
+        <partial name="_Bootstrap3Alert" for="BootstrapAlert" />
+    }
+</div>
+
+<div style="clear:both"></div>
+
+<h1>Web Tests</h1>
+
+<table class="test-table">
+    <tr>
+        <th class="section-header" colspan="2">Original Request Body Test</th>
+    </tr>
+    <tr>
+        <th>test:</th>
+        <td>
+            @using (Html.BeginForm("OriginalRequestBodyTest", "Web"))
+            {
+                <input name="intValue1" value="1" /><br />
+                <input name="textValue1" value="summer eve" /><br />
+                <button type="submit">submit</button>
+            }
+        </td>
+    </tr>
+    <tr>
+        <th>result:</th>
+        <td>
+            @(Html.Raw(Model.RequestBodyTestResult?.Replace(Environment.NewLine, "<br/>")))
+        </td>
+    </tr>
+</table>
+
+<table class="test-table">
+    <tr>
+        <th class="section-header">Assemblies</th>
+    </tr>
+    @{
+        var assemblyNames = Assemblies.ListAssemblyNames().OrderBy(an => an.FullName);
+        foreach (var name in assemblyNames)
+        {
+            <tr>
+                <td>
+                    @name
+                </td>
+            </tr>
+        }
+    }
+</table>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET.ActiveDirectory__netstandard2._0_</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+    <Company>Greenhazel Studio</Company>
+    <Authors>Carl Thomas</Authors>
+    <Version>2.0.4</Version>
+    <Description>Services for Active Directory authentication and LDAP querying</Description>
+    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <AssemblyName>Horseshoe.NET.ActiveDirectory</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.DirectoryServices" Version="6.0.0" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
+  </ItemGroup>
+
+</Project>

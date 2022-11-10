@@ -1,0 +1,3204 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Horseshoe.NET</name>
+    </assembly>
+    <members>
+        <member name="T:Horseshoe.NET.Application.AppMode">
+            <summary>
+            The execution environment in which this app is running e.g. Development, Test, Production, etc. 
+            May be assigned manually or in the configuration file.
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.Development">
+            <summary>
+            Applies mainly to active development efforts
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.Test">
+            <summary>
+            Internal (possibly informal) testing environment
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.IA">
+            <summary>
+            Information Assurance - security checks, vulnerability scanning, etc.
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.QA">
+            <summary>
+            Quality Assurance - internal formal testing environment
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.UAT">
+            <summary>
+            User Acceptance Testing - formal (possibly external) testing environment
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.Training">
+            <summary>
+            Training - separate from (but supposedly identical to) production with separate data
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Application.AppMode.Production">
+            <summary>
+            Production environment
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Application.ClientApp.AppType">
+            <summary>
+            Gets or sets the app type.  If not set it is derived based on criteria detected at runtime.
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Application.ClientApp.DetectAppType(System.Text.StringBuilder)">
+            <summary>
+            Used internally by this and other Horseshoe.NET utility assemblies
+            </summary>
+            <returns>bald</returns>
+        </member>
+        <member name="P:Horseshoe.NET.Application.ClientApp.AppMode">
+            <summary>
+            Gets or sets the application mode (e.g. Development, Test, Production...)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Application.ClientApp.GetIPAddress">
+            <summary>
+            Gets the IP address of the local machine
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Assemblies.List">
+            <summary>
+            Get all assemblies loaded by the client application
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Assemblies.Lookup(System.String,System.Boolean)">
+            <summary>
+            Find a loaded assembly by name
+            </summary>
+            <param name="name">e.g. "System.Web"</param>
+            <param name="ignoreCase"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Assemblies.ListAssemblyNames">
+            <summary>
+            Get all assembly names loaded by the client application
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Assemblies.Load(System.String,System.Boolean)">
+            <summary>
+            Load an assembly by supplying its full name
+            </summary>
+            <param name="fullName">e.g. "System.Web, Version=4.0.0.0"</param>
+            <param name="suppressErrors"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.BenignException">
+            <summary>
+            An exception that is caught promptly and quietly, client code is never aware.  Used for control flow and messaging between classes.
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy.Default">
+            <summary>
+            Render details "as is"
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy.EncodeHtml">
+            <summary>
+            Display HTML markup rather than honor it
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy.PreFormatted">
+            <summary>
+            Honor spaces and line breaks (useful for rendering exceptions)
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy.Hidden">
+            <summary>
+            Do not make viewable in the browser (force use of developer tools or the generated source code to view the message details)
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy.Preclude">
+            <summary>
+            Do not render exception details (default)
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy.Visible">
+            <summary>
+            Render exception details (recommendation: hide initially, click to toggle or show)
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy.Hidden">
+            <summary>
+            Render exception details to a nonvisible element only
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy.Dynamic">
+            <summary>
+            Render exception details only if in Development (see Horseshoe.NET AppMode), otherwise do not (requires configuration i.e. in app|web.config or appsettings.json set Horseshoe.NET:AppMode)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Pad``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
+            <summary>
+            Inflates an array to the desired target size by padding items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
+            <returns>The resized array</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Crop``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary)">
+            <summary>
+            Shrinks an array to the desired target size by removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <returns>The resized array</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Fit``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary,Horseshoe.NET.Collections.CollectionBoundary,``0)">
+            <summary>
+            Inflates or shrinks an array to the desired target size by padding or removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="cropBoundary">End (default) or Start</param>
+            <param name="padBoundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <returns>The resized array</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Combine``1(System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more collections into a single array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.CombineDistinct``1(System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more collections into a single array of distinct values
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.CombineDistinct``1(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more collections into a single array of distinct values
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="comparer">The compararer used to determine distinctness</param>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Append``1(``0[],``0[])">
+            <summary>
+            Appends zero or more items to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="items">Items to append, optional</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.AppendIf``1(System.Boolean,``0[],``0[])">
+            <summary>
+            Conditionally appends zero or more items to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="array">An array</param>
+            <param name="items">Items to append, optional</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.AppendIf``1(System.Func{``0,System.Boolean},``0[],``0[])">
+            <summary>
+            Conditionally appends zero or more items to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="array">An array</param>
+            <param name="items">Items to append, optional</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Append``1(``0[],System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.AppendIf``1(System.Boolean,``0[],System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="array">An array</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.AppendIf``1(System.Func{``0,System.Boolean},``0[],System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="array">An array</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.ReplaceAll``1(``0[],``0,``0)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <returns>The modified array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.ReplaceAll``1(``0[],``0,``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="comparer">An equality comparer</param>
+            <returns>The modified array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.Scoop``1(``0[]@,System.Int32,System.Int32)">
+            <summary>
+            Removes elements from an array returning a second array with the removed elements
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">A collection</param>
+            <param name="startIndex">Start index</param>
+            <param name="length">Length</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ArrayUtil.ScoopOffTheEnd``1(``0[]@,System.Int32)">
+            <summary>
+            Removes elements from the end of an array returning a second array with the removed elements
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">A collection</param>
+            <param name="length">Length</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ToList``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Creates a new <c>List&lt;T&gt;</c> from any collection
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="collection"></param>
+            <param name="canBeNull"></param>
+            <returns>A new <c>List&lt;T&gt;</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AsList``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="collection"></param>
+            <param name="canBeNull"></param>
+            <returns>A collection as a <c>List&lt;T&gt;</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Pad``1(System.Collections.Generic.IEnumerable{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean,System.Boolean)">
+            <summary>
+            Inflates a list to the desired target size by padding items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized collection</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Crop``1(System.Collections.Generic.IEnumerable{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,System.Boolean)">
+            <summary>
+            Shrinks a list to the desired target size by removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized collection</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Fit``1(System.Collections.Generic.IEnumerable{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
+            <summary>
+            Inflates or shrinks a list to the desired target size by padding or removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="cropBoundary">End (default) or Start</param>
+            <param name="padBoundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized collection</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Combine``1(System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more collections
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.CombineDistinct``1(System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more collections into a single list of distinct values
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.CombineDistinct``1(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more collections into a single list of distinct values
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="comparer">The compararer used to determine distinctness</param>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Append``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf``1(System.Boolean,System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf``1(System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Append``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf``1(System.Boolean,System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf``1(System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Append_KeepOrig``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf_KeepOrig``1(System.Boolean,System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf_KeepOrig``1(System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.Append_KeepOrig``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf_KeepOrig``1(System.Boolean,System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.AppendIf_KeepOrig``1(System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ReplaceAll``1(System.Collections.Generic.IEnumerable{``0},``0,``0,System.Boolean)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The modified collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ReplaceAll``1(System.Collections.Generic.IEnumerable{``0},``0,``0,System.Collections.Generic.IEqualityComparer{``0},System.Boolean)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="comparer">An equality comparer</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The modified collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAny``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="items">Items to search for (optional, returns <c>collection.Any()</c> if omitted)</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAny``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0},``0[])">
+            <summary>
+            Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="comparer">A comparer</param>
+            <param name="items">Items to search for (optional, returns <c>collection.Any()</c> if omitted)</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAnyIgnoreCase(System.Collections.Generic.IEnumerable{System.String},System.String[])">
+            <summary>
+            Tests a <c>string</c> collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, also returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection of <c>string</c></param>
+            <param name="items">Items to search for (optional, but returns <c>false</c> if omitted)</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAll``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <typeparam name="E">Type of item</typeparam>
+            <param name="collection">A collection to search</param>
+            <param name="items">Items to find</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAll``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to find</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAll``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to find</param>
+            <param name="comparer">An equality comparer</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.ContainsAllIgnoreCase(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Tests a <c>string</c> collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to find</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.IsIdentical``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Boolean,System.Boolean)">
+            <summary>
+            Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to compare</param>
+            <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
+            <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.IsIdentical``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0},System.Boolean,System.Boolean)">
+            <summary>
+            Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to compare</param>
+            <param name="comparer">An equality comparer</param>
+            <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
+            <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.CollectionUtil.IsIdenticalIgnoreCase(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},System.Boolean,System.Boolean)">
+            <summary>
+            Compares two <c>string</c> collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+            </summary>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to compare</param>
+            <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
+            <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.Extract``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1@)">
+            <summary>
+            Removes and returns a value from a dictionary, like <c>Array.pop()</c> in JavaScript
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A non-null dictionary</param>
+            <param name="key">The key to search</param>
+            <param name="item">The extracted item</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.Append``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="dictionariesToAppend">Dictionaries to append</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.Append``2(System.Func{``1,``1,``1},System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="mergeFunc">The function that merges left/right values when identical keys are encountered</param>
+            <param name="dictionary">A dictionary</param>
+            <param name="dictionariesToAppend">Dictionaries to append</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.AppendMergeLeftToRight``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Appends zero or more dictionaries to a bas, merges identical keys left-to-right (left-most replaces right-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="dictionariesToAppend">Dictionaries to append</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.Combine``2(System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionaries">Dictionaries to combine</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.Combine``2(System.Func{``1,``1,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys left-to-right (left-most replaces right-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="mergeFunc">The function that merges left/right values when identical keys are encountered</param>
+            <param name="dictionaries">Dictionaries to combine</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.DictionaryUtil.CombineMergeLeftToRight``2(System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys left-to-right (left-most replaces right-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionaries">Dictionaries to combine</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AsList``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="collection"></param>
+            <returns>A collection as a <c>List&lt;T&gt;</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Pad``1(System.Collections.Generic.IEnumerable{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean,System.Boolean)">
+            <summary>
+            Inflates a list to the desired target size by padding items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized collection</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Crop``1(System.Collections.Generic.IEnumerable{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,System.Boolean)">
+            <summary>
+            Shrinks a list to the desired target size by removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized collection</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Fit``1(System.Collections.Generic.IEnumerable{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
+            <summary>
+            Inflates or shrinks a list to the desired target size by padding or removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="cropBoundary">End (default) or Start</param>
+            <param name="padBoundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized collection</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.IEnumerable{``0},System.Boolean,``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="items">Items to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.IEnumerable{``0},System.Boolean,System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ReplaceAll``1(System.Collections.Generic.IEnumerable{``0},``0,``0)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <returns>The modified collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ReplaceAll``1(System.Collections.Generic.IEnumerable{``0},``0,``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="comparer">An equality comparer</param>
+            <returns>The modified collection</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAny``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="items">Items to search for (optional, returns <c>collection.Any()</c> if omitted)</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAny``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0},``0[])">
+            <summary>
+            Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="comparer">A comparer</param>
+            <param name="items">Items to search for (optional, returns <c>collection.Any()</c> if omitted)</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAnyIgnoreCase(System.Collections.Generic.IEnumerable{System.String},System.String[])">
+            <summary>
+            Tests a <c>string</c> collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, also returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection of <c>string</c></param>
+            <param name="items">Items to search for (optional, but returns <c>false</c> if omitted)</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAll``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection to search</param>
+            <param name="items">Items to find</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAll``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to find</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAll``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to find</param>
+            <param name="comparer">An equality comparer</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ContainsAllIgnoreCase(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Tests a <c>string</c> collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+            </summary>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to find</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.IsIdentical``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Boolean,System.Boolean)">
+            <summary>
+            Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to compare</param>
+            <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
+            <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.IsIdentical``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0},System.Boolean,System.Boolean)">
+            <summary>
+            Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to compare</param>
+            <param name="comparer">An equality comparer</param>
+            <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
+            <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.IsIdenticalIgnoreCase(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},System.Boolean,System.Boolean)">
+            <summary>
+            Compares two <c>string</c> collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+            </summary>
+            <param name="controlCollection">A collection to search</param>
+            <param name="compareCollection">A collection to compare</param>
+            <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
+            <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.IndexOf``1(System.Collections.Generic.IEnumerable{``0},``0)">
+            <summary>
+            Locates the index of an item in the collection
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="item">An item</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.LastIndexOf``1(System.Collections.Generic.IEnumerable{``0},``0)">
+            <summary>
+            Locates the last index of an item in the collection
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collection">A collection</param>
+            <param name="item">An item</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.StartsWith``1(System.Collections.Generic.IEnumerable{``0},``0)">
+            <summary>
+            Checks if the supplied item is the first of the collection
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="collection">A collection</param>
+            <param name="item">An item</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.In``1(``0,``0[])">
+            <summary>
+            Inspired by SQL, determines if an item is one of a supplied array of values
+            </summary>
+            <typeparam name="T">Type of collection</typeparam>
+            <param name="obj">The item to locate</param>
+            <param name="collection">The collection to search</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.In``1(``0,System.Collections.Generic.IEqualityComparer{``0},``0[])">
+            <summary>
+            Inspired by SQL, determines if an item is one of a supplied array of values
+            </summary>
+            <typeparam name="T">Type of collection</typeparam>
+            <param name="obj">The item to locate</param>
+            <param name="comparer">Optional, an equality comparer</param>
+            <param name="collection">The collection to search</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.In``1(``0,System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Inspired by SQL, determines if an item is found in a collection
+            </summary>
+            <typeparam name="T">Type of collection</typeparam>
+            <param name="obj">The item to locate</param>
+            <param name="collection">The collection to search</param>
+            <param name="comparer">Optional, an equality comparer</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.InIgnoreCase(System.String,System.String[])">
+            <summary>
+            Inspired by SQL, determines if a string is one of a supplied array of values (not case-sensitive)
+            </summary>
+            <param name="text">The string to locate</param>
+            <param name="collection">The string collection to search</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.InIgnoreCase(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Inspired by SQL, determines if a string is found in a collection (not case-sensitive)
+            </summary>
+            <param name="text">The string to locate</param>
+            <param name="collection">The string collection to search</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Render(System.Collections.Generic.IEnumerable{System.Object[]},System.String,System.String)">
+            <summary>
+            Renders a collection of arrays to a multiline string
+            </summary>
+            <param name="objectArrays">a collection of arrays</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Pad``1(System.Collections.Generic.List{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean,System.Boolean)">
+            <summary>
+            Inflates a list to the desired target size by padding items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized list</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Crop``1(System.Collections.Generic.List{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,System.Boolean)">
+            <summary>
+            Shrinks a list to the desired target size by removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized list</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Fit``1(System.Collections.Generic.List{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
+            <summary>
+            Inflates or shrinks a list to the desired target size by padding or removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="cropBoundary">End (default) or Start</param>
+            <param name="padBoundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized list</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``1(System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.List{``0},System.Boolean,``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.List{``0},System.Func{``0,System.Boolean},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``1(System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.List{``0},System.Boolean,System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(System.Collections.Generic.List{``0},System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ReplaceAll``1(System.Collections.Generic.List{``0},``0,``0,System.Boolean)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The modified list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ReplaceAll``1(System.Collections.Generic.List{``0},``0,``0,System.Collections.Generic.IEqualityComparer{``0},System.Boolean)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="comparer">An equality comparer</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The modified list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Pad``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
+            <summary>
+            Inflates an array to the desired target size by padding items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
+            <returns>The resized array</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Crop``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary)">
+            <summary>
+            Shrinks an array to the desired target size by removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <returns>The resized array</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Fit``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary,Horseshoe.NET.Collections.CollectionBoundary,``0)">
+            <summary>
+            Inflates or shrinks an array to the desired target size by padding or removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="cropBoundary">End (default) or Start</param>
+            <param name="padBoundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <returns>The resized array</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``1(``0[],``0[])">
+            <summary>
+            Appends zero or more items to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="items">Items to append, optional</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(``0[],System.Boolean,``0[])">
+            <summary>
+            Conditionally appends zero or more items to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="items">Items to append, optional</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(``0[],System.Func{``0,System.Boolean},``0[])">
+            <summary>
+            Conditionally appends zero or more items to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="items">Items to append, optional</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``1(``0[],System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(``0[],System.Boolean,System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendIf``1(``0[],System.Func{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to an array
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ReplaceAll``1(``0[],``0,``0)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <returns>The modified array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ReplaceAll``1(``0[],``0,``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="array">An array</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="comparer">An equality comparer</param>
+            <returns>The modified array</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Trim(System.String[])">
+            <summary>
+            Trims the items in a <c>string[]</c>
+            </summary>
+            <param name="array">A <c>string[]</c></param>
+            <returns>The original <c>string[]</c> with its items trimmed</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Zap(System.String[])">
+            <summary>
+            Zaps the items in a <c>string[]</c>
+            </summary>
+            <param name="array">A <c>string[]</c></param>
+            <returns>The original <c>string[]</c> with its items zapped</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ZapAndPrune(System.String[])">
+            <summary>
+            Zaps the items in a <c>string[]</c> and removes any <c>null</c>s
+            </summary>
+            <param name="array">A <c>string[]</c></param>
+            <returns>The original <c>string[]</c> with trimmed items if zapping resulted in zero <c>null</c>s, otherwise a new, shorter <c>string[]</c> with trimmed items</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Extract``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1@)">
+            <summary>
+            Removes and returns a value from a dictionary, like <c>Array.pop()</c> in JavaScript
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A non-null dictionary</param>
+            <param name="key">The key to search</param>
+            <param name="item">The extracted item</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="dictionariesToAppend">Dictionaries to append</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Append``2(System.Collections.Generic.IDictionary{``0,``1},System.Func{``1,``1,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="mergeFunc">The function that merges left/right values when identical keys are encountered</param>
+            <param name="dictionariesToAppend">Dictionaries to append</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AppendMergeLeftToRight``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IDictionary{``0,``1}[])">
+            <summary>
+            Appends zero or more dictionaries to a bas, merges identical keys left-to-right (left-most replaces right-most)
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="dictionariesToAppend">Dictionaries to append</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.StringDump``2(System.Collections.Generic.IDictionary{``0,``1},System.String,System.String)">
+            <summary>
+            Displays a dictionary's contents as a string
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="equals">Equality operator</param>
+            <param name="separator">Separator</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.StringDumpToGrid``2(System.Collections.Generic.IDictionary{``0,``1},Horseshoe.NET.Text.TextGrid.BorderPolicy)">
+            <summary>
+            Displays a dictionary's contents as a grid
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="borderPolicy">The border policy</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AddAll``2(System.Collections.Generic.IDictionary{``0,``1},System.Collections.Generic.IDictionary{``0,``1},System.Func{``1,``1,``1})">
+            <summary>
+            Adds all supplied key/value pairs to a dictionary, with merging
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="keyValuePairs">The key/value pairs to add</param>
+            <param name="mergeFunc">The function that merges left/right values when identical keys are encountered</param>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AddIfUnique``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1)">
+            <summary>
+            Adds a value to a dictionary only if the key does not already exist
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="key">A key</param>
+            <param name="value">A value</param>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AddOrReplace``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1)">
+            <summary>
+            Adds a value to a dictionary, if the key already exist the previous value is replaced
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <param name="key">A key</param>
+            <param name="value">A value</param>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.AsImmutable``2(System.Collections.Generic.IDictionary{``0,``1})">
+            <summary>
+            Creates an immutable version of a dictionary
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">A dictionary</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Trim(System.Collections.Generic.List{System.String})">
+            <summary>
+            Trims the items in a <c>List&lt;string&gt;</c>
+            </summary>
+            <param name="list">A <c>List&lt;string&gt;</c></param>
+            <returns>The original <c>List&lt;string&gt;</c> with its items trimmed</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.Zap(System.Collections.Generic.List{System.String})">
+            <summary>
+            Zaps the items in a <c>List&lt;string&gt;</c>
+            </summary>
+            <param name="list">A <c>List&lt;string&gt;</c></param>
+            <returns>The original <c>List&lt;string&gt;</c> with its items zapped</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.Extensions.ZapAndPrune(System.Collections.Generic.List{System.String})">
+            <summary>
+            Zaps the items in a <c>List&lt;string&gt;</c> and removes any <c>null</c>s
+            </summary>
+            <param name="list">A <c>List&lt;string&gt;</c></param>
+            <returns>The original <c>List&lt;string&gt;</c> with trimmed items minus <c>null</c>s</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Pad``1(System.Collections.Generic.List{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean,System.Boolean)">
+            <summary>
+            Inflates a list to the desired target size by padding items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized list</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Crop``1(System.Collections.Generic.List{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,System.Boolean)">
+            <summary>
+            Shrinks a list to the desired target size by removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="boundary">End (default) or Start</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized list</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Fit``1(System.Collections.Generic.List{``0},System.Int32,Horseshoe.NET.Collections.CollectionBoundary,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
+            <summary>
+            Inflates or shrinks a list to the desired target size by padding or removing items at the indicated boundary
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="targetSize">The desired size of the list after padding</param>
+            <param name="cropBoundary">End (default) or Start</param>
+            <param name="padBoundary">End (default) or Start</param>
+            <param name="padWith">Item to use for padding</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The resized list</returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Combine``1(System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more lists
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.CombineDistinct``1(System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more lists into a single list of distinct values
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.CombineDistinct``1(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Combines zero or more lists into a single list of distinct values
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="comparer">The compararer used to determine distinctness</param>
+            <param name="collections">Collections to combine</param>
+            <returns>The combined list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Append``1(System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf``1(System.Boolean,System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf``1(System.Func{``0,System.Boolean},System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Append``1(System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf``1(System.Boolean,System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf``1(System.Func{``0,System.Boolean},System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Append_KeepOrig``1(System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf_KeepOrig``1(System.Boolean,System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf_KeepOrig``1(System.Func{``0,System.Boolean},System.Collections.Generic.List{``0},``0[])">
+            <summary>
+            Conditionally appends zero or more items to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="items">Items to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.Append_KeepOrig``1(System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf_KeepOrig``1(System.Boolean,System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition"><c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.AppendIf_KeepOrig``1(System.Func{``0,System.Boolean},System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0}[])">
+            <summary>
+            Conditionally appends zero or more collections to a list
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+            <param name="list">A list</param>
+            <param name="collections">Collections to append</param>
+            <returns>The appended list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.ReplaceAll``1(System.Collections.Generic.List{``0},``0,``0,System.Boolean)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The modified list</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Collections.ListUtil.ReplaceAll``1(System.Collections.Generic.List{``0},``0,``0,System.Collections.Generic.IEqualityComparer{``0},System.Boolean)">
+            <summary>
+            Replace each occurrance of <c>item</c> with <c>replacement</c>
+            </summary>
+            <typeparam name="T">Type of item</typeparam>
+            <param name="list">A list</param>
+            <param name="item">An item to replace</param>
+            <param name="replacement">The replacement item</param>
+            <param name="comparer">An equality comparer</param>
+            <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
+            <returns>The modified list</returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.Get(System.String)">
+            <summary>
+            Gets a configuration value
+            </summary>
+            <param name="key">configuration key</param>
+            <returns>configuration value</returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.Get``1(System.String,System.Func{System.String,``0})">
+            <summary>
+            Gets a configuration value as an instance of the specified type.  By default, the 
+            configuration value will be assumed to be a class name and an object of that type
+            will be created.  Alternatively, the value can be an object representation.  To 
+            hydrate an object representation into an instance you need to supply a <c>parseFunc</c>.
+            </summary>
+            <typeparam name="T">reference type</typeparam>
+            <param name="key">configuration key</param>
+            <param name="parseFunc">parsing function</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetNByte(System.String,System.Nullable{System.Globalization.NumberStyles},System.IFormatProvider)">
+            <summary>
+            Gets a configuration value as a <c>Nullable byte</c>.  This method understands value decorations (i.e. "2f[hex]").
+            </summary>
+            <param name="key">configuration key</param>
+            <param name="numberStyles">if supplied, dictates the expected number format</param>
+            <param name="provider">if supplied, dictates the expected number format provider</param>
+            <returns>a <c>Nullable byte</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetBytes(System.String,System.Text.Encoding)">
+            <summary>
+            Gets a configuration value as a <c>byte[]</c>.
+            </summary>
+            <param name="key">configuration key</param>
+            <param name="encoding">if supplied, dictates the expected byte encoding</param>
+            <returns>a <c>byte[]</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetNInt(System.String,System.Nullable{System.Globalization.NumberStyles},System.IFormatProvider)">
+            <summary>
+            Gets a configuration value as a <c>Nullable int</c>.  This method understands value decorations (i.e. "2f[hex]").
+            </summary>
+            <param name="key">configuration key</param>
+            <param name="numberStyles">if supplied, dictates the expected number format</param>
+            <param name="provider">if supplied, dictates the expected number format provider</param>
+            <returns>a <c>Nullable int</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetBool(System.String,System.Boolean)">
+            <summary>
+            Gets a configuration value as a <c>bool</c>.
+            </summary>
+            <param name="key">configuration key</param>
+            <param name="defaultValue">returns this value if <c>required == false</c> and configuration value is not found, default is <c>false</c></param>
+            <returns>a <c>bool</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetNBool(System.String)">
+            <summary>
+            Gets a configuration value as a <c>Nullable bool</c>.
+            </summary>
+            <param name="key">configuration key</param>
+            <returns>a <c>Nullable bool</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetNEnum``1(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Gets a configuration value as a <c>Nullable enum</c>.
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <param name="key">configuration key</param>
+            <param name="ignoreCase"></param>
+            <param name="suppressErrors">if true, ignores errors related to converting to <c>enum</c> and returns the default</param>
+            <returns>a <c>Nullable enum</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET._Config.GetConnectionString(System.String)">
+            <summary>
+            Gets a configured connection string
+            </summary>
+            <param name="name">connection string name</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.ConsoleXApp.StartConsoleApp(Horseshoe.NET.ConsoleX.ConsoleXApp)">
+            <summary>
+            Starts the menu automation, requires <c>MainMenu</c> to be overridden
+            </summary>
+            <param name="app">A ConsoleApp instance</param>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.ConsoleXApp.StartConsoleApp``1">
+            <summary>
+            Starts the menu automation, requires <c>MainMenu</c> to be overridden
+            </summary>
+            <typeparam name="T">Type of the startup class (usually located in Program.cs)</typeparam>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.LoopMode">
+            <summary>
+            Set the loop mode (i.e. 'Continuous', 'ClearScreen'), default is 'Continuous'
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.Looping">
+            <summary>
+            Displays whether looping is on (i.e. LoopMode = 'Continuous' or 'ClearScreen')
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.WelcomeMessage">
+            <summary>
+            String or array of strings to display at app startup
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.MainMenuTitle">
+            <summary>
+            The title to display above the main menu, if applicable
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.MainMenu">
+            <summary>
+            Collection of initial routines to choose from at app startup
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.MainMenuColumns">
+            <summary>
+            The number of columns in which to render the main menu
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.ConfigureTextGrid">
+            <summary>
+            A mechanism for configuring the menu's rendering <c>TextGrid</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.ConsoleXApp.ConfigureMainMenuRoutines">
+            <summary>
+            Creates a configuration for main menu routines
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.ConsoleXApp.Run">
+            <summary>
+            Override this for a non-interactive console app expereience
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.ConsoleXApp.BuildMainMenuRoutine(System.String,System.Action,System.Action{Horseshoe.NET.ConsoleX.RoutineX},System.Action{System.Exception})">
+            <summary>
+            Build a non-interactive <c>Routine</c> as an item for the main menu
+            </summary>
+            <param name="text">A title</param>
+            <param name="action">The action to execute when this routine is run</param>
+            <param name="configure">An action to custom configure the this routine</param>
+            <param name="onError">An action to custom handle uncaught exceptions</param>
+            <returns>A <c>Routine</c> instance</returns>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.ConsoleXApp.FindMainMenuRoutines(System.String[])">
+            <summary>
+            Search the calling assembly for subclasses of RoutineX and instantiate them into a menu list in alpha order
+            </summary>
+            <param name="namespaceToMatch">Select routines only in this namespace, if provided</param>
+            <returns></returns>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuObject.Text">
+            <summary>
+            The text to be displayed in a menu or <c>Routine</c> banner
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedItem">
+            <summary>
+            The selected menu item (the actual object), otherwise null if arbitary input was allowed and has been input by the user.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedIndex">
+            <summary>
+            The 1-based index of the selected menu item, if 0 then arbitrary text was entered or multiple indexes were selected 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.MultipleSelection">
+            <summary>
+            The storage container for multiple results
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedIndices">
+            <summary>
+            The 1-based indices of the selected menu items. 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedSourceIndices">
+            <summary>
+            The 0-based indices of the selected menu items. 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedItems">
+            <summary>
+            The selected menu items (the actual objects).
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedAll">
+            <summary>
+            True if 'All' was entered at the prompt for a multi-select menu, false otherwise.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.SelectedRoutine">
+            <summary>
+            Returns the selected <c>Routine</c> (custom menu item or menu item)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.ArbitraryInput">
+            <summary>
+            Arbitrary input if allowed and has been input by the user.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.MenuSelection`1.CustomMenuItem">
+            <summary>
+            The custom routine selected by the user via <c>Routine.Command</c>.
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.Plugins.FileSystemNavigator.NormalizeDirectoryPath(System.String)">
+            <summary>
+            Ensures a path does not end in a path separator (except root paths)
+            </summary>
+            <param name="path"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.AltBannerText">
+            <summary>
+            An alternate banner for this routine (except if non-interactive)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.MenuTitle">
+            <summary>
+            A title assigned to the built-in menu
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.Menu">
+            <summary>
+            A built-in menu to display when this routine is run provided it has no <c>Action</c> (one or the other is required)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.MenuColumns">
+            <summary>
+            The number of columns in which to render the menu
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.ConfigureTextGrid">
+            <summary>
+            A mechanism for configuring the menu's rendering <c>TextGrid</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.CustomMenuItemsToPrepend">
+            <summary>
+            Custom menu items to prepend
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.CustomMenuItemsToAppend">
+            <summary>
+            Custom menu items to append
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.Command">
+            <summary>
+            The command to trigger custom menu items (routines)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.Action">
+            <summary>
+            The code to execute when then routine is run, if not implemented the <c>Menu</c> is triggered instead (one or the other is required)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.AutoAppendExitRoutineMenuItem">
+            <summary>
+            If <c>true</c>, adds a menu item for exiting the routine to the built-in menu, defaults to <c>AutoAppendExitRoutineMenuItemByDefault</c> which defaults to <c>false</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.AutoAppendRestartRoutineMenuItem">
+            <summary>
+            If <c>true</c>, adds a menu item for restarting the routine to the built-in menu
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnError">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnMenuSelecting">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnMenuSelection">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnRoutineAutoRunComplete">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnBeforeNextIteration">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnRoutineRestarting">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnRoutineExiting">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ConsoleX.RoutineX.OnRoutineEnded">
+            <summary>
+            An event to hook into
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.RoutineX.Run">
+            <summary>
+            Override Run() to implement a non-interactive routine
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.RoutineX.BuildMenuRoutine(System.String,System.Action,System.Action{Horseshoe.NET.ConsoleX.RoutineX},System.Action{System.Exception})">
+            <summary>
+            Build a non-interactive <c>Routine</c> as an item for a menu
+            </summary>
+            <param name="text">A title</param>
+            <param name="action">The action to execute when this routine is run</param>
+            <param name="configure">An action to custom configure this routine</param>
+            <param name="onError">An action to custom handle uncaught exceptions</param>
+            <returns>A <c>Routine</c> instance</returns>
+        </member>
+        <member name="M:Horseshoe.NET.ConsoleX.RoutineX.BuildCustomRoutine(System.String,System.Action,System.String,System.Action{Horseshoe.NET.ConsoleX.RoutineX})">
+            <summary>
+            Build a custom, non-interactive <c>Routine</c>
+            </summary>
+            <param name="text">A title</param>
+            <param name="action">The action to execute when this routine is run</param>
+            <param name="command">The text to type to activate this routine</param>
+            <param name="configure">An action to custom configure the this routine</param>
+            <returns>A <c>Routine</c> instance</returns>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.Algorithm">
+            <summary>
+            The desired encryption / decryption algorithm
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.Key">
+            <summary>
+            The encryption key
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.KeyText">
+            <summary>
+            The encryption key in text format
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.IV">
+            <summary>
+            The encryption key
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.IVText">
+            <summary>
+            The encryption key in text format
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.BlockSize">
+            <summary>
+            Block size in bits (e.g. 128 aka 16 bytes)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.Mode">
+            <summary>
+            See <c>System.Security.Cryptography.PaddingMode</c>.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.Padding">
+            <summary>
+            See <c>System.Security.Cryptography.PaddingMode</c>.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoOptions.UseEmbeddedKIV">
+            <summary>
+            Generates a random key and IV and appends them to the encryption, then extracts them prior to decrypting 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoSettings.DefaultSymmetricAlgorithm">
+            <summary>
+            Gets or sets the default symmetric algorithm used by Cryptography.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Crypto:SymmetricAlgorithm and OrganizationalDefaultSettings: key = Cryptography.SymmetricAlgorithm)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoSettings.DefaultHashAlgorithm">
+            <summary>
+            Gets or sets the default hash algorithm used by Cryptography.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Crypto:HashAlgorithm and OrganizationalDefaultSettings: key = Cryptography.HashAlgorithm)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoSettings.DefaultHashSalt">
+            <summary>
+            Gets or sets the default hash salt used by Cryptography.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Crypto:HashSalt and OrganizationalDefaultSettings: key = Cryptography.HashSalt)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Crypto.CryptoSettings.DefaultEncoding">
+            <summary>
+            Gets or sets the text encoding used by Cryptography. Defaults to UTF8Encoding. Note: Override by passing directly to a Cryptography function or via config file: key = "Horseshoe.NET:Crypto:Encoding"
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.DataImport.DataImport.DataErrors">
+            <summary>
+            Populated once a method such as <c>ExportToObjectArrays()</c> has executed
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.DataImport.#ctor">
+            <summary>
+            Creates a <c>DataImport</c> instance
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.DataImport.#ctor(System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean)">
+            <summary>
+            Creates a <c>DataImport</c> instance
+            </summary>
+            <param name="columns">a collection of columns</param>
+            <param name="enforceColumnCount">if <c>true</c> produces table-shaped data as well as unlocks methods such as <c>ExportAsObjects()</c></param>
+        </member>
+        <member name="P:Horseshoe.NET.DataImport.Column.Parser">
+            <summary>
+            How <c>object</c>s associated with this column are parsed from text
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.DataImport.Column.Converter">
+            <summary>
+            How <c>object</c>s associated with this column are converted from another <c>object</c>. 
+            Applies object-direct imports such as from Excel.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.DataImport.Column.Formatter">
+            <summary>
+            How <c>object</c>s associated with this column should be formtted
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.DataImport.ImportData">
+            <summary>
+            Import data from text or from a file
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.DataImport.ImportData.DelimitedText">
+            <summary>
+            Contains methods for importing delimited data
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedText.AsStrings(System.String,System.Char[],System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedText.AsStrings(System.String,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text using column metadata and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="columns"></param>
+            <param name="enforceColumnCount"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedText.AsObjects(System.String,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text using column metadata and returns it as <c>object[]</c>s to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="columns"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedText.AsDataImport(System.String,System.Char[],System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedText.AsDataImport(System.String,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="columns"></param>
+            <param name="enforceColumnCount"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile">
+            <summary>
+            Contains methods for importing delimited data files such as CSV
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsStrings(Horseshoe.NET.IO.FilePath,System.Char[],System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsStringsAsync(Horseshoe.NET.IO.FilePath,System.Char[],System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsStrings(Horseshoe.NET.IO.FilePath,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file using column metadata and returns returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="enforceColumnCount"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsStringsAsync(Horseshoe.NET.IO.FilePath,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file using column metadata and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="enforceColumnCount"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsObjects(Horseshoe.NET.IO.FilePath,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file using column metadata and returns returns it as <c>object[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsObjectsAsync(Horseshoe.NET.IO.FilePath,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file using column metadata and returns it as <c>object[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsDataImport(Horseshoe.NET.IO.FilePath,System.Char[],System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsDataImportAsync(Horseshoe.NET.IO.FilePath,System.Char[],System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsDataImport(Horseshoe.NET.IO.FilePath,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="enforceColumnCount"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.DelimitedTextFile.AsDataImportAsync(Horseshoe.NET.IO.FilePath,System.Char[],System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports delimited text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="enforceColumnCount"></param>
+            <param name="delimiters"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.DataImport.ImportData.FixedWidthText">
+            <summary>
+            Contains methods for importing fixed-with data
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthText.AsStrings(System.String,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text using column metadata and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthText.AsObjects(System.String,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text using column metadata and returns it as <c>object[]</c>s to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthText.AsDataImport(System.String,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="rawData"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile">
+            <summary>
+            Contains methods for importing fixed-with data files
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile.AsStrings(Horseshoe.NET.IO.FilePath,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text file using column metadata and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile.AsStringsAsync(Horseshoe.NET.IO.FilePath,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text file using column metadata and returns it as <c>string[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile.AsObjects(Horseshoe.NET.IO.FilePath,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text file using column metadata and returns it as <c>object[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile.AsObjectsAsync(Horseshoe.NET.IO.FilePath,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text file using column metadata and returns it as <c>object[]</c>s to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile.AsDataImport(Horseshoe.NET.IO.FilePath,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DataImport.ImportData.FixedWidthTextFile.AsDataImportAsync(Horseshoe.NET.IO.FilePath,System.Collections.Generic.IEnumerable{Horseshoe.NET.DataImport.Column},System.Boolean,Horseshoe.NET.DataImport.BlankRowPolicy,Horseshoe.NET.DataImport.DataErrorHandlingPolicy,Horseshoe.NET.Text.AutoTruncate,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Imports fixed-width text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            </summary>
+            <param name="file"></param>
+            <param name="columns"></param>
+            <param name="hasHeaderRow"></param>
+            <param name="blankRowPolicy"></param>
+            <param name="errorHandlingPolicy"></param>
+            <param name="autoTrunc"></param>
+            <param name="journal"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.DateAndTime.Extensions.GetAge(System.DateTime,System.Nullable{System.DateTime},System.Int32)">
+            <summary>
+            Calculates age using an advancing month/year algorithm
+            </summary>
+            <param name="from">A from date</param>
+            <param name="to">A to date</param>
+            <param name="decimals">How many decimal places to display</param>
+            <returns>A <c>YearSpan</c> instance</returns>
+        </member>
+        <member name="M:Horseshoe.NET.DateAndTime.Extensions.GetAgeInYears(System.DateTime,System.Nullable{System.DateTime})">
+            <summary>
+            
+            </summary>
+            <param name="from"></param>
+            <param name="to"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.DateAndTime.YearSpan">
+            <summary>
+            A complement to the <c>TimeSpan</c> that includes months and years
+            </summary>
+            <seealso cref="T:System.TimeSpan"/>
+        </member>
+        <member name="M:Horseshoe.NET.DateAndTime.YearSpan.CalculateDaysInMonth(System.DateTime,System.DateTime,System.TimeSpan)">
+            <summary>
+            Gets a weighted, fractional number of days "per month" for smoother decimal month calculations. 
+            </summary>
+            <param name="from">From date</param>
+            <param name="to">To date</param>
+            <param name="daysTimeSpan">Time span</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Db.DbUtil.Sqlize(System.Object,System.Nullable{Horseshoe.NET.Db.DbPlatform})">
+            <summary>
+            Prepare an object for insertion into a SQL statement
+            </summary>
+            <param name="obj">An object</param>
+            <param name="platform">A vendor-specific DB platform</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Db.Extensions.GetFieldTypes(System.Data.IDataReader)">
+            <summary>
+            Gets an array of <c>Type</c>s corresponding to the runtype types of the source query's data columns
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Db.Extensions.GetDataColumns(System.Data.IDataReader)">
+            <summary>
+            Derives an array of <c>DataColumn</c>s approximating the structure of these results adapted to a <c>DataTable</c>
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.Db.ScalarReaderParser">
+            <summary>
+            A set of basic data-to-collection converters that you can plug into any of the <c>Query.AsCollection()</c> family of functions.
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.String">
+            <summary>
+            Convert the first field of a data row to <c>string</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.Int">
+            <summary>
+            Convert the first field of a data row to <c>int</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.NInt">
+            <summary>
+            Convert the first field of a data row to <c>nullable int</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.Decimal">
+            <summary>
+            Convert the first field of a data row to <c>decimal</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.NDecimal">
+            <summary>
+            Convert the first field of a data row to <c>nullable decimal</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.DateTime">
+            <summary>
+            Convert the first field of a data row to <c>DateTime</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Db.ScalarReaderParser.NDateTime">
+            <summary>
+            Convert the first field of a data row to <c>nullable DateTime</c>
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.Has(System.String)">
+            <summary>
+            Tests if an environment variable exists
+            </summary>
+            <param name="varName">environment variable name</param>
+            <returns>bool</returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.Get(System.String,System.Boolean)">
+            <summary>
+            Gets an environment variable
+            </summary>
+            <param name="varName">enfironment variable name</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <returns>string or null</returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.Get``1(System.String,System.Func{System.String,``0},System.Boolean)">
+            <summary>
+            Gets an environment variable as an instance of the specified type.  By default, the 
+            environment variable will be assumed to be a class name and an object of that type
+            will be created.  Alternatively, the value can be an object representation.  To 
+            hydrate an object representation into an instance you need to supply a <c>parseFunc</c>.
+            </summary>
+            <typeparam name="T">reference type</typeparam>
+            <param name="varName">environment variable name</param>
+            <param name="parseFunc">parsing function</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetByte(System.String,System.Byte,System.Boolean,System.Nullable{System.Globalization.NumberStyles},System.IFormatProvider)">
+            <summary>
+            Gets an environment variable as a <c>byte</c>.  This method understands value decorations (i.e. "2f[hex]").
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="defaultValue">returns this value if <c>required == false</c> and environment variable is not found, default is 0</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="numberStyles">if supplied, dictates the expected number format</param>
+            <param name="provider">if supplied, dictates the expected number format provider</param>
+            <returns>a <c>byte</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetNByte(System.String,System.Boolean,System.Nullable{System.Globalization.NumberStyles},System.IFormatProvider)">
+            <summary>
+            Gets an environment variable as a <c>Nullable byte</c>.  This method understands value decorations (i.e. "2f[hex]").
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="numberStyles">if supplied, dictates the expected number format</param>
+            <param name="provider">if supplied, dictates the expected number format provider</param>
+            <returns>a <c>Nullable byte</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetBytes(System.String,System.Boolean,System.Text.Encoding)">
+            <summary>
+            Gets an environment variable as a <c>byte[]</c>.
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="encoding">if supplied, dictates the expected byte encoding</param>
+            <returns>a <c>byte[]</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetInt(System.String,System.Int32,System.Boolean,System.Nullable{System.Globalization.NumberStyles},System.IFormatProvider)">
+            <summary>
+            Gets an environment variable as an <c>int</c>.  This method understands value decorations (i.e. "2f[hex]").
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="defaultValue">returns this value if <c>required == false</c> and environment variable is not found, default is 0</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="numberStyles">if supplied, dictates the expected number format</param>
+            <param name="provider">if supplied, dictates the expected number format provider</param>
+            <returns>an <c>int</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetNInt(System.String,System.Boolean,System.Nullable{System.Globalization.NumberStyles},System.IFormatProvider)">
+            <summary>
+            Gets an environment variable as a <c>Nullable int</c>.  This method understands value decorations (i.e. "2f[hex]").
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="numberStyles">if supplied, dictates the expected number format</param>
+            <param name="provider">if supplied, dictates the expected number format provider</param>
+            <returns>a <c>Nullable int</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetBool(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Gets an environment variable as a <c>bool</c>.
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="defaultValue">returns this value if <c>required == false</c> and environment variable is not found, default is <c>false</c></param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <returns>a <c>bool</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetNBool(System.String,System.Boolean)">
+            <summary>
+            Gets an environment variable as a <c>Nullable bool</c>.
+            </summary>
+            <param name="varName">environment variable name</param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <returns>a <c>Nullable bool</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetEnum``1(System.String,``0,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Gets an environment variable as an <c>enum</c>.
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <param name="varName">environment variable name</param>
+            <param name="defaultValue">returns this value if <c>required == false</c> and environment variable is not found, or if <c>suppressErrors == true</c> and a conversion error occurs</param>
+            <param name="ignoreCase"></param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="suppressErrors">if true, ignores errors related to converting to <c>enum</c> and returns the default</param>
+            <returns>an <c>enum</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.EnvVar.GetNEnum``1(System.String,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Gets an environment variable as a <c>Nullable enum</c>.
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <param name="varName">environment variable name</param>
+            <param name="ignoreCase"></param>
+            <param name="required">if true, throws error if environment variable not found</param>
+            <param name="suppressErrors">if true, ignores errors related to converting to <c>enum</c> and returns the default</param>
+            <returns>a <c>Nullable enum</c></returns>
+        </member>
+        <member name="T:Horseshoe.NET.ExceptionTypeRenderingPolicy">
+            <summary>
+            A basic <c>Exception</c> descriptor class suitable for JSON serialization
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Iterator.Memory.Extensions.Iterate``1(System.ReadOnlySpan{``0},System.Action{``0,Horseshoe.NET.Iterator.ControlInterface})">
+            <summary>
+            Iterates over a span. <c>ControlInterface ci</c> contains properties and methods for interacting with the iterator.
+            </summary>
+            <typeparam name="T">Type of items</typeparam>
+            <param name="span">A span</param>
+            <param name="action">Action to perform on each iteration</param>
+        </member>
+        <member name="M:Horseshoe.NET.Iterator.Memory.Extensions.ReverseIterate``1(System.ReadOnlySpan{``0},System.Action{``0,Horseshoe.NET.Iterator.ControlInterface})">
+            <summary>
+            Iterates backwards over a span. <c>ControlInterface ci</c> contains properties and methods for interacting with the iterator.
+            </summary>
+            <typeparam name="T">Type of items</typeparam>
+            <param name="span">A span</param>
+            <param name="action">Action to perform on each iteration</param>
+        </member>
+        <member name="M:Horseshoe.NET.Iterator.Extensions.Iterate``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0,Horseshoe.NET.Iterator.ControlInterface})">
+            <summary>
+            Iterates over a collection. <c>ControlInterface ci</c> contains properties and methods for interacting with the iterator.
+            controls for breaking and continuing.
+            </summary>
+            <typeparam name="T">Type of items</typeparam>
+            <param name="collection">A collection</param>
+            <param name="action">Action to perform on each iteration</param>
+        </member>
+        <member name="M:Horseshoe.NET.Iterator.Extensions.ReverseIterate``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0,Horseshoe.NET.Iterator.ControlInterface})">
+            <summary>
+            Iterates backwards over a collection. <c>ControlInterface ci</c> contains properties and methods for interacting with the iterator.
+            controls for breaking and continuing.
+            </summary>
+            <typeparam name="T">Type of items</typeparam>
+            <param name="collection">A collection</param>
+            <param name="action">Action to perform on each iteration</param>
+        </member>
+        <member name="M:Horseshoe.NET.Iterator.ControlInterface.Exit">
+            <summary>
+            Exit iteration
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Iterator.ControlInterface.Next">
+            <summary>
+            Jump to next iteration
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.ExceptionInfo">
+            <summary>
+            A basic <c>Exception</c> descriptor class suitable for JSON serialization
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.FullType">
+            <summary>
+            The fully qualified class name of the original exception
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.Type">
+            <summary>
+            The class name of the original exception
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.Message">
+            <summary>
+            The message copied over from the original exception
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.StackTrace">
+            <summary>
+            The stack trace copied over from the original exception
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.InnerException">
+            <summary>
+            Inner exception(s) (in the form of ExceptionInfo) copied over from the original exception 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.DateTime">
+            <summary>
+            When the exception occurred (approx.) or, more specifically, when this instance of <c>ExceptionInfo</c> was created from <c>Exception</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.ExceptionInfo.MachineName">
+            <summary>
+            Where the exception occurred, e.g. remote web server
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.ExceptionInfo.From(System.Exception)">
+            <summary>
+            Creates a recursive instance of <c>ExceptionInfo</c> from an exception and all of its inner exceptions
+            </summary>
+            <param name="ex">And exception</param>
+            <returns>An <c>ExceptionInfo</c> instance</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.GetDisplayName(System.Reflection.Assembly,System.Int32)">
+            <summary>
+            Display an assembly name and version
+            </summary>
+            <param name="assembly">An assembly</param>
+            <param name="minDepth">A value between 1 and 4 determining how many 0's to display</param>
+            <returns>Display name</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.GetDisplayName(System.Reflection.AssemblyName,System.Int32)">
+            <summary>
+            Display an assembly name and version
+            </summary>
+            <param name="assemblyName">An assembly name</param>
+            <param name="minDepth">A value between 1 and 4 determining how many 0's to display</param>
+            <returns>Display name</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.GetDisplayVersion(System.Reflection.Assembly,System.Int32)">
+            <summary>
+            Display an assembly version
+            </summary>
+            <param name="assembly">An assembly</param>
+            <param name="minDepth">A value between 1 and 4 determining how many 0's to display</param>
+            <returns>Display version</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.GetDisplayVersion(System.Reflection.AssemblyName,System.Int32)">
+            <summary>
+            Display an assembly version
+            </summary>
+            <param name="assemblyName">An assembly name</param>
+            <param name="minDepth">A value between 1 and 4 determining how many 0's to display</param>
+            <returns>Display version</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.Display(System.Version,System.Int32)">
+            <summary>
+            Display an assembly version
+            </summary>
+            <param name="version">An assembly version</param>
+            <param name="minDepth">A value between 1 and 4 determining how many 0's to display</param>
+            <returns>Display version</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.Render(System.Exception,Horseshoe.NET.ExceptionTypeRenderingPolicy,System.Boolean,System.Boolean,System.Boolean,System.Int32,System.Boolean)">
+            <summary>
+            Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
+            </summary>
+            <param name="exception">An exception</param>
+            <param name="typeRendering">If <c>true</c> use the fully qualified type name (default is <c>false</c>)</param>
+            <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
+            <param name="indent">Number of spaces to indent detail lines in the output</param>
+            <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
+            <returns>Console-formatted exception dump</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.Render(Horseshoe.NET.ExceptionInfo,Horseshoe.NET.ExceptionTypeRenderingPolicy,System.Boolean,System.Boolean,System.Boolean,System.Int32,System.Boolean)">
+            <summary>
+            Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
+            </summary>
+            <param name="exceptionInfo">An exception info</param>
+            <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+            <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
+            <param name="indent">Number of spaces to indent detail lines in the output</param>
+            <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
+            <returns>Console-formatted exception dump</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.RenderMessage(System.Exception,Horseshoe.NET.ExceptionTypeRenderingPolicy)">
+            <summary>
+            Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
+            </summary>
+            <param name="exception">An exception</param>
+            <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+            <returns>Console-formatted exception dump</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.RenderMessage(Horseshoe.NET.ExceptionInfo,Horseshoe.NET.ExceptionTypeRenderingPolicy)">
+            <summary>
+            Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
+            </summary>
+            <param name="exceptionInfo">An exception</param>
+            <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+            <returns>Console-formatted exception dump</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.RenderHtml(System.Exception,Horseshoe.NET.ExceptionTypeRenderingPolicy,System.Boolean,System.Boolean,System.Boolean,System.Int32,System.Boolean)">
+            <summary>
+            Prepares an exception for viewing in a web browser
+            </summary>
+            <param name="exception">An exception</param>
+            <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+            <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
+            <param name="indent">Number of spaces to indent detail lines in the output</param>
+            <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
+            <returns>HTML-formatted exception dump</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Extensions.RenderHtml(Horseshoe.NET.ExceptionInfo,Horseshoe.NET.ExceptionTypeRenderingPolicy,System.Boolean,System.Boolean,System.Boolean,System.Int32,System.Boolean)">
+            <summary>
+            Prepares an exception for viewing in a web browser
+            </summary>
+            <param name="exceptionInfo">An exception</param>
+            <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+            <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
+            <param name="indent">Number of spaces to indent detail lines in the output</param>
+            <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
+            <returns>HTML-formatted exception dump</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Email.Sms.Carrier">
+            <summary>
+            Known mobile carriers with email-to-SMS text messaging
+            </summary>
+            <remarks>
+            Source: http://acme.highpoint.edu/~msetzler/IntroPSC/introReads/hacknmod.com%20-%20email-to-text-messages-for-att-verizon.pdf
+            </remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Email.Sms.SmsSettings.DefaultFrom">
+            <summary>
+            Gets or sets the default sender address used by SMS.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Sms:From and OrganizationalDefaultSettings: key = Sms.From)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Email.EmailSettings.DefaultSmtpServer">
+            <summary>
+            Gets or sets the default SMTP server used by PlainEmail and HtmlEmail.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Email:SmtpServer and OrganizationalDefaultSettings: key = Email.SmtpServer)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Email.EmailSettings.DefaultPort">
+            <summary>
+            Gets or sets the default SMTP port used by PlainEmail and HtmlEmail.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Email:SmtpPort and OrganizationalDefaultSettings: key = Email.SmtpPort)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Email.EmailSettings.DefaultEnableSsl">
+            <summary>
+            Gets or sets the SSL setting used by PlainEmail and HtmlEmail.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Email:SmtpEnableSsl and OrganizationalDefaultSettings: key = Email.SmtpEnableSsl)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Email.EmailSettings.DefaultCredentials">
+            <summary>
+            Gets or sets the default SMTP login credentials used by PlainEmail and HtmlEmail.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Email:SmtpUserName|Password|IsEncryptedPassword|Domain and OrganizationalDefaultSettings: key = Email.SmtpCredentials)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Email.EmailSettings.DefaultFrom">
+            <summary>
+            Gets or sets the default sender address used by PlainEmail and HtmlEmail.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Email:From and OrganizationalDefaultSettings: key = Email.From)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Email.EmailSettings.DefaultFooterText">
+            <summary>
+            Gets or sets the default footer text used by PlainEmail and HtmlEmail.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Email:FooterText and OrganizationalDefaultSettings: key = Email.Footer)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.IO.DirectoryCrawler.DirectoryArgs`1.SkipThisDirectory(Horseshoe.NET.IO.DirectoryCrawler.SkipReason)">
+            <summary>
+            In the "directory entered" phase client code can choose to stop processing the current directory effectively skipping to the next.
+            </summary>
+            <param name="reason"></param>
+        </member>
+        <member name="M:Horseshoe.NET.IO.DirectoryCrawler.DirectoryArgs`1.HaltDirectoryCrawler">
+            <summary>
+            End file recursion immediately
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.IO.DirectoryCrawler.FileArgs`1.SkipThisFile(Horseshoe.NET.IO.DirectoryCrawler.SkipReason)">
+            <summary>
+            In the "directory entered" phase client code can choose to stop processing the current directory effectively skipping to the next.
+            </summary>
+            <param name="reason"></param>
+        </member>
+        <member name="M:Horseshoe.NET.IO.DirectoryCrawler.FileArgs`1.HaltDirectoryCrawler">
+            <summary>
+            End file recursion immediately
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.IO.FileFilter.FilterMode.FilterInAll">
+            <summary>
+            Matches item if all criteria is met
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.IO.FileFilter.FilterMode.FilterInAny">
+            <summary>
+            Matches item if any criteria is met
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.IO.FileFilter.FilterMode.FilterOutAll">
+            <summary>
+            Matches item if not all criteria is met
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.IO.FileFilter.FilterMode.FilterOutAny">
+            <summary>
+            Matches item if not any criteria is met
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.IO.FileUtil.NormalizePath(System.String)">
+            <summary>
+            Ensures paths end with path separator - internal method
+            </summary>
+            <param name="path"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.IO.FileUtil.IsOnSameLocalDrive(System.IO.DirectoryInfo,System.IO.DirectoryInfo)">
+            <summary>
+            Determines whether two directories are on the same local drive for easier file moving.
+            </summary>
+            <returns>true if both the same Windows root (e.g. C:\) or Linux root (e.g. /), false otherwise</returns>
+        </member>
+        <member name="P:Horseshoe.NET.Ftp.FtpSettings.DefaultFtpServer">
+            <summary>
+            Gets or sets the default FTP server.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Ftp:Server and OrganizationalDefaultSettings: key = Ftp.Server)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Ftp.FtpSettings.DefaultEnableSsl">
+            <summary>
+            Gets or sets whether FTP will use SSL.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Ftp:EnableSsl and OrganizationalDefaultSettings: key = Ftp.EnableSsl)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Ftp.FtpSettings.DefaultPort">
+            <summary>
+            Gets or sets the default FTP port.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Ftp:Port and OrganizationalDefaultSettings: key = Ftp.Port)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Ftp.FtpSettings.DefaultCredentials">
+            <summary>
+            Gets or sets the default credentials used by FTP.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Ftp:UserName|Password|IsEncryptedPassword|Domain and OrganizationalDefaultSettings: key = Ftp.Credentials)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Ftp.FtpSettings.DefaultServerPath">
+            <summary>
+            Gets or sets the default server path used by FTP.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Ftp:ServerPath and OrganizationalDefaultSettings: key = Ftp.ServerPath)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetType(System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Finds the runtime type respresented by the fully qualified class name
+            </summary>
+            <param name="className"></param>
+            <param name="assemblyName"></param>
+            <param name="suppressErrors"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetInstance(System.Type,System.Object[],System.Boolean)">
+            <summary>
+            Dynamically creates an instance of the supplied type
+            </summary>
+            <param name="type">a type</param>
+            <param name="args">constructor args</param>
+            <param name="nonPublic"><c>true</c> if a public or nonpublic default constructor can match, <c>false</c> if only a public default constructor can match</param>
+            <returns>A dynamically created instance of the supplied type</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetInstance``1(System.Type,System.Object[],System.Boolean)">
+            <summary>
+            Dynamically creates an instance of the supplied type cast as the supplied type parameter
+            </summary>
+            <param name="type">a type</param>
+            <param name="args">constructor args</param>
+            <param name="nonPublic"><c>true</c> if a public or nonpublic default constructor can match, <c>false</c> if only a public default constructor can match</param>
+            <returns>A dynamically created instance of the supplied type</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetInstance(System.String,System.String,System.Object[],System.Boolean,System.Boolean)">
+            <summary>
+            Dynamically creates an instance of the class represented by the supplied class name.
+            </summary>
+            <param name="className">A fully qualified class name to instantiate</param>
+            <param name="assemblyName">An assembly name from which to draw types</param>
+            <param name="args">constructor args</param>
+            <param name="nonPublic"><c>true</c> if a public or nonpublic default constructor can match, <c>false</c> if only a public default constructor can match</param>
+            <param name="suppressErrors">Whether to return null or throw an exception for class names that are invalid or not found</param>
+            <returns>A dynamically created instance of the supplied type</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetInstance``1(System.String,System.String,System.Object[],System.Boolean,System.Boolean)">
+            <summary>
+            Dynamically creates a typed instance of the class represented by the supplied class name and cast as the supplied type parameter.
+            </summary>
+            <typeparam name="T">A type (the return type)</typeparam>
+            <param name="className">A fully qualified class name to instantiate</param>
+            <param name="assemblyName">An assembly name from which to draw types</param>
+            <param name="args">constructor args</param>
+            <param name="nonPublic"><c>true</c> if a public or nonpublic default constructor can match, <c>false</c> if only a public default constructor can match</param>
+            <param name="suppressErrors">Whether to return null or throw an exception for class names that are invalid or not found</param>
+            <returns>A dynamically created PublicInstance of the supplied type</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetDefaultInstance``1(System.Boolean)">
+            <summary>
+            Dynamically creates an instance of the supplied type using the default constructor, if one does not exist this method throws an exception
+            </summary>
+            <typeparam name="T">A type (the return type)</typeparam>
+            <param name="nonPublic"><c>true</c> if a public or nonpublic default constructor can match, <c>false</c> if only a public default constructor can match</param>
+            <returns>A dynamically created instance of the supplied type parameter</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.GetDefault(System.Type)">
+            <summary>
+            Gets the default value for the supplied type, <c>null</c> for reference types
+            </summary>
+            <param name="type">A type</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.SetInstancePropertyValue(System.Object,System.String,System.Object,System.Nullable{System.Reflection.BindingFlags},System.Boolean)">
+            <summary>
+            Sets the value of the indicated instance property
+            </summary>
+            <param name="instance"></param>
+            <param name="name"></param>
+            <param name="value"></param>
+            <param name="bindingFlags"></param>
+            <param name="ignoreCase"></param>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.SetStaticPropertyValue(System.Type,System.String,System.Object,System.Nullable{System.Reflection.BindingFlags},System.Boolean)">
+            <summary>
+            Sets the value of the indicated static property
+            </summary>
+            <param name="type"></param>
+            <param name="name"></param>
+            <param name="value"></param>
+            <param name="bindingFlags"></param>
+            <param name="ignoreCase"></param>
+        </member>
+        <member name="M:Horseshoe.NET.Objects.ObjectUtil.SetStaticPropertyValue``1(System.String,System.Object,System.Nullable{System.Reflection.BindingFlags},System.Boolean)">
+            <summary>
+            Sets the value of the indicated static property
+            </summary>
+            <param name="name"></param>
+            <param name="value"></param>
+            <param name="bindingFlags"></param>
+            <param name="ignoreCase"></param>
+        </member>
+        <member name="P:Horseshoe.NET.OleDb.OleDbSettings.DefaultConnectionStringName">
+            <summary>
+            Gets or sets the default OLEDB connection string name used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OleDb:ConnectionStringName)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.OleDb.OleDbSettings.DefaultConnectionString">
+            <summary>
+            Gets the default OLEDB connection string used by DataAccess.  Note: Overrides other settings (i.e. OrganizationalDefaultSettings: key = OleDb.ConnectionString)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.OleDb.OleDbSettings.SetDefaultConnectionString(System.String,System.Boolean)">
+            <summary>
+            Sets the default OLEDB connection string used by DataAccess. 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.OleDb.OleDbSettings.DefaultDataSource">
+            <summary>
+            Gets or sets the default OLEDB data source used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OleDb:DataSource and OrganizationalDefaultSettings: key = OleDb.DataSource)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.OleDb.OleDbSettings.DefaultCredentials">
+            <summary>
+            Gets or sets the default OLEDB credentials used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OleDb:UserName|Password and OrganizationalDefaultSettings: key = OleDb.Credentials)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.OleDb.OleDbSettings.DefaultAdditionalConnectionAttributes">
+            <summary>
+            Gets or sets the default additional OLEDB connection attributes used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OleDb:AdditionalConnectionAttributes and OrganizationalDefaultSettings: key = OleDb.AdditionalConnectionAttributes)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.OleDb.OleDbSettings.DefaultTimeout">
+            <summary>
+            Gets or sets the default OLEDB timeout used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OleDb:Timeout and OrganizationalDefaultSettings: key = OleDb.Timeout)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.RevealOptions.RevealControlChars">
+            <summary>
+            Applies to ASCII constrol chars except tab, line feed and carriage return (see <c>RevealWhitespaces</c>)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Text.Extensions.In(System.Char,System.Int32[])">
+            <summary>
+            Inspired by SQL, determines if an item is one of a supplied array of values
+            </summary>
+            <param name="chr">The item to locate</param>
+            <param name="charCodes">The collection to search</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Text.Extensions.IsNewLine(System.Char)">
+            <summary>
+            Determines if character is carriage return (\r) or line feed (\n)
+            </summary>
+            <param name="chr"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Horseshoe.NET.Text.CharLib.ASCIIWhitespaces">
+            <summary>
+            A subset of whitespace characters
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.CharLib.SubsetASCIIWhitespacesExceptNewLines">
+            <summary>
+            A subset of whitespace characters
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.CharLib.SubsetNewLines">
+            <summary>
+            The subset of ASCII whitespace characters comprising only carriage return (<c>\r</c>) and line feed (<c>\n</c>)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.CharLib.ExtendedASCIIWhitespaces">
+            <summary>
+            A subset of whitespace characters
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.CharLib.AllWhitespaces">
+            <summary>
+            A complete set of whitespace characters
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.CharLib.AllWhitespacesExceptNewLines">
+            <summary>
+            A subset of whitespace characters
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextClean.TextClean.ToASCIIPrintable(System.String,System.Collections.Generic.IDictionary{System.Int32,System.String},Horseshoe.NET.Text.WhitespacePolicy,Horseshoe.NET.Text.TextClean.NonprintablesPolicy,System.String,System.Boolean)">
+            <summary>
+            Convert essentially any text to its closest ASCII representation
+            </summary>
+            <param name="text">The source text to convert</param>
+            <param name="replacementLog">Optional.  Collection to which replacement log entried can be written. <c>IDictionary&lt;int,string&gt; contains char index and replacement notes</c></param>
+            <param name="whitespacePolicy">Whitespace handling instructions</param>
+            <param name="nonprintablesPolicy">Nonprintables display instructions</param>
+            <param name="substitute">How to display non-printables (if <c>NonprintablesPolicy.Substitute</c>) and unknown chars</param>
+            <param name="extendedASCII"><c>true</c> to allow extended ASCII chars in the output</param>
+            <returns>An ASCII string</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Text.TextGrid.IColumn">
+            <summary>
+            Template for columns that can be used to render <c>TextGrid</c>s
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.TextGrid.IColumn.Title">
+            <summary>
+            Column title
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.TextGrid.IColumn.Format">
+            <summary>
+            Data format
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.TextGrid.IColumn.DisplayNullAs">
+            <summary>
+            Null format
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.TextGrid.IColumn.TitleAlign">
+            <summary>
+            Horizontal alignment of the column title
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.TextGrid.IColumn.ItemAlign">
+            <summary>
+            Horizontal alignment of datum
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextGrid.IColumn.Prerender">
+            <summary>
+            Code to execute before rendering a column (e.g. calculate column width)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Text.TextSettings.JsonProvider">
+            <summary>
+            Gets or sets the default JSON provider.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Text:JsonProvider and OrganizationalDefaultSettings: key = Text.JsonProvider)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextUtil.Reveal(System.Nullable{Microsoft.Extensions.Primitives.StringValues},Horseshoe.NET.Text.RevealOptions)">
+            <summary>
+            Highlights certain subtexts such as blank / null / empty by string substituion 
+            and, optionally, character classes such as non-printable (e.g. ASCII control) chars.  
+            Passing in <c>null</c> will cause the <c>StringValues</c> "collection" to be empty.
+            </summary>
+            <param name="input">Text</param>
+            <param name="options">Configuration object for string substitutions</param>
+            <returns>Text with substitutions</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextUtil.Reveal(System.Object)">
+            <summary>
+            Same as <c>(obj?.ToString() ?? "null")</c>.
+            </summary>
+            <param name="obj">An object</param>
+            <returns>A text representation of an object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextUtil.IsASCIIPrintable(System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Returns <c>true</c> if <c>text</c> contains only printable chars
+            </summary>
+            <param name="text">a text string</param>
+            <param name="spacesAreConsideredPrintable"><c>true</c> to consider spaces as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
+            <param name="tabsAreConsideredPrintable"><c>true</c> to consider tabs as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
+            <param name="newLinesAreConsideredPrintable"><c>true</c> to consider new lines as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
+            <param name="extendedASCII"><c>true</c> if spaces should include non-breaking spaces</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextUtil.IsASCIIPrintable(System.Char,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Returns <c>true</c> if <c>c</c> represents a printable char
+            </summary>
+            <param name="c">a char</param>
+            <param name="spacesAreConsideredPrintable"><c>true</c> to consider spaces as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
+            <param name="tabsAreConsideredPrintable"><c>true</c> to consider tabs as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
+            <param name="newLinesAreConsideredPrintable"><c>true</c> to consider new lines as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
+            <param name="extendedASCII"><c>true</c> if spaces should include non-breaking spaces</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextUtil.IsASCIIControl(System.Char,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Returns <c>true</c> if <c>c</c> represents a control
+            </summary>
+            <param name="c">a char</param>
+            <param name="spacesAreConsideredControls"><c>true</c> matches <c>char.IsControl()</c> behavior, <c>false</c> is the default Horseshoe.NET behavior</param>
+            <param name="tabsAreConsideredControls"><c>true</c> matches <c>char.IsControl()</c> behavior, <c>false</c> is the default Horseshoe.NET behavior</param>
+            <param name="newLinesAreConsideredControls"><c>true</c> matches <c>char.IsControl()</c> behavior, <c>false</c> is the default Horseshoe.NET behavior</param>
+            <param name="extendedASCII"><c>true</c> if extended ASCII controls should be included</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Text.TextUtil.IsWhitespace(System.Char,System.Boolean)">
+            <summary>
+            Returns <c>true</c> if <c>c</c> represents a space, new line or tab (non-breaking space included if <c>extendedASCII == true</c>)
+            </summary>
+            <param name="c">a char</param>
+            <param name="extendedASCII"><c>true</c> if non-breaking space should be included</param>
+            <returns><c>true</c> or <c>false</c></returns>
+        </member>
+        <member name="P:Horseshoe.NET.TraceJournal.Level">
+            <summary>
+            Used to indicate depth of nested calls
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.TraceJournal.WriteEntry">
+            <summary>
+            Write the journal entry to a file, REST service, memory, etc.
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.TraceJournal.#ctor(System.Action{System.String})">
+            <summary>
+            Creates a new <c>TraceJournal</c> instance with the supplied write action
+            </summary>
+            <param name="writeEntry">write the journal entry to a file, REST service, memory, etc. (if <c>null</c>, the default action is to add to <c>DefaultEntries</c>)</param>
+        </member>
+    </members>
+</doc>

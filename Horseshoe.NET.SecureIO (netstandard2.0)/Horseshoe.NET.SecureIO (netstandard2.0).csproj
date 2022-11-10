@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET.SecureIO</RootNamespace>
+    <Authors>Carl Thomas</Authors>
+    <Company>Greenhazel Studio</Company>
+    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Version>2.0.4</Version>
+    <Description>Adds SFTP to the Horseshoe.NET suite (uses SSH.NET)</Description>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+    <AssemblyName>Horseshoe.NET.SecureIO</AssemblyName>
+    <UserSecretsId>bf029560-7b40-4309-8f47-7ef008a603a1</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SSH.NET" Version="2020.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+    <Version>2.0.4</Version>
+    <Authors>Carl Thomas</Authors>
+    <Company>Greenhazel Studio</Company>
+    <Description>Types for Horseshoe.NET.Jwt</Description>
+    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <AssemblyName>Horseshoe.NET.Jwt.Abstractions</AssemblyName>
+  </PropertyGroup>
+
+</Project>

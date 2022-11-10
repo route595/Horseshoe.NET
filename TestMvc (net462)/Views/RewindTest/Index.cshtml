@@ -1,0 +1,82 @@
+﻿@model TestMvc.ViewModels.RewindTestIndexViewModel
+
+@{
+    ViewBag.Title = "Rewind Test";
+}
+
+@section styles {
+    <style type="text/css">
+        .test-grid {
+            border-collapse: collapse;
+            border: 2px solid black;
+            width: 100%;
+        }
+
+            .test-grid td {
+                border: 1px solid black;
+                width: 50%;
+            }
+
+            .test-grid tr.code > td {
+                font-family: Consolas, monospace;
+                font-size: 9.5pt;
+                white-space: pre;
+            }
+
+            .test-grid tr.error > td {
+                color: firebrick;
+            }
+
+        .test-values {
+            font-family: Consolas, monospace;
+            font-size: 9.5pt;
+            display: table;
+            margin: 10px;
+            padding: 10px;
+            background-color: #ffffcc;
+            border: 1px solid #aaaa77;
+        }
+    </style>
+}
+
+<h2>Rewind Test</h2>
+
+@{
+    var messageToSend = "Hey there skipper!";
+    var age = 45;
+    DateTime getDateTime() => DateTime.Now;
+}
+
+<pre class="test-values">var messageToSend = "@messageToSend";
+var age = @age;
+DateTime getDateTime() => @getDateTime();
+</pre>
+
+<table class="test-grid">
+    <tr>
+        <td>
+            @using (Html.BeginForm("RewindTest", "RewindTest"))
+            {
+                <input type="hidden" name="message" value="@messageToSend" />
+                <input type="hidden" name="age" value="@age" />
+                <input type="hidden" name="dateTime" value="@getDateTime()" />
+                <input type="submit" />
+            }
+        </td>
+        <td>
+        </td>
+    </tr>
+    <tr class="code">
+        <td>@Model.RewindDisplayParams</td>
+        <td></td>
+    </tr>
+    <tr class="code">
+        <td>@Model.RewindBody</td>
+        <td></td>
+    </tr>
+    <tr class="error">
+        <td>@Model.RewindError</td>
+        <td></td>
+    </tr>
+</table>
+

@@ -1,0 +1,129 @@
+﻿@model HomeIndexViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@section styles {
+    <style type="text/css">
+        .test-table {
+            border: 2px solid black;
+            border-collapse: collapse;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+            .test-table td,
+            .test-table th {
+                padding: 0 3px;
+            }
+
+            .test-table .section-header {
+                background-color: #2f0664;
+                color: white;
+                font-size: 1.35em;
+            }
+    </style>
+}
+
+<table class="test-table">
+    <tr>
+        <th class="section-header" colspan="2">HttpRequest</th>
+    </tr>
+    @{
+        var httpRequestProperties = Model.HttpRequest.GetType().GetProperties();
+        foreach (var prop in httpRequestProperties)
+        {
+            string displayValue;
+            string style = "";
+            try
+            {
+                object value = prop.GetValue(Model.HttpRequest);
+                if (value == null)
+                {
+                    displayValue = "[null]";
+                }
+                else if (value is string stringValue)
+                {
+                    displayValue = stringValue;
+                }
+                else
+                {
+                    Type valueType = value.GetType();
+                    if (value.GetType().IsClass)
+                    {
+                        displayValue = value.GetType().FullName;
+                        style = "font-family:'Consolas',monospace;font-size:.9em";
+                    }
+                    else
+                    {
+                        displayValue = value.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                displayValue = ex.GetType().FullName + ": " + ex.Message;
+            }
+            <tr>
+                <th>@prop.Name</th>
+                <td style="@style">@displayValue</td>
+            </tr>
+        }
+    }
+    <tr style="background-color:#aaaaaa">
+        <th>AbsoluteApplicationPath</th>
+        <td>@Model.AbsoluteApplicationPath</td>
+    </tr>
+    <tr style="background-color:#aaaaaa">
+        <th>AbsoluteApplicationPath (/api)</th>
+        <td>@Model.AbsoluteApplicationPath_API</td>
+    </tr>
+</table>
+
+<table class="test-table">
+    <tr>
+        <th class="section-header" colspan="2">HostingEnvironment</th>
+    </tr>
+    @{
+        var hostingEnvironmentProperties = Model.WebHostEnvironment.GetType().GetProperties();
+        foreach (var prop in hostingEnvironmentProperties)
+        {
+            string displayValue;
+            string style = "";
+            try
+            {
+                object value = prop.GetValue(Model.WebHostEnvironment);
+                if (value == null)
+                {
+                    displayValue = "[null]";
+                }
+                else if (value is string stringValue)
+                {
+                    displayValue = stringValue;
+                }
+                else
+                {
+                    Type valueType = value.GetType();
+                    if (value.GetType().IsClass)
+                    {
+                        displayValue = value.GetType().FullName;
+                        style = "font-family:'Consolas',monospace;font-size:.9em";
+                    }
+                    else
+                    {
+                        displayValue = value.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                displayValue = ex.GetType().FullName + ": " + ex.Message;
+            }
+            <tr>
+                <th>@prop.Name</th>
+                <td style="@style">@displayValue</td>
+            </tr>
+        }
+    }
+</table>

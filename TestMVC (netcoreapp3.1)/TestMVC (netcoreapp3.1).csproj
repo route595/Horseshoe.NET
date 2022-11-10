@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>TestMVC</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.ActiveDirectory (netstandard2.0)\Horseshoe.NET.ActiveDirectory (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Caching (netstandard2.0)\Horseshoe.NET.Caching (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Excel (netstandard2.0)\Horseshoe.NET.Excel (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Jwt (netcoreapp3.1)\Horseshoe.NET.Jwt (netcoreapp3.1).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Ldap (netstandard2.0)\Horseshoe.NET.Ldap (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Odbc (netstandard2.0)\Horseshoe.NET.Odbc (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.OracleDb (netstandard2.0)\Horseshoe.NET.OracleDb (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.SecureIO (netstandard2.0)\Horseshoe.NET.SecureIO (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.SqlDb (netstandard2.0)\Horseshoe.NET.SqlDb (netstandard2.0).csproj" />
+  </ItemGroup>
+
+
+
+</Project>

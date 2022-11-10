@@ -1,0 +1,28 @@
+{
+  "MyPlanet": {
+    "diameter": "4567.89",
+    "color": "burnt orange",
+    "moons": [
+      "Plankton",
+      "Cronos"
+    ]
+  },
+  "MySolarSystem": [
+    {
+      "diameter": "1234.56",
+      "color": "dark maroon"
+    },
+    {
+      "diameter": "2345.67",
+      "color": "deep purple",
+      "moons": [
+        "Baconator"
+      ]
+    },
+    {
+      "diameter": "3456.78",
+      "color": "slate gray",
+      "moons": []
+    }
+  ]
+}

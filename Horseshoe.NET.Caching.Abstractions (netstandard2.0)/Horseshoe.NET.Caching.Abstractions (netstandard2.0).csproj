@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET.Caching</RootNamespace>
+    <AssemblyName>Horseshoe.NET.Caching.Abstractions</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+    <Description>Common, shared types for Horseshoe.NET.Caching</Description>
+    <Version>2.0.4</Version>
+    <Authors>Carl Thomas</Authors>
+    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Company>Greenhazel Studio</Company>
+    <PackageId>Horseshoe.NET.Caching.Abstractions (netstandard2.0)</PackageId>
+  </PropertyGroup>
+
+</Project>

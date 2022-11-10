@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>TestConsole</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="delimited-err.txt" />
+    <None Remove="delimited.txt" />
+    <None Remove="fixed-width-err.txt" />
+    <None Remove="fixed-width.txt" />
+    <None Remove="tsconfig1.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="delimited-err.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="delimited.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="fixed-width-err.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="fixed-width.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tsconfig1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.ActiveDirectory (netstandard2.0)\Horseshoe.NET.ActiveDirectory (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Caching (netstandard2.0)\Horseshoe.NET.Caching (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Caching.Abstractions (netstandard2.0)\Horseshoe.NET.Caching.Abstractions (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Excel (netstandard2.0)\Horseshoe.NET.Excel (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Jwt (net6.0)\Horseshoe.NET.Jwt (net6.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Ldap (netstandard2.0)\Horseshoe.NET.Ldap (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Odbc (netstandard2.0)\Horseshoe.NET.Odbc (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.OracleDb (netstandard2.1)\Horseshoe.NET.OracleDb (netstandard2.1).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.SecureIO (netstandard2.0)\Horseshoe.NET.SecureIO (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.SqlDb (netstandard2.0)\Horseshoe.NET.SqlDb (netstandard2.0).csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="excel-err.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="excel.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

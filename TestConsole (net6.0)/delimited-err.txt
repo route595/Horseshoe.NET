@@ -1,0 +1,5 @@
+﻿
+Name,Age,Birth Date
+Carlos,89,4/9/1945
+Beto,10,9/15/2012
+Katia,_27,12/2/1995
