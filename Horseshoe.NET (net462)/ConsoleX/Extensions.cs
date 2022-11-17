@@ -3,30 +3,60 @@ using System.Collections.Generic;
 
 namespace Horseshoe.NET.ConsoleX
 {
+    /// <summary>
+    /// A handful of extension methods used by <c>ConsoleX</c> and may be used by client code as well
+    /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Whether a key stroke indicates and ascii letter
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsLetter(this ConsoleKeyInfo info)
         {
             return char.IsLetter(info.KeyChar);
         }
 
+        /// <summary>
+        /// Whether a key stroke indicates a number
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsNumber(this ConsoleKeyInfo info)
         {
             return char.IsNumber(info.KeyChar);
         }
 
+        /// <summary>
+        /// Whether a key stroke indicates a letter or number
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsLetterOrDigit(this ConsoleKeyInfo info)
         {
             return char.IsLetterOrDigit(info.KeyChar);
         }
 
+        /// <summary>
+        /// Whether a key stroke indicates a space
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsSpace(this ConsoleKeyInfo info)
         {
             return info.KeyChar == ' ';
         }
 
+        /// <summary>
+        /// Whether a key stroke indicates a special character or punctuation
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsSpecialCharacter(this ConsoleKeyInfo info)
         {
+            if (IsPunctuation(info))
+                return true;
             switch (info.KeyChar)
             {
                 case '`':
@@ -51,6 +81,11 @@ namespace Horseshoe.NET.ConsoleX
             return false;
         }
 
+        /// <summary>
+        /// Whether a key stroke indicates punctuation
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsPunctuation(this ConsoleKeyInfo info)
         {
             switch (info.KeyChar)
@@ -75,6 +110,11 @@ namespace Horseshoe.NET.ConsoleX
             return false;
         }
 
+        /// <summary>
+        /// Whether a key stroke indicates keyboard navigation
+        /// </summary>
+        /// <param name="info">a key stroke</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsCursorNavigation(this ConsoleKeyInfo info)
         {
             switch (info.Key)

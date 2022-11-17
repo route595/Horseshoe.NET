@@ -4,72 +4,9 @@
         <name>Horseshoe.NET</name>
     </assembly>
     <members>
-        <member name="T:Horseshoe.NET.Application.AppMode">
-            <summary>
-            The execution environment in which this app is running e.g. Development, Test, Production, etc. 
-            May be assigned manually or in the configuration file.
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.Development">
-            <summary>
-            Applies mainly to active development efforts
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.Test">
-            <summary>
-            Internal (possibly informal) testing environment
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.IA">
-            <summary>
-            Information Assurance - security checks, vulnerability scanning, etc.
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.QA">
-            <summary>
-            Quality Assurance - internal formal testing environment
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.UAT">
-            <summary>
-            User Acceptance Testing - formal (possibly external) testing environment
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.Training">
-            <summary>
-            Training - separate from (but supposedly identical to) production with separate data
-            </summary>
-        </member>
-        <member name="F:Horseshoe.NET.Application.AppMode.Production">
-            <summary>
-            Production environment
-            </summary>
-        </member>
-        <member name="P:Horseshoe.NET.Application.ClientApp.AppType">
-            <summary>
-            Gets or sets the app type.  If not set it is derived based on criteria detected at runtime.
-            </summary>
-        </member>
-        <member name="M:Horseshoe.NET.Application.ClientApp.DetectAppType(System.Text.StringBuilder)">
-            <summary>
-            Used internally by this and other Horseshoe.NET utility assemblies
-            </summary>
-            <returns>bald</returns>
-        </member>
-        <member name="P:Horseshoe.NET.Application.ClientApp.AppMode">
-            <summary>
-            Gets or sets the application mode (e.g. Development, Test, Production...)
-            </summary>
-        </member>
-        <member name="M:Horseshoe.NET.Application.ClientApp.GetIPAddress">
-            <summary>
-            Gets the IP address of the local machine
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:Horseshoe.NET.Assemblies.List">
             <summary>
-            Get all assemblies loaded by the client application
+            Get all <c>assemblies</c> loaded by the client application
             </summary>
             <returns></returns>
         </member>
@@ -100,6 +37,11 @@
             An exception that is caught promptly and quietly, client code is never aware.  Used for control flow and messaging between classes.
             </summary>
         </member>
+        <member name="T:Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy">
+            <summary>
+            Hints for rendering message details in Bootstrap alerts
+            </summary>
+        </member>
         <member name="F:Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy.Default">
             <summary>
             Render details "as is"
@@ -120,6 +62,513 @@
             Do not make viewable in the browser (force use of developer tools or the generated source code to view the message details)
             </summary>
         </member>
+        <member name="T:Horseshoe.NET.Bootstrap.Bootstrap3">
+            <summary>
+            Classes and methods for creating Bootstrap v3 alerts
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.Bootstrap3.AlertType">
+            <summary>
+            Alert type corresponds to CSS class used to render different styles of Bootstrap alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap3.AlertType.Info">
+            <summary>
+            Informational alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap3.AlertType.Success">
+            <summary>
+            Success alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap3.AlertType.Warning">
+            <summary>
+            Warning alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap3.AlertType.Danger">
+            <summary>
+            Danger alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap3.AlertType.Error">
+            <summary>
+            Error alert
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.Bootstrap3.Alert">
+            <summary>
+            Encapsulates customizable aspects of Bootstrap alerts
+            </summary>
+            <remarks>ref: http://getbootstrap.com/docs/3.3/components/#alerts</remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.AlertType">
+            <summary>
+            Alert type corresponds to CSS class used in Bootstrap alert
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.Message">
+            <summary>
+            Alert message
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.Emphasis">
+            <summary>
+            Boldface text to prepend to the message
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.Closeable">
+            <summary>
+            Whether to render an alert closing widget
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.EncodeHtml">
+            <summary>
+            Whether to escape HTML markup for display or let it render naturally
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.MessageDetails">
+            <summary>
+            Extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.MessageDetailsRendering">
+            <summary>
+            Hints for rendering message details in Bootstrap alerts
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.IsMessageDetailsHtmlEncoded">
+            <summary>
+            Whether message details should be HTML encoded
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.IsMessageDetailsPreFormatted">
+            <summary>
+            Whether message details should be &lt;pre&gt; formatted
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.IsMessageDetailsHidden">
+            <summary>
+            Whether message details should be rendered to a hidden element
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap3.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateAlert(Horseshoe.NET.Bootstrap.Bootstrap3.AlertType,System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap alerts
+            </summary>
+            <param name="alertType">alert type</param>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateInfoAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'info' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateSuccessAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'success' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateWarningAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'warning' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateDangerAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'danger' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateErrorAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Same as <c>CreateDangerAlert()</c>
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap3.CreateErrorAlert(Horseshoe.NET.ExceptionInfo,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Nullable{Horseshoe.NET.Bootstrap.Bootstrap3.AlertType},Horseshoe.NET.ExceptionTypeRenderingPolicy,System.Boolean,System.Int32,System.Boolean,System.Nullable{Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy})">
+            <summary>
+            Creates an <c>Alert</c> object from an <c>Exception</c> useful for rendering Bootstrap 'danger' alerts
+            </summary>
+            <param name="exception">an exception</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="alertType">alert type</param>
+            <param name="typeRendering">define preference for <c>Exception</c> rendering, specifically the exception <c>Type</c></param>
+            <param name="includeStackTrace">define preference for <c>Exception</c> rendering, specifically whether to include the stack trace</param>
+            <param name="indent">define preference for <c>Exception</c> rendering, specifically how much to indent the stack trace</param>
+            <param name="recursive">define preference for <c>Exception</c> rendering, specifically whether to recurse</param>
+            <param name="exceptionRendering">define preference for <c>Exception</c> rendering, specifically whether and how to render in a Bootstrap alert</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.Bootstrap4">
+            <summary>
+            Classes and methods for creating Bootstrap v4 alerts
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType">
+            <summary>
+            Alert type corresponds to CSS class used to render different styles of Bootstrap alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Info">
+            <summary>
+            Informational alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Success">
+            <summary>
+            Success alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Warning">
+            <summary>
+            Warning alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Danger">
+            <summary>
+            Danger alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Error">
+            <summary>
+            Error alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Primary">
+            <summary>
+            Primary alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Secondary">
+            <summary>
+            Secondary alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Light">
+            <summary>
+            Light alert
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Bootstrap.Bootstrap4.AlertType.Dark">
+            <summary>
+            Dark alert
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.Bootstrap4.Alert">
+            <summary>
+            Encapsulates customizable aspects of Bootstrap alerts
+            </summary>
+            <remarks>ref: https://getbootstrap.com/docs/4.1/components/alerts/</remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.AlertType">
+            <summary>
+            Alert type corresponds to CSS class used in Bootstrap alert
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.Message">
+            <summary>
+            Alert message
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.Emphasis">
+            <summary>
+            Boldface text to prepend to the message
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.Closeable">
+            <summary>
+            Whether to render an alert closing widget
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.EncodeHtml">
+            <summary>
+            Whether to escape HTML markup for display or let it render naturally
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.Fade">
+            <summary>
+            Whether alert should attempt to fade in and out
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.Show">
+            <summary>
+            Whether alert should be immediately visible
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetails">
+            <summary>
+            Extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetailsRendering">
+            <summary>
+            Hints for rendering message details in Bootstrap alerts
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.IsMessageDetailsEncodeHtml">
+            <summary>
+            Whether message details should be HTML encoded
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.IsMessageDetailsPreFormatted">
+            <summary>
+            Whether message details should be &lt;pre&gt; formatted
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.IsMessageDetailsHidden">
+            <summary>
+            Whether message details should be rendered to a hidden element
+            </summary>
+            <remarks><see cref="P:Horseshoe.NET.Bootstrap.Bootstrap4.Alert.MessageDetailsRendering"/></remarks>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateAlert(Horseshoe.NET.Bootstrap.Bootstrap4.AlertType,System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap alerts
+            </summary>
+            <param name="alertType">alert type</param>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateInfoAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'info' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateSuccessAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'success' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateWarningAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'warning' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateDangerAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'danger' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreatePrimaryAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'primary' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateSecondaryAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'secondary' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateDarkAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'dark' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateLightAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Creates an <c>Alert</c> object useful for rendering Bootstrap 'light' alerts
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateErrorAlert(System.String,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.String,Horseshoe.NET.Bootstrap.AlertMessageDetailsRenderingPolicy)">
+            <summary>
+            Same as <c>CreateDangerAlert()</c>
+            </summary>
+            <param name="message">message</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="messageDetails">extra text to reinforce the message, such as the stack trace for an <c>Exception</c> error alert</param>
+            <param name="messageDetailsRendering">hints for rendering message details in Bootstrap alerts</param>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Bootstrap4.CreateErrorAlert(Horseshoe.NET.ExceptionInfo,System.String,System.Boolean,System.Nullable{System.Boolean},System.Boolean,System.Boolean,System.Boolean,System.Nullable{Horseshoe.NET.Bootstrap.Bootstrap4.AlertType},Horseshoe.NET.ExceptionTypeRenderingPolicy,System.Boolean,System.Int32,System.Boolean,System.Nullable{Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy})">
+            <summary>
+            Creates an <c>Alert</c> object from an <c>Exception</c> useful for rendering Bootstrap 'danger' alerts
+            </summary>
+            <param name="exception">an exception</param>
+            <param name="emphasis">boldface text to prepend to the message</param>
+            <param name="autoEmphasis">add alert type as <c>emphasis</c></param>
+            <param name="closeable">where to add widget for user to close alert</param>
+            <param name="fade">whether alert should attempt to fade in and out</param>
+            <param name="show">whether alert should be immediately visible</param>
+            <param name="encodeHtml">whether to escape HTML markup for display or let it render naturally</param>
+            <param name="alertType">alert type</param>
+            <param name="typeRendering">define preference for <c>Exception</c> rendering, specifically the exception <c>Type</c></param>
+            <param name="includeStackTrace">define preference for <c>Exception</c> rendering, specifically whether to include the stack trace</param>
+            <param name="indent">define preference for <c>Exception</c> rendering, specifically how much to indent the stack trace</param>
+            <param name="recursive">define preference for <c>Exception</c> rendering, specifically whether to recurse</param>
+            <param name="exceptionRendering">define preference for <c>Exception</c> rendering, specifically whether and how to render in a Bootstrap alert</param>
+            <returns>an <c>Alert</c> object</returns>
+            <returns>an <c>Alert</c> object</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.BootstrapSettings">
+            <summary>
+            Configuration elements for <c>Horseshoe.NET.Bootstrap</c> classes and methods
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.BootstrapSettings.DefaultExceptionRendering">
+            <summary>
+            Exception rendering policy configured by the client, if not configured then <c>default</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Bootstrap.BootstrapSettings.DefaultAutoCloseableAlerts">
+            <summary>
+            Client configured closeability of alerts, if not configured then <c>false</c>
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy">
+            <summary>
+            Whether and how to render exception details in Bootstrap 'danger' alerts
+            </summary>
+        </member>
         <member name="F:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy.Preclude">
             <summary>
             Do not render exception details (default)
@@ -135,10 +584,24 @@
             Render exception details to a nonvisible element only
             </summary>
         </member>
-        <member name="F:Horseshoe.NET.Bootstrap.ExceptionRenderingPolicy.Dynamic">
+        <member name="T:Horseshoe.NET.Bootstrap.Extensions">
             <summary>
-            Render exception details only if in Development (see Horseshoe.NET AppMode), otherwise do not (requires configuration i.e. in app|web.config or appsettings.json set Horseshoe.NET:AppMode)
+            Extension methods
             </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Extensions.ToCssClass(Horseshoe.NET.Bootstrap.Bootstrap3.AlertType)">
+            <summary>
+            Convert an <c>AlertType</c> to a corresponding Bootstrap css class
+            </summary>
+            <param name="alertType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Bootstrap.Extensions.ToCssClass(Horseshoe.NET.Bootstrap.Bootstrap4.AlertType)">
+            <summary>
+            Convert an <c>AlertType</c> to a corresponding Bootstrap css class
+            </summary>
+            <param name="alertType"></param>
+            <returns></returns>
         </member>
         <member name="M:Horseshoe.NET.Collections.ArrayUtil.Pad``1(``0[],System.Int32,Horseshoe.NET.Collections.CollectionBoundary,``0,System.Boolean)">
             <summary>
@@ -2578,7 +3041,22 @@
         </member>
         <member name="T:Horseshoe.NET.ExceptionTypeRenderingPolicy">
             <summary>
-            A basic <c>Exception</c> descriptor class suitable for JSON serialization
+            Defines preferences for <c>Exception</c> rendering, specifically the exception <c>Type</c>
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.ExceptionTypeRenderingPolicy.Fqn">
+            <summary>
+            Render the fully qualified type name
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.ExceptionTypeRenderingPolicy.FqnExceptSystem">
+            <summary>
+            Render the fully qualified type name except for 'System' exceptions which are common
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.ExceptionTypeRenderingPolicy.NameOnly">
+            <summary>
+            Render only the short type name
             </summary>
         </member>
         <member name="M:Horseshoe.NET.Iterator.Memory.Extensions.Iterate``1(System.ReadOnlySpan{``0},System.Action{``0,Horseshoe.NET.Iterator.ControlInterface})">
@@ -3199,6 +3677,476 @@
             Creates a new <c>TraceJournal</c> instance with the supplied write action
             </summary>
             <param name="writeEntry">write the journal entry to a file, REST service, memory, etc. (if <c>null</c>, the default action is to add to <c>DefaultEntries</c>)</param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.DocElement">
+            <summary>
+            Represents the documentation-oriented XML element currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.DocElement.None">
+            <summary>
+            Indicates that no element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.DocElement.Assembly">
+            <summary>
+            Indicates that the &lt;assembly&gt; element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.DocElement.Member">
+            <summary>
+            Indicates that a &lt;member&gt; element is currently being processed
+            </summary>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.NestedDocElement">
+            <summary>
+            Represents the <c>XmlDoc</c> nested element currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.None">
+            <summary>
+            Indicates that no element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.Exception">
+            <summary>
+            Indicates that an &lt;exception&gt; element of a &lt;member&gt; element is currently being processed
+            </summary>
+            <remarks>has "cref" attribute</remarks>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.Name">
+            <summary>
+            Indicates that the &lt;name&gt; element of the &lt;assembly&gt; element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.Param">
+            <summary>
+            Indicates that a &lt;param&gt; element of a &lt;member&gt; element is currently being processed
+            </summary>
+            <remarks>has "name" attribute</remarks>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.Remarks">
+            <summary>
+            Indicates that the &lt;remarks&gt; element of a &lt;member&gt; element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.Returns">
+            <summary>
+            Indicates that the &lt;returns&gt; element of a &lt;member&gt; element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.Summary">
+            <summary>
+            Indicates that the &lt;summary&gt; element of a &lt;member&gt; element is currently being processed
+            </summary>
+        </member>
+        <member name="F:Horseshoe.NET.Xml.Doc.NestedDocElement.TypeParam">
+            <summary>
+            Indicates that a &lt;typeparam&gt; element of a &lt;member&gt; element is currently being processed
+            </summary>
+            <remarks>has "name" attribute</remarks>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Assembly">
+            <summary>
+            Represents the singleton XML &lt;assembly&gt; element
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Assembly.Name">
+            <summary>
+            Represents the singleton &lt;name&gt; element of the &lt;assembly&gt; element 
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Assembly.ToString">
+            <summary>
+            Returns a string representation of this <c>Assembly</c>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Member">
+            <summary>
+            Represents one of possibly many &lt;member&gt; elements of an XML doc
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Member.Name">
+            <summary>
+            The section of the raw "name" attribute after the last dot (.)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Member.Summary">
+            <summary>
+            Represents the singleton &lt;summary&gt; element of a &lt;member&gt; element 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Member.Remarks">
+            <summary>
+            Represents the singleton &lt;remarks&gt; element of a &lt;member&gt; element 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Member.MemberType">
+            <summary>
+            Represents the current type (e.g. class, interface or struct - including enum) or parent type for params, properties, methods and enum values
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Member.#ctor(System.String)">
+            <summary>
+            Called by <c>Member</c> subclass constructors supplying <c>name</c> only
+            </summary>
+            <param name="name">e.g. class or interface name</param>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Member.ToOriginalString">
+            <summary>
+            Each <c>Member</c> subclass calculates its original, fully qualified name (does not include member type indicator)
+            </summary>
+            <returns>the restored fully qualified name</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Member.ToString">
+            <summary>
+            Returns a string representation of this <c>Member</c>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Class">
+            <summary>
+            Represents <c>Class</c> documentation
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Class.Properties">
+            <summary>
+            The &lt;property&gt; elements
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Class.Functions">
+            <summary>
+            The &lt;functions&gt; elements
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Class.#ctor(System.String,System.String)">
+            <summary>
+            Create a new <c>Class</c>
+            </summary>
+            <param name="namespace">a namespace</param>
+            <param name="name">the type name</param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.EnumValue">
+            <summary>
+            Represents a documented Enum value
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.EnumValue.MemberType">
+            <summary>
+            Represents the current type (e.g. class, interface or struct - including enum) or parent type for properties, methods and enum values
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.EnumValue.#ctor(Horseshoe.NET.Xml.Doc.Type,System.String)">
+            <summary>
+            Create a new <c>EnumValue</c>
+            </summary>
+            <param name="type"></param>
+            <param name="name"></param>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.EnumValue.ToOriginalString">
+            <summary>
+            An <c>EnumValue</c>'s original, fully qualified name is ['type.namespace'.]'type.name'.'name' (does not include member type indicator)
+            </summary>
+            <returns>the restored fully qualified name</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Property">
+            <summary>
+            Represents a property of a class, interface or struct
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Property.MemberType">
+            <summary>
+            Represents the current type (e.g. class, interface or struct - including enum) or parent type for properties, methods and enum values
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Property.#ctor(Horseshoe.NET.Xml.Doc.Type,System.String)">
+            <summary>
+            Create a new <c>Property</c>
+            </summary>
+            <param name="type">owning type (e.g. class, struct or interface)</param>
+            <param name="name">property name</param>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Property.ToOriginalString">
+            <summary>
+            A <c>Property's</c>'s original, fully qualified name is ['type.namespace'.]'type.name'.'name' (does not include member type indicator)
+            </summary>
+            <returns>the restored fully qualified name</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Method">
+            <summary>
+            Represents method documentation
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Method.MemberType">
+            <summary>
+            Represents the current type (e.g. class, interface or struct - including enum) or parent type for properties, methods and enum values
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Method.TypeParams">
+            <summary>
+            The &lt;typeparam&gt; elements
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Method.Params">
+            <summary>
+            The &lt;param&gt; elements
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Method.Returns">
+            <summary>
+            The &lt;returns&gt; element
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Method.Exceptions">
+            <summary>
+            The &lt;exception&gt; elements
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Method.#ctor(Horseshoe.NET.Xml.Doc.Type,System.String)">
+            <summary>
+            Create a new method
+            </summary>
+            <param name="type">this <c>Method</c>'s owning <c>Type</c></param>
+            <param name="name">method name</param>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Method.ToOriginalString">
+            <summary>
+            A <c>Method's</c>'s original, fully qualified name is ['type.namespace'.]'type.name'.'name' (does not include member type indicator)
+            </summary>
+            <returns>the restored fully qualified name</returns>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Exception">
+            <summary>
+            Represents an exception declaration in <c>Method</c> XML documentation
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Exception.Cref">
+            <summary>
+            The class reference (type) of exception (from "cref" attribute)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Exception.Description">
+            <summary>
+            Exception conditions or other information (from XML text)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Exception.#ctor(System.String)">
+            <summary>
+            Create a new <c>Exception</c> XML declaration
+            </summary>
+            <param name="cref"></param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Enum">
+            <summary>
+            Represents a documented <c>Enum</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Enum.Values">
+            <summary>
+            Represents documented <c>Enum</c> values
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Enum.#ctor(System.String,System.String)">
+            <summary>
+            Create a new <c>Enum</c> XmlDoc object
+            </summary>
+            <param name="namespace"></param>
+            <param name="name"></param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Interface">
+            <summary>
+            Represents a documented <c>Interface</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Interface.Properties">
+            <summary>
+            Represents documented <c>Interface</c> properties
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Interface.Methods">
+            <summary>
+            Represents documented <c>Interface</c> methods
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Interface.#ctor(System.String,System.String)">
+            <summary>
+            Create a new <c>Interface</c> XmlDoc object
+            </summary>
+            <param name="namespace"></param>
+            <param name="name"></param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Struct">
+            <summary>
+            Represents a documented <c>struct</c>
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Struct.Properties">
+            <summary>
+            Represents documented <c>struct</c> properties
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Struct.Methods">
+            <summary>
+            Represents documented <c>struct</c> methods
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Struct.#ctor(System.String,System.String)">
+            <summary>
+            Create a new <c>Struct</c> XmlDoc object
+            </summary>
+            <param name="namespace"></param>
+            <param name="name"></param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Type">
+            <summary>
+            Represents &lt;member&gt; elements of an XML doc for classes, interfaces and structs including enums
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Type.Namespace">
+            <summary>
+            The remainder of the raw "name" attribute after extracting the section after the last dot (.)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Type.TypeParams">
+            <summary>
+            Represents the type parameters for classes, interfaces and structs
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Type.MemberType">
+            <summary>
+            Represents the current type (e.g. class, interface or struct - including enum) or parent type for properties, methods and enum values
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.#ctor(System.String,System.String)">
+            <summary>
+            Create a new <c>Type</c> (or subclass) supplying <c>namespace</c> and <c>name</c>
+            </summary>
+            <param name="namespace"></param>
+            <param name="name"></param>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.ToOriginalString">
+            <summary>
+            A <c>Type</c>'s original, fully qualified name is ['namespace'.]'name' (does not include member type indicator)
+            </summary>
+            <returns>the restored fully qualified name</returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.ToString">
+            <summary>
+            Returns a string representation of this <c>Type</c>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.Equals(System.Object)">
+            <summary>
+            Compares equality of this XmlDoc <c>Type</c> to another object
+            </summary>
+            <param name="obj">an object to compare</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.Equals(Horseshoe.NET.Xml.Doc.Type)">
+            <summary>
+            Compares equality of this XmlDoc <c>Type</c> to another
+            </summary>
+            <param name="other">an XmlDoc <c>Type</c> to compare</param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.GetHashCode">
+            <summary>
+            Gets the hash code representation of this XmlDoc <c>Type</c>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.op_Equality(Horseshoe.NET.Xml.Doc.Type,Horseshoe.NET.Xml.Doc.Type)">
+            <summary>
+            Equality operator
+            </summary>
+            <param name="left">an XmlDoc <c>Type</c></param>
+            <param name="right">another XmlDoc <c>Type</c></param>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Type.op_Inequality(Horseshoe.NET.Xml.Doc.Type,Horseshoe.NET.Xml.Doc.Type)">
+            <summary>
+            Inequality operator
+            </summary>
+            <param name="left">an XmlDoc <c>Type</c></param>
+            <param name="right">another XmlDoc <c>Type</c></param>
+            <returns></returns>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.Param">
+            <summary>
+            Represents a method param or type param
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Param.Name">
+            <summary>
+            param name (from "name" attribute)
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.Param.Description">
+            <summary>
+            param description (from XML text)
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.Param.#ctor(System.String)">
+            <summary>
+            create a new <c>Param</c> supplying the name from the "name" attribute in XML
+            </summary>
+            <param name="name"></param>
+        </member>
+        <member name="T:Horseshoe.NET.Xml.Doc.XmlDoc">
+            <summary>
+            Represents compiled XML documentation (e.g. XML produced by the C# compiler) featuring the ability to parse XML documentation 
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.XmlDoc.Assembly">
+            <summary>
+            Represents the singleton XML &lt;assembly&gt; element
+            </summary>
+        </member>
+        <member name="P:Horseshoe.NET.Xml.Doc.XmlDoc.Members">
+            <summary>
+            Represents the 0 or more XML &lt;member&gt; elements that may be in the XML documentation
+            </summary>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.XmlDoc.AddMember(Horseshoe.NET.Xml.Doc.Member,System.Boolean)">
+            <summary>
+            Manually adds a member to the <c>Members</c> collection
+            </summary>
+            <param name="member">a member</param>
+            <param name="fillInMissingTypes">Adds an undeclared enum before adding an enum value or an undeclared type before adding a property or method</param>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.XmlDoc.GetNamespaces">
+            <summary>
+            Derives the distinct namespaces referenced in this XML documentation
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.XmlDoc.Fill(Horseshoe.NET.IO.FilePath,System.Boolean,Horseshoe.NET.TraceJournal)">
+            <summary>
+            Load an XLM documenation file to populate this <c>XmlDoc</c> instance
+            </summary>
+            <param name="fileUri"></param>
+            <param name="fillInMissingTypes">Adds an undeclared enum before adding an enum value or an undeclared type before adding a property or method</param>
+            <param name="journal">a custom journal, if ommitted you can still view <c>TraceJournal.DefaultEntries</c> after method completion</param>
+            <returns></returns>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.XmlDoc.ParseMember(System.String)">
+            <summary>
+            Parses the "name" attribute from a &lt;member&gt; element into an XmlDoc <c>Member</c> object
+            </summary>
+            <param name="rawName"></param>
+            <returns></returns>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
+        </member>
+        <member name="M:Horseshoe.NET.Xml.Doc.XmlDoc.ParseType(System.String)">
+            <summary>
+            Takes a type string and returns an XmlDoc <c>Type</c> object representing that type
+            </summary>
+            <param name="type">a type string from an XML "name" attribute</param>
+            <returns>XmlDoc <c>Type</c></returns>
+            <exception cref="T:Horseshoe.NET.ValidationException"></exception>
         </member>
     </members>
 </doc>

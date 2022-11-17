@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Horseshoe.NET.Collections
 {
+    /// <summary>
+    /// A collection of utility methods for <c>IEnumerable</c>
+    /// </summary>
     public static class CollectionUtil
     {
         /// <summary>
@@ -11,7 +14,6 @@ namespace Horseshoe.NET.Collections
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="collection"></param>
-        /// <param name="canBeNull"></param>
         /// <returns>A new <c>List&lt;T&gt;</c></returns>
         public static List<T> ToList<T>(IEnumerable<T> collection)
         {
@@ -23,7 +25,6 @@ namespace Horseshoe.NET.Collections
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="collection"></param>
-        /// <param name="canBeNull"></param>
         /// <returns>A collection as a <c>List&lt;T&gt;</c></returns>
         public static List<T> AsList<T>(IEnumerable<T> collection)
         {
@@ -213,27 +214,6 @@ namespace Horseshoe.NET.Collections
             if (condition)
             {
                 foreach (T item in items ?? Array.Empty<T>())
-                {
-                    list.Add(item);
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(Func<T, bool> condition, IEnumerable<T> collection, params T[] items)
-        {
-            var list = ToList(collection);
-            foreach (T item in items ?? Array.Empty<T>())
-            {
-                if (condition(item))
                 {
                     list.Add(item);
                 }
@@ -506,7 +486,6 @@ namespace Horseshoe.NET.Collections
         /// <summary>
         /// Tests a <c>string</c> collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, also returns <c>false</c>.
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
         /// <param name="collection">A collection of <c>string</c></param>
         /// <param name="items">Items to search for (optional, but returns <c>false</c> if omitted)</param>
         /// <returns><c>true</c> or <c>false</c></returns>
@@ -530,7 +509,7 @@ namespace Horseshoe.NET.Collections
         /// <summary>
         /// Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
         /// </summary>
-        /// <typeparam name="E">Type of item</typeparam>
+        /// <typeparam name="T">Type of item</typeparam>
         /// <param name="collection">A collection to search</param>
         /// <param name="items">Items to find</param>
         /// <returns><c>true</c> or <c>false</c></returns>

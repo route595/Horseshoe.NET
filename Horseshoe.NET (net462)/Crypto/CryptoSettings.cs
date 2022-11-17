@@ -5,6 +5,9 @@ using Horseshoe.NET.Objects;
 
 namespace Horseshoe.NET.Crypto
 {
+    /// <summary>
+    /// Settings for crypto operations - sources are client-supplied values, configuration and organizational default settings
+    /// </summary>
     public static class CryptoSettings
     {
         private static SymmetricAlgorithm _defaultSymmetricAlgorithm;
@@ -88,8 +91,9 @@ namespace Horseshoe.NET.Crypto
         {
             get
             {
+                var encodingClassNameFromConfig = _Config.Get("Horseshoe.NET:Crypto:Encoding");   // example: "System.Text.UTF8Encoding"
                 return _defaultEncoding
-                    ?? ObjectUtil.GetInstance<Encoding>(_Config.Get("Horseshoe.NET:Crypto:Encoding"), suppressErrors: true)   // example: "System.Text.UTF8Encoding"
+                    ?? (encodingClassNameFromConfig != null ? ObjectUtil.GetInstance<Encoding>(encodingClassNameFromConfig) : null)
                     ?? OrganizationalDefaultSettings.Get<Encoding>("Crypto.Encoding")
                     ?? Encoding.Default;
             }

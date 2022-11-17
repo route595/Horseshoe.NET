@@ -11,8 +11,14 @@ using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
 {
+    /// <summary>
+    /// The heart of <c>ConsoleX</c> console applications including app launching logic 
+    /// </summary>
     public abstract class ConsoleXApp
     {
+        /// <summary>
+        /// Sample welcome banner text
+        /// </summary>
         public static StringValues DefaultWelcomeValues => new[]
         {
             "Welcome to " + Assembly.GetEntryAssembly().GetDisplayName() + "!",
@@ -21,18 +27,18 @@ namespace Horseshoe.NET.ConsoleX
         };
 
         /// <summary>
-        /// Starts the menu automation, requires <c>MainMenu</c> to be overridden
+        /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation
         /// </summary>
-        /// <param name="app">A ConsoleApp instance</param>
+        /// <param name="app">A <c>ConsoleXApp</c> instance</param>
         public static void StartConsoleApp(ConsoleXApp app)
         {
             app.Run();
         }
 
         /// <summary>
-        /// Starts the menu automation, requires <c>MainMenu</c> to be overridden
+        /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation
         /// </summary>
-        /// <typeparam name="T">Type of the startup class (usually located in Program.cs)</typeparam>
+        /// <typeparam name="T">Subclass of <c>ConsoleXApp</c> (typically Program.cs)</typeparam>
         public static void StartConsoleApp<T>() where T : ConsoleXApp
         {
             ObjectUtil.GetDefaultInstance<T>().Run();
@@ -80,10 +86,19 @@ namespace Horseshoe.NET.ConsoleX
         /// </summary>
         public virtual Action<RoutineX> ConfigureMainMenuRoutines { get; }
 
+        /// <summary>
+        /// Action to perform when user selects a menu item from <c>MainMenu</c>
+        /// </summary>
         public virtual Action<string> OnMainMenuSelecting { get; }
 
+        /// <summary>
+        /// Action to perform when a <c>MainMenu</c> routine completes
+        /// </summary>
         public virtual Action<RoutineX> OnMainMenuRoutineAutoRunComplete { get; }
 
+        /// <summary>
+        /// Action to perform when a <c>MainMenu</c> routine throws an exception
+        /// </summary>
         public virtual Action<Exception> OnMainMenuRoutineError { get; }
 
         /// <summary>
@@ -203,7 +218,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Search the calling assembly for subclasses of RoutineX and instantiate them into a menu list in alpha order
         /// </summary>
-        /// <param name="namespaceToMatch">Select routines only in this namespace, if provided</param>
+        /// <param name="namespacesToMatch">Select routines only in this namespace, if provided</param>
         /// <returns></returns>
         protected IList<MenuObject> FindMainMenuRoutines(params string[] namespacesToMatch)
         {

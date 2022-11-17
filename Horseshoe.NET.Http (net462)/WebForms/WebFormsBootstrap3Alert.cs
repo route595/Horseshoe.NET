@@ -74,7 +74,7 @@ namespace Horseshoe.NET.WebForms
                     writer.RenderEndTag(); // Div                                                        // End 'toggle link' div
                     var preStyles = Alert.IsMessageDetailsPreFormatted ? "font-family:Consolas,monospace;font-size:.8em;white-space:pre;" : "";
                     writer.Write("<div id=\"" + alertDetailsElementID + "\" style=\"display:none;" + preStyles + "\">");
-                    if (Alert.IsMessageDetailsEncodeHtml)
+                    if (Alert.IsMessageDetailsHtmlEncoded)
                     {
                         if (Alert.IsMessageDetailsPreFormatted)
                         {

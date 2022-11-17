@@ -75,5 +75,49 @@ namespace Horseshoe.NET.DateAndTime
         {
             return DateUtil.SameMonth(date, other);
         }
+
+        public static string ToFlexStringUS(this DateTime date)
+        {
+            if (date.Millisecond > 0)
+                return date.ToString("M/d/yyyy hh:mm:ss.fff tt");
+            if (date.Second > 0)
+                return date.ToString("M/d/yyyy hh:mm:ss tt");
+            if (date.Minute > 0 || date.Hour > 0)
+                return date.ToString("M/d/yyyy hh:mm tt");
+            return date.ToString("M/d/yyyy");
+        }
+
+        public static string ToFlexString24hrUS(this DateTime date)
+        {
+            if (date.Millisecond > 0)
+                return date.ToString("M/d/yyyy HH:mm:ss.fff");
+            if (date.Second > 0)
+                return date.ToString("M/d/yyyy HH:mm:ss");
+            if (date.Minute > 0 || date.Hour > 0)
+                return date.ToString("M/d/yyyy HH:mm");
+            return date.ToString("M/d/yyyy");
+        }
+
+        public static string ToFlexStringGB(this DateTime date)
+        {
+            if (date.Millisecond > 0)
+                return date.ToString("d/M/yyyy hh:mm:ss.fff tt");
+            if (date.Second > 0)
+                return date.ToString("d/M/yyyy hh:mm:ss tt");
+            if (date.Minute > 0 || date.Hour > 0)
+                return date.ToString("d/M/yyyy hh:mm tt");
+            return date.ToString("d/M/yyyy");
+        }
+
+        public static string ToFlexString24hrGB(this DateTime date)
+        {
+            if (date.Millisecond > 0)
+                return date.ToString("d/M/yyyy HH:mm:ss.fff");
+            if (date.Second > 0)
+                return date.ToString("d/M/yyyy HH:mm:ss");
+            if (date.Minute > 0 || date.Hour > 0)
+                return date.ToString("d/M/yyyy HH:mm");
+            return date.ToString("d/M/yyyy");
+        }
     }
 }

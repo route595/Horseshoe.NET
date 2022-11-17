@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Horseshoe.NET.OracleDb (net462)")]
+[assembly: AssemblyTitle("Horseshoe.NET.OracleDb")]
 [assembly: AssemblyDescription("A typesafe, object-oriented ADO.NET-based native Oracle data access utility")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Greenhazel Studio")]
-[assembly: AssemblyProduct("Horseshoe.NET.OracleDb (net462)")]
-[assembly: AssemblyCopyright("Copyright © 2022 Greenhazel Studio")]
+[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyProduct("Horseshoe.NET.OracleDb")]
+[assembly: AssemblyCopyright("Copyright © 2022 Route 595 Software Services")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.4.0")]
-[assembly: AssemblyFileVersion("2.0.4.0")]
+[assembly: AssemblyVersion("2.0.5.0")]
+[assembly: AssemblyFileVersion("2.0.5.0")]

@@ -7,10 +7,10 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <Description>Common, shared types for Horseshoe.NET.Caching</Description>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <Authors>Carl Thomas</Authors>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
-    <Company>Greenhazel Studio</Company>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
+    <Company>Route 595 Software Services</Company>
     <PackageId>Horseshoe.NET.Caching.Abstractions (netstandard2.0)</PackageId>
   </PropertyGroup>
 

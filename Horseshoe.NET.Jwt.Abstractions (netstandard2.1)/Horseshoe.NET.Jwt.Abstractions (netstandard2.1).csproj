@@ -5,11 +5,11 @@
     <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <Authors>Carl Thomas</Authors>
-    <Company>Greenhazel Studio</Company>
+    <Company>Route 595 Software Services</Company>
     <Description>Types for Horseshoe.NET.Jwt</Description>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
     <AssemblyName>Horseshoe.NET.Jwt.Abstractions</AssemblyName>
   </PropertyGroup>
 

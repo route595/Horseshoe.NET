@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.Http</RootNamespace>
     <AssemblyName>Horseshoe.NET.Http</AssemblyName>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <Authors>Carl Thomas</Authors>
-    <Company>Greenhazel Studio</Company>
+    <Company>Route 595 Software Services</Company>
     <Description>Web service and web API boilerplate code</Description>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

@@ -10,15 +10,35 @@ using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.ConsoleX.Plugins
 {
+    /// <summary>
+    /// A <c>ConsoleX</c> plugin for traversing the filesystem with customizable actions enabling folder size calculation, recursive deletion, etc.
+    /// </summary>
     public class FileSystemNavigator : RoutineX
     {
+        /// <summary>
+        /// <c>FileSystemNavigator</c> options
+        /// </summary>
         public FileSystemNavigatorOptions Options { get; }
+
+        /// <summary>
+        /// The currently visited file or directory path
+        /// </summary>
         public string SelectedPath { get; set; }
         private bool IsFinalSelection { get; set; }
         private string StartDirectory => NormalizeDirectoryPath(Options.StartDirectory ?? Environment.CurrentDirectory);
         private string DelayedAlert { get; set; }
+
+        /// <summary>
+        /// Action to perform when a path has been selected
+        /// </summary>
         public Action<string> OnPathSelected { get; set; }
 
+        /// <summary>
+        /// Create a new instance of the <c>FileSystemNavigator</c> plugin for <c>ConsoleX</c>
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="options"></param>
+        /// <exception cref="ValidationException"></exception>
         public FileSystemNavigator(string text, FileSystemNavigatorOptions options = null) : base(text ?? "File Search")
         {
             if (options != null)
@@ -35,6 +55,9 @@ namespace Horseshoe.NET.ConsoleX.Plugins
             }
         }
 
+        /// <summary>
+        /// Start crawling the filesystem beginning at the starting directory
+        /// </summary>
         public override void Run()
         {
             IsFinalSelection = false;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.ConsoleX.Plugins;
+using Horseshoe.NET.Text;
 
 namespace TestConsole
 {
@@ -105,7 +106,15 @@ namespace TestConsole
                     Console.WriteLine("Enter ints, range is 1 - 3.  Press enter to exit...");
                     while(nint.HasValue)
                     {
-                        nint = PromptX.NNumeric<int>(min: 1, max: 3);
+                        try
+                        {
+                            nint = PromptX.NInt(min: 1, max: 3);
+                            Console.WriteLine("int=" + TextUtil.Reveal(nint));
+                        }
+                        catch(ConsoleNavigation.PromptCanceledException)
+                        {
+                            Console.WriteLine("[prompt canceled]");
+                        }
                     }
                 }
             ),
@@ -114,7 +123,7 @@ namespace TestConsole
                 text: "File Search", 
                 options: new FileSystemNavigatorOptions 
                 { 
-                    StartDirectory = @"C:\MyThirdPartyProjects" 
+                    StartDirectory = @"C:\Users" 
                 }
             )
             { 
@@ -125,7 +134,7 @@ namespace TestConsole
                 text: "Folder Search", 
                 options: new FileSystemNavigatorOptions 
                 { 
-                    StartDirectory = @"C:\MyThirdPartyProjects", 
+                    StartDirectory = @"C:\Users", 
                     DirectoryModeOn = true 
                 }
             )

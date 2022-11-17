@@ -7,6 +7,10 @@ using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
 {
+    /// <summary>
+    /// Represents configurable, interactive or non-interactive synchronous processes or routines
+    /// which are the building blocks of <c>ConsoleX</c> applications
+    /// </summary>
     public abstract class RoutineX : MenuObject
     {
         /// <summary>
@@ -60,11 +64,6 @@ namespace Horseshoe.NET.ConsoleX
         public virtual bool AutoAppendExitRoutineMenuItem { get; set; }
 
         /// <summary>
-        /// If <c>true</c>, adds a menu item for restarting the routine to the built-in menu
-        /// </summary>
-        public virtual bool AutoAppendRestartRoutineMenuItem { get; set; }
-
-        /// <summary>
         /// An event to hook into
         /// </summary>
         public virtual Action<Exception> OnError { get; set; }
@@ -106,13 +105,23 @@ namespace Horseshoe.NET.ConsoleX
 
         private bool IsRestarted { get; set; }
 
+        /// <summary>
+        /// Is <c>true</c> if exiting the application (e.g. <c>'exit'</c> has been entered at the menu prompt and <c>allowExit == true</c> 
+        /// </summary>
         public bool IsExited { get; set; }
 
+        /// <summary>
+        /// Create a new routine
+        /// </summary>
         public RoutineX() : base()
         {
             Configure(GlobalConfiguration);
         }
 
+        /// <summary>
+        /// Create a new routine with display text
+        /// </summary>
+        /// <param name="text"></param>
         public RoutineX(string text) : base(text)
         {
             Configure(GlobalConfiguration);
@@ -168,7 +177,7 @@ namespace Horseshoe.NET.ConsoleX
                         Menu, 
                         title: MenuTitle,
                         customItemsToPrepend: CustomMenuItemsToPrepend,
-                        customItemsToAppend: BuildCustomMenuItems(CustomMenuItemsToAppend, AutoAppendRestartRoutineMenuItem, AutoAppendExitRoutineMenuItem),
+                        customItemsToAppend: BuildCustomMenuItems(CustomMenuItemsToAppend, AutoAppendExitRoutineMenuItem),
                         columns: MenuColumns,
                         configureTextGrid: ConfigureTextGrid,
                         onMenuSelecting: OnMenuSelecting,
@@ -200,36 +209,53 @@ namespace Horseshoe.NET.ConsoleX
             }
         }
 
-        private IList<MenuObject> BuildCustomMenuItems(IList<MenuObject> customMenuItems, bool autoAppendRestartRoutineMenuItem, bool autoAppendExitRoutineMenuItem)
+        private IList<MenuObject> BuildCustomMenuItems(IList<MenuObject> customMenuItems, bool autoAppendExitRoutineMenuItem)
         {
             if (!(autoAppendExitRoutineMenuItem || autoAppendExitRoutineMenuItem))
             {
                 return customMenuItems;
             }
-            var list = new List<MenuObject>(customMenuItems ?? new MenuObject[0]);
-            list
-                .AppendIf(autoAppendRestartRoutineMenuItem, CreateRestartRoutineMenuItem())
+            return new List<MenuObject>(customMenuItems ?? new MenuObject[0])
                 .AppendIf(autoAppendExitRoutineMenuItem, CreateExitRoutineMenuItem());
-            return list;
         }
 
+        /// <summary>
+        /// Action to perform at routine create time whose purpose is to configure the routine
+        /// </summary>
+        /// <param name="configure"></param>
         public virtual void Configure(Action<RoutineX> configure)
         {
             configure?.Invoke(this);
         }
 
+        /// <summary>
+        /// Action to perform configurations globally on all reoutines
+        /// </summary>
         public static Action<RoutineX> GlobalConfiguration { get; set; }
 
+        /// <summary>
+        /// Restarts the routine (typically by typing '/' at the prompt if <c>AutoAppendRestartRoutineMenuItem == true</c>
+        /// </summary>
         public static void Restart()
         {
             ConsoleNavigation.RestartRoutine();
         }
 
+        /// <summary>
+        /// Exits the routing (typically by typing 
+        /// </summary>
         public static void Exit()
         {
             ConsoleNavigation.ExitRoutine();
         }
 
+        /// <summary>
+        /// Create a specialized menu item that restarts the routine
+        /// </summary>
+        /// <param name="text">The menu item text</param>
+        /// <param name="command">The command to type</param>
+        /// <param name="beforeRestart">Additional action to perform when menu item is selected</param>
+        /// <returns></returns>
         protected static RoutineX CreateRestartRoutineMenuItem(string text = "Restart", string command = "R", Action beforeRestart = null)
         {
             return BuildCustomRoutine
@@ -244,6 +270,14 @@ namespace Horseshoe.NET.ConsoleX
             );
         }
 
+        /// <summary>
+        /// Create a specialized menu item that exits the routine and goes back to the previous menu
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="command"></param>
+        /// <param name="beforeExit"></param>
+        /// <remarks><seealso cref="AutoAppendExitRoutineMenuItem"/></remarks>
+        /// <returns></returns>
         protected static RoutineX CreateExitRoutineMenuItem(string text = "Go Back", string command = "/", Action beforeExit = null)
         {
             return BuildCustomRoutine
@@ -259,7 +293,7 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Build a non-interactive <c>Routine</c> as an item for a menu
+        /// Build a non-interactive <c>Routine</c>.  Note: It is common to override <see cref="Menu"/> with an array of routines built by this method.
         /// </summary>
         /// <param name="text">A title</param>
         /// <param name="action">The action to execute when this routine is run</param>

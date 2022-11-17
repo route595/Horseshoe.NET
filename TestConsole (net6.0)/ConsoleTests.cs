@@ -105,7 +105,7 @@ namespace TestConsole
                     Console.WriteLine("Enter ints, range is 1 - 3.  Press enter to exit...");
                     while(nint.HasValue)
                     {
-                        nint = PromptX.NNumeric<int>(min: 1, max: 3);
+                        nint = PromptX.NInt(min: 1, max: 3);
                     }
                 }
             ),

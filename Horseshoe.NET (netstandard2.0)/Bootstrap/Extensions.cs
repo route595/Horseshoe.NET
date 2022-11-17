@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-
-using Horseshoe.NET.Text;
-
-namespace Horseshoe.NET.Bootstrap
+﻿namespace Horseshoe.NET.Bootstrap
 {
+    /// <summary>
+    /// Extension methods
+    /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Convert an <c>AlertType</c> to a corresponding Bootstrap css class
+        /// </summary>
+        /// <param name="alertType"></param>
+        /// <returns></returns>
         public static string ToCssClass(this Bootstrap3.AlertType alertType)
         {
             switch (alertType)
@@ -23,6 +21,11 @@ namespace Horseshoe.NET.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Convert an <c>AlertType</c> to a corresponding Bootstrap css class
+        /// </summary>
+        /// <param name="alertType"></param>
+        /// <returns></returns>
         public static string ToCssClass(this Bootstrap4.AlertType alertType)
         {
             switch (alertType)

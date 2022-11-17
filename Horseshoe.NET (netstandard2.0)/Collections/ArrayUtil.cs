@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Horseshoe.NET.Collections
 {
+    /// <summary>
+    /// A collection of utility methods for arrays
+    /// </summary>
     public static class ArrayUtil
     {
         /// <summary>
@@ -119,19 +123,48 @@ namespace Horseshoe.NET.Collections
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="array">An array</param>
-        /// <param name="items">Items to append, optional</param>
+        /// <param name="items">Items to append</param>
         /// <returns>The appended array</returns>
-        public static T[] Append<T>(T[] array, params T[] items)      // array = ['apple', 'orange', 'banana']      items = ['pear', 'grape']
-        {                                                             //                                                      [0]      [1]
+        public static T[] Append<T>(T[] array, params T[] items)
+        {
+            return Append<T>(array, items as IEnumerable<T>);
+        }
+
+        /// <summary>
+        /// Appends zero or more items to an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="items">Items to append</param>
+        /// <returns>The appended array</returns>
+        public static T[] Append<T>(T[] array, IEnumerable<T> items)  // array = ['apple', 'orange', 'banana']   items = { 'pear', 'grape' }
+        {                                                             //            [0]      [1]       [2]                  [0]      [1]
             if (array == null)
-                return items ?? Array.Empty<T>();
-            if (items == null || items.Length == 0)
-                return array;
-            var newArray = new T[array.Length + items.Length];        // newArray = [null, null, null, null, null]
-            Array.Copy(array, newArray, array.Length);                // newArray = ['apple', 'orange', 'banana', null, null]
-            for (int i = 0; i < items.Length; i++)                    //               [0]       [1]       [2]     [3]   [4]
             {
-                newArray[array.Length + i] = items[i];                //                                          [3+0] [3+1]
+                if (items == null || !items.Any())
+                    return new T[0];
+                if (items is T[] _array)
+                    return _array;
+                return items.ToArray();
+            }
+            if (items == null || !items.Any())
+                return array;
+            var newArray = new T[array.Length + items.Count()];       // newArray = [ null,     null,     null,       null,     null]
+            Array.Copy(array, newArray, array.Length);                // newArray = ['apple', 'orange', 'banana',     null,     null]
+            if (items is T[] itemArray)                               //               [0]      [1]       [2]          [3]       [4]
+            {
+                for (int i = 0; i < itemArray.Length; i++) 
+                {                                                     //                                              'pear'   'grape'
+                    newArray[array.Length + i] = itemArray[i];        //                                             [3 + 0]   [3 + 1]     (array len = 3)
+                }
+            }
+            else
+            {
+                var itemIndex = 0;
+                foreach (var item in items)
+                {                                                     //                                              'pear'   'grape'
+                    newArray[array.Length + itemIndex++] = item;      //                                             [3 + 0]   [3 + 1]     (array len = 3)
+                }
             }
             return newArray;
         }
@@ -142,26 +175,80 @@ namespace Horseshoe.NET.Collections
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
         /// <param name="array">An array</param>
-        /// <param name="items">Items to append, optional</param>
+        /// <param name="items">Items to append</param>
         /// <returns>The appended array</returns>
         public static T[] AppendIf<T>(bool condition, T[] array, params T[] items)
         {
-            var collection = CollectionUtil.AppendIf(condition, array, items);
-            return collection.ToArray();
+            if (!condition)
+                return array;
+            return Append(array, items);
         }
 
         /// <summary>
-        /// Conditionally appends zero or more items to an array
+        /// Adds zero or more items to the beginning of an array
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
         /// <param name="array">An array</param>
-        /// <param name="items">Items to append, optional</param>
+        /// <param name="items">Items to prepend</param>
         /// <returns>The appended array</returns>
-        public static T[] AppendIf<T>(Func<T, bool> condition, T[] array, params T[] items)
+        public static T[] Prepend<T>(T[] array, params T[] items)
         {
-            var collection = CollectionUtil.AppendIf(condition, array, items);
-            return collection.ToArray();
+            return Prepend<T>(array, items as IEnumerable<T>);
+        }
+
+        /// <summary>
+        /// Adds zero or more items to the beginning of an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The appended array</returns>
+        public static T[] Prepend<T>(T[] array, IEnumerable<T> items) // array = ['apple', 'orange', 'banana']   items = { 'pear', 'grape' }
+        {                                                             //            [0]      [1]       [2]                  [0]      [1]
+            if (array == null)
+            {
+                if (items == null || !items.Any())
+                    return new T[0];
+                if (items is T[] _array)
+                    return _array;
+                return items.ToArray();
+            }
+            if (items == null || !items.Any())
+                return array;
+            var itemCount = items.Count();
+            var newArray = new T[array.Length + itemCount];           // newArray = [null,     null,    null,     null,     null  ]
+            Array.Copy(array, 0, newArray, itemCount, array.Length);  // newArray = [null,     null,   'apple', 'orange', 'banana']
+            if (items is T[] itemArray)                               //              [0]       [1]      [2]      [3]       [4]
+            {
+                for (int i = 0; i < itemArray.Length; i++)
+                {                                                     //             'pear'   'grape'
+                    newArray[i] = itemArray[i];                       //              [0]       [1]
+                }
+            }
+            else
+            {
+                var itemIndex = 0;
+                foreach (var item in items)
+                {                                                     //             'pear'   'grape'
+                    newArray[itemIndex++] = item;                     //              [0]       [1]
+                }
+            }
+            return newArray;
+        }
+
+        /// <summary>
+        /// Conditionally adds zero or more items to the beginning an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="array">An array</param>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The appended array</returns>
+        public static T[] PrependIf<T>(bool condition, T[] array, params T[] items)
+        {
+            if (!condition)
+                return array;
+            return Prepend(array, items);
         }
 
         /// <summary>
@@ -186,20 +273,6 @@ namespace Horseshoe.NET.Collections
         /// <param name="collections">Collections to append</param>
         /// <returns>The appended array</returns>
         public static T[] AppendIf<T>(bool condition, T[] array, params IEnumerable<T>[] collections)
-        {
-            var collection = CollectionUtil.AppendIf(condition, array, collections);
-            return collection.ToArray();
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="array">An array</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] AppendIf<T>(Func<T, bool> condition, T[] array, params IEnumerable<T>[] collections)
         {
             var collection = CollectionUtil.AppendIf(condition, array, collections);
             return collection.ToArray();

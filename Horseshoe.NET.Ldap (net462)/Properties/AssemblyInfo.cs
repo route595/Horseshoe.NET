@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Horseshoe.NET.Ldap (net462)")]
+[assembly: AssemblyTitle("Horseshoe.NET.Ldap")]
 [assembly: AssemblyDescription("Encapsulates common LDAP functions e.g. directory query and user login.  Linux and Windows compatible but not Kerberos enabled (uses Novell.Directory.Ldap).")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Greenhazel Studio")]
-[assembly: AssemblyProduct("Horseshoe.NET.Ldap (net462)")]
-[assembly: AssemblyCopyright("Copyright © 2022 Greenhazel Studio")]
+[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyProduct("Horseshoe.NET.Ldap")]
+[assembly: AssemblyCopyright("Copyright © 2022 Route 595 Software Services")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.4.0")]
-[assembly: AssemblyFileVersion("2.0.4.0")]
+[assembly: AssemblyVersion("2.0.5.0")]
+[assembly: AssemblyFileVersion("2.0.5.0")]

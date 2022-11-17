@@ -6,6 +6,10 @@ using Horseshoe.NET.Text.TextClean;
 
 namespace Horseshoe.NET.ConsoleX
 {
+    /// <summary>
+    /// <c>PromptX.Menu()</c> returns instances of this class when a menu item is selected
+    /// </summary>
+    /// <typeparam name="T">a menu item type</typeparam>
     public class MenuSelection<T>
     {
         /// <summary>

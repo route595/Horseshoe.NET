@@ -2,6 +2,9 @@
 
 namespace Horseshoe.NET.Bootstrap
 {
+    /// <summary>
+    /// Hints for rendering message details in Bootstrap alerts
+    /// </summary>
     [Flags]
     public enum AlertMessageDetailsRenderingPolicy
     {

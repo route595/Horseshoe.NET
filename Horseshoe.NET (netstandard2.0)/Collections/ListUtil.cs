@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Horseshoe.NET.Collections
 {
+    /// <summary>
+    /// A collection of <c>List</c> utility methods
+    /// </summary>
     public static class ListUtil
     {
         private static List<T> AsList<T>(IEnumerable<T> array) =>

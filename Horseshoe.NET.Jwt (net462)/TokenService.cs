@@ -40,8 +40,8 @@ namespace Horseshoe.NET.Jwt
             }
             var token = new AccessToken { EncodedToken = encodedToken };
             var split = encodedToken.Split('.');
-            split[0] = Decode.Base64(split[0]);
-            split[1] = Decode.Base64(split[1]);
+            split[0] = Decode.Base64.String(split[0]);
+            split[1] = Decode.Base64.String(split[1]);
             token.Header = DeserializeTokenHeader(split[0]);
             token.Body = DeserializeTokenBody(split[1]);
             token.RawDigitalSignature = split.Length > 2 ? split[2] : null;

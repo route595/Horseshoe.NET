@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Horseshoe.NET.Application;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Text;
 
@@ -97,17 +96,17 @@ namespace TestConsole
                 {
                     RenderX.List(AppDomain.CurrentDomain.GetAssemblies(), renderer: (a) => a.FullName);
                 }
-            ),
-            BuildMenuRoutine
-            (
-                "Detect App Type",
-                () =>
-                {
-                    var sb = new StringBuilder();
-                    var appType = ClientApp.DetectAppType(sb);
-                    RenderX.ListTitle("Detected: " + (appType?.ToString() ?? "[null]"));
-                    Console.WriteLine(sb);
-                }
+            //),
+            //BuildMenuRoutine
+            //(
+            //    "Detect App Type",
+            //    () =>
+            //    {
+            //        var sb = new StringBuilder();
+            //        var appType = ClientApp.DetectAppType(sb);
+            //        RenderX.ListTitle("Detected: " + (appType?.ToString() ?? "[null]"));
+            //        Console.WriteLine(sb);
+            //    }
             )
         };
     }

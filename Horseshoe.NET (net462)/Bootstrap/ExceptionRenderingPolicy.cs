@@ -1,5 +1,8 @@
 ﻿namespace Horseshoe.NET.Bootstrap
 {
+    /// <summary>
+    /// Whether and how to render exception details in Bootstrap 'danger' alerts
+    /// </summary>
     public enum ExceptionRenderingPolicy
     {
         /// <summary>
@@ -15,11 +18,6 @@
         /// <summary>
         /// Render exception details to a nonvisible element only
         /// </summary>
-        Hidden,
-
-        /// <summary>
-        /// Render exception details only if in Development (see Horseshoe.NET AppMode), otherwise do not (requires configuration i.e. in app|web.config or appsettings.json set Horseshoe.NET:AppMode)
-        /// </summary>
-        Dynamic
+        Hidden
     }
 }

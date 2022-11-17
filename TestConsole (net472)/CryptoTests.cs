@@ -122,7 +122,7 @@ namespace TestConsole
                 () =>
                 {
                     var plaintext = PromptX.Input("Plaintext");
-                    var base64 = Encode.Base64(plaintext);
+                    var base64 = Encode.Base64.String(plaintext);
                     Console.WriteLine("Encoded: " + base64);
                 }
             ),
@@ -132,7 +132,7 @@ namespace TestConsole
                 () =>
                 {
                     var base64 = PromptX.Input("Encoded");
-                    var plaintext = Decode.Base64(base64);
+                    var plaintext = Decode.Base64.String(base64);
                     Console.WriteLine("Plaintext: " + plaintext);
                 }
             )

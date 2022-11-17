@@ -5,7 +5,7 @@ namespace Horseshoe.NET
 {
     public static class ConvertString
     {
-        private static IDictionary<Type, Func<string, object>> converters = new Dictionary<Type, Func<string, object>>
+        private static readonly IDictionary<Type, Func<string, object>> converters = new Dictionary<Type, Func<string, object>>
         {
             { typeof(bool), (value) => Zap.Bool(value) },
             //{ typeof(bool?), (value) => Zap.NBool(value) },
@@ -64,6 +64,10 @@ namespace Horseshoe.NET
                 if (converter != null)
                 {
                     return converter.Invoke(value);
+                }
+                if (type.IsEnum)
+                {
+                    return Enum.Parse(type, value);
                 }
                 if (converters.ContainsKey(type))
                 {

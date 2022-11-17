@@ -5,17 +5,19 @@
     <RootNamespace>Horseshoe.NET.ActiveDirectory__netstandard2._0_</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Company>Greenhazel Studio</Company>
+    <Company>Route 595 Software Services</Company>
     <Authors>Carl Thomas</Authors>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <Description>Services for Active Directory authentication and LDAP querying</Description>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
     <AssemblyName>Horseshoe.NET.ActiveDirectory</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.DirectoryServices" Version="6.0.0" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
+    <PackageReference Include="System.DirectoryServices" Version="7.0.0" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="7.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
 
   <ItemGroup>

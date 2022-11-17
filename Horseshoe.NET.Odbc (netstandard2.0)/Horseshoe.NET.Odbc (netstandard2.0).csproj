@@ -5,16 +5,17 @@
     <RootNamespace>Horseshoe.NET.Odbc</RootNamespace>
     <Description>A typesafe, object-oriented ADO.NET-based ODBC data access utility</Description>
     <Authors>Carl Thomas</Authors>
-    <Company>Greenhazel Studio</Company>
-    <Version>2.0.4</Version>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Company>Route 595 Software Services</Company>
+    <Version>2.0.5</Version>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.Odbc</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.Odbc" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
+    <PackageReference Include="System.Data.Odbc" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>

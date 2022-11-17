@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using Horseshoe.NET.Iterator;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.Collections
 {
+    /// <summary>
+    /// A collection of extension methods for connection several types of <c>Collection</c> with <c>Horseshoe.NET</c> collection utilities
+    /// </summary>
     public static class Extensions
     {
         /// <summary>
@@ -177,7 +181,6 @@ namespace Horseshoe.NET.Collections
         /// <summary>
         /// Tests a <c>string</c> collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, also returns <c>false</c>.
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
         /// <param name="collection">A collection of <c>string</c></param>
         /// <param name="items">Items to search for (optional, but returns <c>false</c> if omitted)</param>
         /// <returns><c>true</c> or <c>false</c></returns>
@@ -397,6 +400,8 @@ namespace Horseshoe.NET.Collections
         /// Renders a collection of arrays to a multiline string
         /// </summary>
         /// <param name="objectArrays">a collection of arrays</param>
+        /// <param name="separator"></param>
+        /// <param name="displayNullAs"></param>
         /// <returns></returns>
         public static string Render(this IEnumerable<object[]> objectArrays, string separator = ",", string displayNullAs = "[null]")
         {
@@ -614,7 +619,7 @@ namespace Horseshoe.NET.Collections
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="array">An array</param>
-        /// <param name="items">Items to append, optional</param>
+        /// <param name="items">Items to append</param>
         /// <returns>The appended array</returns>
         public static T[] Append<T>(this T[] array, params T[] items) =>
             ArrayUtil.Append(array, items);
@@ -625,21 +630,31 @@ namespace Horseshoe.NET.Collections
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="array">An array</param>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="items">Items to append, optional</param>
+        /// <param name="items">Items to append</param>
         /// <returns>The appended array</returns>
         public static T[] AppendIf<T>(this T[] array, bool condition, params T[] items) =>
             ArrayUtil.AppendIf(condition, array, items);
 
         /// <summary>
-        /// Conditionally appends zero or more items to an array
+        /// Adds zero or more items to the beginning an array
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="array">An array</param>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="items">Items to append, optional</param>
+        /// <param name="items">Items to prepend</param>
         /// <returns>The appended array</returns>
-        public static T[] AppendIf<T>(this T[] array, Func<T, bool> condition, params T[] items) =>
-            ArrayUtil.AppendIf(condition, array, items);
+        public static T[] Prepend<T>(this T[] array, params T[] items) =>
+            ArrayUtil.Prepend(array, items);
+
+        /// <summary>
+        /// Conditionally adds zero or more items to the beginning of an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The appended array</returns>
+        public static T[] PrependIf<T>(this T[] array, bool condition, params T[] items) =>
+            ArrayUtil.PrependIf(condition, array, items);
 
         /// <summary>
         /// Appends zero or more collections to an array
@@ -660,17 +675,6 @@ namespace Horseshoe.NET.Collections
         /// <param name="collections">Collections to append</param>
         /// <returns>The appended array</returns>
         public static T[] AppendIf<T>(this T[] array, bool condition, params IEnumerable<T>[] collections) =>
-            ArrayUtil.AppendIf(condition, array, collections);
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] AppendIf<T>(this T[] array, Func<T, bool> condition, params IEnumerable<T>[] collections) =>
             ArrayUtil.AppendIf(condition, array, collections);
 
         /// <summary>
@@ -961,6 +965,13 @@ namespace Horseshoe.NET.Collections
             return list;
         }
 
+        /// <summary>
+        /// Renders this entire <c>IDictionary</c> to text
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="dict"></param>
+        /// <returns></returns>
         public static string Dump<TKey, TValue>(this IDictionary<TKey, TValue> dict)
         {
             return dict == null 

@@ -5,15 +5,16 @@
     <RootNamespace>Horseshoe.NET.ExcelHelper</RootNamespace>
     <Description>An Excel file import utility for .NET (uses NPOI)</Description>
     <Authors>Carl Thomas</Authors>
-    <Company>Greenhazel Studio</Company>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
-    <Version>2.0.4</Version>
+    <Company>Route 595 Software Services</Company>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
+    <Version>2.0.5</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.Excel</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
     <PackageReference Include="NPOI" Version="2.5.6" />
     <PackageReference Include="SharpZipLib" Version="1.3.3" />
   </ItemGroup>

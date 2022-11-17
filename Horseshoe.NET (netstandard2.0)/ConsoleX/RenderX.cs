@@ -11,10 +11,27 @@ using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
 {
+    /// <summary>
+    /// A collection of methods for rendering content to the console
+    /// </summary>
     public static class RenderX
     {
+        /// <summary>
+        /// The current with of the console window (in characters) minus a padding value of 2
+        /// </summary>
         public static int ConsoleWidth => Console.WindowWidth - 2;
 
+        /// <summary>
+        /// Global exception rendering preferences
+        /// </summary>
+        public static ExceptionRendering ExceptionRendering { get; } = new ExceptionRendering();
+
+        /// <summary>
+        /// Render a large banner and welcome message, typically at program start
+        /// </summary>
+        /// <param name="message">A <c>string</c> or <c>string[]</c> to display in the welcome banner</param>
+        /// <param name="padBefore">the number of new lines to render before the banner</param>
+        /// <param name="padAfter">the number of new lines to render after the banner</param>
         public static void Welcome(StringValues message, int padBefore = 1, int padAfter = 2)
         {
             var list = new List<string>();
@@ -34,6 +51,12 @@ namespace Horseshoe.NET.ConsoleX
             Pad(padAfter);
         }
 
+        /// <summary>
+        /// Render a small banner such as those used in displaying <c>Routine</c> titles
+        /// </summary>
+        /// <param name="title"><c>Title</c> or text</param>
+        /// <param name="padBefore">the number of new lines to render before the banner</param>
+        /// <param name="padAfter">the number of new lines to render after the banner</param>
         public static void RoutineTitle(Title title, int padBefore = 1, int padAfter = 1)
         {
             Pad(padBefore);
@@ -43,15 +66,30 @@ namespace Horseshoe.NET.ConsoleX
             Pad(padAfter);
         }
 
+        /// <summary>
+        /// Render the specified number of new lines
+        /// </summary>
+        /// <param name="pad">the number of new lines to render</param>
+        /// <param name="altText">an optional alternate string to render on each newline in the pad</param>
         public static void Pad(int pad, string altText = null)
         {
             for (int i = 0; i < pad; i++)
             {
-                Console.WriteLine(altText);
+                if (altText != null)
+                    Console.WriteLine(altText);
+                else
+                    Console.WriteLine();
             }
         }
 
-        public static void ListTitle(Title? title, string requiredIndicator = null, int padBefore = 0, int padAfter = 0)
+        /// <summary>
+        /// Render a title underlined with dashes (-)
+        /// </summary>
+        /// <param name="title"><c>Title</c> or text</param>
+        /// <param name="requiredIndicator">if the collection belonging to this title is a required selection, mark with this or the default '*'</param>
+        /// <param name="padBefore">the number of new lines to render before the title</param>
+        /// <param name="padAfter">the number of new lines to render after the title</param>
+        public static void ListTitle(Title? title, string requiredIndicator = "*", int padBefore = 0, int padAfter = 0)
         {
             Pad(padBefore);
             if (title.HasValue)
@@ -70,33 +108,62 @@ namespace Horseshoe.NET.ConsoleX
             Pad(padAfter);
         }
 
-        public static void List<E>
+        /// <summary>
+        /// Render a collection of items to the console with or without indexes based on <c>indexPolicy</c>
+        /// </summary>
+        /// <typeparam name="T">type of item</typeparam>
+        /// <param name="list">a collection of items</param>
+        /// <param name="title"><c>Title</c> or text</param>
+        /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
+        /// <param name="renderer">alternative to <c>ToString()</c></param>
+        /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
+        /// <param name="columns">the number of columns in which to render the collection</param>
+        /// <param name="padBefore">the number of new lines to render before the collection</param>
+        /// <param name="padAfter">the number of new lines to render after the collection</param>
+        /// <param name="requiredIndicator">if the collection belonging to this title is a required selection, mark with this or the default '*'</param>
+        /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
+        public static void List<T>
         (
-            IEnumerable<E> list,
+            IEnumerable<T> list,
             Title? title = null,
             ListIndexPolicy indexPolicy = default,
-            Func<E, string> renderer = null,
+            Func<T, string> renderer = null,
+            MenuAndListRealtimeConfigurator listConfigurator = null,
             int columns = 1,
             int padBefore = 0,
             int padAfter = 0,
-            string requiredIndicator = null,
+            string requiredIndicator = "*",
             Action<TextGrid> configureTextGrid = null
         )
         {
-            List(list?.ToList(), title: title, indexPolicy: indexPolicy, renderer: renderer, columns: columns, padBefore: padBefore, padAfter: padAfter, requiredIndicator: requiredIndicator, configureTextGrid: configureTextGrid);
+            List(list?.ToList(), title: title, indexPolicy: indexPolicy, listConfigurator: listConfigurator, renderer: renderer, columns: columns, padBefore: padBefore, padAfter: padAfter, requiredIndicator: requiredIndicator, configureTextGrid: configureTextGrid);
         }
 
-        public static void List<E>
+        /// <summary>
+        /// Render a list of items to the console with or without indexes based on <c>indexPolicy</c>
+        /// </summary>
+        /// <typeparam name="T">type of item</typeparam>
+        /// <param name="list">a list of items</param>
+        /// <param name="title"><c>Title</c> or text</param>
+        /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
+        /// <param name="renderer">alternative to <c>ToString()</c></param>
+        /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
+        /// <param name="columns">the number of columns in which to render the list</param>
+        /// <param name="padBefore">the number of new lines to render before the list</param>
+        /// <param name="padAfter">the number of new lines to render after the list</param>
+        /// <param name="requiredIndicator">if the list belonging to this title is a required selection, mark with this or the default '*'</param>
+        /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
+        public static void List<T>
         (
-            IList<E> list,
+            IList<T> list,
             Title? title = null,
             ListIndexPolicy indexPolicy = default,
-            Func<E, string> renderer = null,
-            RenderMessages renderMessages = null,
+            Func<T, string> renderer = null,
+            MenuAndListRealtimeConfigurator listConfigurator = null,
             int columns = 1,
             int padBefore = 0,
             int padAfter = 0,
-            string requiredIndicator = null,
+            string requiredIndicator = "*",
             Action<TextGrid> configureTextGrid = null
         )
         {
@@ -105,12 +172,12 @@ namespace Horseshoe.NET.ConsoleX
             if (list == null)
             {
                 Console.WriteLine("[null list]");
-                renderMessages?.SetNotSelectable();
+                listConfigurator?.SetNotSelectable();
             }
             else if (!list.Any())
             {
                 Console.WriteLine("[empty list]");
-                renderMessages?.SetNotSelectable();
+                listConfigurator?.SetNotSelectable();
             }
             else
             {
@@ -119,7 +186,7 @@ namespace Horseshoe.NET.ConsoleX
                 var renderedList = new List<string>();
                 var indexSize = (count + (indexPolicy == ListIndexPolicy.DisplayOneBased ? 1 : 0)).ToString().Length;
 
-                string renderListItem(string index, E item)
+                string renderListItem(string index, T item)
                 {
                     strb.Clear();
                     if (index != null)
@@ -159,17 +226,32 @@ namespace Horseshoe.NET.ConsoleX
             Pad(padAfter);
         }
 
-        public static void Menu<E>
+        /// <summary>
+        /// Render a menu to the console
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="menuItems">list of items including <c>MenuItem</c>s</param>
+        /// <param name="title">a title to render above the menu</param>
+        /// <param name="customItemsToPrepend">custom items to list before the regular menu items</param>
+        /// <param name="customItemsToAppend">custom items to list after the regular menu items</param>
+        /// <param name="columns">the number of columns in which to render the list</param>
+        /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
+        /// <param name="renderer">alternative to <c>ToString()</c></param>
+        /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
+        /// <param name="requiredIndicator">if the list belonging to this title is a required selection, mark with this or the default '*'</param>
+        /// <param name="padBefore">the number of new lines to render before the list</param>
+        /// <param name="padAfter">the number of new lines to render after the list</param>
+        public static void Menu<T>
         (
-            IList<E> menuItems,
+            IList<T> menuItems,
             Title? title = null,
             IList<MenuObject> customItemsToPrepend = null,
             IList<MenuObject> customItemsToAppend = null,
             int columns = 1,
             Action<TextGrid> configureTextGrid = null,
-            Func<E, string> renderer = null,
-            RenderMessages renderMessages = null,
-            string requiredIndicator = null,
+            Func<T, string> renderer = null,
+            MenuAndListRealtimeConfigurator listConfigurator = null,
+            string requiredIndicator = "*",
             int padBefore = 0,
             int padAfter = 0
         )
@@ -182,14 +264,14 @@ namespace Horseshoe.NET.ConsoleX
                 {
                     Console.WriteLine("[null menu]");
                     Pad(padAfter);
-                    renderMessages?.SetNotSelectable();
+                    listConfigurator?.SetNotSelectable();
                     return;
                 }
                 else if (!menuItems.Any())
                 {
                     Console.WriteLine("[empty menu]");
                     Pad(padAfter);
-                    renderMessages?.SetNotSelectable();
+                    listConfigurator?.SetNotSelectable();
                     return;
                 }
             }
@@ -270,19 +352,15 @@ namespace Horseshoe.NET.ConsoleX
 
         private static Regex WordOrPhrasePattern { get; } = new Regex("[a-z0-9 ]", RegexOptions.IgnoreCase);
 
-        public static void Prompt(string prompt, bool required = false, string requiredIndicator = null)
+        /// <summary>
+        /// Renders a prompt for user input e.g. free text, menu selection, etc.
+        /// </summary>
+        /// <param name="prompt">an input prompt</param>
+        /// <param name="required"><c>true</c> to force non-blank input</param>
+        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
+        public static void Prompt(string prompt, bool required = false, string requiredIndicator = "*")
         {
-            if (required)
-            {
-                if (requiredIndicator == null)
-                {
-                    requiredIndicator = required ? "*" : "";
-                }
-            }
-            else
-            {
-                requiredIndicator = "";
-            }
+            requiredIndicator = required ? requiredIndicator : "";
 
             if (prompt == null)
             {
@@ -290,7 +368,7 @@ namespace Horseshoe.NET.ConsoleX
             }
             else if (WordOrPhrasePattern.IsMatch(prompt))
             {
-                prompt = prompt + requiredIndicator + ":";
+                prompt += requiredIndicator + ":";
             }
             else
             {
@@ -299,23 +377,41 @@ namespace Horseshoe.NET.ConsoleX
             Console.Write(prompt + " ");
         }
 
+        /// <summary>
+        /// Render an alert message to the console
+        /// </summary>
+        /// <param name="message">a message</param>
+        /// <param name="centered"><c>true</c> to center on screen</param>
+        /// <param name="padBefore">the number of new lines to render before the alert</param>
+        /// <param name="padAfter">the number of new lines to render after the alert</param>
         public static void Alert(string message, bool centered = false, int padBefore = 0, int padAfter = 0)
         {
-            message = "** " + (message ?? "Alert!") + " **";
+            message = "** " + (message?.Trim() ?? "Alert!") + " **";
             if (centered)
             {
-                message = message.PadCenter(ConsoleWidth - 2);
+                message = message.PadCenter(ConsoleWidth);
             }
             Pad(padBefore);
             Console.WriteLine(message);
             Pad(padAfter);
         }
 
-        public static ExceptionRendering ExceptionRendering { get; } = new ExceptionRendering();
-
+        /// <summary>
+        /// Render an exception to the console
+        /// </summary>
+        /// <param name="ex">an exception </param>
+        /// <param name="typeRendering">preferences for rendering the exception class name</param>
+        /// <param name="includeDateTime"><c>true</c> to include date/time</param>
+        /// <param name="includeMachineName"><c>true</c> to include machine name</param>
+        /// <param name="includeStackTrace"><c>true</c> to include stack trace</param>
+        /// <param name="indent">how deep to indent new lines</param>
+        /// <param name="recursive"><c>true</c> to include all the inner exceptions recursively</param>
+        /// <param name="padBefore">the number of new lines to render before the exception</param>
+        /// <param name="padAfter">the number of new lines to render after the exception</param>
+        /// <remarks><seealso cref="ExceptionRendering"/></remarks>
         public static void Exception
         (
-            Exception ex,
+            ExceptionInfo ex,
             ExceptionTypeRenderingPolicy? typeRendering = null,
             bool? includeDateTime = null,
             bool? includeMachineName = null,
@@ -330,11 +426,11 @@ namespace Horseshoe.NET.ConsoleX
             Console.WriteLine
             (
                 ex.Render(
-                    typeRendering: typeRendering ?? ExceptionRendering.TypeRendering,
-                    includeDateTime: includeDateTime ?? ExceptionRendering.IncludeDateTime,
-                    includeMachineName: includeMachineName ?? ExceptionRendering.IncludeMachineName,
-                    includeStackTrace: includeStackTrace ?? ExceptionRendering.IncludeStackTrace,
-                    indent: indent ?? ExceptionRendering.Indent,
+                    typeRendering: typeRendering ?? ExceptionRendering.TypeRendering, 
+                    includeDateTime: includeDateTime ?? ExceptionRendering.IncludeDateTime, 
+                    includeMachineName: includeMachineName ?? ExceptionRendering.IncludeMachineName, 
+                    includeStackTrace: includeStackTrace ?? ExceptionRendering.IncludeStackTrace, 
+                    indent: indent ?? ExceptionRendering.Indent, 
                     recursive: recursive ?? ExceptionRendering.Recursive
                 )
             );

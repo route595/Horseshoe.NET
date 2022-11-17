@@ -5,17 +5,17 @@
     <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <Authors>Carl Thomas</Authors>
-    <Company>Greenhazel Studio</Company>
+    <Company>Route 595 Software Services</Company>
     <Description>A set of common methods and classes for generating and handling JWTs and a subset of basic OAuth operations.</Description>
-    <Copyright>Copyright © 2022 Greenhazel Studio</Copyright>
+    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
     <AssemblyName>Horseshoe.NET.Jwt</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.30" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.31" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,21 +1,25 @@
 ﻿using System;
 
-using Horseshoe.NET.Application;
-
 namespace Horseshoe.NET.Bootstrap
 {
+    /// <summary>
+    /// Configuration elements for <c>Horseshoe.NET.Bootstrap</c> classes and methods
+    /// </summary>
     public static class BootstrapSettings
     {
         private static ExceptionRenderingPolicy? _defaultExceptionRendering;
 
+        /// <summary>
+        /// Exception rendering policy configured by the client, if not configured then <c>default</c>
+        /// </summary>
         public static ExceptionRenderingPolicy DefaultExceptionRendering  // example "InAlert"
         {
             get
             {
                 return _defaultExceptionRendering
-                    ?? GetExceptionRenderingPolicy(_Config.GetNEnum<ExceptionRenderingPolicy>("Horseshoe.NET:Bootstrap:ExceptionRendering"))
-                    ?? GetExceptionRenderingPolicy(OrganizationalDefaultSettings.GetNullable<ExceptionRenderingPolicy>("Bootstrap.ExceptionRendering"))
-                    ?? ExceptionRenderingPolicy.Preclude;
+                    ?? _Config.GetNEnum<ExceptionRenderingPolicy>("Horseshoe.NET:Bootstrap:ExceptionRendering")
+                    ?? OrganizationalDefaultSettings.GetNullable<ExceptionRenderingPolicy>("Bootstrap.ExceptionRendering")
+                    ?? default;
             }
             set
             {
@@ -23,41 +27,23 @@ namespace Horseshoe.NET.Bootstrap
             }
         }
 
-        static ExceptionRenderingPolicy? GetExceptionRenderingPolicy(ExceptionRenderingPolicy? exceptionRendering)
-        {
-            if (exceptionRendering == ExceptionRenderingPolicy.Dynamic)
-            {
-                switch (ClientApp.AppMode)
-                {
-                    case AppMode.Production:
-                    case AppMode.IA:
-                    case AppMode.QA:
-                    case AppMode.UAT:
-                    case AppMode.Training:
-                        return ExceptionRenderingPolicy.Preclude;
-                    case AppMode.Development:
-                        return ExceptionRenderingPolicy.Visible;
-                    case AppMode.Test:
-                        return ExceptionRenderingPolicy.Hidden;
-                }
-            }
-            return exceptionRendering;
-        }
+        static bool? _defaultAutoCloseableAlerts;
 
-        static bool? _autoCloseable;
-
-        public static bool DefaultAutoCloseable
+        /// <summary>
+        /// Client configured closeability of alerts, if not configured then <c>false</c>
+        /// </summary>
+        public static bool DefaultAutoCloseableAlerts
         {
             get
             {
-                return _autoCloseable
-                    ?? _Config.GetNBool("Horseshoe.NET:Bootstrap:AutoCloseable")
-                    ?? OrganizationalDefaultSettings.GetNBoolean("Bootstrap.AutoCloseable")
+                return _defaultAutoCloseableAlerts
+                    ?? _Config.GetNBool("Horseshoe.NET:Bootstrap:AutoCloseableAlerts")
+                    ?? OrganizationalDefaultSettings.GetNBoolean("Bootstrap.AutoCloseableAlerts")
                     ?? false;
             }
             set
             {
-                _autoCloseable = value;
+                _defaultAutoCloseableAlerts = value;
             }
         }
     }

@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Horseshoe.NET.Crypto
 {
+    /// <summary>
+    /// Options for cryptographic methods
+    /// </summary>
     public class CryptoOptions
     {
         /// <summary>
@@ -27,6 +30,9 @@ namespace Horseshoe.NET.Crypto
             }
         }
 
+        /// <summary>
+        /// Set to <c>true</c> to fill in the missing key bytes if shorter than 16
+        /// </summary>
         public bool AutoPadKey { get; set; }
 
         /// <summary>
@@ -45,6 +51,9 @@ namespace Horseshoe.NET.Crypto
             }
         }
 
+        /// <summary>
+        /// Useful in situations in which the key and IV become part of the encrypted output
+        /// </summary>
         public bool AutoPopulateIVFromKey { get; set; }
 
         /// <summary>
@@ -67,6 +76,9 @@ namespace Horseshoe.NET.Crypto
         /// </summary>
         public bool UseEmbeddedKIV { get; set; }
 
+        /// <summary>
+        /// A character encoding
+        /// </summary>
         public Encoding Encoding { get; set; }
     }
 }

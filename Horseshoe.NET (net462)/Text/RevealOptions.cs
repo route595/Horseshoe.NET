@@ -6,8 +6,8 @@
         public static RevealOptions All = new RevealOptions { RevealAll = true };
 
         // string values
-        public string ValueIfNullArg { get; set; } = "[null-arg]";
-        public string ValueIfEmptyArg { get; set; } = "[empty-arg]";
+        public string ValueIfNullArg { get; set; } = "[null-input]";
+        public string ValueIfEmptyArg { get; set; } = "[zero-inputs]";
 
         // string
         public string ValueIfNull { get; set; } = "[null]";

@@ -1,12 +1,12 @@
-# Horseshoe.NET
 ![Horseshoe.NET icon](/assets/images/horseshoe.net.128x128.png)
+
+# Horseshoe.NET
 
 A suite of .NET utilities with a dual purpose: simplify coding tasks (contains lots of boilerplate code) and offer a variety of unique capabilities for developers.
 
 ### Packages and namespaces
 
 - Horseshoe.NET (NuGet)
-  - Horseshoe.NET.Application
   - Horseshoe.NET.Bootstrap
   - Horseshoe.NET.Collections
   - Horseshoe.NET.ConsoleX
@@ -27,6 +27,8 @@ A suite of .NET utilities with a dual purpose: simplify coding tasks (contains l
   - Horseshoe.NET.Text
     - Horseshoe.NET.Text.TextClean
     - Horseshoe.NET.Text.TextGrid
+  - Horseshoe.NET.Xml
+    - Horseshoe.NET.Xml.Doc
 - Horseshoe.NET.ActiveDirectory (NuGet)
 - Horseshoe.NET.Caching (NuGet)
 - Horseshoe.NET.Caching.Abstractions (NuGet)

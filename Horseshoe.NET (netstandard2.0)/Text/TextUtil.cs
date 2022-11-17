@@ -431,7 +431,9 @@ namespace Horseshoe.NET.Text
         /// <returns>A text representation of an object</returns>
         public static string Reveal(object obj)
         {
-            return obj?.ToString() ?? "[null]";
+            if (obj is string objString)
+                return Reveal(objString);
+            return Reveal(obj?.ToString());
         }
 
         public static string AppendIf(bool condition, string text, string textToAppend)

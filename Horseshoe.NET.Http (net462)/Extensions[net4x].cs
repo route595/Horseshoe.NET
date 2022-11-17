@@ -362,7 +362,7 @@ namespace Horseshoe.NET.Http
         {
             if (userName == null || password == null)
                 return;
-            AddBasicAuthorization(hdrs, Encode.Base64(userName + ":" + password));
+            AddBasicAuthorization(hdrs, Encode.Base64.String(userName + ":" + password));
         }
 
         /// <summary>
@@ -593,7 +593,7 @@ namespace Horseshoe.NET.Http
         /// <param name="password"></param>
         public static void AddBasicProxyAuthorization(this WebHeaderCollection hdrs, string userName, string password)
         {
-            AddProxyAuthorization(hdrs, "Basic " + Encode.Base64(userName + ":" + password));
+            AddProxyAuthorization(hdrs, "Basic " + Encode.Base64.String(userName + ":" + password));
         }
 
         /// <summary>
@@ -698,7 +698,7 @@ namespace Horseshoe.NET.Http
         {
             if (userName == null || password == null)
                 return;
-            SetBasicAuthorization(hdrs, Encode.Base64(userName + ":" + password));
+            SetBasicAuthorization(hdrs, Encode.Base64.String(userName + ":" + password));
         }
 
         /// <summary>
@@ -929,7 +929,7 @@ namespace Horseshoe.NET.Http
         /// <param name="password"></param>
         public static void SetBasicProxyAuthorization(this WebHeaderCollection hdrs, string userName, string password)
         {
-            SetProxyAuthorization(hdrs, "Basic " + Encode.Base64(userName + ":" + password));
+            SetProxyAuthorization(hdrs, "Basic " + Encode.Base64.String(userName + ":" + password));
         }
 
         /// <summary>
