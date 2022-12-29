@@ -1,63 +1,57 @@
-﻿using System.Security;
-
-using Horseshoe.NET.Crypto;
-using Horseshoe.NET.Text;
-using Oracle.ManagedDataAccess.Client;
+﻿using Oracle.ManagedDataAccess.Client;
 
 namespace Horseshoe.NET.OracleDb
 {
     public class OracleCredentialInterface
     {
-        public OracleCredential OracleCredential { get; }
+        private OracleCredential _oracleCredentials;
+        private Credential? _credentials;
 
         public OracleCredentialInterface(OracleCredential orclCredentials)
         {
-            OracleCredential = orclCredentials;
+            _oracleCredentials = orclCredentials;
         }
 
-        public OracleCredentialInterface(Credential credentials, CryptoOptions cryptoOptions = null)
+        public OracleCredentialInterface(Credential credentials)
         {
-            OracleCredential = ToOracleCredential(credentials, cryptoOptions: cryptoOptions);
+            _credentials = credentials;
         }
 
-        public static OracleCredential ToOracleCredential(Credential credentials, CryptoOptions cryptoOptions = null)
+        public OracleCredential ToOracleCredentials()
         {
-            if (credentials.HasSecurePassword)
-                return new OracleCredential(credentials.UserName, credentials.SecurePassword);
+            return _oracleCredentials ?? ToOracleCredentials(_credentials);
+        }
 
-            if (credentials.Password != null)
-            {
-                SecureString securePassword;
-                if (credentials.IsEncryptedPassword)
-                {
-                    securePassword = Decrypt.SecureString(credentials.Password, options: cryptoOptions ?? _options);
-                }
-                else
-                {
-                    TextUtil.ConvertToSecureString(credentials.Password);
-                    securePassword = TextUtil.ConvertToSecureString(credentials.Password);
-                }
-                return new OracleCredential(credentials.UserName, securePassword);
-            }
-            return new OracleCredential(credentials.UserName, null);
+        public Credential? ToCredentials()
+        {
+            return _credentials ?? ToCredentials(_oracleCredentials);
+        }
+
+        public static Credential? ToCredentials(OracleCredential oracleCredentials)
+        {
+            if (oracleCredentials == null)
+                return null;
+            return new Credential(oracleCredentials.UserId, oracleCredentials.Password);
+        }
+
+        public static OracleCredential ToOracleCredentials(Credential? credentials)
+        {
+            if (!credentials.HasValue)
+                return null;
+            return new OracleCredential(credentials.Value.UserName, credentials.Value.Password);
         }
 
         public override string ToString()
         {
-            return OracleCredential != null
-                ? OracleCredential.UserId + " [" + (OracleCredential.Password != null ? "secure-password" : "no-password") + "]"
-                : "[null-crededentials]";
-        }
-
-        static CryptoOptions _options;
-
-        public static void SetCryptoOptions(CryptoOptions options)
-        {
-            _options = options;
+            if (_oracleCredentials != null)
+                return _oracleCredentials.UserId + " [" + (_oracleCredentials.Password != null ? "secure-password" : "no-password") + "]";
+            if (_credentials.HasValue)
+                return _credentials.ToString();
+            return "[null-crededentials]";
         }
 
         public static implicit operator OracleCredentialInterface(Credential credentials) => new OracleCredentialInterface(credentials);
         public static implicit operator OracleCredentialInterface(OracleCredential orclCredentials) => new OracleCredentialInterface(orclCredentials);
-        public static implicit operator OracleCredential(OracleCredentialInterface orclCredentialInterface) => orclCredentialInterface.OracleCredential;
+        public static implicit operator OracleCredential(OracleCredentialInterface orclCredentialInterface) => orclCredentialInterface.ToOracleCredentials();
     }
 }

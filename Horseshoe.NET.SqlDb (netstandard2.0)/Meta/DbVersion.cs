@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Horseshoe.NET.Objects;
-using Horseshoe.NET.Text;
+using Horseshoe.NET.Compare;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.SqlDb.Meta
 {
@@ -21,23 +21,23 @@ namespace Horseshoe.NET.SqlDb.Meta
 
         public static IEnumerable<DbVersion> LookupAll()
         {
-            var dbVersions = ObjectUtil.GetStaticPropertyValuesOfType<DbVersion>(typeof(DbVersion))
-                .Select(mv => mv.Value)
+            var dbVersions = TypeUtil.GetStaticPropertyValues<DbVersion>(propertyTypeFilter: typeof(DbVersion))
+                .Select(mv => mv.Value as DbVersion)
                 .ToList();
             return dbVersions;
         }
 
         public static DbVersion Lookup(string versionName, bool ignoreCase = false)
         {
-            var searchCriteria = SearchCriteria.Equals(versionName, ignoreCase: ignoreCase);
+            var comparator = Comparator.Equals(versionName.ToUpper().StartsWith("SQL") ? versionName : "SQL" + versionName, ignoreCase: ignoreCase);
             try
             {
                 return LookupAll()
-                    .Single(v => searchCriteria.Evaluate(v.Name) || searchCriteria.Evaluate("SQL" + v.Name));
+                    .Single(v => comparator.IsMatch(v.Name));
             }
             catch
             {
-                throw new UtilityException("Cannot find a SQL Server version named " + versionName);
+                throw new CompareException("Cannot find a SQL Server version named " + versionName);
             }
         }
 

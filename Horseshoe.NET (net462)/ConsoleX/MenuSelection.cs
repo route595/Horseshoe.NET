@@ -77,11 +77,11 @@ namespace Horseshoe.NET.ConsoleX
         public RoutineX CustomMenuItem { get; set; }
     }
 
-    public static class MenuSelection
+    internal static class MenuSelection
     { 
         static readonly Regex NumericRangePattern = new Regex("^[0-9]+(-[0-9]+)?,?", RegexOptions.IgnoreCase);
 
-        public static IEnumerable<int> ParseMultipleIndexes(string input, int menuItemsCount, out bool all)
+        internal static IEnumerable<int> ParseMultipleIndexes(string input, int menuItemsCount, out bool all)
         {
             input = input.Trim();
             all = false;

@@ -6,11 +6,11 @@ namespace Horseshoe.NET.OracleDb.Meta
 {
     public abstract class OraObjectBase : IEquatable<OraObjectBase>
     {
-        public OraObjectBase? Parent { get; set; }
+        public OraObjectBase Parent { get; set; }
         public string Name { get; }
         public OraObjectType ObjectType { get; }
-        public OraSchema? Schema => _GetSchema();
-        public OraServer? Server => _GetServer();
+        public OraSchema Schema => _GetSchema();
+        public OraServer Server => _GetServer();
 
         public OraObjectBase(string name, OraObjectType objectType)
         {
@@ -29,9 +29,9 @@ namespace Horseshoe.NET.OracleDb.Meta
             return Parent.ToFullyQualifiedString(startingWith: startingWith) + "." + ToString();
         }
 
-        private OraSchema? _GetSchema()
+        private OraSchema _GetSchema()
         {
-            OraObjectBase? obj = this;
+            OraObjectBase obj = this;
             while (obj != null)
             {
                 if (obj is OraSchema schema) return schema;
@@ -42,7 +42,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
         public OraObjectBase SetSchemaByName(string name)
         {
-            OraObjectBase obj = this;
+            var obj = this;
             while (obj.Parent != null)
             {
                 obj = obj.Parent;
@@ -51,19 +51,18 @@ namespace Horseshoe.NET.OracleDb.Meta
             return this;
         }
 
-        private OraServer? _GetServer()
+        private OraServer _GetServer()
         {
-            OraObjectBase? obj = this;
+            OraObjectBase obj = this;
             while (obj != null)
             {
-                if (obj is OraServer server) 
-                    return server;
+                if (obj is OraServer server) return server;
                 obj = obj.Parent;
             }
             return null;
         }
 
-        static string? _AcceptName(string name)
+        static string _AcceptName(string name)
         {
             var _name = name;
             if (_name.StartsWith("\""))
@@ -89,8 +88,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
         static string _PrepareName(string name)
         {
-            if (NoQuotePattern.IsMatch(name)) 
-                return name;
+            if (NoQuotePattern.IsMatch(name)) return name;
             return "\"" + name + "\"";
         }
 
@@ -103,10 +101,10 @@ namespace Horseshoe.NET.OracleDb.Meta
             return false;
         }
 
-        public bool Equals(OraObjectBase? other)
+        public bool Equals(OraObjectBase other)
         {
             return other != null &&
-                   EqualityComparer<OraObjectBase?>.Default.Equals(Parent, other.Parent) &&
+                   EqualityComparer<OraObjectBase>.Default.Equals(Parent, other.Parent) &&
                    Name == other.Name &&
                    ObjectType == other.ObjectType;
         }
@@ -114,18 +112,18 @@ namespace Horseshoe.NET.OracleDb.Meta
         public override int GetHashCode()
         {
             var hashCode = 2054261886;
-            hashCode = hashCode * -1521134295 + EqualityComparer<OraObjectBase?>.Default.GetHashCode(Parent);
+            hashCode = hashCode * -1521134295 + EqualityComparer<OraObjectBase>.Default.GetHashCode(Parent);
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
             hashCode = hashCode * -1521134295 + ObjectType.GetHashCode();
             return hashCode;
         }
 
-        public static bool operator ==(OraObjectBase? left, OraObjectBase? right)
+        public static bool operator ==(OraObjectBase left, OraObjectBase right)
         {
-            return EqualityComparer<OraObjectBase?>.Default.Equals(left, right);
+            return EqualityComparer<OraObjectBase>.Default.Equals(left, right);
         }
 
-        public static bool operator !=(OraObjectBase? left, OraObjectBase? right)
+        public static bool operator !=(OraObjectBase left, OraObjectBase right)
         {
             return !(left == right);
         }

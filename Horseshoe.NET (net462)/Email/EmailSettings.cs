@@ -1,7 +1,8 @@
-﻿using System;
-
-namespace Horseshoe.NET.Email
+﻿namespace Horseshoe.NET.Email
 {
+    /// <summary>
+    /// Configuration settings for Horseshoe.NET.Email
+    /// </summary>
     public static class EmailSettings
     {
         private static string _defaultSmtpServer;
@@ -15,7 +16,7 @@ namespace Horseshoe.NET.Email
             {
                 return _defaultSmtpServer
                     ?? _Config.Get("Horseshoe.NET:Email:SmtpServer") 
-                    ?? OrganizationalDefaultSettings.GetString("Email.SmtpServer");
+                    ?? OrganizationalDefaultSettings.Get<string>("Email.SmtpServer");
             }
             set
             {
@@ -33,8 +34,8 @@ namespace Horseshoe.NET.Email
             get
             {
                 return _defaultPort
-                    ?? _Config.GetNInt("Horseshoe.NET:Email:SmtpPort") 
-                    ?? OrganizationalDefaultSettings.GetNInt("Email.SmtpPort");
+                    ?? _Config.Get<int?>("Horseshoe.NET:Email:SmtpPort") 
+                    ?? OrganizationalDefaultSettings.Get<int?>("Email.SmtpPort");
             }
             set
             {
@@ -52,8 +53,8 @@ namespace Horseshoe.NET.Email
             get
             {
                 return _defaultEnableSsl
-                    ?? _Config.GetNBool("Horseshoe.NET:Email:EnableSsl")
-                    ?? OrganizationalDefaultSettings.GetBoolean("Email.EnableSsl");
+                    ?? _Config.Get<bool?>("Horseshoe.NET:Email:EnableSsl")
+                    ?? OrganizationalDefaultSettings.Get<bool>("Email.EnableSsl");
             }
             set
             {
@@ -71,8 +72,8 @@ namespace Horseshoe.NET.Email
             get
             {
                 return _defaultCredentials
-                    ?? Credential.Build(_Config.Get("Horseshoe.NET:Email:UserName"), _Config.Get("Horseshoe.NET:Email:Password"), isEncryptedPassword: _Config.GetBool("Horseshoe.NET:Email:IsEncryptedPassword"), domain: _Config.Get("Horseshoe.NET:Email:Domain"))
-                    ?? OrganizationalDefaultSettings.GetNullable<Credential>("Email.Credentials");
+                    ?? Credential.Build(_Config.Get("Horseshoe.NET:Email:UserName"), _Config.Get("Horseshoe.NET:Email:Password"), isEncryptedPassword: _Config.Get<bool>("Horseshoe.NET:Email:IsEncryptedPassword"), domain: _Config.Get("Horseshoe.NET:Email:Domain"))
+                    ?? OrganizationalDefaultSettings.Get<Credential?>("Email.Credentials");
             }
             set
             {
@@ -91,7 +92,7 @@ namespace Horseshoe.NET.Email
             {
                 return _defaultFrom
                     ?? _Config.Get("Horseshoe.NET:Email:From")
-                    ?? OrganizationalDefaultSettings.GetString("Email.From");
+                    ?? OrganizationalDefaultSettings.Get<string>("Email.From");
             }
             set
             {
@@ -110,7 +111,7 @@ namespace Horseshoe.NET.Email
             {
                 return _defaultFooterText
                     ?? _Config.Get("Horseshoe.NET:Email:Footer")
-                    ?? OrganizationalDefaultSettings.GetString("Email.Footer");
+                    ?? OrganizationalDefaultSettings.Get<string>("Email.Footer");
             }
             set
             {

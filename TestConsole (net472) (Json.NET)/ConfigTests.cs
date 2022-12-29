@@ -18,7 +18,7 @@ namespace TestConsole
                 () =>
                 {
                     Console.WriteLine("Getting \"myPlanet\" from config...");
-                    var myPlanet = Config.GetSection<PlanetSection>("myPlanet");
+                    var myPlanet = Config.ParseSection<PlanetSection>("myPlanet");
                     Console.WriteLine(myPlanet);
                 }
             )

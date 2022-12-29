@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
+using Horseshoe.NET.Compare;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.Text;
 
@@ -13,45 +14,45 @@ namespace Horseshoe.NET.SqlDb.Meta
     {
         public static class Databases
         {
-            public static IEnumerable<Db> List(Predicate<Db> filter = null, int? timeout = null)
+            public static IEnumerable<Db> List(Predicate<Db> filter = null, int? commandTimeout = null)
             {
                 var server = SqlDbSettings.DefaultServer ?? new DbServer(SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server, Credentials = SqlDbSettings.DefaultCredentials }))
                 {
-                    return List(conn, server, filter: filter, timeout: timeout);
+                    return List(conn, server, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<Db> List(SqlConnection conn, Predicate<Db> filter = null, int? timeout = null)
+            public static IEnumerable<Db> List(SqlConnection conn, Predicate<Db> filter = null, int? commandTimeout = null)
             {
                 var server = new DbServer(conn.DataSource);
-                return List(conn, server, filter: filter, timeout: timeout);
+                return List(conn, server, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<Db> List(SqlDbConnectionInfo connectionInfo, Predicate<Db> filter = null, int? timeout = null)
+            public static IEnumerable<Db> List(SqlDbConnectionInfo connectionInfo, Predicate<Db> filter = null, int? commandTimeout = null)
             {
                 var server = connectionInfo.Server ?? new DbServer(connectionInfo.DataSource ?? throw new UtilityException("Server and DataSource cannot both be null"));
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: connectionInfo))
                 {
-                    return List(conn, server, filter: filter, timeout: timeout);
+                    return List(conn, server, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<Db> List(DbServer server, Credential? credentials = null, Predicate<Db> filter = null, int? timeout = null)
+            public static IEnumerable<Db> List(DbServer server, Credential? credentials = null, Predicate<Db> filter = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, filter: filter, timeout: timeout);
+                    return List(conn, server, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            internal static IEnumerable<Db> List(out SqlConnection conn, DbServer server, Credential? credentials = null, Predicate<Db> filter = null, int? timeout = null)
+            internal static IEnumerable<Db> List(out SqlConnection conn, DbServer server, Credential? credentials = null, Predicate<Db> filter = null, int? commandTimeout = null)
             {
                 conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials });
-                return List(conn, server, filter: filter, timeout: timeout);
+                return List(conn, server, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<Db> List(SqlConnection conn, DbServer server, Predicate<Db> filter = null, int? timeout = null)
+            public static IEnumerable<Db> List(SqlConnection conn, DbServer server, Predicate<Db> filter = null, int? commandTimeout = null)
             {
                 var statement = @"
                     SELECT [name] 
@@ -62,9 +63,9 @@ namespace Horseshoe.NET.SqlDb.Meta
                 (
                     conn,
                     statement,
-                    readerParser: (reader) => new Db(reader["name"] as string) { Parent = server },
+                    rowParser: RowParser.From((reader) => new Db(reader["name"] as string) { Parent = server }),
                     autoSort: new AutoSort<Db>(db => db.Name),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 );
                 if (filter != null)
                 {
@@ -75,12 +76,12 @@ namespace Horseshoe.NET.SqlDb.Meta
                 return databases;
             }
 
-            public static Db Lookup(string name, bool ignoreCase = false, int? timeout = null)
+            public static Db Lookup(string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List    /* uses default server, credentials */
                 (
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<Db>;
                 switch (filteredList.Count)
                 {
@@ -93,7 +94,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            internal static Db Lookup(out SqlConnection conn, string name, bool ignoreCase = false, int? timeout = null)
+            internal static Db Lookup(out SqlConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var server = SqlDbSettings.DefaultServer ?? new DbServer(SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
                 var filteredList = List
@@ -102,7 +103,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     server,
                     credentials: SqlDbSettings.DefaultCredentials,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<Db>;
                 switch (filteredList.Count)
                 {
@@ -115,13 +116,13 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static Db Lookup(SqlConnection conn, string name, bool ignoreCase = false, int? timeout = null)
+            public static Db Lookup(SqlConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
                     conn,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<Db>;
                 switch (filteredList.Count)
                 {
@@ -134,7 +135,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static Db Lookup(SqlDbConnectionInfo connectionInfo, string name, bool ignoreCase = false, int? timeout = null)
+            public static Db Lookup(SqlDbConnectionInfo connectionInfo, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var server = connectionInfo.Server ?? new DbServer(connectionInfo.DataSource ?? throw new UtilityException("Server and DataSource cannot both be null"));
                 return Lookup
@@ -143,11 +144,11 @@ namespace Horseshoe.NET.SqlDb.Meta
                     name,
                     credentials: connectionInfo.Credentials,
                     ignoreCase: ignoreCase,
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 );
             }
 
-            public static Db Lookup(DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? timeout = null)
+            public static Db Lookup(DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
@@ -157,12 +158,12 @@ namespace Horseshoe.NET.SqlDb.Meta
                         server,
                         name,
                         ignoreCase: ignoreCase,
-                        timeout: timeout
+                        commandTimeout: commandTimeout
                     );
                 }
             }
 
-            internal static Db Lookup(out SqlConnection conn, DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? timeout = null)
+            internal static Db Lookup(out SqlConnection conn, DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
@@ -170,7 +171,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     server,
                     credentials: credentials ?? SqlDbSettings.DefaultCredentials,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<Db>;
                 switch (filteredList.Count)
                 {
@@ -183,14 +184,14 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static Db Lookup(SqlConnection conn, DbServer server, string name, bool ignoreCase = false, int? timeout = null)
+            public static Db Lookup(SqlConnection conn, DbServer server, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
                     conn,
                     server,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<Db>;
                 switch (filteredList.Count)
                 {
@@ -206,57 +207,57 @@ namespace Horseshoe.NET.SqlDb.Meta
 
         public static class Objects
         {
-            public static IEnumerable<DbObject> List(string dbName, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, bool ignoreCase = false, int? timeout = null)
+            public static IEnumerable<DbObject> List(string dbName, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(out SqlConnection conn, dbName, ignoreCase: ignoreCase, timeout: timeout);    /* uses default server, credentials */
+                var database = Databases.Lookup(out SqlConnection conn, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);    /* uses default server, credentials */
                 using (conn)
                 {
-                    return List(conn, database, objectType: objectType, filter: filter, timeout: timeout);
+                    return List(conn, database, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbObject> List(SqlConnection conn, string dbName, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, bool ignoreCase = false, int? timeout = null)
+            public static IEnumerable<DbObject> List(SqlConnection conn, string dbName, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(conn, dbName, ignoreCase: ignoreCase, timeout: timeout);
-                return List(conn, database, objectType: objectType, filter: filter, timeout: timeout);
+                var database = Databases.Lookup(conn, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return List(conn, database, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbObject> List(DbServer server, Credential? credentials = null, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? timeout = null)
+            public static IEnumerable<DbObject> List(DbServer server, Credential? credentials = null, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, objectType: objectType, filter: filter, timeout: timeout);
+                    return List(conn, server, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbObject> List(SqlConnection conn, DbServer server, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? timeout = null)
+            public static IEnumerable<DbObject> List(SqlConnection conn, DbServer server, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
-                return List(conn, server, objectType, filter, timeout);
+                return List(conn, server, objectType, filter, commandTimeout);
             }
 
-            public static IEnumerable<DbObject> List(DbServer server, string dbName, Credential? credentials = null, bool ignoreCase = false, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? timeout = null)
+            public static IEnumerable<DbObject> List(DbServer server, string dbName, Credential? credentials = null, bool ignoreCase = false, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, dbName, ignoreCase: ignoreCase, objectType: objectType, filter: filter, timeout: timeout);
+                    return List(conn, server, dbName, ignoreCase: ignoreCase, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbObject> List(SqlConnection conn, DbServer server, string dbName, bool ignoreCase = false, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? timeout = null)
+            public static IEnumerable<DbObject> List(SqlConnection conn, DbServer server, string dbName, bool ignoreCase = false, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(conn, server, dbName, ignoreCase: ignoreCase, timeout: timeout);
-                return List(conn, database, objectType: objectType, filter: filter, timeout: timeout);
+                var database = Databases.Lookup(conn, server, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return List(conn, database, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbObject> List(Db database, Credential? credentials = null, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? timeout = null)
+            public static IEnumerable<DbObject> List(Db database, Credential? credentials = null, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = (database ?? throw new UtilityException("Database cannot be null")).Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return List(conn, database, objectType: objectType, filter: filter, timeout: timeout);
+                    return List(conn, database, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbObject> List(SqlConnection conn, Db database, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? timeout = null)
+            public static IEnumerable<DbObject> List(SqlConnection conn, Db database, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
                 var typeCondition = objectType.HasValue
                     ? "RTRIM([type]) = '" + SqlServerTypes.ResolveType(objectType.Value) + "'"
@@ -290,7 +291,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 (
                     conn,
                     statement,
-                    readerParser: (reader) => new DbObject
+                    rowParser: RowParser.From((reader) => new DbObject
                     (
                         reader["name"] as string,
                         SqlServerTypes.LookupObjectType(reader["type"] as string)
@@ -300,8 +301,8 @@ namespace Horseshoe.NET.SqlDb.Meta
                         {
                             Parent = database
                         }
-                    },
-                    timeout: timeout
+                    }),
+                    commandTimeout: commandTimeout
                 );
                 if (filter != null)
                 {
@@ -312,12 +313,12 @@ namespace Horseshoe.NET.SqlDb.Meta
                 return objects;
             }
 
-            public static DbObject Lookup(string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return Lookup(out _, name, ignoreCase: ignoreCase, timeout: timeout);   /* uses default server, credentials */
+                return Lookup(out _, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);   /* uses default server, credentials */
             }
 
-            internal static DbObject Lookup(out SqlConnection conn, string name, bool ignoreCase = false, int? timeout = null)
+            internal static DbObject Lookup(out SqlConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var server = SqlDbSettings.DefaultServer ?? new DbServer(SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
                 conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server, Credentials = SqlDbSettings.DefaultCredentials });
@@ -326,7 +327,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     conn,
                     server,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<DbObject>;
                 switch (filteredList.Count)
                 {
@@ -339,46 +340,46 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static DbObject Lookup(SqlConnection conn, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(SqlConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var server = new DbServer(conn.DataSource);
-                return Lookup(conn, server, name, ignoreCase: ignoreCase, timeout: timeout);
+                return Lookup(conn, server, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbObject Lookup(string dbName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(string dbName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(out SqlConnection conn, dbName, ignoreCase: ignoreCase, timeout: timeout);     /* uses default server, credentials */
+                var database = Databases.Lookup(out SqlConnection conn, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
                 using (conn)
                 {
-                    return Lookup(conn, database, name, ignoreCase: ignoreCase, timeout: timeout);
+                    return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            internal static DbObject Lookup(out SqlConnection conn, string dbName, string name, bool ignoreCase = false, int? timeout = null)
+            internal static DbObject Lookup(out SqlConnection conn, string dbName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(out conn, dbName, ignoreCase: ignoreCase, timeout: timeout);     /* uses default server, credentials */
-                return Lookup(conn, database, name, ignoreCase: ignoreCase, timeout: timeout);
+                var database = Databases.Lookup(out conn, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
+                return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbObject Lookup(SqlConnection conn, string dbName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(SqlConnection conn, string dbName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(conn, dbName, ignoreCase: ignoreCase, timeout: timeout);
-                return Lookup(conn, database, name, ignoreCase: ignoreCase, timeout: timeout);
+                var database = Databases.Lookup(conn, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbObject Lookup(DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return Lookup(server, name, credentials: credentials, ignoreCase: ignoreCase, timeout: timeout);
+                return Lookup(server, name, credentials: credentials, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbObject Lookup(SqlConnection conn, DbServer server, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(SqlConnection conn, DbServer server, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                     (
                     conn,
                     server,
                     filter: (o) => o.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<DbObject>;
                 switch (filteredList.Count)
                 {
@@ -391,34 +392,34 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static DbObject Lookup(DbServer server, string dbName, string name, Credential? credentials = null, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(DbServer server, string dbName, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(out SqlConnection conn, server, dbName, credentials: credentials, ignoreCase: ignoreCase, timeout: timeout);
-                return Lookup(conn, database, name, ignoreCase: ignoreCase, timeout: timeout);
+                var database = Databases.Lookup(out SqlConnection conn, server, dbName, credentials: credentials, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbObject Lookup(SqlConnection conn, DbServer server, string dbName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(SqlConnection conn, DbServer server, string dbName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var database = Databases.Lookup(conn, server, dbName, ignoreCase: ignoreCase, timeout: timeout);
-                return Lookup(conn, database, name, ignoreCase: ignoreCase, timeout: timeout);
+                var database = Databases.Lookup(conn, server, dbName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbObject Lookup(Db database, string name, Credential? credentials = null, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(Db database, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return Lookup(conn, database, name, ignoreCase: ignoreCase, timeout: timeout);
+                    return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static DbObject Lookup(SqlConnection conn, Db database, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbObject Lookup(SqlConnection conn, Db database, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
                     conn,
                     database,
                     filter: (o) => o.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<DbObject>;
                 switch (filteredList.Count)
                 {
@@ -431,107 +432,107 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static IEnumerable<DbObject> SearchByName(Db database, SearchCriteria criteria, SqlObjectType? objectType = null, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbObject> SearchByName(Db database, IComparator<string> comparator, SqlObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return SearchByName(conn, database, criteria, objectType: objectType, timeout: timeout);
+                    return SearchByName(conn, database, comparator, objectType: objectType, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, SearchCriteria criteria, SqlObjectType? objectType = null, int? timeout = null)
+            public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, IComparator<string> comparator, SqlObjectType? objectType = null, int? commandTimeout = null)
             {
-                var objects = List(conn, database, objectType: objectType, timeout: timeout);
+                var objects = List(conn, database, objectType: objectType, commandTimeout: commandTimeout);
                 objects = objects
-                    .Where(obj => criteria.Evaluate(obj.Name))
+                    .Where(obj => comparator.IsMatch(obj.Name))
                     .ToList();
                 return objects;
             }
 
-            public static IEnumerable<DbObject> SearchByName(Db database, string partialName, bool ignoreCase = false, SqlObjectType? objectType = null, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbObject> SearchByName(Db database, string partialName, bool ignoreCase = false, SqlObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return SearchByName(conn, database, partialName, ignoreCase: ignoreCase, objectType: objectType, timeout: timeout);
+                    return SearchByName(conn, database, partialName, ignoreCase: ignoreCase, objectType: objectType, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, string partialName, bool ignoreCase = false, SqlObjectType? objectType = null, int? timeout = null)
+            public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, string partialName, bool ignoreCase = false, SqlObjectType? objectType = null, int? commandTimeout = null)
             {
-                var searchCriteria = SearchCriteria.Contains(partialName, ignoreCase: ignoreCase);
-                return SearchByName(conn, database, searchCriteria, objectType: objectType, timeout: timeout);
+                var comparator = Comparator.Contains(partialName, ignoreCase: ignoreCase);
+                return SearchByName(conn, database, comparator, objectType: objectType, commandTimeout: commandTimeout);
             }
         }
 
         public static class Columns
         {
-            public static IEnumerable<DbColumn> List(string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(out SqlConnection conn, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);     /* uses default server, credentials */
+                var tableOrView = Objects.Lookup(out SqlConnection conn, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
                 using (conn)
                 {
-                    return List(conn, tableOrView, filter: filter, timeout: timeout);
+                    return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> List(SqlConnection conn, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(SqlConnection conn, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return List(conn, tableOrView, filter: filter, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> List(string dbName, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(string dbName, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(out SqlConnection conn, dbName, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);     /* uses default server, credentials */
+                var tableOrView = Objects.Lookup(out SqlConnection conn, dbName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
                 using (conn)
                 {
-                    return List(conn, tableOrView, filter: filter, timeout: timeout);
+                    return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> List(SqlConnection conn, string dbName, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(SqlConnection conn, string dbName, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, dbName, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return List(conn, tableOrView, filter: filter, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, dbName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> List(DbServer server, string dbName, string tableOrViewName, Credential? credentials = null, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(DbServer server, string dbName, string tableOrViewName, Credential? credentials = null, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, filter: filter, timeout: timeout);
+                    return List(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> List(SqlConnection conn, DbServer server, string dbName, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(SqlConnection conn, DbServer server, string dbName, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return List(conn, tableOrView, filter: filter, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> List(Db database, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(Db database, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return List(conn, database, tableOrViewName, ignoreCase: ignoreCase, filter: filter, timeout: timeout);
+                    return List(conn, database, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> List(SqlConnection conn, Db database, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(SqlConnection conn, Db database, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, database, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return List(conn, tableOrView, filter: filter, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, database, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> List(DbObject tableOrView, Predicate<DbColumn> filter = null, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(DbObject tableOrView, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
-                    return List(conn, tableOrView, filter, timeout: timeout);
+                    return List(conn, tableOrView, filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> List(SqlConnection conn, DbObject obj, Predicate<DbColumn> filter = null, int? timeout = null)
+            public static IEnumerable<DbColumn> List(SqlConnection conn, DbObject obj, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
                 var conditions = new List<string>
                 {
@@ -588,7 +589,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 (
                     conn,
                     statement,
-                    readerParser: (reader) => new DbColumn
+                    rowParser: RowParser.From((reader) => new DbColumn
                     (
                         reader["column_name"] as string,
                         SqlServerTypes.LookupColumnType((int)reader["user_type_id"])
@@ -601,8 +602,8 @@ namespace Horseshoe.NET.SqlDb.Meta
                         IsNullable = (bool)reader["is_nullable"],
                         MaxLength = (short)reader["max_length"],
                         ColumnID = (int)reader["column_id"]
-                    },
-                    timeout: timeout
+                    }),
+                    commandTimeout: commandTimeout
                 );
                 if (filter != null)
                 {
@@ -611,65 +612,65 @@ namespace Horseshoe.NET.SqlDb.Meta
                 return columns;
             }
 
-            public static DbColumn Lookup(string dbName, string tableOrViewName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbColumn Lookup(string dbName, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(out SqlConnection conn, dbName, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);      /* uses default server, credentials */
+                var tableOrView = Objects.Lookup(out SqlConnection conn, dbName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);      /* uses default server, credentials */
                 using (conn)
                 {
-                    return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, timeout: timeout);
+                    return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static DbColumn Lookup(SqlConnection conn, string dbName, string tableOrViewName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbColumn Lookup(SqlConnection conn, string dbName, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, dbName, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, dbName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbColumn Lookup(DbServer server, string dbName, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? timeout = null)
+            public static DbColumn Lookup(DbServer server, string dbName, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return Lookup(conn, server, dbName, tableOrViewName, name, ignoreCase: ignoreCase, timeout: timeout);
+                    return Lookup(conn, server, dbName, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static DbColumn Lookup(SqlConnection conn, DbServer server, string dbName, string tableOrViewName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbColumn Lookup(SqlConnection conn, DbServer server, string dbName, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbColumn Lookup(Db database, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? timeout = null)
+            public static DbColumn Lookup(Db database, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return Lookup(conn, database, tableOrViewName, name, ignoreCase: ignoreCase, timeout: timeout);
+                    return Lookup(conn, database, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static DbColumn Lookup(SqlConnection conn, Db database, string tableOrViewName, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbColumn Lookup(SqlConnection conn, Db database, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, database, tableOrViewName, ignoreCase: ignoreCase, timeout: timeout);
-                return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, timeout: timeout);
+                var tableOrView = Objects.Lookup(conn, database, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static DbColumn Lookup(DbObject tableOrView, string name, Credential? credentials = null, bool ignoreCase = false, int? timeout = null)
+            public static DbColumn Lookup(DbObject tableOrView, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
-                    return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, timeout: timeout);
+                    return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static DbColumn Lookup(SqlConnection conn, DbObject tableOrView, string name, bool ignoreCase = false, int? timeout = null)
+            public static DbColumn Lookup(SqlConnection conn, DbObject tableOrView, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
                     conn,
                     tableOrView,
                     filter: (c) => c.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
-                    timeout: timeout
+                    commandTimeout: commandTimeout
                 ) as List<DbColumn>;
                 switch (filteredList.Count)
                 {
@@ -682,62 +683,66 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchByName(DbObject obj, SearchCriteria searchCriteria, Credential? credentials = null, int ? timeout = null)
+            public static IEnumerable<DbColumn> SearchByName(DbObject obj, IComparator<string> comparator, Credential? credentials = null, int ? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
-                    return SearchByName(conn, obj, searchCriteria, timeout: timeout);
+                    return SearchByName(conn, obj, comparator, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, SearchCriteria searchCriteria, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, IComparator<string> comparator, int? commandTimeout = null)
             {
-                var columns = List(conn, obj, timeout: timeout);
+                var columns = List(conn, obj, commandTimeout: commandTimeout);
                 columns = columns
-                    .Where(col => searchCriteria.Evaluate(col.Name))
+                    .Where(col => comparator.IsMatch(col.Name))
                     .ToList();
                 return columns;
             }
 
-            public static IEnumerable<DbColumn> SearchByName(DbObject obj, string partialName, bool ignoreCase = false, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchByName(DbObject obj, string partialName, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
-                    return SearchByName(conn, obj, partialName, ignoreCase: ignoreCase, timeout: timeout);
+                    return SearchByName(conn, obj, partialName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, string partialName, bool ignoreCase = false, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, string partialName, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var searchCriteria = SearchCriteria.Contains(partialName, ignoreCase: ignoreCase);
-                return SearchByName(conn, obj, searchCriteria, timeout: timeout);
+                var comparator = Comparator.Contains
+                (
+                    partialName,
+                    ignoreCase: ignoreCase
+                );
+                return SearchByName(conn, obj, comparator, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> SearchByValue(DbObject obj, object value, Predicate<DbColumn> filter = null, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchByValue(DbObject obj, object value, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
-                    return SearchByValue(conn, obj, value, filter: filter, timeout: timeout);
+                    return SearchByValue(conn, obj, value, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchByValue(SqlConnection conn, DbObject obj, object value, Predicate<DbColumn> filter = null, int? timeout = null, Action<string> columnSearched = null)
+            public static IEnumerable<DbColumn> SearchByValue(SqlConnection conn, DbObject obj, object value, Predicate<DbColumn> filter = null, int? commandTimeout = null, Action<string> columnSearched = null)
             {
-                var columns = List(conn, obj, filter: filter, timeout: timeout);
+                var columns = List(conn, obj, filter: filter, commandTimeout: commandTimeout);
                 IEnumerable<object> dictinctValues;
                 var matchingColumns = new List<DbColumn>();
                 foreach (var column in columns)
                 {
-                    //if (DoesColumnContainValue(conn, column, value, timeout))
+                    //if (DoesColumnContainValue(conn, column, value, commandTimeout))
                     //{
                     //    matchingColumns.Add(column);
                     //}
-                    dictinctValues = GetDistinctValues(conn, column, timeout);
-                    if (value is SearchCriteria searchCriteria)
+                    dictinctValues = GetDistinctValues(conn, column, commandTimeout);
+                    if (value is Comparator<string> stringComparator)
                     {
                         foreach (object dictinctValue in dictinctValues)
                         {
-                            if (searchCriteria.Evaluate(dictinctValue?.ToString()))
+                            if (stringComparator.IsMatch(dictinctValue?.ToString()))
                             {
                                 matchingColumns.Add(column);
                                 break;
@@ -760,27 +765,27 @@ namespace Horseshoe.NET.SqlDb.Meta
                 return matchingColumns;
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByValue(DbObject obj, string value, bool ignoreCase = false, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByValue(DbObject obj, string value, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return SearchTextColumnsByCriteria(obj, new SearchCriteria(value, Comparison.Equals, ignoreCase: ignoreCase), timeout: timeout);
+                return SearchTextColumnsByCriteria(obj, Comparator.Equals(value, ignoreCase: ignoreCase), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByValue(SqlConnection conn, DbObject obj, string value, bool ignoreCase = false, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByValue(SqlConnection conn, DbObject obj, string value, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return SearchTextColumnsByCriteria(conn, obj, new SearchCriteria(value, Comparison.Equals, ignoreCase: ignoreCase), timeout: timeout);
+                return SearchTextColumnsByCriteria(conn, obj, Comparator.Equals(value, ignoreCase: ignoreCase), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(DbObject obj, SearchCriteria criteria, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(DbObject obj, IComparator<string> comparator, int? commandTimeout = null)
             {
-                return SearchByValue(obj, criteria, filter: (column) => column.IsText(), timeout: timeout);
+                return SearchByValue(obj, comparator, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(SqlConnection conn, DbObject obj, SearchCriteria criteria, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(SqlConnection conn, DbObject obj, IComparator<string> comparator, int? commandTimeout = null)
             {
-                return SearchByValue(conn, obj, criteria, filter: (column) => column.IsText(), timeout: timeout);
+                return SearchByValue(conn, obj, comparator, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
             }
 
-            private static IEnumerable<object> GetDistinctValues(SqlConnection conn, DbColumn column, int? timeout)
+            private static IEnumerable<object> GetDistinctValues(SqlConnection conn, DbColumn column, int? commandTimeout)
             {
                 if (column.Parent == null)
                 {
@@ -800,14 +805,14 @@ namespace Horseshoe.NET.SqlDb.Meta
                 (
                     conn,
                     statement,
-                    objectParser: (objects) => objects[0],
-                    timeout: timeout,
+                    rowParser: RowParser.From((object[] objects) => objects[0]),
+                    commandTimeout: commandTimeout,
                     autoTrunc: AutoTruncate.Zap
                 );
                 return distinctValues;
             }
 
-            //private static bool DoesColumnContainValue(SqlConnection conn, DbColumn column, object value, int? timeout)
+            //private static bool DoesColumnContainValue(SqlConnection conn, DbColumn column, object value, int? commandTimeout)
             //{
             //    var statement = @"
             //        USE " + (column.Database ?? throw new UtilityException("No Database ancestor exists for the supplied Column")) + @"
@@ -852,26 +857,26 @@ namespace Horseshoe.NET.SqlDb.Meta
             //    {
             //        statement += column + " = " + DbUtil.Sqlize(value);
             //    }
-            //    var result = Query.SQL.AsScalar(conn, statement, timeout: timeout);
+            //    var result = Query.SQL.AsScalar(conn, statement, commandTimeout: commandTimeout);
             //    return eval.Invoke(result);
             //}
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByHasNonprintableCharacters(DbObject obj, bool distinct = false, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByHasNonprintableCharacters(DbObject obj, bool distinct = false, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
-                    return SearchTextColumnsByHasNonprintableCharacters(conn, obj, distinct: distinct, timeout: timeout);
+                    return SearchTextColumnsByHasNonprintableCharacters(conn, obj, distinct: distinct, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByHasNonprintableCharacters(SqlConnection conn, DbObject obj, bool distinct = false, int? timeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByHasNonprintableCharacters(SqlConnection conn, DbObject obj, bool distinct = false, int? commandTimeout = null)
             {
-                var columns = List(conn, obj, filter: (column) => column.IsText(), timeout: timeout);
+                var columns = List(conn, obj, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
                 IEnumerable<string> nonPrintValues;
                 var matchingColumns = new List<DbColumn>();
                 foreach (var column in columns)
                 {
-                    nonPrintValues = GetValuesWithNonprintableCharacters(conn, column, distinct, timeout);
+                    nonPrintValues = GetValuesWithNonprintableCharacters(conn, column, distinct, commandTimeout);
                     if (nonPrintValues.Any())
                     {
                         matchingColumns.Add(column);
@@ -880,16 +885,16 @@ namespace Horseshoe.NET.SqlDb.Meta
                 return matchingColumns;
             }
 
-            public static IEnumerable<string> GetValuesWithNonprintableCharacters(DbColumn column, bool distinct = false, Credential? credentials = null, int? timeout = null)
+            public static IEnumerable<string> GetValuesWithNonprintableCharacters(DbColumn column, bool distinct = false, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = column.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Column"), Credentials = credentials }))
                 {
                     conn.Open();
-                    return GetValuesWithNonprintableCharacters(conn, column, distinct: distinct, timeout: timeout);
+                    return GetValuesWithNonprintableCharacters(conn, column, distinct: distinct, commandTimeout: commandTimeout);
                 }
             }
 
-            private static IEnumerable<string> GetValuesWithNonprintableCharacters(SqlConnection conn, DbColumn column, bool distinct, int? timeout)
+            private static IEnumerable<string> GetValuesWithNonprintableCharacters(SqlConnection conn, DbColumn column, bool distinct, int? commandTimeout)
             {
                 if (column.Parent == null)
                 {
@@ -926,8 +931,8 @@ namespace Horseshoe.NET.SqlDb.Meta
                 (
                     conn,
                     statement,
-                    readerParser: ScalarReaderParser.String,
-                    timeout: timeout
+                    rowParser: RowParser.ScalarString,
+                    commandTimeout: commandTimeout
                 );
                 return values;
             }

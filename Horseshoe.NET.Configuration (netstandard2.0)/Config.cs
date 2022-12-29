@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text;
 using Microsoft.Extensions.Configuration;
 
 namespace Horseshoe.NET.Configuration
@@ -103,13 +104,13 @@ namespace Horseshoe.NET.Configuration
         /// </summary>
         /// <param name="key">configuration key</param>
         /// <param name="required">if <c>true</c>, throws error if configuration instance or key is not found</param>
-        /// <param name="suppressErrors">if <c>true</c>, suppresses any object instantiation errors</param>
+        /// <param name="strict">If a <c>Type</c> matching <c>className</c> cannot be found then <c>strict == true</c> causes an exception to be thrown, default is <c>false</c>.</param>
         /// <returns></returns>
-        public static object GetInstance(string key, bool required = false, bool suppressErrors = false)
+        public static object GetInstance(string key, bool required = false, bool strict = false)
         {
             try
             {
-                return Configuration.GetInstance(key, required: required, suppressErrors: suppressErrors);
+                return Configuration.GetInstance(key, required: required, strict: strict);
             }
             catch (NoConfigurationException)
             {
@@ -122,20 +123,38 @@ namespace Horseshoe.NET.Configuration
         /// You may need to supply a <c>parseFunc</c> for custom / complex types.
         /// </summary>
         /// <typeparam name="T">type parameter</typeparam>
-        /// <param name="key">configuration key</param>
-        /// <param name="parseFunc">parsing function</param>
-        /// <param name="numberStyles">Available for parsing numeric formats (e.g. hexadecimal)</param>
-        /// <param name="dateTimeStyles">Available for parsing date time formats</param>
-        /// <param name="provider">Available for parsing numeric or date time formats</param>
-        /// <param name="ignoreCase">if <c>true</c>, allows case insensitive enum parsing</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration instance or key is not found</param>
-        /// <param name="suppressErrors">if <c>true</c>, throws error if enum parse error occurs</param>
+        /// <param name="key">A configuration key.</param>
+        /// <param name="required">If <c>true</c>, throws error if configuration key not found.</param>
+        /// <param name="parseFunc">A custom parsing function.</param>
+        /// <param name="dateTimeStyle">Applies to <c>Get&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
+        /// <param name="numberStyle">Applies to <c>Get&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>Get&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>Get&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="trueValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
+        /// <param name="falseValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
+        /// <param name="encoding">Applies to <c>Get&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
+        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
+        /// <param name="ignoreCase">Applies to <c>Get&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <returns></returns>
-        public static T Get<T>(string key, Func<string, T> parseFunc = null, NumberStyles? numberStyles = null, DateTimeStyles? dateTimeStyles = null, IFormatProvider provider = null, bool ignoreCase = false, bool required = false, bool suppressErrors = false)
+        public static T Get<T>
+        (
+            string key,
+            bool required = false,
+            Func<string, T> parseFunc = null,
+            DateTimeStyles? dateTimeStyle = null,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            string trueValues = "y|yes|t|true|1",
+            string falseValues = "n|no|f|false|0",
+            Encoding encoding = null,
+            Type inheritedType = null,
+            bool ignoreCase = false
+        )
         {
             try
             {
-                return Configuration.Get<T>(key, parseFunc: parseFunc, numberStyles: numberStyles, dateTimeStyles: dateTimeStyles, provider: provider, ignoreCase: ignoreCase, required: required, suppressErrors: suppressErrors);
+                return Configuration.Get<T>(key, required: required, parseFunc: parseFunc, dateTimeStyle: dateTimeStyle, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
             }
             catch (NoConfigurationException)
             {
@@ -168,7 +187,6 @@ namespace Horseshoe.NET.Configuration
         /// </summary>
         /// <typeparam name="T">subclass of <c>System.Configuration.ConfigurationSection</c></typeparam>
         /// <param name="path">configuration path</param>
-        /// <param name="filter">an item filter</param>
         /// <param name="required">if <c>true</c>, throws error if configuration instance or section is not found</param>
         /// <returns></returns>
         public static T[] GetArray<T>(string path, bool required = false)

@@ -15,7 +15,7 @@ namespace Horseshoe.NET.SecureIO.Sftp
             {
                 return _defaultFtpServer
                     ?? Config.Get("Horseshoe.NET:Sftp:Server") 
-                    ?? OrganizationalDefaultSettings.GetString("Sftp.Server");
+                    ?? OrganizationalDefaultSettings.Get<string>("Sftp.Server");
             }
             set
             {
@@ -34,7 +34,7 @@ namespace Horseshoe.NET.SecureIO.Sftp
             {
                 return _defaultPort
                     ?? Config.Get<int?>("Horseshoe.NET:Sftp:Port") 
-                    ?? OrganizationalDefaultSettings.GetNInt("Sftp.Port");
+                    ?? OrganizationalDefaultSettings.Get<int?>("Sftp.Port");
             }
             set
             {
@@ -53,7 +53,7 @@ namespace Horseshoe.NET.SecureIO.Sftp
             {
                 return _defaultCredentials
                     ?? Credential.Build(Config.Get("Horseshoe.NET:Sftp:UserName"), Config.Get("Horseshoe.NET:Sftp:Password"), isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:Sftp:IsEncryptedPassword"))
-                    ?? OrganizationalDefaultSettings.GetNullable<Credential>("Sftp.Credentials");
+                    ?? OrganizationalDefaultSettings.Get<Credential?>("Sftp.Credentials");
             }
             set
             {

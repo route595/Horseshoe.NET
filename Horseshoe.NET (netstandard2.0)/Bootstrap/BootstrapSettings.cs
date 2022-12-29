@@ -17,8 +17,8 @@ namespace Horseshoe.NET.Bootstrap
             get
             {
                 return _defaultExceptionRendering
-                    ?? _Config.GetNEnum<ExceptionRenderingPolicy>("Horseshoe.NET:Bootstrap:ExceptionRendering")
-                    ?? OrganizationalDefaultSettings.GetNullable<ExceptionRenderingPolicy>("Bootstrap.ExceptionRendering")
+                    ?? _Config.Get<ExceptionRenderingPolicy?>("Horseshoe.NET:Bootstrap:ExceptionRendering")
+                    ?? OrganizationalDefaultSettings.Get<ExceptionRenderingPolicy?>("Bootstrap.ExceptionRendering")
                     ?? default;
             }
             set
@@ -37,8 +37,8 @@ namespace Horseshoe.NET.Bootstrap
             get
             {
                 return _defaultAutoCloseableAlerts
-                    ?? _Config.GetNBool("Horseshoe.NET:Bootstrap:AutoCloseableAlerts")
-                    ?? OrganizationalDefaultSettings.GetNBoolean("Bootstrap.AutoCloseableAlerts")
+                    ?? _Config.Get<bool?>("Horseshoe.NET:Bootstrap:AutoCloseableAlerts")
+                    ?? OrganizationalDefaultSettings.Get<bool?>("Bootstrap.AutoCloseableAlerts")
                     ?? false;
             }
             set

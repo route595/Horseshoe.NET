@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppCache.cs" />
+    <Compile Include="CacheConstants.cs" />
     <Compile Include="CacheSettings.cs" />
     <Compile Include="IAppCache.cs" />
     <Compile Include="IRuntimeCache.cs" />

@@ -116,7 +116,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="XMLTests.cs" />
+    <Compile Include="XmlDocTests.cs" />
     <Compile Include="ExcelDataImportTests.cs" />
     <Compile Include="DataImportTests.cs" />
     <Compile Include="DirectoryCrawlerTests.cs" />

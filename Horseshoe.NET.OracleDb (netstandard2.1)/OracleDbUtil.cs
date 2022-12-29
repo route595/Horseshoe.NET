@@ -15,7 +15,7 @@ namespace Horseshoe.NET.OracleDb
 {
     public static class OracleDbUtil
     {
-        public static string? BuildConnectionString(string? dataSource, OraServer? server, IDictionary<string, string>? additionalConnectionAttributes)
+        public static string BuildConnectionString(string dataSource, OraServer server = null, IDictionary<string, string> additionalConnectionAttributes = null, int? connectionTimeout = null)
         {
             if (dataSource == null)
             {
@@ -51,23 +51,28 @@ namespace Horseshoe.NET.OracleDb
                 }
             }
 
+            // additional attributes
+            // ref https://learn.microsoft.com/en-us/dotnet/api/system.data.oracleclient.oracleconnection.connectiontimeout?view=netframework-4.8
+            if (connectionTimeout.HasValue)
+            {
+                sb.Append(";Connection Timeout=" + connectionTimeout);
+            }
+
             return sb.ToString();
         }
 
-        public static string? BuildConnectionStringFromConfig()
+        public static string BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(OracleDbSettings.DefaultDataSource, OracleDbSettings.DefaultServer, OracleDbSettings.DefaultAdditionalConnectionAttributes);
+            return BuildConnectionString(OracleDbSettings.DefaultDataSource, server: OracleDbSettings.DefaultServer, additionalConnectionAttributes: OracleDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OracleDbSettings.DefaultConnectionTimeout);
         }
 
         public static OracleConnection LaunchConnection
         (
-            OracleDbConnectionInfo? connectionInfo = null,
-            Action<OracleDbConnectionInfo>? resultantConnectionInfo = null
+            OracleDbConnectionInfo connectionInfo = null,
+            TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig());
-            resultantConnectionInfo?.Invoke(connectionInfo);
-
+            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal);
             var conn = connectionInfo.OracleCredentials != null
                 ? new OracleConnection(connectionInfo.ConnectionString, connectionInfo.OracleCredentials)
                 : new OracleConnection(connectionInfo.ConnectionString);
@@ -98,14 +103,54 @@ namespace Horseshoe.NET.OracleDb
             return conn;
         }
 
+        internal static OracleCommand BuildTextCommand
+        (
+            OracleConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OracleCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.Text,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
+        internal static OracleCommand BuildProcedureCommand
+        (
+            OracleConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OracleCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.StoredProcedure,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
         public static OracleCommand BuildCommand
         (
             OracleConnection conn,
             CommandType commandType,
             string commandText,
-            IEnumerable<DbParameter>? parameters = null,
-            int? timeout = null,
-            Action<OracleCommand>? modifyCommand = null
+            IEnumerable<DbParameter> parameters = null,
+            int? commandTimeout = null,
+            Action<OracleCommand> modifyCommand = null
         )
         {
             var cmd = new OracleCommand
@@ -128,7 +173,7 @@ namespace Horseshoe.NET.OracleDb
                     }
                 }
             }
-            if ((timeout ?? OracleDbSettings.DefaultTimeout).TryHasValue(out int value))
+            if (commandTimeout.TryHasValue(out int value))
             {
                 cmd.CommandTimeout = value;
             }
@@ -140,47 +185,47 @@ namespace Horseshoe.NET.OracleDb
          *  ORACLE SPECIFIC METHODS / OBJECTS  *
          * * * * * * * * * * * * * * * * * * * */
 
-        public static OracleParameter BuildInParam(string? name = null, object? value = null)
+        public static OracleParameter BuildInParam(string name = null, object value = null)
         {
             return new OracleParameter(name, value ?? DBNull.Value) { Direction = ParameterDirection.Input };
         }
 
-        public static OracleParameter BuildVarchar2InParam(string? name = null, string? value = null)
+        public static OracleParameter BuildVarchar2InParam(string name = null, string value = null)
         {
             return new OracleParameter(name, OracleDbType.Varchar2, value as object ?? DBNull.Value, ParameterDirection.Input);
         }
 
-        public static OracleParameter BuildVarchar2OutParam(string? name = null, int length = 100)
+        public static OracleParameter BuildVarchar2OutParam(string name = null, int length = 100)
         {
             return new OracleParameter(name, OracleDbType.Varchar2, length) { Direction = ParameterDirection.Output };
         }
 
-        public static OracleParameter BuildIntInParam(string? name = null, int? value = null)
+        public static OracleParameter BuildIntInParam(string name = null, int? value = null)
         {
             return new OracleParameter(name, OracleDbType.Int32, value as object ?? DBNull.Value, ParameterDirection.Input);
         }
 
-        public static OracleParameter BuildIntOutParam(string? name = null)
+        public static OracleParameter BuildIntOutParam(string name = null)
         {
             return new OracleParameter(name, OracleDbType.Int32, ParameterDirection.Output);
         }
 
-        public static OracleParameter BuildDateInParam(string? name = null, DateTime? value = null)
+        public static OracleParameter BuildDateInParam(string name = null, DateTime? value = null)
         {
             return new OracleParameter(name, OracleDbType.Date, value as object ?? DBNull.Value, ParameterDirection.Input);
         }
 
-        public static OracleParameter BuildDateOutParam(string? name = null)
+        public static OracleParameter BuildDateOutParam(string name = null)
         {
             return new OracleParameter(name, OracleDbType.Date, ParameterDirection.Output);
         }
 
-        public static OracleParameter BuildOutRefCursor(string? name = null)
+        public static OracleParameter BuildOutRefCursor(string name = null)
         {
             return new OracleParameter(name, OracleDbType.RefCursor, ParameterDirection.Output);
         }
 
-        public static object? NormalizeDbValue(object? obj)
+        public static object NormalizeDbValue(object obj)
         {
             if (obj == null || obj is DBNull)
                 return null;
@@ -222,7 +267,7 @@ namespace Horseshoe.NET.OracleDb
             return obj;
         }
 
-        public static IEnumerable<OraServer?>? ParseServerList(string rawList)
+        public static IEnumerable<OraServer> ParseServerList(string rawList)
         {
             try
             {
@@ -242,11 +287,11 @@ namespace Horseshoe.NET.OracleDb
 
         private static readonly Regex ServerNamePattern = new Regex("(?<=')[^']+(?='.+)");
 
-        public static OraServer? ParseServer(string raw)
+        public static OraServer ParseServer(string raw)
         {
             if (string.IsNullOrEmpty(raw))
                 throw new ValidationException("Invalid raw server string");
-            string? name = null;
+            string name = null;
             var nameMatch = ServerNamePattern.Match(raw);
 
             if (nameMatch.Success)
@@ -260,8 +305,8 @@ namespace Horseshoe.NET.OracleDb
             if (parts.Length > 0 && parts.Length <= 3)
             {
                 string dataSource = parts[0]?.Trim() ?? throw new ValidationException("datasource not parsed");
-                string? serviceName = null;
-                string? instanceName = null;
+                string serviceName = null;
+                string instanceName = null;
 
                 if (parts.Length == 1 && name == null)
                 {
@@ -283,7 +328,7 @@ namespace Horseshoe.NET.OracleDb
             throw new UtilityException("Malformed server.  Must resemble { ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1 }.");
         }
 
-        public static string? BuildServerListString(IEnumerable<OraServer> list)
+        public static string BuildServerListString(IEnumerable<OraServer> list)
         {
             if (list == null || !list.Any()) 
                 return null;

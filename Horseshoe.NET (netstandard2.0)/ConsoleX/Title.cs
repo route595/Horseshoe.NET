@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-namespace Horseshoe.NET.ConsoleX
+﻿namespace Horseshoe.NET.ConsoleX
 {
     /// <summary>
     /// A title is text rendered to the console with optional 'Xtra' text for providing

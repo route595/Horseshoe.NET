@@ -176,7 +176,7 @@
 //                        },
 //                        connectionInfo: NetCoreConnectionInfo,
 //                        dbCapture: dbCapture,
-//                        readerParser: ScalarReaderParser.String
+//                        rowParser: RowParser.ScalarString
 //                    );
 //                    Console.WriteLine("Test #2 Results:");
 //                    Console.WriteLine("  Scalar");

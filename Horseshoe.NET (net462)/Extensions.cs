@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text;
-using Horseshoe.NET.Collections;
+
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class Extensions
     {
         /// <summary>
@@ -94,11 +96,13 @@ namespace Horseshoe.NET
         /// <summary>
         /// Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
         /// </summary>
-        /// <param name="exception">An exception</param>
-        /// <param name="typeRendering">If <c>true</c> use the fully qualified type name (default is <c>false</c>)</param>
-        /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
-        /// <param name="indent">Number of spaces to indent detail lines in the output</param>
-        /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
+        /// <param name="exception">An exception.</param>
+        /// <param name="typeRendering">If <c>true</c> use the fully qualified type name (default is <c>false</c>).</param>
+        /// <param name="includeDateTime">If <c>true</c> renders the approximate date and time the source exception was raised (default is <c>false</c>).</param>
+        /// <param name="includeMachineName">If <c>true</c> renders the machine name where the exception probably occurred (default is <c>false</c>).</param>
+        /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>).</param>
+        /// <param name="indent">Number of spaces to indent detail lines in the output.</param>
+        /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>).</param>
         /// <returns>Console-formatted exception dump</returns>
         public static string Render(this Exception exception, ExceptionTypeRenderingPolicy typeRendering = default, bool includeDateTime = false, bool includeMachineName = false, bool includeStackTrace = false, int indent = 2, bool recursive = false)
         {
@@ -108,14 +112,16 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
+        /// Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.).
         /// </summary>
-        /// <param name="exceptionInfo">An exception info</param>
-        /// <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
-        /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
-        /// <param name="indent">Number of spaces to indent detail lines in the output</param>
-        /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
-        /// <returns>Console-formatted exception dump</returns>
+        /// <param name="exceptionInfo">An exception info.</param>
+        /// <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name.</param>
+        /// <param name="includeDateTime">If <c>true</c> renders the approximate date and time the source exception was raised (default is <c>false</c>).</param>
+        /// <param name="includeMachineName">If <c>true</c> renders the machine name where the exception probably occurred (default is <c>false</c>).</param>
+        /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>).</param>
+        /// <param name="indent">Number of spaces to indent detail lines in the output.</param>
+        /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>).</param>
+        /// <returns>Console-formatted exception dump.</returns>
         public static string Render(this ExceptionInfo exceptionInfo, ExceptionTypeRenderingPolicy typeRendering = default, bool includeDateTime = false, bool includeMachineName = false, bool includeStackTrace = false, int indent = 2, bool recursive = false)
         {
             var strb = new StringBuilder();
@@ -126,9 +132,9 @@ namespace Horseshoe.NET
         /// <summary>
         /// Prepares an exception for viewing in a console or other text field (e.g. &lt;textarea&gt;, &lt;pre&gt;, etc.)
         /// </summary>
-        /// <param name="exception">An exception</param>
-        /// <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
-        /// <returns>Console-formatted exception dump</returns>
+        /// <param name="exception">An exception.</param>
+        /// <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name.</param>
+        /// <returns>Console-formatted exception dump.</returns>
         public static string RenderMessage(this Exception exception, ExceptionTypeRenderingPolicy typeRendering = default)
         {
             var strb = new StringBuilder();
@@ -154,6 +160,8 @@ namespace Horseshoe.NET
         /// </summary>
         /// <param name="exception">An exception</param>
         /// <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+        /// <param name="includeDateTime">If <c>true</c> renders the approximate date and time the source exception was raised (default is <c>false</c>).</param>
+        /// <param name="includeMachineName">If <c>true</c> renders the machine name where the exception probably occurred (default is <c>false</c>).</param>
         /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
         /// <param name="indent">Number of spaces to indent detail lines in the output</param>
         /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
@@ -170,6 +178,8 @@ namespace Horseshoe.NET
         /// </summary>
         /// <param name="exceptionInfo">An exception</param>
         /// <param name="typeRendering">If <c>Fqn</c> (default) display the fully qualified type name</param>
+        /// <param name="includeDateTime">If <c>true</c> renders the approximate date and time the source exception was raised (default is <c>false</c>).</param>
+        /// <param name="includeMachineName">If <c>true</c> renders the machine name where the exception probably occurred (default is <c>false</c>).</param>
         /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>false</c>)</param>
         /// <param name="indent">Number of spaces to indent detail lines in the output</param>
         /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>
@@ -223,6 +233,12 @@ namespace Horseshoe.NET
             return string.Join(Environment.NewLine, lines);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this byte? inValue, out byte value)
         {
             if (inValue.HasValue)
@@ -234,6 +250,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this short? inValue, out short value)
         {
             if (inValue.HasValue)
@@ -245,6 +267,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this int? inValue, out int value)
         {
             if (inValue.HasValue)
@@ -256,6 +284,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this long? inValue, out long value)
         {
             if (inValue.HasValue)
@@ -267,6 +301,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this float? inValue, out float value)
         {
             if (inValue.HasValue)
@@ -278,6 +318,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this double? inValue, out double value)
         {
             if (inValue.HasValue)
@@ -289,6 +335,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this decimal? inValue, out decimal value)
         {
             if (inValue.HasValue)
@@ -300,6 +352,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this DateTime? inValue, out DateTime value)
         {
             if (inValue.HasValue)
@@ -311,6 +369,12 @@ namespace Horseshoe.NET
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inValue"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool TryHasValue(this bool? inValue, out bool value)
         {
             if (inValue.HasValue)

@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Horseshoe.NET.Iterator
 {
+    /// <summary>
+    /// Extension methods for iterators over collections
+    /// </summary>
     public static class Extensions
     {
         /// <summary>
@@ -13,18 +16,18 @@ namespace Horseshoe.NET.Iterator
         /// <typeparam name="T">Type of items</typeparam>
         /// <param name="collection">A collection</param>
         /// <param name="action">Action to perform on each iteration</param>
-        public static void Iterate<T>(this IEnumerable<T> collection, Action<T, ControlInterface> action)
+        public static void Iterate<T>(this IEnumerable<T> collection, Action<T, IteratorMetadata> action)
         {
-            var ci = new ControlInterface { Count = collection.Count() };
+            var meta = new IteratorMetadata { Count = collection.Count() };
 
             if (collection is IList<T> list)
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    ci.Index = i;
+                    meta.Index = i;
                     try
                     {
-                        action.Invoke(list[i], ci);
+                        action.Invoke(list[i], meta);
                     }
                     catch (ContinueNextException)
                     {
@@ -41,10 +44,10 @@ namespace Horseshoe.NET.Iterator
                 var counter = -1;
                 foreach (T t in collection)
                 {
-                    ci.Index = ++counter;
+                    meta.Index = ++counter;
                     try
                     {
-                        action.Invoke(t, ci);
+                        action.Invoke(t, meta);
                     }
                     catch (ContinueNextException)
                     {
@@ -65,19 +68,19 @@ namespace Horseshoe.NET.Iterator
         /// <typeparam name="T">Type of items</typeparam>
         /// <param name="collection">A collection</param>
         /// <param name="action">Action to perform on each iteration</param>
-        public static void ReverseIterate<T>(this IEnumerable<T> collection, Action<T, ControlInterface> action)
+        public static void ReverseIterate<T>(this IEnumerable<T> collection, Action<T, IteratorMetadata> action)
         {
             var list = collection is List<T> _list
                 ? _list
                 : new List<T>(collection ?? Enumerable.Empty<T>());
-            ControlInterface ci = new ControlInterface { Count = list.Count };
-            var counter = ci.Count;
+            IteratorMetadata meta = new IteratorMetadata { Count = list.Count };
+            var counter = meta.Count;
             while (counter > 0)
             {
-                ci.Index = --counter;
+                meta.Index = --counter;
                 try
                 {
-                    action.Invoke(list[counter], ci);
+                    action.Invoke(list[counter], meta);
                 }
                 catch (ContinueNextException)
                 {

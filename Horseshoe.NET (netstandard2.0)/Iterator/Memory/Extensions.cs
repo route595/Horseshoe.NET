@@ -2,24 +2,27 @@
 
 namespace Horseshoe.NET.Iterator.Memory
 {
+    /// <summary>
+    /// Extension methods for memory efficient iterators over <c>ReadOnlySpan</c>
+    /// </summary>
     public static class Extensions
     {
         /// <summary>
-        /// Iterates over a span. <c>ControlInterface ci</c> contains properties and methods for interacting with the iterator.
+        /// Iterates over a <c>ReadOnlySpan</c>. <c>ControlInterface ci</c> contains properties and methods for interacting with the iterator.
         /// </summary>
         /// <typeparam name="T">Type of items</typeparam>
-        /// <param name="span">A span</param>
+        /// <param name="span">A <c>ReadOnlySpan</c></param>
         /// <param name="action">Action to perform on each iteration</param>
-        public static void Iterate<T>(this ReadOnlySpan<T> span, Action<T, ControlInterface> action)
+        public static void Iterate<T>(this ReadOnlySpan<T> span, Action<T, IteratorMetadata> action)
         {
-            var ci = new ControlInterface { Count = span.Length };
+            var meta = new IteratorMetadata { Count = span.Length };
 
-            for (int i = 0; i < ci.Count; i++)
+            for (int i = 0; i < meta.Count; i++)
             {
-                ci.Index = i;
+                meta.Index = i;
                 try
                 {
-                    action.Invoke(span[i], ci);
+                    action.Invoke(span[i], meta);
                 }
                 catch (ContinueNextException)
                 {
@@ -38,15 +41,15 @@ namespace Horseshoe.NET.Iterator.Memory
         /// <typeparam name="T">Type of items</typeparam>
         /// <param name="span">A span</param>
         /// <param name="action">Action to perform on each iteration</param>
-        public static void ReverseIterate<T>(this ReadOnlySpan<T> span, Action<T, ControlInterface> action)
+        public static void ReverseIterate<T>(this ReadOnlySpan<T> span, Action<T, IteratorMetadata> action)
         {
-            var ci = new ControlInterface { Count = span.Length };
-            for (int i = ci.Count - 1; i >= 0; i--)
+            var meta = new IteratorMetadata { Count = span.Length };
+            for (int i = meta.Count - 1; i >= 0; i--)
             {
-                ci.Index = i;
+                meta.Index = i;
                 try
                 {
-                    action.Invoke(span[i], ci);
+                    action.Invoke(span[i], meta);
                 }
                 catch (ContinueNextException)
                 {

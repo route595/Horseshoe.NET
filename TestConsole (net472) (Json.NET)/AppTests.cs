@@ -44,7 +44,7 @@ namespace TestConsole
                         {
                             if (prop.Name.Equals("NewLine"))
                             {
-                                Console.WriteLine(TextUtil.Reveal(prop.GetValue(null)?.ToString(), new RevealOptions{ RevealWhitespaces = true }));
+                                Console.WriteLine(TextUtil.Reveal(prop.GetValue(null)?.ToString(), new RevealOptions{ CharsToReveal = RevealCharCategory.Whitespaces, WhitespacesToReveal = WhitespacePolicy.IncludeAllWhitespaces }));
                             }
                             else if (prop.Name.Equals("StackTrace"))
                             {
@@ -96,17 +96,6 @@ namespace TestConsole
                 {
                     RenderX.List(AppDomain.CurrentDomain.GetAssemblies(), renderer: (a) => a.FullName);
                 }
-            //),
-            //BuildMenuRoutine
-            //(
-            //    "Detect App Type",
-            //    () =>
-            //    {
-            //        var sb = new StringBuilder();
-            //        var appType = ClientApp.DetectAppType(sb);
-            //        RenderX.ListTitle("Detected: " + (appType?.ToString() ?? "[null]"));
-            //        Console.WriteLine(sb);
-            //    }
             )
         };
     }

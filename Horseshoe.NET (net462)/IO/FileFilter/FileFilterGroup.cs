@@ -3,47 +3,62 @@ using System.Linq;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
-    public class FileFilterGroup : IFileFilter
+    /// <summary>
+    /// A specialized filter that checks a file against a list of file filters.  Runs either in <c>And</c> or <c>Or</c> mode.  
+    /// </summary>
+    public class FileFilterGroup : FileFilter
     {
-        private List<IFileFilter> _fileFilters = new List<IFileFilter>();
+        private List<FileFilter> _fileFilters = new List<FileFilter>();
 
-        public FilterMode FilterMode { get; }
+        /// <summary>
+        /// <c>And</c> or <c>Or</c>
+        /// </summary>
+        public GroupFilterMode? Mode { get; }
 
-        public bool CaseSensitive { get; }
-
-        public FileFilterGroup(IEnumerable<IFileFilter> fileFilters, FilterMode filterMode = default, bool caseSensitive = false)
+        /// <summary>
+        /// Creates a new file filter group.
+        /// </summary>
+        /// <param name="fileFilters">A collection of one or more file filters.</param>
+        /// <param name="groupFilterMode"><c>And</c> or <c>Or</c></param>
+        /// <param name="filterMode">Optional, dictates which files to include based on criteria matching.</param>
+        /// <exception cref="ValidationException">If no file filters or no group filter mode was supplied.</exception>
+        public FileFilterGroup(IEnumerable<FileFilter> fileFilters, GroupFilterMode? groupFilterMode, FilterMode filterMode = default)
         {
+            // validation
             if (fileFilters == null || !fileFilters.Any())
-            {
-                switch (filterMode)
-                {
-                    case FilterMode.FilterInAll:
-                    case FilterMode.FilterOutAll:
-                    default:
-                        throw new ValidationException("Invalid \"and\" group filter: must supply one or more file filters");
-                    case FilterMode.FilterInAny:
-                    case FilterMode.FilterOutAny:
-                        throw new ValidationException("Invalid \"or\" group filter: must supply one or more file filters");
-                }
-            }
+                throw new ValidationException("Invalid filter: must supply one or more file filters");
+            if (!groupFilterMode.HasValue)
+                throw new ValidationException("Invalid filter: must supply a value for groupFilterMode");
+          
             _fileFilters.AddRange(fileFilters);
             FilterMode = filterMode;
-            CaseSensitive = caseSensitive;
+            Mode = groupFilterMode.Value;
         }
 
-        public bool IsMatch(FilePath file)
+        /// <summary>
+        /// Indicates whether the supplied file constitutes a critea match.
+        /// </summary>
+        /// <param name="file">a file path</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public override bool IsMatch(FilePath file)
         {
-            switch (FilterMode)
+            switch (Mode)
             {
-                case FilterMode.FilterInAll:
+                case GroupFilterMode.Or:
                 default:
-                    return _fileFilters.All(f => f.IsMatch(file));
-                case FilterMode.FilterInAny:
-                    return _fileFilters.Any(f => f.IsMatch(file));
-                case FilterMode.FilterOutAll:
-                    return !_fileFilters.All(f => f.IsMatch(file));
-                case FilterMode.FilterOutAny:
-                    return !_fileFilters.Any(f => f.IsMatch(file));
+                    foreach (var fileFilter in _fileFilters)
+                    {
+                        if (fileFilter.IsMatch(file))
+                            return true;
+                    }
+                    return false;
+                case GroupFilterMode.And:
+                    foreach (var fileFilter in _fileFilters)
+                    {
+                        if (!fileFilter.IsMatch(file))
+                            return false;
+                    }
+                    return true;
             }
         }
     }

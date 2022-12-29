@@ -6,8 +6,25 @@ using Microsoft.Extensions.Primitives;
 
 namespace Horseshoe.NET.Email
 {
+    /// <summary>
+    /// Utility methods for generating HTML formatted emails
+    /// </summary>
     public static class HtmlEmail
     {
+        /// <summary>
+        /// Sends a plain email
+        /// </summary>
+        /// <param name="subject">Email subject</param>
+        /// <param name="body">Email content</param>
+        /// <param name="to">Recipient email address(es)</param>
+        /// <param name="cc">CC: email address(es)</param>
+        /// <param name="bcc">BCC: email address(es)</param>
+        /// <param name="from">Sender email address</param>
+        /// <param name="attach">Optional attachment file path(s)</param>
+        /// <param name="footerHtml">Optional footer</param>
+        /// <param name="encoding">Optional email body encoding</param>
+        /// <param name="connectionInfo">SMTP connection info</param>
+        /// <exception cref="ValidationException">if any critical part of the email is missing</exception>
         public static void Send
         (
             string subject,
@@ -23,8 +40,7 @@ namespace Horseshoe.NET.Email
         )
         {
             // create the mail client
-            var smtpClient = SmtpUtil.GetSmtpClient(connectionInfo: connectionInfo) ??
-                throw new ValidationException("Not enough info to create an SMTP client");
+            var smtpClient = SmtpUtil.GetSmtpClient(connectionInfo: connectionInfo);
 
             // validate and create the mail message
             SmtpUtil.Validate
@@ -71,7 +87,8 @@ namespace Horseshoe.NET.Email
 
         private static string JoinBodyAndFooter(string body, string footerHtml)
         {
-            if (footerHtml == null) return body;
+            if (footerHtml == null) 
+                return body;
             var oIndex = body.ToLower().IndexOf("<body");
             var cIndex = body.ToLower().IndexOf("</body>");
             if (cIndex > oIndex && oIndex >= 0)

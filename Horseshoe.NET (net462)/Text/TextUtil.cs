@@ -1,18 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Text
 {
+    /// <summary>
+    /// A collection of factory methods for <c>string</c> and <c>char</c> interpretation and <c>string</c> manipulation.
+    /// </summary>
     public static class TextUtil
     {
+        /// <summary>
+        /// Trims each line of a multi-line <c>string</c>.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <returns>A line-trimmed version of <c>text</c>.</returns>
         public static string MultilineTrim(string text)
         {
             if (text == null)
@@ -25,12 +31,25 @@ namespace Horseshoe.NET.Text
             return text;
         }
 
+        /// <summary>
+        /// Detects whitespace <c>chars</c> in a <c>string</c>.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool HasWhitespace(string text)
         {
             if (text == null) return false;
             return text.Any(c => char.IsWhiteSpace(c));
         }
 
+        /// <summary>
+        /// Creates a fixed-length <c>string</c> by repeating the supplied text.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <param name="targetLength">The target length.</param>
+        /// <param name="allowOverflow">If <c>true</c> and if <c>text</c> length &gt; 1 then result is not truncated to <c>targetLength</c>, default is <c>false</c>.</param>
+        /// <param name="rtl">If <c>true</c>, fills right-to-left, default is <c>false</c>.</param>
+        /// <returns>The new fixed-length <c>string</c>.</returns>
         public static string Fill(string text, int targetLength, bool allowOverflow = false, bool rtl = false)
         {
             if (text == null || targetLength < 1)
@@ -46,11 +65,22 @@ namespace Horseshoe.NET.Text
             if (allowOverflow)
                 return sb.ToString();
             return rtl
-                ? Crop(sb.ToString(), targetLength, direction: Direction.Left)
+                ? Crop(sb.ToString(), targetLength, direction: HorizontalPosition.Left)
                 : Crop(sb.ToString(), targetLength);
         }
 
-        public static string Pad(string text, int targetLength, Direction direction = Direction.Right, string padding = null, string leftPadding = null, bool cannotExceedTargetLength = false)
+        /// <summary>
+        /// Creates a fixed-length <c>string</c> by adding <c>char</c>s to one or both ends of <c>text</c>.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <param name="targetLength">The target length.</param>
+        /// <param name="direction">The padding direction.</param>
+        /// <param name="padding">The padding text.</param>
+        /// <param name="leftPadding">Left padding.</param>
+        /// <param name="cannotExceedTargetLength">If <c>true</c>, throws an exception if <c>text</c> is longer than <c>targetLength</c>, default is <c>false</c>.</param>
+        /// <returns>The new fixed-length <c>string</c>.</returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string Pad(string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Right, string padding = null, string leftPadding = null, bool cannotExceedTargetLength = false)
         {
             if (text == null)
                 text = string.Empty;
@@ -75,9 +105,9 @@ namespace Horseshoe.NET.Text
 
             switch (direction)
             {
-                case Direction.Left:
+                case HorizontalPosition.Left:
                     return Fill(leftPadding, targetLength - text.Length) + text;
-                case Direction.Center:
+                case HorizontalPosition.Center:
                     var sb = new StringBuilder();
                     int temp = (targetLength - text.Length) / 2;  // in case of uneven padding to left and right of text always prefer a smaller left
                     sb.Append(Fill(leftPadding, temp, rtl: rtl));
@@ -85,13 +115,22 @@ namespace Horseshoe.NET.Text
                     temp = targetLength - text.Length - temp;
                     sb.Append(Fill(padding, temp));
                     return sb.ToString();
-                case Direction.Right:
+                case HorizontalPosition.Right:
                 default:
                     return text + Fill(padding, targetLength - text.Length);
             }
         }
 
-        public static string Crop(string text, int targetLength, Direction direction = Direction.Right, string truncateMarker = null)
+        /// <summary>
+        /// Creates a fixed-length <c>string</c> by removing <c>char</c>s from one or both ends of <c>text</c>.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <param name="targetLength">The target length.</param>
+        /// <param name="direction">The padding direction.</param>
+        /// <param name="truncateMarker">An optional truncation indicator, e.g. <c>"..."</c> or <c>TruncateMarker.Ellipsis</c>.</param>
+        /// <returns>The new fixed-length <c>string</c>.</returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string Crop(string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Right, string truncateMarker = null)
         {
             if (text == null || targetLength <= 0) return string.Empty;
             if (text.Length <= targetLength) return text;
@@ -101,9 +140,9 @@ namespace Horseshoe.NET.Text
 
             switch (direction)
             {
-                case Direction.Left:
+                case HorizontalPosition.Left:
                     return truncateMarker + text.Substring(text.Length - targetLength + truncateMarker.Length);
-                case Direction.Center:
+                case HorizontalPosition.Center:
                     var sb = new StringBuilder();
                     int temp = (targetLength - truncateMarker.Length) / 2;  // in case of uneven characters to left and right of marker always prefer a smaller left
                     if (temp == 0) temp = 1;                        // except when left is 0 and right is 1 in which case switch
@@ -112,13 +151,24 @@ namespace Horseshoe.NET.Text
                     temp = targetLength - temp - truncateMarker.Length;
                     sb.Append(text.Substring(text.Length - temp));
                     return sb.ToString();
-                case Direction.Right:
+                case HorizontalPosition.Right:
                 default:
                     return text.Substring(0, targetLength - truncateMarker.Length) + truncateMarker;
             }
         }
 
-        public static string Fit(string text, int targetLength, Direction direction = Direction.Left, string padding = null, string leftPadding = null, Direction? truncateDirection = null, string truncateMarker = null)
+        /// <summary>
+        /// Creates a fixed-length <c>string</c> by either adding or removing <c>char</c>s from one or both ends of <c>text</c>.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <param name="targetLength">The target length.</param>
+        /// <param name="direction">The padding direction.</param>
+        /// <param name="padding">The padding text.</param>
+        /// <param name="leftPadding">Left padding.</param>
+        /// <param name="truncateDirection">The truncate direction.</param>
+        /// <param name="truncateMarker">An optional truncation indicator, e.g. <c>"..."</c> or <c>TruncateMarker.Ellipsis</c>.</param>
+        /// <returns>The new fixed-length <c>string</c>.</returns>
+        public static string Fit(string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Left, string padding = null, string leftPadding = null, HorizontalPosition? truncateDirection = null, string truncateMarker = null)
         {
             if (text == null)
                 text = string.Empty;
@@ -127,33 +177,39 @@ namespace Horseshoe.NET.Text
             return Crop(text, targetLength, direction: truncateDirection ?? FitSwitchTruncateDirection(direction), truncateMarker: truncateMarker);
         }
 
-        private static Direction FitSwitchPadDirection(Direction direction)
+        private static HorizontalPosition FitSwitchPadDirection(HorizontalPosition direction)
         {
             switch (direction)
             {
-                case Direction.Left:
-                    return Direction.Right;
-                case Direction.Center:
-                    return Direction.Center;
-                case Direction.Right:
+                case HorizontalPosition.Left:
+                    return HorizontalPosition.Right;
+                case HorizontalPosition.Center:
+                    return HorizontalPosition.Center;
+                case HorizontalPosition.Right:
                 default:
-                    return Direction.Left;
+                    return HorizontalPosition.Left;
             }
         }
 
-        private static Direction FitSwitchTruncateDirection(Direction direction)
+        private static HorizontalPosition FitSwitchTruncateDirection(HorizontalPosition direction)
         {
             switch (direction)
             {
-                case Direction.Left:
-                case Direction.Right:
+                case HorizontalPosition.Left:
+                case HorizontalPosition.Right:
                 default:
-                    return Direction.Right;
-                case Direction.Center:
-                    return Direction.Center;
+                    return HorizontalPosition.Right;
+                case HorizontalPosition.Center:
+                    return HorizontalPosition.Center;
             }
         }
 
+        /// <summary>
+        /// Create a <c>string</c> by repeating <c>text</c> a specific number of time.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <param name="numberOfTimes">A number of times to repeat <c>text</c>.</param>
+        /// <returns>A newly constructed <c>string</c>.</returns>
         public static string Repeat(string text, int numberOfTimes)
         {
             if (text == null)
@@ -166,6 +222,14 @@ namespace Horseshoe.NET.Text
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Searches <c>text</c> and replaces the last occurance of <c>textToReplace</c> with <c>replacementText</c>.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <param name="textToReplace">Text to replace.</param>
+        /// <param name="replacementText">Replacement text.</param>
+        /// <param name="ignoreCase">Whether to ignore the letter case of <c>textToReplace</c>, default is <c>false</c>.</param>
+        /// <returns>A newly constructed <c>string</c>.</returns>
         public static string ReplaceLast(string text, string textToReplace, string replacementText, bool ignoreCase = false)
         {
             if (text == null)
@@ -186,31 +250,16 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Highlights certain subtexts such as blank / null / empty by string substituion 
-        /// and, optionally, character classes such as non-printable (e.g. ASCII control) chars.  
-        /// Passing in <c>null</c> will cause the <c>StringValues</c> "collection" to be empty.
+        /// Generates a long string revealing the constituent <c>char</c>s in <c>text</c> 
+        /// (e.g. alphanumeric, controls, new lines, etc.).
         /// </summary>
-        /// <param name="input">Text</param>
-        /// <param name="options">Configuration object for string substitutions</param>
-        /// <returns>Text with substitutions</returns>
-        public static string Reveal(StringValues? input, RevealOptions options = null)
+        /// <param name="text">The text to reveal.</param>
+        /// <param name="options">Customizations for revealing <c>char</c>s and <c>string</c>s.</param>
+        /// <returns>Revealed text e.g. chars, controls, new lines, etc.</returns>
+        public static string Reveal(string text, RevealOptions options = null)
         {
             options = options ?? new RevealOptions();
 
-            if (!input.HasValue)
-                return options.ValueIfNullArg;
-
-            switch (input.Value.Count)
-            {
-                case 0:
-                    return options.ValueIfEmptyArg;
-                default:
-                    return string.Join(", ", input.Value.Select(s => _Reveal(s, options)));
-            }
-        }
-
-        private static string _Reveal(string text, RevealOptions options)
-        {
             if (text == null)
                 return options.ValueIfNull;
             if (text.Length == 0)
@@ -225,11 +274,11 @@ namespace Horseshoe.NET.Text
             // bulk reveal chars
             foreach (var c in span)
             {
-                sb.Append(_Reveal(c, options));
+                sb.Append(Reveal(c, options));
             }
 
             // handle new-lines
-            if (options.RevealNewLines || options.RevealAll)
+            if ((options.CharsToReveal & RevealCharCategory.Whitespaces) == RevealCharCategory.Whitespaces && (options.WhitespacesToReveal & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
             {
                 sb.Replace(options.ValueIfCr + options.ValueIfLf, options.ValueIfCrLf);
                 if (options.PreserveNewLines)
@@ -242,185 +291,207 @@ namespace Horseshoe.NET.Text
             return sb.ToString();
         }
 
-        internal static string _Reveal(char c, RevealOptions options)
+        /// <summary>
+        /// Generates a string with <c>char</c> details depending on type e.g. alphanumeric, control, whitespace, etc.
+        /// </summary>
+        /// <param name="c">A <c>char</c> to reveal.</param>
+        /// <param name="options">Customizations for revealing <c>char</c>s and <c>string</c>s.</param>
+        /// <returns>Revealed <c>char</c> details.</returns>
+        public static string Reveal(char c, RevealOptions options = null)
         {
             int i = c;
+            options = options ?? new RevealOptions();
+            var all = options.CharsToReveal == RevealCharCategory.All;
 
             // group 1 - whitespaces and newlines
-            switch (i)
+            if (IsWhitespace(c, extendedASCII: true))
             {
-                case 9:
-                    if (options.RevealTabs || options.RevealWhitespaces || options.RevealAll)
-                        return options.ValueIfTab;
-                    break;
-                case 10:
-                    if (options.RevealNewLines || options.RevealWhitespaces || options.RevealAll)
-                        return options.ValueIfLf;
-                    break;
-                case 13:
-                    if (options.RevealNewLines || options.RevealWhitespaces || options.RevealAll)
-                        return options.ValueIfCr;
-                    break;
-                case 32:
-                    if (options.RevealSpaces || options.RevealWhitespaces || options.RevealAll)
-                        return options.ValueIfSpace;
-                    break;
-                case 160:
-                    if (options.RevealSpaces || options.RevealWhitespaces || options.RevealAll)
-                        return options.ValueIfNbSpace;
-                    break;
+                if ((options.CharsToReveal & RevealCharCategory.Whitespaces) == RevealCharCategory.Whitespaces)
+                {
+                    switch (c)
+                    {
+                        case ' ':
+                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
+                                return options.ValueIfSpace;
+                            return " ";
+                        case '\u00A0':  // non-breaking space
+                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace)
+                                return options.ValueIfNbSpace;
+                            return "\u00A0";
+                        case '\t':
+                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
+                                return options.ValueIfTab;
+                            return "\t";
+                        case '\r':
+                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+                                return options.ValueIfCr;
+                            return "\r";
+                        case '\n':
+                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+                                return options.ValueIfLf;
+                            return "\n";
+                    }
+                }
+                return new string(c, 1);
             }
 
             // group 2 - ASCII printables
-            if (IsASCIIPrintable(c) && (options.RevealASCIIChars || options.RevealAll))
+            if (IsASCIIPrintable(c))
             {
-                // special case - apostrophe(')
-                if (c == '\'')
-                    return "['\\\''-" + i + "]";
+                if ((options.CharsToReveal & RevealCharCategory.ASCIIChars) == RevealCharCategory.ASCIIChars)
+                {
+                    // special case - apostrophe(')
+                    if (c == '\'')
+                        return "['\\\''-" + i + "]";
 
-                return "['" + c + "'-" + i + "]";
+                    return "['" + c + "'-" + i + "]";
+                }
+                return new string(c, 1);
             }
 
             // group 3 - control chars (except whitespaces)
-            if (char.IsControl(c) && !c.In(9, 10, 13) && (options.RevealControlChars || options.RevealAll))
+            if (char.IsControl(c) && !c.In(9, 10, 13))
             {
-                switch (i)
+                if ((options.CharsToReveal & RevealCharCategory.ControlChars) == RevealCharCategory.ControlChars)
                 {
-                    case 0:
-                        return "[NUL]";
-                    case 1:
-                        return "[SOH]";
-                    case 2:
-                        return "[STX]";
-                    case 3:
-                        return "[ETX]";
-                    case 4:
-                        return "[EOT]";
-                    case 5:
-                        return "[ENQ]";
-                    case 6:
-                        return "[ACK]";
-                    case 7:
-                        return "[BEL]";
-                    case 8:
-                        return "[BS]";
-                    case 11:
-                        return "[VT]";
-                    case 12:
-                        return "[FF]";
-                    case 14:
-                        return "[SO]";
-                    case 15:
-                        return "[SI]";
-                    case 16:
-                        return "[DLE]";
-                    case 17:
-                        return "[DC1]";
-                    case 18:
-                        return "[DC2]";
-                    case 19:
-                        return "[DC3]";
-                    case 20:
-                        return "[DC4]";
-                    case 21:
-                        return "[NAK]";
-                    case 22:
-                        return "[SYN]";
-                    case 23:
-                        return "[EDB]";
-                    case 24:
-                        return "[CAN]";
-                    case 25:
-                        return "[EM]";
-                    case 26:
-                        return "[SUB]";
-                    case 27:
-                        return "[ESC]";
-                    case 28:
-                        return "[FS]";
-                    case 29:
-                        return "[GS]";
-                    case 30:
-                        return "[RS]";
-                    case 31:
-                        return "[US]";
-                    case 127:
-                        return "[DEL]";
-                    case 128:
-                        return "[PAD]";
-                    case 129:
-                        return "[HOP]";
-                    case 130:
-                        return "[BPH]";
-                    case 131:
-                        return "[NBH]";
-                    case 132:
-                        return "[IND]";
-                    case 133:
-                        return "[NEL]";
-                    case 134:
-                        return "[SSA]";
-                    case 135:
-                        return "[ESA]";
-                    case 136:
-                        return "[HTS]";
-                    case 137:
-                        return "[HTJ]";
-                    case 138:
-                        return "[VTS]";
-                    case 139:
-                        return "[PLD]";
-                    case 140:
-                        return "[PLU]";
-                    case 141:
-                        return "[RI]";
-                    case 142:
-                        return "[SS2]";
-                    case 143:
-                        return "[SS3]";
-                    case 144:
-                        return "[DCS]";
-                    case 145:
-                        return "[PU1]";
-                    case 146:
-                        return "[PU2]";
-                    case 147:
-                        return "[STS]";
-                    case 148:
-                        return "[CCH]";
-                    case 149:
-                        return "[MW]";
-                    case 150:
-                        return "[SPA]";
-                    case 151:
-                        return "[EPA]";
-                    case 152:
-                        return "[SOS]";
-                    case 153:
-                        return "[SGCI]";
-                    case 154:
-                        return "[SCI]";
-                    case 155:
-                        return "[CSI]";
-                    case 156:
-                        return "[ST]";
-                    case 157:
-                        return "[OSC]";
-                    case 158:
-                        return "[PM]";
-                    case 159:
-                        return "[APC]";
-                    default:
-                        return "[ctrl-" + i + "]"; // this should never happen
+                    switch (i)
+                    {
+                        case 0:
+                            return "[NUL]";
+                        case 1:
+                            return "[SOH]";
+                        case 2:
+                            return "[STX]";
+                        case 3:
+                            return "[ETX]";
+                        case 4:
+                            return "[EOT]";
+                        case 5:
+                            return "[ENQ]";
+                        case 6:
+                            return "[ACK]";
+                        case 7:
+                            return "[BEL]";
+                        case 8:
+                            return "[BS]";
+                        case 11:
+                            return "[VT]";
+                        case 12:
+                            return "[FF]";
+                        case 14:
+                            return "[SO]";
+                        case 15:
+                            return "[SI]";
+                        case 16:
+                            return "[DLE]";
+                        case 17:
+                            return "[DC1]";
+                        case 18:
+                            return "[DC2]";
+                        case 19:
+                            return "[DC3]";
+                        case 20:
+                            return "[DC4]";
+                        case 21:
+                            return "[NAK]";
+                        case 22:
+                            return "[SYN]";
+                        case 23:
+                            return "[EDB]";
+                        case 24:
+                            return "[CAN]";
+                        case 25:
+                            return "[EM]";
+                        case 26:
+                            return "[SUB]";
+                        case 27:
+                            return "[ESC]";
+                        case 28:
+                            return "[FS]";
+                        case 29:
+                            return "[GS]";
+                        case 30:
+                            return "[RS]";
+                        case 31:
+                            return "[US]";
+                        case 127:
+                            return "[DEL]";
+                        case 128:
+                            return "[PAD]";
+                        case 129:
+                            return "[HOP]";
+                        case 130:
+                            return "[BPH]";
+                        case 131:
+                            return "[NBH]";
+                        case 132:
+                            return "[IND]";
+                        case 133:
+                            return "[NEL]";
+                        case 134:
+                            return "[SSA]";
+                        case 135:
+                            return "[ESA]";
+                        case 136:
+                            return "[HTS]";
+                        case 137:
+                            return "[HTJ]";
+                        case 138:
+                            return "[VTS]";
+                        case 139:
+                            return "[PLD]";
+                        case 140:
+                            return "[PLU]";
+                        case 141:
+                            return "[RI]";
+                        case 142:
+                            return "[SS2]";
+                        case 143:
+                            return "[SS3]";
+                        case 144:
+                            return "[DCS]";
+                        case 145:
+                            return "[PU1]";
+                        case 146:
+                            return "[PU2]";
+                        case 147:
+                            return "[STS]";
+                        case 148:
+                            return "[CCH]";
+                        case 149:
+                            return "[MW]";
+                        case 150:
+                            return "[SPA]";
+                        case 151:
+                            return "[EPA]";
+                        case 152:
+                            return "[SOS]";
+                        case 153:
+                            return "[SGCI]";
+                        case 154:
+                            return "[SCI]";
+                        case 155:
+                            return "[CSI]";
+                        case 156:
+                            return "[ST]";
+                        case 157:
+                            return "[OSC]";
+                        case 158:
+                            return "[PM]";
+                        case 159:
+                            return "[APC]";
+                        default:
+                            return "[ctrl-" + i + "]"; // this should never happen
+                    }
                 }
+                return new string(c, 1);
             }
 
-            // group 3 - all other chars
-            if (options.RevealAll)
+            // group 4 - all other chars (e.g. extended ASCII, Unicode including nonprintables)
+            if ((options.CharsToReveal & RevealCharCategory.Others) == RevealCharCategory.Others)
             {
                 return "['" + c + "'-" + i + "]";
             }
-
             return new string(c, 1);
         }
 
@@ -428,7 +499,7 @@ namespace Horseshoe.NET.Text
         /// Same as <c>(obj?.ToString() ?? "null")</c>.
         /// </summary>
         /// <param name="obj">An object</param>
-        /// <returns>A text representation of an object</returns>
+        /// <returns>A text representation of <c>object</c>.</returns>
         public static string Reveal(object obj)
         {
             if (obj is string objString)
@@ -436,33 +507,41 @@ namespace Horseshoe.NET.Text
             return Reveal(obj?.ToString());
         }
 
-        public static string AppendIf(bool condition, string text, string textToAppend)
-        {
-            return condition
-                ? text + textToAppend
-                : text;
-        }
 
-        public static string TrimLeading(string text, params char[] chars)
-        {
-            if (chars == null) return text;
-            while (chars.Contains(text.First()))
-            {
-                text = text.Substring(1);
-            }
-            return text;
-        }
+        //public static string AppendIf(bool condition, string text, string textToAppend)
+        //{
+        //    return condition
+        //        ? text + textToAppend
+        //        : text;
+        //}
 
-        public static string TrimTrailing(string text, params char[] chars)
-        {
-            if (chars == null) return text;
-            while (chars.Contains(text.Last()))
-            {
-                text = text.Substring(1);
-            }
-            return text;
-        }
+        //public static string TrimLeading(string text, params char[] chars)
+        //{
+        //    if (chars == null) 
+        //        return text;
+        //    while (chars.Contains(text.First()))
+        //    {
+        //        text = text.Substring(1);
+        //    }
+        //    return text;
+        //}
 
+        //public static string TrimTrailing(string text, params char[] chars)
+        //{
+        //    if (chars == null) 
+        //        return text;
+        //    while (chars.Contains(text.Last()))
+        //    {
+        //        text = text.Substring(1);
+        //    }
+        //    return text;
+        //}
+
+        /// <summary>
+        /// Inserts spaces into title case text such as C# object property names.
+        /// </summary>
+        /// <param name="titleCaseText">A text <c>string</c>.</param>
+        /// <returns>The altered text.</returns>
         public static string SpaceOutTitleCase(string titleCaseText)
         {
             if (titleCaseText == null)
@@ -547,6 +626,12 @@ namespace Horseshoe.NET.Text
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Creates a <c>SecureString</c> instance from text.
+        /// </summary>
+        /// <param name="unsecureString">A text <c>string</c>.</param>
+        /// <returns>A <c>SecureString</c>.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static SecureString ConvertToSecureString(string unsecureString)
         {
             if (unsecureString == null) throw new ArgumentNullException(nameof(unsecureString));
@@ -560,7 +645,15 @@ namespace Horseshoe.NET.Text
             return secureString;
         }
 
-        // https://blogs.msdn.microsoft.com/fpintos/2009/06/12/how-to-properly-convert-securestring-to-string/
+        /// <summary>
+        /// Restores a <c>string</c> from a <c>SecureString</c>.
+        /// </summary>
+        /// <param name="secureString">A <c>SecureString</c>.</param>
+        /// <returns>A <c>string</c>.</returns>
+        /// <remarks>
+        /// ref: https://blogs.msdn.microsoft.com/fpintos/2009/06/12/how-to-properly-convert-securestring-to-string/
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"></exception>
         public static string ConvertToUnsecureString(SecureString secureString)
         {
             if (secureString == null) throw new ArgumentNullException(nameof(secureString));
@@ -577,75 +670,17 @@ namespace Horseshoe.NET.Text
             }
         }
 
+        /// <summary>
+        /// Encodes a text <c>string</c> as HTML.
+        /// </summary>
+        /// <param name="text">A text <c>string</c>.</param>
+        /// <returns>An HTML <c>string</c></returns>
         public static string ConvertToHtml(string text)
         {
             if (text == null)
                 return string.Empty;
             var html = text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\r\n", "<br />").Replace("\n", "<br />");
             return html;
-        }
-
-        public static string Dump(DataTable dataTable)
-        {
-            var sb = new StringBuilder();
-            var colWidths = new int[dataTable.Columns.Count];
-            int _width;
-
-            // prep widths - column names
-            for (int i = 0; i < colWidths.Length; i++)
-            {
-                colWidths[i] = dataTable.Columns[i].ColumnName.Length;
-            }
-
-            // prep widths - data values
-            foreach (DataRow row in dataTable.Rows)
-            {
-                for (int i = 0; i < colWidths.Length; i++)
-                {
-                    _width = _DumpDatum(row[i]).Length;
-                    if (_width > colWidths[i])
-                    {
-                        colWidths[i] = _width;
-                    }
-                }
-            }
-
-            // build column headers
-            for (int i = 0; i < colWidths.Length; i++)
-            {
-                if (i > 0)
-                {
-                    sb.Append(" ");
-                }
-                sb.Append(dataTable.Columns[i].ColumnName.PadRight(colWidths[i]));
-            }
-            sb.AppendLine();
-
-            // build separators
-            for (int i = 0; i < colWidths.Length; i++)
-            {
-                if (i > 0)
-                {
-                    sb.Append(" ");
-                }
-                sb.Append("".PadRight(colWidths[i], '-'));
-            }
-            sb.AppendLine();
-
-            // build data rows
-            foreach (DataRow row in dataTable.Rows)
-            {
-                for (int i = 0; i < colWidths.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append(_DumpDatum(row[i]).PadRight(colWidths[i]));
-                }
-                sb.AppendLine();
-            }
-            return sb.ToString();
         }
 
         /// <summary>
@@ -713,92 +748,16 @@ namespace Horseshoe.NET.Text
             return c.In(9, 10, 13, 32) || (extendedASCII && c == 160);
         }
 
-        public static string Dump(IEnumerable<object[]> objectArrays, string[] columnNames = null)
+        internal static IFormatProvider GetProvider(IFormatProvider provider, string locale)
         {
-            var sb = new StringBuilder();
-            var colWidths = new int[objectArrays.Max(a => a?.Length ?? 0)];
-            int _width;
-
-            if (columnNames != null)
-            {
-                if (columnNames.Length > colWidths.Length)
-                {
-                    throw new UtilityException("The supplied columns exceed the width of the data: " + columnNames.Length + " / " + colWidths.Length);
-                }
-
-                // prep widths - column names
-                for (int i = 0; i < columnNames.Length; i++)
-                {
-                    colWidths[i] = columnNames[i].Length;
-                }
-            }
-
-            // prep widths - data values
-            foreach (var array in objectArrays)
-            {
-                if (array == null)
-                {
-                    continue;
-                }
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    _width = _DumpDatum(array[i]).Length;
-                    if (_width > colWidths[i])
-                    {
-                        colWidths[i] = _width;
-                    }
-                }
-            }
-
-            if (columnNames != null)
-            {
-                // build column headers
-                for (int i = 0; i < colWidths.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append(columnNames[i].PadRight(colWidths[i]));
-                }
-                sb.AppendLine();
-
-                // build separators
-                for (int i = 0; i < colWidths.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append("".PadRight(colWidths[i], '-'));
-                }
-                sb.AppendLine();
-            }
-
-            // build data rows
-            foreach (var array in objectArrays)
-            {
-                if (array == null)
-                {
-                    sb.AppendLine();
-                    continue;
-                }
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append(_DumpDatum(array[i]).PadRight(colWidths[i]));
-                }
-                sb.AppendLine();
-            }
-            return sb.ToString();
+            if (provider != null)
+                return provider;
+            if (locale == null)
+                return null;
+            return CultureInfo.GetCultureInfo(locale);
         }
 
-        private static string _DumpDatum(object o)
+        internal static string DumpDatum(object o)
         {
             if (o == null || o is DBNull) return "[null]";
             if (o is string str) return "\"" + str + "\"";

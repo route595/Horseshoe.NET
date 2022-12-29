@@ -1,8 +1,8 @@
-﻿using System;
-using System.Reflection;
-
-namespace Horseshoe.NET.Text
+﻿namespace Horseshoe.NET.Text
 {
+    /// <summary>
+    /// Configuration-based settings.
+    /// </summary>
     public static class TextSettings
     {
         private static JsonProvider? _jsonProvider;
@@ -16,10 +16,10 @@ namespace Horseshoe.NET.Text
             {
                 if (!_jsonProvider.HasValue)
                 {
-                    _jsonProvider = _Config.GetNEnum<JsonProvider>("Horseshoe.NET:Text:JsonProvider")
-                        ?? OrganizationalDefaultSettings.GetNullable<JsonProvider>("Text.JsonProvider")
-                        ?? (IsLoadable("Newtonsoft.Json") ? JsonProvider.NewtonsoftJson as JsonProvider? : null)
-                        ?? (IsLoadable("System.Text.Json") ? JsonProvider.SystemTextJson as JsonProvider? : null)
+                    _jsonProvider = _Config.Get<JsonProvider?>("Horseshoe.NET:Text:JsonProvider")
+                        ?? OrganizationalDefaultSettings.Get<JsonProvider?>("Text.JsonProvider")
+                        ?? (Assemblies.Get("Newtonsoft.Json", suppressErrors: true) != null ? JsonProvider.NewtonsoftJson as JsonProvider? : null)
+                        ?? (Assemblies.Get("System.Text.Json", suppressErrors: true) != null ? JsonProvider.SystemTextJson as JsonProvider? : null)
                         ?? JsonProvider.None;
                 }
                 return _jsonProvider.Value;
@@ -27,19 +27,6 @@ namespace Horseshoe.NET.Text
             set
             {
                 _jsonProvider = value;
-            }
-        }
-
-        static bool IsLoadable(string assemblyName)
-        {
-            try
-            {
-                var assembly = Assembly.Load(assemblyName);
-                return assembly != null;
-            }
-            catch (Exception)
-            {
-                return false;
             }
         }
     }

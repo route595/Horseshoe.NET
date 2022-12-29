@@ -1,267 +1,414 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-using static Horseshoe.NET.Db.DbUtil;
-using Horseshoe.NET.Text;
+using Horseshoe.NET.Compare;
+using Horseshoe.NET.Primitives;
 
 namespace Horseshoe.NET.Db
 {
-    public class Filter
+    /// <summary>
+    /// Used in generating SQL 'WHERE' clauses.
+    /// </summary>
+    public class Filter : IFilter
     {
-        public string What { get; }
-        public object[] Values { get; }
-        public FilterMode FilterMode { get; }
-        public bool Not { get; }
-        public FilterBounds FilterBounds { get; }
-        public DbPlatform? Platform { get; }
+        /// <summary>
+        /// A column name or expression.
+        /// </summary>
+        public ColumnExpression ColumnName { get; set; }
 
-        internal Filter() 
+        /// <summary>
+        /// A compare mode.
+        /// </summary>
+        public CompareMode Mode { get; set; }
+
+        /// <summary>
+        /// Value(s) from which to build the filter and subsequent SQL 'WHERE' expression.  Value(s) against which to compare SQL data during 'SELECT' queries or 'UPDATE' or 'DELETE' operations.
+        /// </summary>
+        public ObjectValues Criteria { get; set; }
+
+        /// <summary>
+        /// A DB platform lends hints about how to render SQL expressions and statements.
+        /// </summary>
+        public DbPlatform? Platform { get; set; }
+
+        /// <summary>
+        /// Validates whether search criteria is valid.
+        /// </summary>
+        /// <param name="mode">The compare mode, e.g. Equals, Contains, Between, etc.</param>
+        /// <param name="criteria">The criteria value(s).</param>
+        /// <exception cref="AssertionFailedException"></exception>
+        /// <exception cref="ThisShouldNeverHappenException"></exception>
+        public static void AssertCriteriaIsValid(CompareMode mode, ObjectValues criteria)
         {
-            What = "n/a";
+            AssertCriteriaIsValid(mode, criteria, out _);
         }
 
-        internal Filter(string what, FilterMode filterMode, bool not = false, FilterBounds filterBounds = default, DbPlatform? platform = null)
-            : this(what, null, filterMode, not: not, filterBounds: filterBounds, platform: platform)
+        /// <summary>
+        /// Validates whether search criteria is valid.
+        /// </summary>
+        /// <param name="mode">The compare mode, e.g. Equals, Contains, Between, etc.</param>
+        /// <param name="criteria">The criteria value(s).</param>
+        /// <param name="vAction">Alerts client code to perform the action identified by the validator, if any (for example, when the between hi and lo criteria are switched).</param>
+        /// <exception cref="AssertionFailedException"></exception>
+        /// <exception cref="ThisShouldNeverHappenException"></exception>
+        public static void AssertCriteriaIsValid(CompareMode mode, ObjectValues criteria, out ValidationFlaggedAction vAction)
         {
-        }
-
-        internal Filter(string what, object[] values, FilterMode filterMode, bool not = false, FilterBounds filterBounds = default, DbPlatform? platform = null)
-        {
-            What = what;
-            Values = values;
-            FilterMode = filterMode;
-            Not = not;
-            FilterBounds = filterBounds;
-            Platform = platform;
-            Validate();
-        }
-
-        private void Validate()
-        {
-
-            if (FilterMode != FilterMode.Literal)
+            switch (mode)
             {
-                if (What == null)
-                {
-                    throw new UtilityException("missing required parameter: column name a.k.a. What");
-                }
-
-                if (What.StartsWith("["))
-                {
-                    if (!What.EndsWith("]"))
-                    {
-                        throw new UtilityException("malformed column name: " + What);
-                    }
-                }
-                else if (What.EndsWith("]"))
-                {
-                    throw new UtilityException("malformed column name: " + What);
-                }
+                case CompareMode.Regex:
+                    throw new AssertionFailedException("This compare mode is invalid in DB filters: " + CompareMode.Regex);
             }
+            Assert.CriteriaIsValid(mode, criteria, out vAction);
+        }
 
-            if (Values == null)
+        /// <summary>
+        /// Renders the filter as a SQL expression.
+        /// </summary>
+        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements.</param>
+        /// <returns>A SQL expression.</returns>
+        /// <exception cref="ThisShouldNeverHappenException"></exception>
+        public virtual string Render(DbPlatform? platform = null)
+        {
+            var columnExpression = ColumnName.Render(platform: platform ?? Platform);
+            switch (Mode)
             {
-                if (FilterMode != FilterMode.IsNull)
-                {
-                    throw new UtilityException("'values' is required");
-                }
-            }
-            else
-            {
-                switch (FilterMode)
-                {
-                    case FilterMode.Equals:
-                        if (Values.Length != 1)
-                        {
-                            throw new UtilityException("'Equality' filters require exactly 1 value, found: " + Values.Length);
-                        }
-                        break;
-                    case FilterMode.GreaterThan:
-                    case FilterMode.LessThan:
-                        {
-                            if (Values.Length != 1)
-                            {
-                                throw new UtilityException("'Comparison' filters require exactly 1 value, found: " + Values.Length);
-                            }
-                            if (Values[0] == null || (Values[0] is string stringValues0 && stringValues0.Trim().Length == 0))
-                            {
-                                throw new UtilityException("Cannot create 'comparison' filter with null or blank value");
-                            }
-                            break;
-                        }
-                    case FilterMode.Contains:
-                    case FilterMode.StartsWith:
-                    case FilterMode.EndsWith:
-                        {
-                            if (Values.Length != 1)
-                            {
-                                throw new UtilityException("'String search' filters require exactly 1 value, found: " + Values.Length);
-                            }
-                            if (Values[0] == null || (Values[0] is string stringValues0 && stringValues0.Trim().Length == 0))
-                            {
-                                throw new UtilityException("Cannot create 'string search' filter with null or blank value");
-                            }
-                            break;
-                        }
-                    case FilterMode.Between:
-                        {
-                            if (Values.Length != 2)
-                            {
-                                throw new UtilityException("'Between' filters require exactly 2 values, found: " + Values.Length);
-                            }
-                            if (Values[0] == null || Values[1] == null || (Values[0] is string stringValues0 && stringValues0.Trim().Length == 0) || (Values[1] is string stringValues1 && stringValues1.Trim().Length == 0))
-                            {
-                                throw new UtilityException("Cannot create 'between' filter with null or blank value");
-                            }
-                            break;
-                        }
-                    case FilterMode.Literal:
-                        {
-                            if (Values.Length != 1)
-                            {
-                                throw new UtilityException("'Literal' filters require exactly 1 value, found: " + Values.Length);
-                            }
-                            if (Values[0] == null || (Values[0] is string stringValues0 && stringValues0.Trim().Length == 0))
-                            {
-                                throw new UtilityException("Cannot create 'literal' filter with null or blank value");
-                            }
-                            break;
-                        }
-                }
+                case CompareMode.Equals:
+                    return columnExpression + " = " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                case CompareMode.Contains:
+                    return columnExpression + " LIKE '%" + Criteria[0] + "%'";
+                case CompareMode.StartsWith:
+                    return columnExpression + " LIKE '" + Criteria[0] + "%'";
+                case CompareMode.EndsWith:
+                    return columnExpression + " LIKE '%" + Criteria[0] + "'";
+                case CompareMode.GreaterThan:
+                    return columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                case CompareMode.GreaterThanOrEquals:
+                    return columnExpression + " >= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                case CompareMode.LessThan:
+                    return columnExpression + " < " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                case CompareMode.LessThanOrEquals:
+                    return columnExpression + " <= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                case CompareMode.In:
+                    return Criteria.Count == 0
+                        ? "1 = 0"
+                        : columnExpression + " IN ( " + string.Join(", ", Criteria.Select(val => DbUtil.Sqlize(val, platform: platform ?? Platform))) + " )";
+                case CompareMode.Between:
+                    return columnExpression + " BETWEEN " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform) + " AND " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform);
+                case CompareMode.BetweenExclusive:
+                    return "( " + columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform) + " AND " + columnExpression + " < " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform) + " )";
+                case CompareMode.IsNull:
+                    return columnExpression + " IS NULL";
+                case CompareMode.IsNullOrWhitespace:
+                    return "ISNULL (" + columnExpression + ", '') = ''";
+                case CompareMode.Regex:
+                    throw new ValidationException("Regex text search not compatible with DB filters.");
+                default:
+                    throw new ThisShouldNeverHappenException("Unrecognized compare mode: " + Mode);
             }
         }
 
-        public override string ToString()
+        /// <summary>
+        /// Creates a new column based filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="mode">Compare mode.</param>
+        /// <param name="criteria">Value(s) from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        public static Filter Build(ColumnExpression columnName, CompareMode mode, ObjectValues criteria)
         {
-            return Render();
+            AssertCriteriaIsValid(mode, criteria, out ValidationFlaggedAction vAction);
+            
+            if ((vAction & ValidationFlaggedAction.SwitchHiAndLoValues) == ValidationFlaggedAction.SwitchHiAndLoValues)
+            {
+                criteria = ObjectValues.From(criteria[1], criteria[0]);
+            }
+
+            return new Filter
+            {
+                ColumnName = columnName,
+                Mode = mode,
+                Criteria = criteria
+            };
         }
 
-        public virtual string Render()
+        /// <summary>
+        /// Creates a new column based filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="mode">Compare mode.</param>
+        /// <param name="criteria">Value(s) from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        public static Filter Build<T>(ColumnExpression columnName, CompareMode mode, IList<T> criteria) where T : IComparable<T>
         {
-            var sb = new StringBuilder();
-            if (What != null)
+            var _criteria = new ObjectValues(criteria.Cast<object>());
+            AssertCriteriaIsValid(mode, _criteria, out ValidationFlaggedAction vAction);
+
+            if ((vAction & ValidationFlaggedAction.SwitchHiAndLoValues) == ValidationFlaggedAction.SwitchHiAndLoValues)
             {
-                sb.Append(What).Append(" ");
+                _criteria = ObjectValues.From(_criteria[1], _criteria[0]);
             }
-            try
+
+            return new Filter
             {
-                if (FilterMode == FilterMode.IsNull)
-                {
-                    sb.Append("IS ").AppendIf(Not, "NOT ").Append("NULL");
-                }
-                if (Values != null)
-                {
-                    switch (FilterMode)
-                    {
-                        case FilterMode.Equals:
-                            sb.AppendIf(!Not, "= ", "<> ").Append(Sqlize(Values[0]));
-                            break;
-                        case FilterMode.Contains:
-                            sb.AppendIf(Not, "NOT ").Append("LIKE ").Append("'%" + Values[0] + "%'");
-                            break;
-                        case FilterMode.StartsWith:
-                            sb.AppendIf(Not, "NOT ").Append("LIKE ").Append("'" + Values[0] + "%'");
-                            break;
-                        case FilterMode.EndsWith:
-                            sb.AppendIf(Not, "NOT ").Append("LIKE ").Append("'%" + Values[0] + "'");
-                            break;
-                        case FilterMode.GreaterThan:
-                            sb.Append(FilterBounds == FilterBounds.Exclusive ? "> " : ">= ").Append(Sqlize(Values[0]));
-                            break;
-                        case FilterMode.LessThan:
-                            sb.Append(FilterBounds == FilterBounds.Exclusive ? "< " : "<= ").Append(Sqlize(Values[0]));
-                            break;
-                        case FilterMode.In:
-                            if (Values.Length == 0)
-                            {
-                                return !Not
-                                    ? "1 = 0"   // return 0 rows (IN)
-                                    : "1 = 1";  // return all rows (NOT IN)
-                            }
-                            sb.AppendIf(Not, "NOT ").Append("IN(").Append(string.Join(", ", Values.Select(v => Sqlize(v)))).Append(")");
-                            break;
-                        case FilterMode.Between:
-                            sb.AppendIf(Not, "NOT ").Append("BETWEEN ").Append(Sqlize(Values[0])).Append(" AND ").Append(Sqlize(Values[1]));
-                            break;
-                        //case FilterMode.IsNull:
-                        //    sb.Append("IS ").AppendIf(Not, "NOT ").Append("NULL");
-                        //    break;
-                        case FilterMode.Literal:
-                            if (Values[0] is string stringValue0)
-                            {
-                                Values[0] = new SqlLiteral(stringValue0);
-                            }
-                            else if (Values[0] is DateTime dateTimeValue)
-                            {
-                                var temp = Sqlize(dateTimeValue, Platform);
-                                temp = temp.Substring(1, temp.Length - 2); // shave off the single quotes
-                                Values[0] = new SqlLiteral(temp);
-                            }
-                            sb.Append(Sqlize(Values[0]));
-                            break;
-                    }
-                }
-                return sb.ToString();
-            }
-            catch (Exception ex)
-            {
-                throw new ValidationException("Invalid value(s): " + string.Join(", ", Values.Select(v => v?.ToString() ?? "[null]")), ex);
-            }
+                ColumnName = columnName,
+                Mode = mode,
+                Criteria = _criteria
+            };
         }
 
-        public static FilterBuilder Expression(string expression, DbPlatform? platform = null) => new FilterBuilder(expression, platform: platform);
-
-        public static FilterBuilder Column(string columnName, DbPlatform? platform = null) => new FilterBuilder(RenderColumnName(columnName, platform: platform), platform: platform);
-
-        public static Filter Literal(string filterSql)
+        /// <summary>
+        /// Creates a new column based filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="mode">Compare mode.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        public static Filter Build<T>(ColumnExpression columnName, CompareMode mode, T criteria) where T : IComparable<T>
         {
-            return new Filter("n/a", new object[] { filterSql }, FilterMode.Literal);
+            var _criteria = ObjectValues.From(criteria);
+            AssertCriteriaIsValid(mode, _criteria);
+            return new Filter
+            {
+                ColumnName = columnName,
+                Mode = mode,
+                Criteria = _criteria
+            };
         }
 
-        public static Filter And(params Filter[] filters)
+        /// <summary>
+        /// Creates a new column based 'Equals' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter Equals<T>(ColumnExpression columnName, T criteria) where T : IComparable<T> =>
+            Build(columnName, CompareMode.Equals, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Contains' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter Contains(ColumnExpression columnName, string criteria) =>
+            Build(columnName, CompareMode.Contains, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Starts With' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter StartsWith(ColumnExpression columnName, string criteria) =>
+            Build(columnName, CompareMode.StartsWith, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Ends With' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter EndsWith(ColumnExpression columnName, string criteria) =>
+            Build(columnName, CompareMode.EndsWith, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Greater Than' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter GreaterThan<T>(ColumnExpression columnName, T criteria) where T : IComparable<T> =>
+            Build(columnName, CompareMode.GreaterThan, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Greater Than or Equals' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter GreaterThanOrEquals<T>(ColumnExpression columnName, T criteria) where T : IComparable<T> =>
+            Build(columnName, CompareMode.GreaterThanOrEquals, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Less Than' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter LessThan<T>(ColumnExpression columnName, T criteria) where T : IComparable<T> =>
+            Build(columnName, CompareMode.LessThan, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Less Than or Equals' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter LessThanOrEquals<T>(ColumnExpression columnName, T criteria) where T : IComparable<T> =>
+            Build(columnName, CompareMode.LessThanOrEquals, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'In' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="criteria">Value(s) from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter In<T>(ColumnExpression columnName, IList<T> criteria) where T : IComparable<T> =>
+            Build(columnName, CompareMode.In, criteria);
+
+        /// <summary>
+        /// Creates a new column based 'Between' filter that includes the high and low values.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="loValue">The lower of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <param name="hiValue">The higher of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter Between<T>(ColumnExpression columnName, T loValue, T hiValue) where T : IComparable<T> =>
+            Build(columnName, CompareMode.Between, new[] { loValue, hiValue });
+
+        /// <summary>
+        /// Creates a new column based 'Between' filter that excludes the high and low values.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="loValue">The lower of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <param name="hiValue">The higher of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter BetweenExclusive<T>(ColumnExpression columnName, T loValue, T hiValue) where T : IComparable<T>
         {
-            return new AndGrouping(filters);
+            AssertCriteriaIsValid(CompareMode.Between, ObjectValues.From(loValue, hiValue), out ValidationFlaggedAction vAction);
+
+            if ((vAction & ValidationFlaggedAction.SwitchHiAndLoValues) == ValidationFlaggedAction.SwitchHiAndLoValues)
+            {
+                (hiValue, loValue) = (loValue, hiValue);
+            }
+
+            return And
+            (
+                new Filter { ColumnName = columnName, Mode = CompareMode.GreaterThan, Criteria = ObjectValues.From(loValue) },
+                new Filter { ColumnName = columnName, Mode = CompareMode.LessThan, Criteria = ObjectValues.From(hiValue) }
+            );
         }
 
-        public static Filter Or(params Filter[] filters)
+        /// <summary>
+        /// Creates a new column based 'Between' filter that excludes only the low value.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="loValue">The lower of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <param name="hiValue">The higher of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter BetweenExclusiveLo<T>(ColumnExpression columnName, T loValue, T hiValue) where T : IComparable<T>
         {
-            return new OrGrouping(filters);
+            AssertCriteriaIsValid(CompareMode.Between, ObjectValues.From(loValue, hiValue), out ValidationFlaggedAction vAction);
+
+            if ((vAction & ValidationFlaggedAction.SwitchHiAndLoValues) == ValidationFlaggedAction.SwitchHiAndLoValues)
+            {
+                (hiValue, loValue) = (loValue, hiValue);
+            }
+
+            return And
+            (
+                new Filter { ColumnName = columnName, Mode = CompareMode.GreaterThan, Criteria = ObjectValues.From(loValue) },
+                new Filter { ColumnName = columnName, Mode = CompareMode.LessThanOrEquals, Criteria = ObjectValues.From(hiValue) }
+            );
         }
 
-        public class AndGrouping : Filter
+        /// <summary>
+        /// Creates a new column based 'Between' filter that excludes only the high value.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="loValue">The lower of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <param name="hiValue">The higher of two values from which to build the filter and subsequent SQL 'WHERE' expression.</param>
+        /// <returns>A filter.</returns>
+        public static IFilter BetweenExclusiveHi<T>(ColumnExpression columnName, T loValue, T hiValue) where T : IComparable<T>
         {
-            public List<Filter> Filters { get; }
+            AssertCriteriaIsValid(CompareMode.Between, ObjectValues.From(loValue, hiValue), out ValidationFlaggedAction vAction);
 
-            public AndGrouping(Filter[] filters) : base()
+            if ((vAction & ValidationFlaggedAction.SwitchHiAndLoValues) == ValidationFlaggedAction.SwitchHiAndLoValues)
             {
-                if (filters == null) throw new UtilityException("filters cannot be null");
-                if (filters.Length == 0) throw new UtilityException("filters cannot be empty");
-                Filters = new List<Filter>(filters);
+                (hiValue, loValue) = (loValue, hiValue);
             }
 
-            public override string Render()
-            {
-                return "(" + string.Join(" AND ", Filters.Select(f => f.Render())) + ")";
-            }
+            return And
+            (
+                new Filter { ColumnName = columnName, Mode = CompareMode.GreaterThanOrEquals, Criteria = ObjectValues.From(loValue) },
+                new Filter { ColumnName = columnName, Mode = CompareMode.LessThan, Criteria = ObjectValues.From(hiValue) }
+            );
         }
 
-        public class OrGrouping : Filter
+        /// <summary>
+        /// Creates a new column based 'Is Null' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        public static IFilter IsNull(ColumnExpression columnName) =>
+            Build(columnName, CompareMode.IsNull, ObjectValues.Empty);
+
+        /// <summary>
+        /// Creates a new column based 'Is Null or Whitespace' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        public static IFilter IsNullOrWhitespace(ColumnExpression columnName) =>
+            Build(columnName, CompareMode.IsNullOrWhitespace, ObjectValues.Empty);
+
+        /// <summary>
+        /// Creates a new column based 'Literal' filter.
+        /// </summary>
+        /// <param name="literalExpression">The SQL expression to use.</param>
+        public static IFilter Literal(string literalExpression) =>
+            new LiteralFilter(literalExpression);
+
+        /// <summary>
+        /// Creates a new column based 'Literal' filter.
+        /// </summary>
+        /// <param name="columnName">A column name or expression.</param>
+        /// <param name="literalExpression">The SQL expression to use.</param>
+        public static IFilter Literal(ColumnExpression columnName, string literalExpression) =>
+            new LiteralFilter(columnName, literalExpression);
+
+        /// <summary>
+        /// Creates a specialized filter that contains other filters all of which must evaluate to true for a table row to be included.
+        /// </summary>
+        /// <param name="filters">Filters to group.</param>
+        /// <returns>An 'And' group filter.</returns>
+        public static IGroupFilter And(params IFilter[] filters)
         {
-            public List<Filter> Filters { get; }
+            return new AndGroupFilter(filters);
+        }
 
-            public OrGrouping(Filter[] filters) : base()
-            {
-                if (filters == null) throw new UtilityException("filters cannot be null");
-                if (filters.Length == 0) throw new UtilityException("filters cannot be empty");
-                Filters = new List<Filter>(filters);
-            }
+        /// <summary>
+        /// Creates a specialized filter that contains other filters all of which must evaluate to true for a table row to be included.
+        /// </summary>
+        /// <param name="filters">Filters to group.</param>
+        /// <returns>An 'And' group filter.</returns>
+        public static IGroupFilter And(IEnumerable<IFilter> filters)
+        {
+            return And(filters is IFilter[] array ? array : filters?.ToArray() ?? Array.Empty<IFilter>());
+        }
 
-            public override string Render()
-            {
-                return "(" + string.Join(" OR ", Filters.Select(f => f.Render())) + ")";
-            }
+        /// <summary>
+        /// Creates a specialized filter that contains other filters only one of which must evaluate to true for a table row to be included.
+        /// </summary>
+        /// <param name="filters">Filters to group.</param>
+        /// <returns>An 'Or' group filter.</returns>
+        public static IGroupFilter Or(params IFilter[] filters)
+        {
+            return new OrGroupFilter(filters);
+        }
+
+        /// <summary>
+        /// Creates a specialized filter that contains other filters only one of which must evaluate to true for a table row to be included.
+        /// </summary>
+        /// <param name="filters">Filters to group.</param>
+        /// <returns>An 'Or' group filter.</returns>
+        public static IGroupFilter Or(IEnumerable<IFilter> filters)
+        {
+            return Or(filters is IFilter[] array ? array : filters?.ToArray() ?? Array.Empty<IFilter>());
+        }
+
+        /// <summary>
+        /// Creates a factory that creates filters that negate other filters.
+        /// </summary>
+        /// <returns>A negated filter.</returns>
+        public static IFilterFactory Not()
+        {
+            return new NotFilterFactory();
         }
     }
 }

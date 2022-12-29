@@ -37,7 +37,7 @@ namespace Horseshoe.NET.Odbc
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
                     ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:Odbc:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.GetString("Odbc.ConnectionString"), OrganizationalDefaultSettings.GetBoolean("Odbc.IsEncryptedPassword"));
+                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("Odbc.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("Odbc.IsEncryptedPassword"));
             }
         }
         
@@ -69,7 +69,7 @@ namespace Horseshoe.NET.Odbc
             {
                 return _defaultDataSource     // e.g. DBSVR01
                     ?? Config.Get("Horseshoe.NET:Odbc:DataSource") 
-                    ?? OrganizationalDefaultSettings.GetString("Odbc.DataSource");
+                    ?? OrganizationalDefaultSettings.Get<string>("Odbc.DataSource");
             }
             set
             {
@@ -93,7 +93,7 @@ namespace Horseshoe.NET.Odbc
                         Config.Get("Horseshoe.NET:Odbc:Password"),
                         isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:Odbc:IsEncryptedPassword")
                     )
-                    ?? OrganizationalDefaultSettings.GetNullable<Credential>("Odbc.Credentials");
+                    ?? OrganizationalDefaultSettings.Get<Credential?>("Odbc.Credentials");
             }
             set
             {
@@ -111,8 +111,8 @@ namespace Horseshoe.NET.Odbc
             get
             {
                 return _defaultAdditionalConnectionAttributes      // e.g. Integrated Security=SSQI|Attribute1=Value1
-                    ?? Config.Get("Horseshoe.NET:Odbc:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw)) 
-                    ?? OrganizationalDefaultSettings.Get("Odbc.AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes((string)raw));
+                    ?? Config.Get("Horseshoe.NET:Odbc:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw))
+                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("Odbc.AdditionalConnectionAttributes"));
             }
             set
             {
@@ -120,22 +120,22 @@ namespace Horseshoe.NET.Odbc
             }
         }
 
-        private static int? _defaultTimeout;
+        private static int? _defaultConnectionTimeout;
 
         /// <summary>
         /// Gets or sets the default ODBC timeout used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Odbc:Timeout and OrganizationalDefaultSettings: key = Odbc.Timeout)
         /// </summary>
-        public static int? DefaultTimeout
+        public static int? DefaultConnectionTimeout
         {
             get
             {
-                return _defaultTimeout       // e.g. 30 (Microsoft default?)
-                    ?? Config.Get<int?>("Horseshoe.NET:Odbc:Timeout")
-                    ?? OrganizationalDefaultSettings.GetNInt("Odbc.Timeout");
+                return _defaultConnectionTimeout       // e.g. 30 (Microsoft default)
+                    ?? Config.Get<int?>("Horseshoe.NET:Odbc:ConnectionTimeout")
+                    ?? OrganizationalDefaultSettings.Get<int?>("Odbc.ConnectionTimeout");
             }
             set
             {
-                _defaultTimeout = value;
+                _defaultConnectionTimeout = value;
             }
         }
     }

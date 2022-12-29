@@ -4,46 +4,96 @@ using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Linq;
+using System.Reflection;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 
 namespace Horseshoe.NET.Odbc
 {
+    /// <summary>
+    /// Factory methods for executing non-query SQL statements.
+    /// </summary>
     public static class Execute
     {
-        public static int StoredProcedure
+        /// <summary>
+        /// Opens a connection and executes a non-query stored procedure.
+        /// </summary>
+        /// <param name="procedureName">The name of the stored procedure being executed.</param>
+        /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+        /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns>The number of affected rows.</returns>
+        public static int Procedure
         (
-            string procedureName, 
-            IEnumerable<DbParameter> parameters = null, 
-            OdbcConnectionInfo connectionInfo = null, 
+            string procedureName,
+            IEnumerable<DbParameter> parameters = null,
+            OdbcConnectionInfo connectionInfo = null,
             DbCapture dbCapture = null,
-            int? timeout = null,
+            int? commandTimeout = null,
             CryptoOptions cryptoOptions = null,
-            Action<OdbcCommand> modifyCommand = null,
-            Action<OdbcConnectionInfo> resultantConnectionInfo = null
+            Action<OdbcCommand> alterCommand = null,
+            TraceJournal journal = null
         )
         {
-            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+            // trace journaling
+            if (journal == null)
             {
-                return StoredProcedure(conn, procedureName, parameters: parameters, dbCapture: dbCapture, timeout: timeout, modifyCommand: modifyCommand);
+                journal = TraceJournal.ResetDefault();
+            }
+            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+            journal.Level++;
+
+            // data stuff
+            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            {
+                var result = Procedure(conn, procedureName, parameters: parameters, dbCapture: dbCapture, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
 
-        public static int StoredProcedure
+        /// <summary>
+        /// Executes a non-query stored procedure on an open connection.
+        /// </summary>
+        /// <param name="conn">An open DB connection.</param>
+        /// <param name="procedureName">The name of the stored procedure being executed.</param>
+        /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns>The number of affected rows.</returns>
+        public static int Procedure
         (
-            OdbcConnection conn, 
-            string procedureName, 
+            OdbcConnection conn,
+            string procedureName,
             IEnumerable<DbParameter> parameters = null,
             DbCapture dbCapture = null,
-            int? timeout = null,
-            Action<OdbcCommand> modifyCommand = null
+            int? commandTimeout = null,
+            Action<OdbcCommand> alterCommand = null,
+            TraceJournal journal = null
         )
         {
-            using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, procedureName, parameters: parameters, timeout: timeout))
+            // trace journaling
+            if (journal == null)
             {
-                modifyCommand?.Invoke(cmd);
-                var returnValue = cmd.ExecuteNonQuery();
+                journal = TraceJournal.ResetDefault();
+            }
+            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+            journal.Level++;
+
+            // data stuff
+            using (var cmd = OdbcUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+            {
+                var result = cmd.ExecuteNonQuery();
+
                 if (dbCapture != null)
                 {
                     dbCapture.OutputParameters = cmd.Parameters
@@ -51,40 +101,90 @@ namespace Horseshoe.NET.Odbc
                         .Where(p => p.Direction == ParameterDirection.Output)
                         .ToArray();
                 }
-                return returnValue;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
 
+        /// <summary>
+        /// Opens a connection and executes a non-query SQL statement.
+        /// </summary>
+        /// <param name="statement">The SQL statement to execute.</param>
+        /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+        /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns>The number of affected rows.</returns>
         public static int SQL
         (
-            string statement, 
-            IEnumerable<DbParameter> parameters = null, 
-            OdbcConnectionInfo connectionInfo = null,
-            int? timeout = null,
-            CryptoOptions cryptoOptions = null,
-            Action<OdbcCommand> modifyCommand = null,
-            Action<OdbcConnectionInfo> resultantConnectionInfo = null
-        )
-        {
-            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-            {
-                return SQL(conn, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand);   // parameters optional here, e.g. may already be included in the SQL statement
-            }
-        }
-
-        public static int SQL
-        (
-            OdbcConnection conn, 
-            string statement, 
+            string statement,
             IEnumerable<DbParameter> parameters = null,
-            int? timeout = null,
-            Action<OdbcCommand> modifyCommand = null
+            OdbcConnectionInfo connectionInfo = null,
+            int? commandTimeout = null,
+            CryptoOptions cryptoOptions = null,
+            Action<OdbcCommand> alterCommand = null,
+            TraceJournal journal = null
         )
         {
-            using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, parameters: parameters, timeout: timeout))   // parameters optional here, e.g. may already be included in the SQL statement
+            // trace journaling
+            if (journal == null)
             {
-                modifyCommand?.Invoke(cmd);
-                return cmd.ExecuteNonQuery();
+                journal = TraceJournal.ResetDefault();
+            }
+            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+            journal.Level++;
+
+            // data stuff
+            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            {
+                var result = SQL(conn, statement, parameters: parameters, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);   // parameters optional here, e.g. may already be included in the SQL statement
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Executes a non-query SQL statement on an open connection.
+        /// </summary>
+        /// <param name="conn">An open DB connection.</param>
+        /// <param name="statement">The SQL statement to execute.</param>
+        /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns>The number of affected rows.</returns>
+        public static int SQL
+        (
+            OdbcConnection conn,
+            string statement,
+            IEnumerable<DbParameter> parameters = null,
+            int? commandTimeout = null,
+            Action<OdbcCommand> alterCommand = null,
+            TraceJournal journal = null
+        )
+        {
+            // trace journaling
+            if (journal == null)
+            {
+                journal = TraceJournal.ResetDefault();
+            }
+            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+            journal.Level++;
+
+            // data stuff
+            using (var cmd = OdbcUtil.BuildTextCommand(conn, statement, parameters, commandTimeout, alterCommand))   // parameters optional here, e.g. may already be included in the SQL statement
+            {
+                var result = cmd.ExecuteNonQuery();
+
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
     }

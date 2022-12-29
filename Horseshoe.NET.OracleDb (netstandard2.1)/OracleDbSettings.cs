@@ -18,7 +18,7 @@ namespace Horseshoe.NET.OracleDb
         /// <summary>
         /// Gets the default Oracle auth method used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:ConnectionStringName)
         /// </summary>
-        public static string? DefaultSqlNetAuthenticationServices =>
+        public static string DefaultSqlNetAuthenticationServices =>
             Config.Get("Horseshoe.NET:OracleDb:SqlNetAuthenticationServices");
 
         static OracleDbSettings()
@@ -26,16 +26,16 @@ namespace Horseshoe.NET.OracleDb
             var authSvc = DefaultSqlNetAuthenticationServices;
             if (authSvc != null)
             {
-                SqlNetAuthenticationServices = "authSvc";
+                SqlNetAuthenticationServices = authSvc;
             }
         }
 
-        static string? _defaultConnectionStringName;
+        static string _defaultConnectionStringName;
 
         /// <summary>
         /// Gets or sets the default Oracle connection string name used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:ConnectionStringName)
         /// </summary>
-        public static string? DefaultConnectionStringName
+        public static string DefaultConnectionStringName
         {
             get
             {
@@ -48,23 +48,23 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static string? _defaultConnectionString;
+        private static string _defaultConnectionString;
         private static bool _isEncryptedPassword;
 
         /// <summary>
         /// Gets the default Oracle connection string used by Horseshoe.NET.  Note: Overrides other settings (i.e. OrganizationalDefaultSettings: key = OracleDb.ConnectionString)
         /// </summary>
-        public static string? DefaultConnectionString
+        public static string DefaultConnectionString
         {
             get
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
                     ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:OracleDb:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.GetString("OracleDb.ConnectionString"), OrganizationalDefaultSettings.GetBoolean("OracleDb.IsEncryptedPassword"));
+                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("OracleDb.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("OracleDb.IsEncryptedPassword"));
             }
         }
 
-        private static string? _GetConnectionString(string? connectionString, bool isEncryptedPassword)
+        private static string _GetConnectionString(string connectionString, bool isEncryptedPassword)
         {
             if (connectionString == null) return null;
             return isEncryptedPassword
@@ -81,20 +81,20 @@ namespace Horseshoe.NET.OracleDb
             _isEncryptedPassword = isEncryptedPassword;
         }
 
-        private static OraServer? _defaultServer;
+        private static OraServer _defaultServer;
 
         /// <summary>
         /// Gets or sets the default Oracle server used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:Server and OrganizationalDefaultSettings: key = OracleDb.Server)
         /// </summary>
-        public static OraServer? DefaultServer
+        public static OraServer DefaultServer
         {
             get
             {
                 if (_defaultServer == null)
                 {
                     _defaultServer =      // e.g. ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1
-                        Config.Get("Horseshoe.NET:OracleDb:Server", parseFunc: (raw) => OracleDbUtil.ParseServer(raw)) ?? 
-                        OrganizationalDefaultSettings.Get("OracleDb.Server", parseFunc: (raw) => OracleDbUtil.ParseServer((string)raw)); 
+                        Config.Get("Horseshoe.NET:OracleDb:Server", parseFunc: (raw) => OracleDbUtil.ParseServer(raw)) ??
+                        OracleDbUtil.ParseServer(OrganizationalDefaultSettings.Get<string>("OracleDb.Server")); 
                 }
                 return _defaultServer;
             }
@@ -104,18 +104,18 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static string? _defaultDataSource;
+        private static string _defaultDataSource;
 
         /// <summary>
         /// Gets or sets the default Oracle datasource used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:DataSource and OrganizationalDefaultSettings: key = OracleDb.DataSource)
         /// </summary>
-        public static string? DefaultDataSource
+        public static string DefaultDataSource
         {
             get
             {
                 return _defaultDataSource     // e.g. ORADBSVR01
                     ?? Config.Get("Horseshoe.NET:OracleDb:DataSource")
-                    ?? OrganizationalDefaultSettings.GetString("OracleDb.DataSource")
+                    ?? OrganizationalDefaultSettings.Get<string>("OracleDb.DataSource")
                     ?? DefaultServer?.DataSource;
             }
             set
@@ -124,18 +124,18 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static string? _defaultServiceName;
+        private static string _defaultServiceName;
 
         /// <summary>
         /// Gets or sets the default Oracle service name used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:ServiceName and OrganizationalDefaultSettings: key = OracleDb.ServiceName)
         /// </summary>
-        public static string? DefaultServiceName
+        public static string DefaultServiceName
         {
             get
             {
                 return _defaultServiceName     // e.g. MYDATABASE
                     ?? Config.Get("Horseshoe.NET:OracleDb:ServiceName")
-                    ?? OrganizationalDefaultSettings.GetString("OracleDb.ServiceName")
+                    ?? OrganizationalDefaultSettings.Get<string>("OracleDb.ServiceName")
                     ?? DefaultServer?.DataSource;
             }
             set
@@ -155,7 +155,7 @@ namespace Horseshoe.NET.OracleDb
             {
                 return _defaultCredentials
                     ?? Credential.Build(Config.Get("Horseshoe.NET:OracleDb:UserID"), Config.Get("Horseshoe.NET:OracleDb:Password"), isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:OracleDb:IsEncryptedPassword"))
-                    ?? OrganizationalDefaultSettings.GetNullable<Credential>("OracleDb.Credentials");
+                    ?? OrganizationalDefaultSettings.Get<Credential?>("OracleDb.Credentials");
             }
             set
             {
@@ -163,18 +163,18 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static IDictionary<string, string>? _defaultAdditionalConnectionAttributes;
+        private static IDictionary<string, string> _defaultAdditionalConnectionAttributes;
 
         /// <summary>
         /// Gets or sets the additional Oracle connection string attributes used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:AdditionalConnectionAttributes and OrganizationalDefaultSettings: key = OracleDb.AdditionalConnectionAttributes)
         /// </summary>
-        public static IDictionary<string, string>? DefaultAdditionalConnectionAttributes
+        public static IDictionary<string, string> DefaultAdditionalConnectionAttributes
         {
             get
             {
                 return _defaultAdditionalConnectionAttributes         // e.g. Integrated Security=SSQI|Attribute1=Value1
                     ?? Config.Get("Horseshoe.NET:OracleDb:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw))
-                    ?? OrganizationalDefaultSettings.Get("OracleDb.AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes((string)raw));
+                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("OracleDb.AdditionalConnectionAttributes"));
             }
             set
             {
@@ -182,22 +182,22 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static int? _defaultTimeout;
+        private static int? _defaultConnectionTimeout;
 
         /// <summary>
         /// Gets or sets the Oracle timeout used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:Timeout and OrganizationalDefaultSettings: key = OracleDb.Timeout)
         /// </summary>
-        public static int? DefaultTimeout
+        public static int? DefaultConnectionTimeout
         {
             get
             {
-                return _defaultTimeout
-                    ?? Config.Get<int?>("Horseshoe.NET:OracleDb:Timeout")
-                    ?? OrganizationalDefaultSettings.GetNInt("OracleDb.Timeout");
+                return _defaultConnectionTimeout
+                    ?? Config.Get<int?>("Horseshoe.NET:OracleDb:ConnectionTimeout")
+                    ?? OrganizationalDefaultSettings.Get<int?>("OracleDb.ConnectionTimeout");
             }
             set
             {
-                _defaultTimeout = value;
+                _defaultConnectionTimeout = value;
             }
         }
 
@@ -212,7 +212,7 @@ namespace Horseshoe.NET.OracleDb
             {
                 return _reattemptInterval
                     ?? Config.Get<int?>("Horseshoe.NET:OracleDb:ReattemptInterval")
-                    ?? OrganizationalDefaultSettings.GetNInt("OracleDb.ReattemptInterval")
+                    ?? OrganizationalDefaultSettings.Get<int?>("OracleDb.ReattemptInterval")
                     ?? 500;
             }
             set
@@ -233,7 +233,7 @@ namespace Horseshoe.NET.OracleDb
             {
                 return _defaultAutoClearConnectionPool
                     ?? Config.Get<bool?>("Horseshoe.NET:OracleDb:AutoClearConnectionPool")
-                    ?? OrganizationalDefaultSettings.GetNBoolean("OracleDb.AutoClearConnectionPool")
+                    ?? OrganizationalDefaultSettings.Get<bool?>("OracleDb.AutoClearConnectionPool")
                     ?? false;
             }
             set
@@ -242,20 +242,20 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static IEnumerable<OraServer>? _serverList;
+        private static IEnumerable<OraServer> _serverList;
 
         /// <summary>
         /// Gets or sets a list of Oracle servers for OraServer's Lookup() method.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:ServerList and OrganizationalDefaultSettings: key = OracleDb.ServerList)
         /// </summary>
-        public static IEnumerable<OraServer>? ServerList
+        public static IEnumerable<OraServer> ServerList
         {
             get
             {
                 if (_serverList == null)
                 {
                     _serverList =      // e.g. ORADBSVR01|'NAME'11.22.33.44:9999;SERVICE1|ORADBSVR02:9999;SERVICE1;INSTANCE1
-                        Config.Get("Horseshoe.NET:OracleDb:ServerList", parseFunc: (raw) => OracleDbUtil.ParseServerList(raw)) ??  
-                        OrganizationalDefaultSettings.Get("OracleDb.ServerList", parseFunc: (raw) => OracleDbUtil.ParseServerList((string)raw));
+                        Config.Get("Horseshoe.NET:OracleDb:ServerList", parseFunc: (raw) => OracleDbUtil.ParseServerList(raw)) ??
+                        OracleDbUtil.ParseServerList(OrganizationalDefaultSettings.Get<string>("OracleDb.ServerList"));
                 }
                 return _serverList;
             }

@@ -111,7 +111,7 @@ namespace TestConsole
                     {
                         Column.String("Name"),
                         Column.Int("Age"),
-                        Column.Date("Birth Date", customDateFormat: "MMMM d")
+                        Column.Date("Birth Date", displayFormat: "MMMM d")
                     };
                     var dataImport = new DataImport(columns, enforceColumnCount: true)
                     {
@@ -144,8 +144,38 @@ Carlos,89,4/9/1945
 Beto,10,9/15/2012
 Katia,27,12/2/1995
 ";
-                    var dataImport = ImportData.DelimitedText.AsDataImport(rawData, new[] { ',' }, hasHeaderRow: true, autoTrunc: AutoTruncate.Zap);
+                    var dataImport = ImportData.DelimitedText.AsDataImport(rawData, ',', hasHeaderRow: true, autoTrunc: AutoTruncate.Zap);
                     Console.WriteLine(dataImport.ExportToStringArrays().Render(separator: "^"));
+                    Console.WriteLine("Row Count: " + dataImport.RowCount);
+                    Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
+                    Console.WriteLine("Next Row: " + dataImport.NextRow);
+                    PrintDataErrors(dataImport);
+                    Console.WriteLine();
+                    Console.WriteLine("Journal");
+                    Console.WriteLine("-------");
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Import delimited text, 3 columns (1 not-mapped), exported to formated objects, German dates",
+                () =>
+                {
+                    var rawData = @"
+Name,Age,Birth Date
+Carlos,89,4/9/1945
+Beto,10,9/15/2012
+Katia,27,12/2/1995
+";
+                    var columns = new []
+                    {
+                        Column.String("Name"),
+                        Column.NoMap("Age"),
+                        Column.Date("Birth Date", displayLocale: "de-DE")
+                    };
+                    var dataImport = ImportData.DelimitedText.AsDataImport(rawData, ',', columns, enforceColumnCount: true, hasHeaderRow: true, autoTrunc: AutoTruncate.Zap);
+                    Console.WriteLine(dataImport.ExportToFormattedObjectStringArrays().Render(separator: "^"));
+                    Console.WriteLine("Column Count: " + dataImport.ColumnCount);
                     Console.WriteLine("Row Count: " + dataImport.RowCount);
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
@@ -246,6 +276,29 @@ Katia     0_2719951202
             ),
             BuildMenuRoutine
             (
+                "Import fixed-width file, 1 not-mapped column, exported to strings",
+                () =>
+                {
+                    var columns = new[]
+                    {
+                        Column.String("Name", fixedWidth: 10),
+                        Column.NoMap("Age", fixedWidth: 4),
+                        Column.Flat8Date("Birth Date")
+                    };
+                    var dataImport = ImportData.FixedWidthTextFile.AsDataImport("fixed-width.txt", columns, hasHeaderRow: true, autoTrunc: AutoTruncate.Zap);
+                    Console.WriteLine(dataImport.ExportToStringArrays().Render(separator: ","));
+                    Console.WriteLine("Row Count: " + dataImport.RowCount);
+                    Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
+                    Console.WriteLine("Next Row: " + dataImport.NextRow);
+                    PrintDataErrors(dataImport);
+                    Console.WriteLine();
+                    Console.WriteLine("Journal");
+                    Console.WriteLine("-------");
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                }
+            ),
+            BuildMenuRoutine
+            (
                 "Import fixed-width file, embedded errors, exported to objects",
                 () =>
                 {
@@ -258,6 +311,36 @@ Katia     0_2719951202
                     var dataImport = ImportData.FixedWidthTextFile.AsDataImport
                     (
                         "fixed-width-err.txt", 
+                        columns,
+                        hasHeaderRow: true,
+                        errorHandlingPolicy: DataErrorHandlingPolicy.Embed,   //  <<-- 
+                        autoTrunc: AutoTruncate.Zap
+                    );
+                    Console.WriteLine(dataImport.ExportToObjectArrays().Render(separator: ","));
+                    Console.WriteLine("Row Count: " + dataImport.RowCount);
+                    Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
+                    Console.WriteLine("Next Row: " + dataImport.NextRow);
+                    PrintDataErrors(dataImport);
+                    Console.WriteLine();
+                    Console.WriteLine("Journal");
+                    Console.WriteLine("-------");
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Import fixed-width file, 1 not-mapped column, embedded errors, exported to objects",
+                () =>
+                {
+                    var columns = new[]
+                    {
+                        Column.String("Name", fixedWidth: 10),
+                        Column.NoMap("Age", fixedWidth: 4),
+                        Column.Flat8Date("Birth Date")
+                    };
+                    var dataImport = ImportData.FixedWidthTextFile.AsDataImport
+                    (
+                        "fixed-width-err.txt",
                         columns,
                         hasHeaderRow: true,
                         errorHandlingPolicy: DataErrorHandlingPolicy.Embed,   //  <<-- 

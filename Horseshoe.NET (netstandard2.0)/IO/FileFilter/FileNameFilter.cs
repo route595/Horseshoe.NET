@@ -1,63 +1,69 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using Microsoft.Extensions.Primitives;
+
+using Horseshoe.NET.Compare;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
-    public class FileNameFilter : IFileFilter
+    /// <summary>
+    /// A <c>FileFilter</c> implementation based on file name
+    /// </summary>
+    public class FileNameFilter : FileFilter
     {
-        public Regex FileNameRegex { get; }
+        /// <summary>
+        /// Everything needed to perform a standard comparison bundled into a single class.
+        /// </summary>
+        public IComparator<string> Comparator { get; }
 
-        public FilterMode FilterMode { get; }
-
-        public bool CaseSensitive => (FileNameRegex.Options & RegexOptions.IgnoreCase) == RegexOptions.IgnoreCase;
-
-        public FileNameFilter(Regex fileNameRegex, FilterMode filterMode = default)
+        /// <summary>
+        /// Creates a new <c>FileNameFilter</c>.
+        /// </summary>
+        /// <param name="mode">Specifies how file names should match the search value(s) to be included in the results.</param>
+        /// <param name="fileNameCriteria">
+        /// <para>
+        /// File [partial] name(s) upon which to perform the comparison search.
+        /// </para>
+        /// <para>
+        /// Examples of search values (see quotes):
+        /// <code>
+        /// filter = new FileNameFilter(TextMatch.Equals, "bill calculator.xls");
+        /// filter = new FileNameFilter(TextMatch.EndsWith, ".bak");
+        /// filter = new FileNameFilter(TextMatch.In, new[] { "readme.md", "readme.txt" });
+        /// filter = new FileNameFilter(TextMatch.Between, new[] { "a", "gzz" });
+        /// </code>
+        /// </para>
+        /// </param>
+        /// <param name="ignoreCase">
+        /// <para>
+        /// Set to <c>true</c> (recommended) to ignore the letter case of the file names being compared by this filter, default is <c>false</c>.
+        /// </para>
+        /// <para>
+        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
+        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
+        /// </para>
+        /// </param>
+        /// <param name="filterMode">Optional, dictates which items to include based on criteria matching.</param>
+        public FileNameFilter(CompareMode mode, StringValues fileNameCriteria, bool ignoreCase = false, FilterMode filterMode = default)
         {
-            FileNameRegex = fileNameRegex;
+            // validation
+            switch (mode)
+            {
+                case CompareMode.IsNull:
+                case CompareMode.IsNullOrWhitespace:
+                    throw new ValidationException("This compare mode is not compatible with this filter: " + mode);
+            }
+
+            Comparator = Horseshoe.NET.Compare.Comparator.Build(mode, fileNameCriteria, ignoreCase: ignoreCase);
             FilterMode = filterMode;
         }
 
-        public FileNameFilter(string fileNamePattern, FilterMode filterMode = default, bool caseSensitive = false) : this(new[] { fileNamePattern }, filterMode: filterMode, caseSensitive: caseSensitive)
+        /// <summary>
+        /// Indicates whether the supplied file name constitutes a criteria match.
+        /// </summary>
+        /// <param name="file">a file path</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public override bool IsMatch(FilePath file)
         {
-        }
-
-        public FileNameFilter(IEnumerable<string> fileNamePatterns, FilterMode filterMode = default, bool caseSensitive = false)
-        {
-            if (fileNamePatterns == null)
-                throw new ValidationException("Invalid filter: must supply one or more file name patterns");
-            if (fileNamePatterns.Any(e => string.IsNullOrWhiteSpace(e)))
-                throw new ValidationException("Invalid filter: file name patterns cannot be null or blank");
-            switch (fileNamePatterns.Count())
-            {
-                case 0:
-                    throw new ValidationException("Invalid filter: must supply one or more file name patterns");
-                case 1:
-                    FileNameRegex = caseSensitive
-                        ? new Regex("^" + fileNamePatterns.Single() + "$")
-                        : new Regex("^" + fileNamePatterns.Single() + "$", RegexOptions.IgnoreCase);
-                    break;
-                default:
-                    FileNameRegex = caseSensitive
-                        ? new Regex("^(" + string.Join("|", fileNamePatterns.Select(s => "(" + s + ")")) + ")$")
-                        : new Regex("^(" + string.Join("|", fileNamePatterns.Select(s => "(" + s + ")")) + ")$", RegexOptions.IgnoreCase);
-                    break;
-            }
-            FilterMode = filterMode;
-        }
-
-        public bool IsMatch(FilePath file)
-        {
-            switch (FilterMode)
-            {
-                case FilterMode.FilterInAll:
-                case FilterMode.FilterInAny:
-                default:
-                    return FileNameRegex.IsMatch(file.Name);
-                case FilterMode.FilterOutAll:
-                case FilterMode.FilterOutAny:
-                    return !FileNameRegex.IsMatch(file.Name);
-            }
+            return Comparator.IsMatch(file.Name);
         }
     }
 }

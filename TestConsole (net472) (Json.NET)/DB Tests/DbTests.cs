@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 
 using Horseshoe.NET.ConsoleX;
+using Horseshoe.NET.Compare;
 using Horseshoe.NET.Db;
+using Horseshoe.NET.Primitives;
 
 namespace TestConsole.DbTests
 {
@@ -15,33 +17,24 @@ namespace TestConsole.DbTests
                 "Filter Test",
                 () =>
                 {
-                    DoFilterTest("Filter.Column(\"age\").Between(5, 8)", () => Filter.Column("age").Between(5, 8));
-                    DoFilterTest("Filter.Column(\"age\").Between(null, 8)", () => Filter.Column("age").Between(null, 8));
-                    DoFilterTest("Filter.Column(\"age\").Between(5, 8, filterBounds: FilterBounds.Exclusive)", () => Filter.Column("age").Between(5, 8, filterBounds: FilterBounds.Exclusive));
-                    DoFilterTest("Filter.Column(\"age\").Between(5, 8, filterBounds: FilterBounds.ExclusiveLowerBoundOnly)", () => Filter.Column("age").Between(5, 8, filterBounds: FilterBounds.ExclusiveLowerBoundOnly));
-                    DoFilterTest("Filter.Column(\"age\").NotBetween(5, 8)", () => Filter.Column("age").NotBetween(5, 8));
-                    DoFilterTest("Filter.Column(\"age\").NotBetween(5, 8, filterBounds: FilterBounds.Inclusive)", () => Filter.Column("age").NotBetween(5, 8, filterBounds: FilterBounds.Inclusive));
-                    DoFilterTest("Filter.Column(\"age\").NotBetween(5, 8, filterBounds: FilterBounds.InclusiveLowerBoundOnly)", () => Filter.Column("age").NotBetween(5, 8, filterBounds: FilterBounds.InclusiveLowerBoundOnly));
-                    DoFilterTest("Filter.Column(\"birthdate\").GreaterThan(\"10/17/2020\")", () => Filter.Column("birthdate").GreaterThan("10/17/2020"));
-                    DoFilterTest("Filter.Column(\"birthdate\").GreaterThan(DateTime.Today)", () => Filter.Column("birthdate").GreaterThan(DateTime.Today));
-                    DoFilterTest("Filter.Column(\"birthdate\").GreaterThan(DateTime.Now)", () => Filter.Column("birthdate").GreaterThan(DateTime.Now));
-                    DoFilterTest("Filter.Literal(\"birthdate > GETDATE()\")", () => Filter.Literal("birthdate > GETDATE()"));
-                    DoFilterTest("Filter.Column(\"birthdate\").Literal(\"> GETDATE()\")", () => Filter.Column("birthdate").Literal("> GETDATE()"));
-                    DoFilterTest("Filter.Column(\"birthdate\").GreaterThan(SqlLiteral.CurrentDate(DbPlatform.SqlServer))", () => Filter.Column("birthdate").GreaterThan(SqlLiteral.CurrentDate(DbPlatform.SqlServer)));
-                    DoFilterTest("Filter.Column(\"birthdate\").GreaterThanOrEqual(new SqlLiteral(\"GETDATE()\"))", () => Filter.Column("birthdate").GreaterThanOrEqual(new SqlLiteral("GETDATE()")));
-                    DoFilterTest("Filter.Column(\"name\").StartsWith(\"Sha\")", () => Filter.Column("name").StartsWith("Sha"));
-                    DoFilterTest("Filter.Column(\"name\").NotStartsWith(\"Sha\")", () => Filter.Column("name").NotStartsWith("Sha"));
-                    DoFilterTest("Filter.Column(\"name\").EndsWith(\"non\")", () => Filter.Column("name").EndsWith("non"));
-                    DoFilterTest("Filter.Column(\"name\").Contains(\"anno\")", () => Filter.Column("name").Contains("anno"));
-                    DoFilterTest("Filter.Column(\"name\").In(\"Steve\", \"Allan\")", () => Filter.Column("name").In("Steve", "Allan"));
-                    DoFilterTest("Filter.Column(\"name\").NotIn(\"Steve\", \"Allan\")", () => Filter.Column("name").NotIn("Steve", "Allan"));
-                    DoFilterTest("Filter.Column(\"name\").IsNull()", () => Filter.Column("name").IsNull());
-                    DoFilterTest("Filter.Column(\"name\").IsNotNull()", () => Filter.Column("name").IsNotNull());
-                    DoFilterTest("Filter.Column(\"object_id\").Equals(new SqlLiteral(\"OBJECT_ID('dbo.table12345')\"))", () => Filter.Column("object_id").Equals(new SqlLiteral("OBJECT_ID('dbo.table12345')")));
-                    DoFilterTest("Filter.Column(\"user_type_id\").In(167, 175, 231, 239)", () => Filter.Column("user_type_id").In(167, 175, 231, 239));
-                    DoFilterTest("Filter.Expression(\"LEFT(name, 1)\").In('A', 'B', 'C')", () => Filter.Expression("LEFT(name, 1)").In('A', 'B', 'C'));
+                    DoFilterTest("\"age\" between 5 and 8", () => Filter.Between("age", 5, 8));
+                    DoFilterTest("\"age\" between 8 and 5", () => Filter.Between("age", 8, 5));
+                    DoFilterTest("\"age\" between 5x and 8x", () => Filter.BetweenExclusive("age", 5, 8));
+                    DoFilterTest("\"age\" between 5x and 8", () => Filter.BetweenExclusiveLo("age", 5, 8));
+                    DoFilterTest("\"age\" between 5 and 8x", () => Filter.BetweenExclusiveHi("age", 5, 8));
+                    DoFilterTest("\"age\" between null and 8", () => new Filter{ ColumnName = "age", Mode = CompareMode.Between, Criteria = ObjectValues.From(null, 8) });
+                    DoFilterTest("\"age\" not between 5 and 8", () => Filter.Not().Between("age", 5, 8));
+                    DoFilterTest("\"name\" is \'Steve\' or \'Allan\'", () => Filter.In("name", new[] { "Steve", "Allan" }));
+                    DoFilterTest("\"name\" is neither \'Steve\' nor \'Allan\'", () => Filter.Not().In("name", new[] { "Steve", "Allan" }));
+                    DoFilterTest("\"name\" is null", () => Filter.IsNull("name"));
+                    DoFilterTest("\"name\" is not null", () => Filter.Not().IsNull("name"));
+                    DoFilterTest("\"object_id\" equals OBJECT_ID('dbo.table12345')", () => Filter.Literal("object_id", "OBJECT_ID('dbo.table12345')"));
+                    DoFilterTest("\"due_date\" after today", () => Filter.GreaterThan("due_date", SqlLiteral.CurrentDate(DbPlatform.SqlServer)));
+                    DoFilterTest("\"due_date\" after today", () => Filter.Literal("due_date > GETDATE()"));
+                    DoFilterTest("\"due_date\" after today", () => Filter.Literal("due_date", "> GETDATE()"));
+                    DoFilterTest("first letter in \"name\" is 'A', 'B' or 'C')", () => Filter.In(new ColumnExpression("name", "LEFT({0}, 1)"), new[] { 'A', 'B', 'C' }));
 
-                    void DoFilterTest(string command, Func<Filter> func)
+                    void DoFilterTest(string command, Func<IFilter> func)
                     {
                         Console.Write(command + "  >>  ");
                         try

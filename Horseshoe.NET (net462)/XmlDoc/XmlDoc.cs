@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 
 using Horseshoe.NET.IO;
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.XmlDoc
 {
@@ -136,7 +136,7 @@ namespace Horseshoe.NET.XmlDoc
                 {
                     member = ParseMember(reader.GetAttribute("name"), fillInMissingTypes: fillInMissingTypes, journal: journal);
                     Members.Add(member);
-                    journal.WriteEntry(member);
+                    journal.WriteEntry(member.ToString());
                     journal.Level++;
 
                     // scan elements inside each <member> element
@@ -181,7 +181,7 @@ namespace Horseshoe.NET.XmlDoc
                                             if (member is Method method)
                                             {
                                                 method.Params.Add(new Param(reader.GetAttribute("name"), reader.ReadInnerXml().Trim()));
-                                                journal.WriteEntry(method.Params.Last());
+                                                journal.WriteEntry(method.Params.Last().ToString());
                                             }
                                             else if (reader is IXmlLineInfo lineInfo)
                                             {
@@ -206,7 +206,7 @@ namespace Horseshoe.NET.XmlDoc
                                                     cref = split[1];
                                                 }
                                                 method.Exceptions.Add(new Exception(cref, reader.ReadInnerXml().Trim()));
-                                                journal.WriteEntry(method.Exceptions.Last());
+                                                journal.WriteEntry(method.Exceptions.Last().ToString());
                                             }
                                             else if (reader is IXmlLineInfo lineInfo)
                                             {
@@ -390,7 +390,7 @@ namespace Horseshoe.NET.XmlDoc
                 return VerifiedTypes[rawType];
             }
             
-            System.Type _type = ObjectUtil.GetType(rawType, assemblyName: Assembly.Name, suppressErrors: true);
+            System.Type _type = TypeUtil.GetType(rawType, assemblyName: Assembly.Name);
 
             // if lookup fails try shifting '.' to '+' rtl to see if classes are nested e.g. MyNamespace.MyClass+MyNestedClass
             var _rawType = rawType;
@@ -406,7 +406,7 @@ namespace Horseshoe.NET.XmlDoc
                     journal.WriteEntry("REUSED VERIFIED SYSTEM TYPE - based on raw type (. -> +)");
                     return VerifiedTypes[_rawType];
                 }
-                _type = ObjectUtil.GetType(_rawType, assemblyName: Assembly.Name, suppressErrors: true);
+                _type = TypeUtil.GetType(_rawType, assemblyName: Assembly.Name);
 
                 // update the type cache for the modified type string, if applicable
                 if (_type != null)

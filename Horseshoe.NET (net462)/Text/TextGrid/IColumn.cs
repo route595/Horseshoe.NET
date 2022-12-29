@@ -6,30 +6,48 @@
     public interface IColumn
     {
         /// <summary>
-        /// Column title
+        /// Column titles, if set, are rendered across the top of the grid above each column.
         /// </summary>
         string Title { get; set; }
+
         /// <summary>
-        /// Data format
+        /// An optional format for item rendering.
         /// </summary>
         string Format { get; set; }
+
         /// <summary>
-        /// Null format
+        /// How to display null items.
         /// </summary>
         string DisplayNullAs { get; set; }
-        /// <summary>
-        /// Horizontal alignment of the column title
-        /// </summary>
-        HorizontalAlign TitleAlign { get; set; }
-        /// <summary>
-        /// Horizontal alignment of datum
-        /// </summary>
-        HorizontalAlign ItemAlign { get; set; }
 
+        /// <summary>
+        /// The alignment of the title.
+        /// </summary>
+        HorizontalPosition TitleAlign { get; set; }
+
+        /// <summary>
+        /// The alignment of the data items.
+        /// </summary>
+        HorizontalPosition ItemAlign { get; set; }
+
+        /// <summary>
+        /// The desired width of the column.
+        /// </summary>
         int? TargetWidth { get; set; }
+
+        /// <summary>
+        /// The natural of the column (i.e. the max width of the items and title).
+        /// </summary>
         int CalculatedWidth { get; set; }
+
+        /// <summary>
+        /// The final width of this column.
+        /// </summary>
         int WidthToRender { get; }
 
+        /// <summary>
+        /// The number of items in the column.
+        /// </summary>
         int Count { get; }
 
         /// <summary>
@@ -37,8 +55,26 @@
         /// </summary>
         void Prerender();
 
+        /// <summary>
+        /// Renders an individual cell with padding if applicable.
+        /// </summary>
+        /// <param name="index">The row index.</param>
+        /// <param name="paddingLeft">Left padding.</param>
+        /// <param name="paddingRight">Right padding.</param>
+        /// <param name="paddingTop">Top padding.</param>
+        /// <param name="paddingBottom">Bottom padding.</param>
+        /// <returns>The cell rendered as an array.</returns>
         string[] RenderCell(int index, int paddingLeft, int paddingRight, int paddingTop, int paddingBottom);
 
+
+        /// <summary>
+        /// Renders the title cell with padding if applicable.
+        /// </summary>
+        /// <param name="paddingLeft">Left padding.</param>
+        /// <param name="paddingRight">Right padding.</param>
+        /// <param name="paddingTop">Top padding.</param>
+        /// <param name="paddingBottom">Bottom padding.</param>
+        /// <returns>The cell rendered as an array.</returns>
         string[] RenderTitleCell(int paddingLeft, int paddingRight, int paddingTop, int paddingBottom);
     }
 }

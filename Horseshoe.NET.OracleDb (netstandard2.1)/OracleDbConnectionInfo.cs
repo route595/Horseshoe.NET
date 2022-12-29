@@ -1,6 +1,5 @@
-﻿using Horseshoe.NET.Crypto;
-using Horseshoe.NET.Db;
-using Horseshoe.NET.Objects;
+﻿using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.OracleDb.Meta;
 
 namespace Horseshoe.NET.OracleDb
@@ -18,9 +17,9 @@ namespace Horseshoe.NET.OracleDb
          * public DbPlatform? Platform  { get; set; }  // overridden here
          */
 
-        private OraServer? _server;
+        private OraServer _server;
 
-        public OraServer? Server
+        public OraServer Server
         {
             get { return _server; }
             set
@@ -30,8 +29,8 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private OracleCredentialInterface? _orclCredentials;
-        public OracleCredentialInterface? OracleCredentials
+        private OracleCredentialInterface _orclCredentials;
+        public OracleCredentialInterface OracleCredentials
         {
             get => _orclCredentials ?? Credentials;
             set => _orclCredentials = value;
@@ -53,9 +52,9 @@ namespace Horseshoe.NET.OracleDb
             Server = server;
         }
 
-        public override string? BuildConnectionString(CryptoOptions? cryptoOptions = null)   // Uses EZ Connect style connection string, not including user id and password
+        public override string BuildConnectionString()   // Uses EZ Connect style connection string, not including user id and password
         {
-            return OracleDbUtil.BuildConnectionString(DataSource, Server, AdditionalConnectionAttributes);
+            return OracleDbUtil.BuildConnectionString(DataSource, server: Server, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }
     }
 }

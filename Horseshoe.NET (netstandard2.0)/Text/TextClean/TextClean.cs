@@ -3,10 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Horseshoe.NET.Collections;
+
 namespace Horseshoe.NET.Text.TextClean
 {
+    /// <summary>
+    /// A set of factory methods for removing or replaceing non-ASCII characters in string.
+    /// </summary>
     public static class TextClean
     {
+        /// <summary>
+        /// Searches a string for certain <c>char</c>s and returns a copy of the original string without those <c>char</c>s.
+        /// </summary>
+        /// <param name="text">A text <c>string</c> to evaluate.</param>
+        /// <param name="chars">A set of <c>char</c>s to remove from <c>text</c>.</param>
+        /// <returns>A copy of the original string without the unwanted <c>char</c>s.</returns>
         public static string Remove(string text, params char[] chars)
         {
             if (text == null)
@@ -17,7 +28,7 @@ namespace Horseshoe.NET.Text.TextClean
             ReadOnlySpan<char> roSpan = text.AsSpan();
             foreach (var c in roSpan)
             {
-                if (!chars.Contains(c))
+                if (!c.In(chars))
                 {
                     strb.Append(c);
                 }
@@ -25,27 +36,44 @@ namespace Horseshoe.NET.Text.TextClean
             return strb.ToString();
         }
 
+        /// <summary>
+        /// Searches a string for whitespace <c>char</c>s and returns a copy of the original string without those <c>char</c>s.
+        /// </summary>
+        /// <param name="text">A text <c>string</c> to evaluate.</param>
+        /// <param name="preserveNewlines">Indicates whether to leave in new lines <c>char</c>s, default is <c>false</c>.</param>
+        /// <returns>A copy of the original string without the unwanted <c>char</c>s.</returns>
         public static string RemoveWhitespace(string text, bool preserveNewlines = false)
         {
-            return Remove(text, preserveNewlines ? CharLib.AllWhitespacesExceptNewLines : CharLib.AllWhitespaces);
+            return Remove(text, preserveNewlines ? CharLib.SubsetWhitespacesExceptNewLines : CharLib.AllWhitespaces);
         }
 
+        /// <summary>
+        /// Searches a string for new line <c>char</c>s and returns a copy of the original string without those <c>char</c>s.
+        /// </summary>
+        /// <param name="text">A text <c>string</c> to evaluate.</param>
+        /// <returns>A copy of the original string without the unwanted <c>char</c>s.</returns>
         public static string RemoveNewlines(string text)
         {
             return Remove(text, CharLib.SubsetNewLines);
         }
 
+        /// <summary>
+        /// Searches a string for whitespace <c>char</c>s and returns a copy of the original string combining multiple whitespace <c>char</c>s into one.
+        /// </summary>
+        /// <param name="text">A text <c>string</c> to evaluate.</param>
+        /// <param name="preserveNewlines">Indicates whether to leave in new lines <c>char</c>s, default is <c>false</c>.</param>
+        /// <returns></returns>
         public static string CombineWhitespace(string text, bool preserveNewlines = false)
         {
             if (text == null)
                 return string.Empty;
             var lastCharWasWhiteSpace = false;
-            var wsChars = preserveNewlines ? CharLib.AllWhitespacesExceptNewLines : CharLib.AllWhitespaces;
+            var wsChars = preserveNewlines ? CharLib.SubsetWhitespacesExceptNewLines : CharLib.AllWhitespaces;
             var strb = new StringBuilder(text.Length);
             ReadOnlySpan<char> roSpan = text.AsSpan();
             foreach (var c in roSpan)
             {
-                if (wsChars.Contains(c))
+                if (c.In(wsChars))
                 {
                     if (!lastCharWasWhiteSpace)
                     {
@@ -66,66 +94,181 @@ namespace Horseshoe.NET.Text.TextClean
         /// Convert essentially any text to its closest ASCII representation
         /// </summary>
         /// <param name="text">The source text to convert</param>
-        /// <param name="replacementLog">Optional.  Collection to which replacement log entried can be written. <c>IDictionary&lt;int,string&gt; contains char index and replacement notes</c></param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <param name="whitespacePolicy">Whitespace handling instructions</param>
         /// <param name="nonprintablesPolicy">Nonprintables display instructions</param>
         /// <param name="substitute">How to display non-printables (if <c>NonprintablesPolicy.Substitute</c>) and unknown chars</param>
         /// <param name="extendedASCII"><c>true</c> to allow extended ASCII chars in the output</param>
         /// <returns>An ASCII string</returns>
-        public static string ToASCIIPrintable(string text, IDictionary<int, string> replacementLog = null, WhitespacePolicy whitespacePolicy = default, NonprintablesPolicy nonprintablesPolicy = default, string substitute = "?", bool extendedASCII = false)
+        public static string ToASCIIPrintable(string text, TraceJournal journal = null, WhitespacePolicy whitespacePolicy = default, NonprintablesPolicy nonprintablesPolicy = default, string substitute = "?", bool extendedASCII = false)
         {
-            replacementLog = replacementLog ?? new Dictionary<int, string>();
-
-            if (text == null)
+            // trace journaling
+            if (journal == null)
             {
-                replacementLog.Add(-1, "[null]");
+                journal = TraceJournal.ResetDefault();
+            }
+            journal.WriteEntry("ToASCIIPrintable()");
+            journal.Level++;
+
+            // special case
+            if (text == null || text.Length == 0)
+            {
+                journal.WriteEntry("-1, " + (text == null ? TextConstants.Null : TextConstants.Empty));
+                journal.Level--;
                 return string.Empty;
             }
 
-            var strb = new StringBuilder((int)(text.Length * 1.1));
+            // prepare to convert to ASCII
             ReadOnlySpan<char> roSpan = text.AsSpan();
-            var rOptions01 = new RevealOptions { RevealNewLines = true };
+            var strb = new StringBuilder((int)(text.Length * 1.1));
+            bool isWhitespace = false;
+            bool lastWasWhitespace;
 
             // whitespace policies in order of precedence
-            bool combiningSpaces = false;
-            bool dropSpaces = (whitespacePolicy & WhitespacePolicy.DropSpaces) == WhitespacePolicy.DropSpaces;
-            bool dropTabs = (whitespacePolicy & WhitespacePolicy.DropTabs) == WhitespacePolicy.DropTabs;
-            bool dropNewLines = (whitespacePolicy & WhitespacePolicy.DropNewLines) == WhitespacePolicy.DropNewLines;
-            bool dropNonBreakingSpaces = (whitespacePolicy & WhitespacePolicy.DropNonBreakingSpaces) == WhitespacePolicy.DropNonBreakingSpaces;
-            bool allowSpaces = (whitespacePolicy & WhitespacePolicy.AllowSpaces) == WhitespacePolicy.AllowSpaces;
-            bool allowTabs = (whitespacePolicy & WhitespacePolicy.AllowTabs) == WhitespacePolicy.AllowTabs;
-            bool allowNewLines = (whitespacePolicy & WhitespacePolicy.AllowNewLines) == WhitespacePolicy.AllowNewLines;
-            bool allowNonBreakingSpaces = (whitespacePolicy & WhitespacePolicy.AllowNonBreakingSpaces) == WhitespacePolicy.AllowNonBreakingSpaces;
-            bool convertTabs = (whitespacePolicy & WhitespacePolicy.ConvertTabsToSpaces) == WhitespacePolicy.ConvertTabsToSpaces;
-            bool convertNewLines = (whitespacePolicy & WhitespacePolicy.ConvertNewLinesToSpaces) == WhitespacePolicy.ConvertNewLinesToSpaces;
-            bool convertNonBreakingSpaces = (whitespacePolicy & WhitespacePolicy.ConvertNonBreakingSpacesToSpaces) == WhitespacePolicy.ConvertNonBreakingSpacesToSpaces;
-            bool drop = (whitespacePolicy & WhitespacePolicy.Drop) == WhitespacePolicy.Drop;
-            bool allow = (whitespacePolicy & WhitespacePolicy.Allow) == WhitespacePolicy.Allow;
-            bool combine = (whitespacePolicy & WhitespacePolicy.Combine) == WhitespacePolicy.Combine;
-            bool combineExceptNewLines = (whitespacePolicy & WhitespacePolicy.CombineExceptNewLines) == WhitespacePolicy.CombineExceptNewLines;
-            bool convert = (whitespacePolicy & WhitespacePolicy.ConvertToSpaces) == WhitespacePolicy.ConvertToSpaces;
+            bool noWhitespaces = whitespacePolicy == WhitespacePolicy.None;
+            bool combineSpaces = (whitespacePolicy & WhitespacePolicy.CombineSpaces) == WhitespacePolicy.CombineSpaces;
+            bool normalizeWhitespaces = (whitespacePolicy & WhitespacePolicy.NormalizeWhitespaces) == WhitespacePolicy.NormalizeWhitespaces;
+            bool includeASCIISpace = (whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace;
+            bool includeNonbreakingSpace = (whitespacePolicy & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace;
+            bool includeTab = (whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab;
+            bool includeNewLines = (whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines;
 
             for (int i = 0; i < roSpan.Length; i++)
             {
                 char c = roSpan[i];
-                if (TextUtil.IsWhitespace(c, extendedASCII: true))
+                lastWasWhitespace = isWhitespace;
+                isWhitespace = false;
+                if (c.In(CharLib.AllWhitespaces))
                 {
-                    var whitespace = _ToASCIIPrintable_Whitespace(c, i, replacementLog, rOptions01, ref combiningSpaces, dropSpaces, dropTabs, dropNewLines, dropNonBreakingSpaces, allowSpaces, allowTabs, allowNewLines, allowNonBreakingSpaces, convertTabs, convertNewLines, convertNonBreakingSpaces: convertNonBreakingSpaces || !extendedASCII, drop, allow, combine, combineExceptNewLines, convert);
-                    if (whitespace.HasValue)
+                    if (noWhitespaces)
                     {
-                        strb.Append(whitespace);
-                    }
-                    if (combiningSpaces)
+                        journal.WriteEntry(i + ", whitespaces - not included: " + TextUtil.Reveal(c, RevealOptions.All));
                         continue;
+                    }
+                    isWhitespace = true;
+                    switch (c)
+                    {
+                        case ' ':
+                            if (includeASCIISpace)
+                            {
+                                if (combineSpaces && lastWasWhitespace)
+                                {
+                                    journal.WriteEntry(i + ", *space (combined)");
+                                    journal.IncrementCleanedWhitespaces();
+                                }
+                                else
+                                {
+                                    strb.Append(c);
+                                    journal.WriteEntry(i + ", +space");
+                                }
+                            }
+                            else
+                            {
+                                journal.WriteEntry(i + ", -space");
+                                journal.IncrementCleanedWhitespaces();
+                            }
+                            continue;
+                        case '\t':
+                            if (includeTab)
+                            {
+                                if (combineSpaces && lastWasWhitespace)
+                                {
+                                    journal.WriteEntry(i + ", *tab (combined)");
+                                    journal.IncrementCleanedWhitespaces();
+                                }
+                                else if (combineSpaces || normalizeWhitespaces)
+                                {
+                                    strb.Append(' ');
+                                    journal.WriteEntry(i + ", *tab (-> space)");
+                                    journal.IncrementCleanedWhitespaces();
+                                }
+                                else
+                                {
+                                    strb.Append(c);
+                                    journal.WriteEntry(i + ", +tab");
+                                }
+                            }
+                            else
+                            {
+                                journal.WriteEntry(i + ", -tab");
+                                journal.IncrementCleanedWhitespaces();
+                            }
+                            continue;
+                        case '\r':
+                        case '\n':
+                            if (includeNewLines)
+                            {
+                                if (combineSpaces && lastWasWhitespace)
+                                {
+                                    journal.WriteEntry(i + ", *newline (combined): " + TextUtil.Reveal(c, RevealOptions.All));
+                                    journal.IncrementCleanedWhitespaces();
+                                }
+                                else if (combineSpaces || normalizeWhitespaces)
+                                {
+                                    strb.Append(' ');
+                                    journal.IncrementCleanedWhitespaces();
+                                    journal.WriteEntry(i + ", *newline (-> space): " + TextUtil.Reveal(c, RevealOptions.All));
+                                }
+                                else
+                                {
+                                    strb.Append(c);
+                                    journal.WriteEntry(i + ", +newline: " + TextUtil.Reveal(c, RevealOptions.All));
+                                }
+                            }
+                            else
+                            {
+                                journal.WriteEntry(i + ", -newline: " + TextUtil.Reveal(c, RevealOptions.All));
+                                journal.IncrementCleanedWhitespaces();
+                            }
+                            continue;
+                        case '\u00A0':  // non-breaking space
+                            if (includeNonbreakingSpace)
+                            {
+                                if (combineSpaces && lastWasWhitespace)
+                                {
+                                    journal.WriteEntry(i + ", *nb_space (combined)");
+                                    journal.IncrementCleanedWhitespaces();
+                                }
+                                else if (combineSpaces || normalizeWhitespaces)
+                                {
+                                    strb.Append(' ');
+                                    journal.WriteEntry(i + ", *nb_space (-> space)");
+                                    journal.IncrementCleanedWhitespaces();
+                                }
+                                else
+                                {
+                                    strb.Append(c);
+                                    journal.WriteEntry(i + ", +nb_space");
+                                }
+                            }
+                            else
+                            {
+                                journal.WriteEntry(i + ", -nb_space");
+                                journal.IncrementCleanedWhitespaces();
+                            }
+                            continue;
+                    }
+                    throw new ThisShouldNeverHappenException("The switch block always continues as long as all whitespaces are accounted for.");
                 }
-                else if (TextUtil.IsASCIIPrintable(c, extendedASCII: extendedASCII))  // excluding whitespaces
+                else if (TextUtil.IsASCIIPrintable(c, extendedASCII: false))  // excluding whitespaces
                 {
                     strb.Append(c);
-                    replacementLog.Add(i, (extendedASCII ? "extended " : "") + "ascii - detected " + TextUtil._Reveal(c, RevealOptions.All));
+                    journal.WriteEntry(i + ", +ascii_char: " + c);
                 }
-                else if (TextUtil.IsASCIIControl(c, extendedASCII: extendedASCII))  // excluding whitespaces
+                else if (extendedASCII && TextUtil.IsASCIIPrintable(c, extendedASCII: true))  // excluding whitespaces
                 {
-                    replacementLog.Add(i, "controls - dropped " + TextUtil._Reveal(c, new RevealOptions { RevealControlChars = true }));
+                    strb.Append(c);
+                    journal.WriteEntry(i + ", +extended_ascii_char: " + c);
+                }
+                else if (TextUtil.IsASCIIControl(c, extendedASCII: false))  // excluding whitespaces
+                {
+                    journal.WriteEntry(i + ", -ascii_control: " + TextUtil.Reveal(c, RevealOptions.All));
+                    journal.IncrementCleanedNonprintables();
+                }
+                else if (TextUtil.IsASCIIControl(c, extendedASCII: true))  // still handles extended ASCII controls even if not requested
+                {
+                    journal.WriteEntry(i + ", -extended_ascii_control: " + TextUtil.Reveal(c, RevealOptions.All));
+                    journal.IncrementCleanedNonprintables();
                 }
                 else if (CharLib.OtherNonprintables.Contains(c))
                 {
@@ -133,276 +276,33 @@ namespace Horseshoe.NET.Text.TextClean
                     {
                         case NonprintablesPolicy.Drop:
                         default:
-                            replacementLog.Add(i, "nonprintables - dropped " + TextUtil._Reveal(c, new RevealOptions { RevealAll = true }));
+                            journal.WriteEntry(i + ", -nonprintable: " + TextUtil.Reveal(c, RevealOptions.All));
                             break;
                         case NonprintablesPolicy.Substitute:
                             strb.Append(substitute);
-                            replacementLog.Add(i, "nonprintables - " + TextUtil._Reveal(c, new RevealOptions { RevealAll = true }) + " > " + substitute);
+                            journal.WriteEntry(i + ", *nonprintable: " + TextUtil.Reveal(c, RevealOptions.All) + " > " + substitute);
                             break;
                     }
+                    journal.IncrementCleanedNonprintables();
                 }
                 else if (_TryFindASCIIReplacement(c, out string replacement, out string source, extendedASCII: extendedASCII))
                 {
                     strb.Append(replacement);
-                    replacementLog.Add(i, source + " - replaced " + TextUtil._Reveal(c, RevealOptions.All) + " > " + TextUtil.Reveal(replacement, RevealOptions.All));
+                    journal.WriteEntry(i + ", +ascii_replacement: " + TextUtil.Reveal(c, RevealOptions.All) + " > " + TextUtil.Reveal(replacement, RevealOptions.All) + " -- source: " + source);
+                    journal.IncrementCleanedUnicode();
                 }
                 else
                 {
                     strb.Append(substitute);
-                    replacementLog.Add(i, "[no-replacement-found] " + TextUtil._Reveal(c, RevealOptions.All) + " > " + substitute);
+                    journal.WriteEntry(i + ", *other: " + TextUtil.Reveal(c, RevealOptions.All) + " > " + substitute);
+                    journal.IncrementCleanedOther();
                 }
-                combiningSpaces = false;
             }
-            if (!replacementLog.Any())
-            {
-                replacementLog.Add(-1, "[clean]");
-            }
+
+            // finalize
+            journal.Level--;
             return strb.ToString();
         }
-
-        private static char? _ToASCIIPrintable_Whitespace(char c, int i, IDictionary<int, string> replacementLog, RevealOptions rOptions01, 
-            ref bool combiningSpaces,
-            bool dropSpaces,
-            bool dropTabs,
-            bool dropNewLines,
-            bool dropNonBreakingSpaces,
-            bool allowSpaces,
-            bool allowTabs,
-            bool allowNewLines,
-            bool allowNonBreakingSpaces,
-            bool convertTabs,
-            bool convertNewLines,
-            bool convertNonBreakingSpaces,
-            bool drop,
-            bool allow,
-            bool combine,
-            bool combineExceptNewLines,
-            bool convert
-        )
-        {
-            if (c == ' ')
-            {
-                if (dropSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + rOptions01.ValueIfSpace);
-                }
-                else if (allowSpaces && !combine)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + rOptions01.ValueIfSpace);
-                    return c;
-                }
-                else if (drop)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + rOptions01.ValueIfSpace);
-                }
-                else if (allow && !combine)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + rOptions01.ValueIfSpace);
-                    return c;
-                }
-                else if (combine && combiningSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - combined " + rOptions01.ValueIfSpace);
-                }
-                else if (combine)
-                {
-                    replacementLog.Add(i, "whitespace - combining " + rOptions01.ValueIfSpace);
-                    combiningSpaces = true;
-                    return c;
-                }
-                else
-                {
-                    replacementLog.Add(i, "whitespace - defaulted " + rOptions01.ValueIfSpace);
-                    return c;
-                }
-            }
-            else if (c == '\t')
-            {
-                if (dropTabs)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + rOptions01.ValueIfTab);
-                }
-                else if (allowTabs)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + rOptions01.ValueIfTab);
-                    return c;
-                }
-                else if (convertTabs && !combine)
-                {
-                    replacementLog.Add(i, "whitespace - converted " + rOptions01.ValueIfTab + " to " + rOptions01.ValueIfSpace);
-                    return ' ';
-                }
-                else if (drop)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + rOptions01.ValueIfTab);
-                }
-                else if (allow)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + rOptions01.ValueIfTab);
-                    return c;
-                }
-                else if (combine && combiningSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - combined " + rOptions01.ValueIfTab + " to " + rOptions01.ValueIfSpace);
-                }
-                else if (combine)
-                {
-                    replacementLog.Add(i, "whitespace - combining " + rOptions01.ValueIfTab + " to " + rOptions01.ValueIfSpace);
-                    combiningSpaces = true;
-                    return ' ';
-                }
-                else if (convert)
-                {
-                    replacementLog.Add(i, "whitespace - converted " + rOptions01.ValueIfTab + " to " + rOptions01.ValueIfSpace);
-                    return ' ';
-                }
-                else
-                {
-                    replacementLog.Add(i, "whitespace - defaulted " + rOptions01.ValueIfTab);
-                    return c;
-                }
-            }
-            else if (c.IsNewLine())
-            {
-                if (dropNewLines)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + TextUtil._Reveal(c, rOptions01));
-                }
-                else if (allowNewLines)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + TextUtil._Reveal(c, rOptions01));
-                    return c;
-                }
-                else if (convertNewLines && (!combine || combineExceptNewLines))
-                {
-                    replacementLog.Add(i, "whitespace - converted " + TextUtil._Reveal(c, rOptions01) + " to " + rOptions01.ValueIfSpace);
-                    return ' ';
-                }
-                else if (drop)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + TextUtil._Reveal(c, rOptions01));
-                }
-                else if (allow)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + TextUtil._Reveal(c, rOptions01));
-                    return c;
-                }
-                else if (combine && !combineExceptNewLines && combiningSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - combined " + TextUtil._Reveal(c, rOptions01) + " to " + rOptions01.ValueIfSpace);
-                }
-                else if (combine && !combineExceptNewLines)
-                {
-                    replacementLog.Add(i, "whitespace - combining " + TextUtil._Reveal(c, rOptions01) + " to " + rOptions01.ValueIfSpace);
-                    combiningSpaces = true;
-                    return ' ';
-                }
-                else if (convert)
-                {
-                    replacementLog.Add(i, "whitespace - converted " + TextUtil._Reveal(c, rOptions01) + " to " + rOptions01.ValueIfSpace);
-                    return ' ';
-                }
-                else
-                {
-                    replacementLog.Add(i, "whitespace - defaulted " + TextUtil._Reveal(c, rOptions01));
-                    return c;
-                }
-            }
-            else if (c == '\u00A0')  // 160 - nbsp
-            {
-                if (dropNonBreakingSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + rOptions01.ValueIfNbSpace);
-                    combiningSpaces = false;
-                }
-                else if (allowNonBreakingSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + rOptions01.ValueIfNbSpace);
-                    return c;
-                }
-                else if (convertNonBreakingSpaces && !combine)
-                {
-                    replacementLog.Add(i, "whitespace - converted " + rOptions01.ValueIfNbSpace + " to " + rOptions01.ValueIfSpace);
-                    return ' ';
-                }
-                else if (drop)
-                {
-                    replacementLog.Add(i, "whitespace - dropped " + rOptions01.ValueIfNbSpace);
-                    combiningSpaces = false;
-                }
-                else if (allow)
-                {
-                    replacementLog.Add(i, "whitespace - detected " + rOptions01.ValueIfNbSpace);
-                    return c;
-                }
-                else if (combine && combiningSpaces)
-                {
-                    replacementLog.Add(i, "whitespace - combined " + rOptions01.ValueIfNbSpace + " to " + rOptions01.ValueIfSpace);
-                }
-                else if (combine)
-                {
-                    replacementLog.Add(i, "whitespace - combining " + rOptions01.ValueIfNbSpace + " to " + rOptions01.ValueIfSpace);
-                    combiningSpaces = true;
-                    return ' ';
-                }
-                else if (convert)
-                {
-                    replacementLog.Add(i, "whitespace - converted " + rOptions01.ValueIfNbSpace + " to " + rOptions01.ValueIfSpace);
-                    return ' ';
-                }
-                else
-                {
-                    replacementLog.Add(i, "whitespace - defaulted " + rOptions01.ValueIfNbSpace);
-                    return c;
-                }
-            }
-            else
-            {
-                replacementLog.Add(i, "ERROR: whitespace - missing newline definition: " + TextUtil._Reveal(c, RevealOptions.All) + " - this should never happen");
-            }
-            return null;
-        }
-
-        ///// <summary>
-        ///// Returns '?' for known control chars and search <c>CharLib</c> for an ASCII replacement for almost every other character (whitespaces are ignored)
-        ///// </summary>
-        ///// <param name="c">a char</param>
-        ///// <param name="replacement">a char replacement string</param>
-        ///// <param name="source">category of the replaced char</param>
-        ///// <param name="extendedASCII">whether to prevent replacing extended ASCII chars</param>
-        ///// <returns><c>true</c> if a replacement was found in <c>CharLib</c></returns>
-        //public static bool TryFindPrintableASCIIReplacement(char c, out string replacement, out string source, bool extendedASCII = false)
-        //{
-        //    if (TextUtil.IsWhitespace(c, extendedASCII: true))
-        //    {
-        //        if (!extendedASCII && c == '\u00A0' /* nbsp (160) */)
-        //        {
-        //            replacement = " ";
-        //            source = "whitespace: extended ASCII non-breaking space";
-        //            return true;
-        //        }
-        //        replacement = null;
-        //        source = "[no-replace] \"whitespace\"";
-        //        return false;
-        //    }
-        //    if (TextUtil.IsASCIIPrintable(c, extendedASCII: extendedASCII))  // note: not considering whitespaces as printable for this step, for whitespaces see above
-        //    {
-        //        replacement = null;
-        //        source = "[no-replace] \"ASCII printables\"";
-        //        return false;
-        //    }
-        //    if (TextUtil.IsASCIIControl(c, extendedASCII: true))  // note: not considering whitespaces as controls for this step, for whitespaces see above
-        //    {
-        //        replacement = "?";
-        //        source = "ASCII controls";
-        //        return true;
-        //    }
-        //    if (extendedASCII)
-        //    {
-        //        if (CharLib.AllWhitespaces)
-        //            return _TryFindASCIIReplacement(c, out replacement, out source, extendedASCII);
-        //    }
-        //}
 
         private static IDictionary<string, IDictionary<char, char[]>> UnicodeToASCIIConversions { get; } = CharLib.AllUnicodeToASCIIConversions;
 

@@ -1,66 +1,58 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Mail;
-
 using Microsoft.Extensions.Primitives;
-
-using Horseshoe.NET.Crypto;
 
 namespace Horseshoe.NET.Email
 {
+    /// <summary>
+    /// Email utility methods primarily for Horseshoe.NET
+    /// </summary>
     public static class SmtpUtil
     {
-        public static SmtpClient WhichSmtpClient(SmtpConnectionInfo connectionInfo = null, CryptoOptions options = null)
+        /// <summary>
+        /// Creates an <c>SmtpClient</c> (from connection info or settings) for generating emails
+        /// </summary>
+        /// <param name="connectionInfo">An optional <c>SmtpConnectionInfo</c> instance</param>
+        /// <param name="resultantConnectionInfo"></param>
+        /// <returns></returns>
+        /// <exception cref="ValidationException"></exception>
+        public static SmtpClient GetSmtpClient(SmtpConnectionInfo connectionInfo = null, Action<SmtpConnectionInfo> resultantConnectionInfo = null)
         {
-            if (connectionInfo != null)
+            connectionInfo = connectionInfo?.Clone() ?? new SmtpConnectionInfo();
+            if (!string.IsNullOrEmpty(connectionInfo.Server))
             {
-                return connectionInfo.GetSmtpClient(options: options);
+                connectionInfo.Source = "user-supplied-server";
+                resultantConnectionInfo?.Invoke(connectionInfo);
+                return connectionInfo.GetSmtpClient();
             }
-            else
+            var client = GetDefaultSmtpClient();
+            if (client != null)
             {
-                return GetDefaultSmtpClient(options: options);
+                connectionInfo.Source = EmailSettings.DefaultPort.HasValue
+                    ? "config-server-and-port"
+                    : "config-server";
+                connectionInfo.Server = EmailSettings.DefaultSmtpServer;
+                connectionInfo.Port = EmailSettings.DefaultPort;
+                connectionInfo.Credentials = EmailSettings.DefaultCredentials;
+                resultantConnectionInfo?.Invoke(connectionInfo);
+                return client;
             }
+            throw new ValidationException("No SMTP server info was found");
         }
 
-        public static SmtpClient GetSmtpClient(SmtpConnectionInfo connectionInfo = null, CryptoOptions options = null)
+        internal static SmtpClient GetDefaultSmtpClient()
         {
-            return WhichSmtpClient(connectionInfo: connectionInfo, options: options) ?? throw new UtilityException("No SMTP server info was found");
-        }
-
-        internal static SmtpClient GetDefaultSmtpClient(CryptoOptions options = null)
-        {
-            if (EmailSettings.DefaultSmtpServer == null) return null;
+            if (EmailSettings.DefaultSmtpServer == null) 
+                return null;
             
             var smtpClient = new SmtpClient(EmailSettings.DefaultSmtpServer);
             if (EmailSettings.DefaultPort.HasValue) smtpClient.Port = EmailSettings.DefaultPort.Value;
             if (EmailSettings.DefaultEnableSsl) smtpClient.EnableSsl = true;
             if (EmailSettings.DefaultCredentials.HasValue)
             {
-                if (EmailSettings.DefaultCredentials.Value.HasSecurePassword)
-                {
-                    smtpClient.Credentials = EmailSettings.DefaultCredentials.Value.Domain != null
-                        ? new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, EmailSettings.DefaultCredentials.Value.SecurePassword, EmailSettings.DefaultCredentials.Value.Domain)
-                        : new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, EmailSettings.DefaultCredentials.Value.SecurePassword);
-                }
-                else if (EmailSettings.DefaultCredentials.Value.IsEncryptedPassword)
-                {
-                    smtpClient.Credentials = EmailSettings.DefaultCredentials.Value.Domain != null
-                        ? new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, Decrypt.SecureString(EmailSettings.DefaultCredentials.Value.Password, options: options), EmailSettings.DefaultCredentials.Value.Domain)
-                        : new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, Decrypt.SecureString(EmailSettings.DefaultCredentials.Value.Password, options: options));
-                }
-                else if (EmailSettings.DefaultCredentials.Value.Password != null)
-                {
-                    smtpClient.Credentials = EmailSettings.DefaultCredentials.Value.Domain != null
-                        ? new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, EmailSettings.DefaultCredentials.Value.Password, EmailSettings.DefaultCredentials.Value.Domain)
-                        : new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, EmailSettings.DefaultCredentials.Value.Password);
-                }
-                else
-                {
-                    smtpClient.Credentials = EmailSettings.DefaultCredentials.Value.Domain != null
-                        ? new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, null as string, EmailSettings.DefaultCredentials.Value.Domain)
-                        : new NetworkCredential(EmailSettings.DefaultCredentials.Value.UserName, null as string);
-                }
+                smtpClient.Credentials = EmailSettings.DefaultCredentials.Value.ToNetworkCredential();
             }
             return smtpClient;
         }

@@ -1,25 +1,18 @@
 ﻿namespace Horseshoe.NET.IO.FileFilter
 {
+    /// <summary>
+    /// The filter mode dictates which items to include based on criteria matching.
+    /// </summary>
     public enum FilterMode
     {
         /// <summary>
-        /// Matches item if all criteria is met
+        /// Items match if criteria is met.
         /// </summary>
-        FilterInAll,
+        Include,
 
         /// <summary>
-        /// Matches item if any criteria is met
+        /// Exclude items that match the criteria, include all othere.
         /// </summary>
-        FilterInAny,
-
-        /// <summary>
-        /// Matches item if not all criteria is met
-        /// </summary>
-        FilterOutAll,
-
-        /// <summary>
-        /// Matches item if not any criteria is met
-        /// </summary>
-        FilterOutAny
+        IncludeAllExcept
     }
 }

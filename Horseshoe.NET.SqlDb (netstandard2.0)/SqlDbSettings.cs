@@ -11,7 +11,7 @@ namespace Horseshoe.NET.SqlDb
         static string _defaultConnectionStringName;
 
         /// <summary>
-        /// Gets or sets the default SQL Server connection string name used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:ConnectionStringName)
+        /// Gets or sets the default SQL Server connection string name used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:ConnectionStringName)
         /// </summary>
         public static string DefaultConnectionStringName
         {
@@ -30,7 +30,7 @@ namespace Horseshoe.NET.SqlDb
         private static bool _isEncryptedPassword;
 
         /// <summary>
-        /// Gets the default SQL Server connection string used by DataAccess.  Note: Overrides other settings (i.e. OrganizationalDefaultSettings: key = SqlDb.ConnectionString)
+        /// Gets the default SQL Server connection string used by Horseshoe.NET.  Note: Overrides other settings (i.e. OrganizationalDefaultSettings: key = SqlDb.ConnectionString)
         /// </summary>
         public static string DefaultConnectionString
         {
@@ -38,7 +38,7 @@ namespace Horseshoe.NET.SqlDb
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
                     ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:SqlDb:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.GetString("SqlDb.ConnectionString"), OrganizationalDefaultSettings.GetBoolean("SqlDb.IsEncryptedPassword"));
+                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("SqlDb.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("SqlDb.IsEncryptedPassword"));
             }
         }
 
@@ -51,7 +51,7 @@ namespace Horseshoe.NET.SqlDb
         }
 
         /// <summary>
-        /// Sets the default SQL Server connection string used by DataAccess. 
+        /// Sets the default SQL Server connection string used by Horseshoe.NET. 
         /// </summary>
         public static void SetDefaultConnectionString(string connectionString, bool isEncryptedPassword = false)
         {
@@ -62,7 +62,7 @@ namespace Horseshoe.NET.SqlDb
         private static DbServer _defaultServer;
 
         /// <summary>
-        /// Gets or sets the default SQL Server instance used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:Server and OrganizationalDefaultSettings: key = SqlDb.Server)
+        /// Gets or sets the default SQL Server instance used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:Server and OrganizationalDefaultSettings: key = SqlDb.Server)
         /// </summary>
         public static DbServer DefaultServer
         {
@@ -72,7 +72,7 @@ namespace Horseshoe.NET.SqlDb
                 {
                     _defaultServer =      // DBSVR01 (lookup / versionless) or 'NAME'11.22.33.44:9999;2012 or DBSVR02;2008R2
                         Config.Get("Horseshoe.NET:SqlDb:Server", parseFunc: (raw) => DbServer.Parse(raw)) ??
-                        OrganizationalDefaultSettings.Get("SqlDb.Server", parseFunc: (raw) => DbServer.Parse((string)raw));
+                        DbServer.Parse(OrganizationalDefaultSettings.Get<string>("SqlDb.Server"));
                 }
                 return _defaultServer;
             }
@@ -85,7 +85,7 @@ namespace Horseshoe.NET.SqlDb
         private static string _defaultDataSource;
 
         /// <summary>
-        /// Gets or sets the default SQL Server data source used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:DataSource and OrganizationalDefaultSettings: key = SqlDb.DataSource)
+        /// Gets or sets the default SQL Server data source used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:DataSource and OrganizationalDefaultSettings: key = SqlDb.DataSource)
         /// </summary>
         public static string DefaultDataSource
         {
@@ -93,7 +93,7 @@ namespace Horseshoe.NET.SqlDb
             {
                 return _defaultDataSource         // e.g. DBSVR01
                     ?? Config.Get("Horseshoe.NET:SqlDb:DataSource")
-                    ?? OrganizationalDefaultSettings.GetString("SqlDb.DataSource")
+                    ?? OrganizationalDefaultSettings.Get<string>("SqlDb.DataSource")
                     ?? DefaultServer?.DataSource;
             }
             set
@@ -105,7 +105,7 @@ namespace Horseshoe.NET.SqlDb
         private static string _defaultInitialCatalog;
 
         /// <summary>
-        /// Gets or sets the default SQL Server initial catalog (database) used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:InitialCatalog and OrganizationalDefaultSettings: key = SqlDb.InitialCatalog)
+        /// Gets or sets the default SQL Server initial catalog (database) used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:InitialCatalog and OrganizationalDefaultSettings: key = SqlDb.InitialCatalog)
         /// </summary>
         public static string DefaultInitialCatalog
         {
@@ -113,7 +113,7 @@ namespace Horseshoe.NET.SqlDb
             {
                 return _defaultInitialCatalog           // e.g. CustomerDatabase
                     ?? Config.Get("Horseshoe.NET:SqlDb:InitialCatalog")
-                    ?? OrganizationalDefaultSettings.GetString("SqlDb.InitialCatalog");
+                    ?? OrganizationalDefaultSettings.Get<string>("SqlDb.InitialCatalog");
             }
             set
             {
@@ -124,7 +124,7 @@ namespace Horseshoe.NET.SqlDb
         private static Credential? _defaultCredentials;
 
         /// <summary>
-        /// Gets or sets the default SQL Server credentials used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:UserName|Password and OrganizationalDefaultSettings: key = SqlDb.Credentials)
+        /// Gets or sets the default SQL Server credentials used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:UserName|Password and OrganizationalDefaultSettings: key = SqlDb.Credentials)
         /// </summary>
         public static Credential? DefaultCredentials
         {
@@ -137,7 +137,7 @@ namespace Horseshoe.NET.SqlDb
                         Config.Get("Horseshoe.NET:SqlDb:Password"), 
                         isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:SqlDb:IsEncryptedPassword")
                     )
-                    ?? OrganizationalDefaultSettings.GetNullable<Credential>("SqlDb.Credentials");
+                    ?? OrganizationalDefaultSettings.Get<Credential?>("SqlDb.Credentials");
             }
             set
             {
@@ -148,7 +148,7 @@ namespace Horseshoe.NET.SqlDb
         private static IDictionary<string, string> _defaultAdditionalConnectionAttributes;
 
         /// <summary>
-        /// Gets or sets the default additional SQL Server connection attributes used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:AdditionalConnectionAttributes and OrganizationalDefaultSettings: key = SqlDb.AdditionalConnectionAttributes)
+        /// Gets or sets the default additional SQL Server connection attributes used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:AdditionalConnectionAttributes and OrganizationalDefaultSettings: key = SqlDb.AdditionalConnectionAttributes)
         /// </summary>
         public static IDictionary<string, string> DefaultAdditionalConnectionAttributes
         {
@@ -156,7 +156,7 @@ namespace Horseshoe.NET.SqlDb
             {
                 return _defaultAdditionalConnectionAttributes         // e.g. Integrated Security=SSQI|Attribute1=Value1
                     ?? Config.Get("Horseshoe.NET:SqlDb:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw))
-                    ?? OrganizationalDefaultSettings.Get("SqlDb.AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes((string)raw));
+                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("SqlDb.AdditionalConnectionAttributes"));
             }
             set
             {
@@ -164,22 +164,22 @@ namespace Horseshoe.NET.SqlDb
             }
         }
 
-        private static int? _defaultTimeout;
+        private static int? _defaultConnectionTimeout;
 
         /// <summary>
-        /// Gets or sets the default SQL Server timeout used by DataAccess.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:Timeout and OrganizationalDefaultSettings: key = SqlDb.Timeout)
+        /// Gets or sets the default SQL Server timeout used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:Timeout and OrganizationalDefaultSettings: key = SqlDb.Timeout)
         /// </summary>
-        public static int? DefaultTimeout
+        public static int? DefaultConnectionTimeout
         {
             get
             {
-                return _defaultTimeout         // e.g. 30 (Microsoft default)
-                    ?? Config.Get<int?>("Horseshoe.NET:SqlDb:Timeout")
-                    ?? OrganizationalDefaultSettings.GetNInt("SqlDb.Timeout");
+                return _defaultConnectionTimeout         // e.g. 30 (Microsoft default)
+                    ?? Config.Get<int?>("Horseshoe.NET:SqlDb:ConnectionTimeout")
+                    ?? OrganizationalDefaultSettings.Get<int?>("SqlDb.ConnectionTimeout");
             }
             set
             {
-                _defaultTimeout = value;
+                _defaultConnectionTimeout = value;
             }
         }
 
@@ -196,7 +196,7 @@ namespace Horseshoe.NET.SqlDb
                 {
                     _serverList =          // e.g. DBSVR01|'NAME'11.22.33.44:9999;2012|DBSVR02;2008R2
                         Config.Get("Horseshoe.NET:SqlDb:ServerList", parseFunc: (raw) => DbServer.ParseList(raw)) ??
-                        OrganizationalDefaultSettings.Get("SqlDb.ServerList", parseFunc: (raw) => DbServer.ParseList((string)raw));
+                        DbServer.ParseList(OrganizationalDefaultSettings.Get<string>("SqlDb.ServerList"));
                 }
                 return _serverList;
             }

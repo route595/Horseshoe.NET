@@ -6,7 +6,7 @@ using System.Runtime.Versioning;
 using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
@@ -41,7 +41,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <typeparam name="T">Subclass of <c>ConsoleXApp</c> (typically Program.cs)</typeparam>
         public static void StartConsoleApp<T>() where T : ConsoleXApp
         {
-            ObjectUtil.GetDefaultInstance<T>().Run();
+            TypeUtil.GetDefaultInstance<T>().Run();
         }
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace Horseshoe.NET.ConsoleX
             var list = new List<MenuObject>();
             foreach (var type in routineTypes)
             {
-                var routine = ObjectUtil.GetInstance<RoutineX>(type);
+                var routine = (RoutineX)TypeUtil.GetInstance(type);
                 routine.OnError = OnMainMenuRoutineError;
                 routine.Configure(ConfigureMainMenuRoutines);
                 list.Add(routine);

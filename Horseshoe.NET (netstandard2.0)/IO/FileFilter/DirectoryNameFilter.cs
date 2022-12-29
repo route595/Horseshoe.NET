@@ -1,63 +1,69 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using Microsoft.Extensions.Primitives;
+
+using Horseshoe.NET.Compare;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
-    public class DirectoryNameFilter : IDirectoryFilter
+    /// <summary>
+    /// A <c>DirectoryFilter</c> implementation based on directory name
+    /// </summary>
+    public class DirectoryNameFilter : DirectoryFilter
     {
-        public Regex DirNameRegex { get; }
+        /// <summary>
+        /// Everything needed to perform a standard comparison bundled into a single class.
+        /// </summary>
+        public IComparator<string> Comparator { get; }
 
-        public FilterMode FilterMode { get; }
-
-        public bool CaseSensitive => (DirNameRegex.Options & RegexOptions.IgnoreCase) == RegexOptions.IgnoreCase;
-
-        public DirectoryNameFilter(Regex dirNameRegex, FilterMode filterMode = default)
+        /// <summary>
+        /// Creates a new <c>DirectoryNameFilter</c>.
+        /// </summary>
+        /// <param name="mode">Specifies how directory names should match the search value(s) to be included in the results.</param>
+        /// <param name="directoryNameCriteria">
+        /// <para>
+        /// Directory [partial] name(s) upon which to perform the comparison search.
+        /// </para>
+        /// <para>
+        /// Examples of search values (see quotes):
+        /// <code>
+        /// filter = new DirectoryNameFilter(CompareMode.Equals, "Documents");
+        /// filter = new DirectoryNameFilter(CompareMode.EndsWith, "_bak");
+        /// filter = new DirectoryNameFilter(CompareMode.In, new[] { "bin", "obj" });
+        /// filter = new DirectoryNameFilter(CompareMode.Between, new[] { "a", "gzz" });
+        /// </code>
+        /// </para>
+        /// </param>
+        /// <param name="ignoreCase">
+        /// <para>
+        /// Set to <c>true</c> (recommended) to ignore the letter case of the directory names being compared by this filter, default is <c>false</c>.
+        /// </para>
+        /// <para>
+        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
+        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
+        /// </para>
+        /// </param>
+        /// <param name="filterMode">Optional, dictates which items to include based on criteria matching.</param>
+        public DirectoryNameFilter(CompareMode mode, StringValues directoryNameCriteria, bool ignoreCase = false, FilterMode filterMode = default)
         {
-            DirNameRegex = dirNameRegex;
+            // validation
+            switch (mode)
+            {
+                case CompareMode.IsNull:
+                case CompareMode.IsNullOrWhitespace:
+                    throw new ValidationException("This compare mode is not compatible with this filter: " + mode);
+            }
+
+            Comparator = Horseshoe.NET.Compare.Comparator.Build(mode, directoryNameCriteria, ignoreCase: ignoreCase);
             FilterMode = filterMode;
         }
 
-        public DirectoryNameFilter(string dirNamePattern, bool caseSensitive = false, FilterMode filterMode = default) : this(new[] { dirNamePattern }, caseSensitive: caseSensitive, filterMode: filterMode)
+        /// <summary>
+        /// Indicates whether the supplied directory name constitutes a criteria match.
+        /// </summary>
+        /// <param name="dir">a directory path</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public override bool IsMatch(DirectoryPath dir)
         {
+            return Comparator.IsMatch(dir.Name);
         }
-
-        public DirectoryNameFilter(IEnumerable<string> dirNamePatterns, bool caseSensitive = false, FilterMode filterMode = default)
-        {
-            if (dirNamePatterns == null)
-                throw new ValidationException("Invalid filter: must supply one or more directory name patterns");
-            if (dirNamePatterns.Any(e => string.IsNullOrWhiteSpace(e)))
-                throw new ValidationException("Invalid filter: directory name patterns cannot be null or blank");
-            switch (dirNamePatterns.Count())
-            {
-                case 0:
-                    throw new ValidationException("Invalid filter: must supply one or more directory name patterns");
-                case 1:
-                    DirNameRegex = caseSensitive
-                        ? new Regex("^" + dirNamePatterns.Single() + "$")
-                        : new Regex("^" + dirNamePatterns.Single() + "$", RegexOptions.IgnoreCase);
-                    break;
-                default:
-                    DirNameRegex = caseSensitive
-                        ? new Regex("^(" + string.Join("|", dirNamePatterns.Select(s => "(" + s + ")")) + ")$")
-                        : new Regex("^(" + string.Join("|", dirNamePatterns.Select(s => "(" + s + ")")) + ")$", RegexOptions.IgnoreCase);
-                    break;
-            }
-            FilterMode = filterMode;
-        }
-
-        public bool IsMatch(DirectoryPath dir)
-        {
-            switch (FilterMode)
-            {
-                case FilterMode.FilterInAll:
-                case FilterMode.FilterInAny:
-                default:
-                    return DirNameRegex.IsMatch(dir.Name);
-                case FilterMode.FilterOutAll:
-                case FilterMode.FilterOutAny:
-                    return !DirNameRegex.IsMatch(dir.Name);
-            }
-        }            
     }
 }

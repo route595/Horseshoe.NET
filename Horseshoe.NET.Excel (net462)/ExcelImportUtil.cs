@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Horseshoe.NET.DataImport;
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.Excel
 {
@@ -139,7 +139,7 @@ namespace Horseshoe.NET.Excel
                         value = diex;
                         break;
                     case DataErrorHandlingPolicy.IgnoreAndUseDefaultValue:
-                        value = ObjectUtil.GetDefault(column.DataType);
+                        value = TypeUtil.GetDefaultValue(column.DataType);
                         break;
                 }
             }

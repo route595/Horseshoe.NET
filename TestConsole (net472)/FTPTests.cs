@@ -25,7 +25,9 @@ namespace TestConsole
                     (
                         "hello.txt",
                         "Hello World!",
-                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString)
+                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
+                        fileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
+                        requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                 }
             ),
@@ -38,7 +40,9 @@ namespace TestConsole
                     (
                         "hello.txt",
                         "Hello World!",
-                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString.Replace("ftp://", "ftps://"))
+                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString.Replace("ftp://", "ftps://")),
+                        fileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
+                        requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                 }
             ),
@@ -50,7 +54,9 @@ namespace TestConsole
                     var stream = Ftp.DownloadFile
                     (
                         "hello.txt",
-                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString)
+                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
+                        fileDownloaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Download results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
+                        requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                     Console.WriteLine("File length: " + stream.Length);
                     Console.WriteLine("File contents: " + Encoding.Default.GetString(stream.ToArray()));
@@ -64,7 +70,9 @@ namespace TestConsole
                     Ftp.DeleteFile
                     (
                         "hello.txt",
-                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString)
+                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
+                        fileDeleted: (fileName, statusCode, statusDescription) => Console.WriteLine("Delete results: " + fileName + " - " + statusDescription),
+                        requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                 }
             ),
@@ -75,7 +83,9 @@ namespace TestConsole
                 {
                     var dirContents = Ftp.ListDirectoryContents
                     (
-                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString)
+                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
+                        directoryContentsListed: (count, statusCode, statusDescription) => Console.WriteLine("Dir listing results: x" + count + " - " + statusDescription),
+                        requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                     Console.WriteLine("Directory contents:");
                     Console.WriteLine(dirContents.Any() ? string.Join(Environment.NewLine, dirContents) : "[0 results]");
@@ -84,7 +94,9 @@ namespace TestConsole
                     dirContents = Ftp.ListDirectoryContents
                     (
                         fileMask: FtpFileMasks.Txt,
-                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString)
+                        connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
+                        directoryContentsListed: (count, statusCode, statusDescription) => Console.WriteLine("Dir listing results: x" + count + " - " + statusDescription),
+                        requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                     Console.WriteLine("Directory contents (.txt files only):");
                     Console.WriteLine(dirContents.Any() ? string.Join(Environment.NewLine, dirContents) : "[0 results]");
@@ -100,7 +112,8 @@ namespace TestConsole
                     (
                         "hello.txt",
                         "Hello World!",
-                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString)
+                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString),
+                        fileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription)
                     );
                 }
             ),
@@ -112,7 +125,8 @@ namespace TestConsole
                     var sstream = Sftp.DownloadFile
                     (
                         "hello.txt",
-                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString)
+                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString),
+                        fileDownloaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Download results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription)
                     );
                     Console.WriteLine("File length: " + sstream.Length);
                     Console.WriteLine("File contents: " + Encoding.Default.GetString(sstream.ToArray()));
@@ -126,7 +140,8 @@ namespace TestConsole
                     Sftp.DeleteFile
                     (
                         "hello.txt",
-                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString)
+                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString),
+                        fileDeleted: (fileName, statusCode, statusDescription) => Console.WriteLine("Delete results: " + fileName + " - " + statusDescription)
                     );
                 }
             ),
@@ -137,7 +152,8 @@ namespace TestConsole
                 {
                     var sdirContents = Sftp.ListDirectoryContents
                     (
-                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString)
+                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString),
+                        directoryContentsListed: (count, statusCode, statusDescription) => Console.WriteLine("Dir listing results: x" + count + " - " + statusDescription)
                     );
                     Console.WriteLine("Directory contents:");
                     Console.WriteLine(string.Join(Environment.NewLine, sdirContents));
@@ -146,7 +162,8 @@ namespace TestConsole
                     var dirContents = Sftp.ListDirectoryContents
                     (
                         fileMask: FtpFileMasks.Txt,
-                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString)
+                        connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString),
+                        directoryContentsListed: (count, statusCode, statusDescription) => Console.WriteLine("Dir listing results: x" + count + " - " + statusDescription)
                     );
                     Console.WriteLine("Directory contents (.txt files only):");
                     Console.WriteLine(string.Join(Environment.NewLine, dirContents));
@@ -201,13 +218,5 @@ namespace TestConsole
 
         static readonly string ftpPseudoConnectionString = "ftp://username@11.22.33.44/dir/subdir?password=password";
         static readonly string sftpPseudoConnectionString = "sftp://username@11.22.33.44//root/subdir?password=password";
-
-        static FTPTests()
-        {
-            Ftp.RequestUriCreated += (uri) => Console.WriteLine("URI: " + uri);
-            Ftp.FileUploaded += (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription);
-            Ftp.FileDeleted += (fileName, statusCode, statusDescription) => Console.WriteLine("Delete results: " + fileName + " - " + statusDescription);
-            Ftp.DirectoryContentsListed += (count, statusCode, statusDescription) => Console.WriteLine("Dir listing results: x" + count + " - " + statusDescription);
-        }
     }
 }

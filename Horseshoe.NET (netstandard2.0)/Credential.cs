@@ -1,96 +1,98 @@
-﻿using System;
-using System.Net;
-using System.Security;
+﻿using System.Net;
 
 using Horseshoe.NET.Crypto;
 
 namespace Horseshoe.NET
 {
-    public partial struct Credential
+    /// <summary>
+    /// A generic user crediential designed to be compatible with all types of credentials across
+    /// the Horseshoe.NET platform (e.g. network credentials, database credentials, etc.).
+    /// </summary>
+    public readonly struct Credential
     {
+        /// <summary>
+        /// The user name or ID.
+        /// </summary>
         public string UserName { get; }
 
-        public string Password { get; }
+        /// <summary>
+        /// The user password.
+        /// </summary>
+        public Password Password { get; }
 
-        public bool IsEncryptedPassword { get; }
-
-        public SecureString SecurePassword { get; }
-
-        public bool HasSecurePassword => SecurePassword != null;
-
+        /// <summary>
+        /// The network domain.  Applies mainly to credentialed HTTP requests.
+        /// </summary>
         public string Domain { get; }
 
-        private Credential(string userName, string domain = null)
+        /// <summary>
+        /// Creates a new <c>Credential</c>.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <param name="domain">Optional, the network domain.</param>
+        public Credential(string userName, Password password, string domain = null)
         {
-            UserName = userName ?? throw new ArgumentNullException(nameof(userName));
-            Password = null;
-            IsEncryptedPassword = false;
-            SecurePassword = null;
+            UserName = userName;
+            Password = password;
             Domain = domain;
         }
 
-        public Credential(string userName, string password, bool isEncryptedPassword = false, string domain = null) : this(userName, domain: domain)
-        {
-            Password = password;
-            IsEncryptedPassword = password != null && isEncryptedPassword;
-        }
-
-        public Credential(string userName, SecureString securePassword, string domain = null) : this(userName, domain: domain)
-        {
-            SecurePassword = securePassword ?? throw new ArgumentNullException(nameof(securePassword));
-        }
-
-        public static Credential? Build(string userName, string password, bool isEncryptedPassword = false, string domain = null)
+        /// <summary>
+        /// Builds a <c>Credential</c> from its constituent parts.
+        /// </summary>
+        /// <param name="userName">A user name or ID.</param>
+        /// <param name="password">A password <c>string</c>.</param>
+        /// <param name="isEncryptedPassword"></param>
+        /// <param name="cryptoOptions"></param>
+        /// <param name="domain">Optional, the network domain.</param>
+        /// <returns>A <c>Credential</c> or <c>null</c> if <c>userName == null</c>.</returns>
+        public static Credential? Build(string userName, string password, bool isEncryptedPassword, CryptoOptions cryptoOptions = null, string domain = null)
         {
             if (userName == null)
                 return null;
-            return new Credential(userName, password, isEncryptedPassword: isEncryptedPassword, domain: domain);
+            return new Credential(userName, new Password(password, isEncryptedPassword, cryptoOptions), domain: domain);
         }
 
-        public static Credential? Build(string userName, SecureString securePassword, string domain = null)
+        /// <summary>
+        /// Builds a <c>Credential</c> from its constituent parts.
+        /// </summary>
+        /// <param name="userName">A user name or ID.</param>
+        /// <param name="password">A <c>Password</c> (can substitute with a password <c>string</c> or <c>SecureString</c>).</param>
+        /// <param name="domain">Optional, the network domain.</param>
+        /// <returns>A <c>Credential</c> or <c>null</c> if <c>userName == null</c>.</returns>
+        public static Credential? Build(string userName, Password password, string domain = null)
         {
             if (userName == null)
                 return null;
-            return new Credential(userName, securePassword, domain: domain);
+            return new Credential(userName, password, domain: domain);
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
-            string pwdMsg = "no-password";
-            if (HasSecurePassword)
-            {
-                pwdMsg = "secure-password";
-            }
-            else if (IsEncryptedPassword)
-            {
-                pwdMsg = "encrypted-password";
-            }
-            else if (Password != null)
-            {
-                pwdMsg = "plaintext-password";
-            }
+            string pwdMsg = Password.HasSecurePassword
+                ? "has-password"
+                : "no-password";
+
             return UserName + " [" + pwdMsg + "]" + (Domain != null ? " @" + Domain : "");
         }
 
+        /// <summary>
+        /// Converts this <c>Credential</c> to a <c>NetworkCredential</c>.
+        /// </summary>
+        /// <returns></returns>
         public NetworkCredential ToNetworkCredential()
         {
-            if (HasSecurePassword)
-            {
-                return Domain != null
-                    ? new NetworkCredential(UserName, SecurePassword, Domain)
-                    : new NetworkCredential(UserName, SecurePassword);
-            }
-            else if (IsEncryptedPassword)
-            {
-                return Domain != null
-                    ? new NetworkCredential(UserName, Decrypt.SecureString(Password), Domain)
-                    : new NetworkCredential(UserName, Decrypt.SecureString(Password));
-            }
             return Domain != null
                 ? new NetworkCredential(UserName, Password, Domain)
                 : new NetworkCredential(UserName, Password);
         }
 
+        /// <summary>
+        /// Implicitly casts this <c>Credential</c> as a <c>NetworkCredential</c>.
+        /// </summary>
+        /// <param name="credentials"></param>
         public static implicit operator NetworkCredential(Credential credentials) => credentials.ToNetworkCredential();
     }
 }

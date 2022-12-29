@@ -7,13 +7,12 @@ using System.Text;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Odbc
 {
     public static class OdbcUtil
     {
-        public static string BuildConnectionString(string dataSource, Credential? credentials, IDictionary<string, string> additionalConnectionAttributes, CryptoOptions cryptoOptions)
+        public static string BuildConnectionString(string dataSource, Credential? credentials = null, IDictionary<string, string> additionalConnectionAttributes = null, int? connectionTimeout = null)
         {
             if (dataSource == null)
             {
@@ -27,18 +26,7 @@ namespace Horseshoe.NET.Odbc
             if (credentials.HasValue)
             {
                 sb.Append(";UID=" + credentials.Value.UserName);
-                if (credentials.Value.HasSecurePassword)
-                {
-                    sb.Append(";PWD=" + credentials.Value.SecurePassword.ToUnsecureString());
-                }
-                else if (credentials.Value.IsEncryptedPassword)
-                {
-                    sb.Append(";PWD=" + Decrypt.String(credentials.Value.Password, options: cryptoOptions));
-                }
-                else if (credentials.Value.Password != null)
-                {
-                    sb.Append(";PWD=" + credentials.Value.Password);
-                }
+                sb.Append(";PWD=" + credentials.Value.Password.ToUnsecurePassword());
             }
 
             // additional attributes
@@ -50,27 +38,77 @@ namespace Horseshoe.NET.Odbc
                 }
             }
 
+            // additional attributes
+            // ref https://stackoverflow.com/questions/20142746/what-is-connect-timeout-in-sql-server-connection-string
+            if (connectionTimeout.HasValue)
+            {
+                sb.Append(";Connection Timeout=" + connectionTimeout);
+            }
+
             return sb.ToString();
         }
 
-        public static string BuildConnectionStringFromConfig(CryptoOptions cryptoOptions)
+        public static string BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(OdbcSettings.DefaultDataSource, OdbcSettings.DefaultCredentials, OdbcSettings.DefaultAdditionalConnectionAttributes, cryptoOptions);
+            return BuildConnectionString(OdbcSettings.DefaultDataSource, credentials: OdbcSettings.DefaultCredentials, additionalConnectionAttributes: OdbcSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OdbcSettings.DefaultConnectionTimeout);
         }
 
         public static OdbcConnection LaunchConnection
         (
             OdbcConnectionInfo connectionInfo = null,
             CryptoOptions cryptoOptions = null,
-            Action<OdbcConnectionInfo> resultantConnectionInfo = null
+            TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(cryptoOptions: cryptoOptions));
-            resultantConnectionInfo?.Invoke(connectionInfo);
-
-            var conn = new OdbcConnection(connectionInfo.ConnectionString);
+            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            var conn = new OdbcConnection
+            (
+                connectionInfo.IsEncryptedPassword
+                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: cryptoOptions)
+                  : connectionInfo.ConnectionString
+            );
             conn.Open();
             return conn;
+        }
+
+        internal static OdbcCommand BuildTextCommand
+        (
+            OdbcConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OdbcCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.Text,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
+        internal static OdbcCommand BuildProcedureCommand
+        (
+            OdbcConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OdbcCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.StoredProcedure,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
         }
 
         internal static OdbcCommand BuildCommand
@@ -78,9 +116,9 @@ namespace Horseshoe.NET.Odbc
             OdbcConnection conn,
             CommandType commandType,
             string commandText,
-            IEnumerable<DbParameter> parameters = null,
-            int? timeout = null,
-            Action<OdbcCommand> modifyCommand = null
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OdbcCommand> alterCommand
         )
         {
             var cmd = new OdbcCommand
@@ -120,11 +158,11 @@ namespace Horseshoe.NET.Odbc
                     }
                 }
             }
-            if ((timeout ?? OdbcSettings.DefaultTimeout).TryHasValue(out int value))
+            if (commandTimeout.TryHasValue(out int value))
             {
                 cmd.CommandTimeout = value;
             }
-            modifyCommand?.Invoke(cmd);
+            alterCommand?.Invoke(cmd);
             return cmd;
         }
     }

@@ -45,10 +45,10 @@ namespace TestConsole.CSharpTests
                         Console.WriteLine("Months Time Span : " + yearSpan.MonthsTimeSpan);
                         Console.WriteLine("Days Time Span   : " + yearSpan.DaysTimeSpan);
                         Console.WriteLine("ToString()       : " + yearSpan);
-                        Console.WriteLine("ToString(max=3)  : " + yearSpan.ToString(new YearSpan.RangeOptions { MaxRange = 3 }));
-                        Console.WriteLine("ToString(auto)   : " + yearSpan.ToString(YearSpan.SetOptions.AllAuto));
-                        Console.WriteLine("ToString(on)     : " + yearSpan.ToString(YearSpan.SetOptions.AllOn));
-                        Console.WriteLine("ToString(custom) : " + yearSpan.ToString(new YearSpan.SetOptions{ DisplayYears = YearSpan.TimePartDisplay.Auto, BothYearLabels = "y", DisplayMonths = YearSpan.TimePartDisplay.Auto, BothMonthLabels = "m", DisplayDays = YearSpan.TimePartDisplay.On, BothDayLabels = "d" }));
+                        Console.WriteLine("ToString(max=3)  : " + yearSpan.ToString(new RangeOptions { MaxRange = 3 }));
+                        Console.WriteLine("ToString(auto)   : " + yearSpan.ToString(SetOptions.Auto));
+                        Console.WriteLine("ToString(on)     : " + yearSpan.ToString(SetOptions.On));
+                        Console.WriteLine("ToString(custom) : " + yearSpan.ToString(new SetOptions{ DisplayYears = TimePartDisplay.Auto, BothYearLabels = "y", DisplayMonths = TimePartDisplay.Auto, BothMonthLabels = "m", DisplayDays = TimePartDisplay.On, BothDayLabels = "d" }));
                         Console.WriteLine("Years            : " + yearSpan.Years);
                         Console.WriteLine("Months           : " + yearSpan.Months);
                         Console.WriteLine("Days             : " + yearSpan.Days);

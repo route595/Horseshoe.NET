@@ -34,7 +34,7 @@ namespace Horseshoe.NET.Http
             {
                 return _defaultWebServiceCredentials
                     ?? Credential.Build(Config.Get("Horseshoe.NET:Http:UserName"), Config.Get("Horseshoe.NET:Http:Password"), isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:Http:IsEncryptedPassword"), domain: DefaultDomain)
-                    ?? OrganizationalDefaultSettings.GetNullable<Credential>("Http.Credentials");
+                    ?? OrganizationalDefaultSettings.Get<Credential?>("Http.Credentials");
             }
             set
             {

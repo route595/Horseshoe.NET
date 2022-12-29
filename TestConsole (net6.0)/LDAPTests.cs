@@ -63,9 +63,9 @@ namespace TestConsole
                     {
                         var userName = PromptX.Input("User name");
                         var password = PromptX.Password("Password");
-                        CachedCredentials = new Credential(userName, password, isEncryptedPassword: false, domain: "lgeenergy.int");
+                        CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
-                    CachedPerson = LdapExec.Login_AD(CachedCredentials.Value.UserName, CachedCredentials.Value.Password, domain: CachedCredentials.Value.Domain);
+                    CachedPerson = LdapExec.Login_AD(CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain);
                     Console.WriteLine("Logged in: " + CachedPerson);
                     Console.WriteLine("OU: " + CachedPerson.Ou);
                     Console.WriteLine("OU (rvrs): " + CachedPerson.Ou.ShortDn.ToReversePathString());
@@ -81,10 +81,10 @@ namespace TestConsole
                     {
                         var userName = PromptX.Input("User name");
                         var password = PromptX.Password("Password");
-                        CachedCredentials = new Credential(userName, password, isEncryptedPassword: false, domain: "lgeenergy.int");
-                        CachedPerson = LdapExec.Login_AD(CachedCredentials.Value.UserName, CachedCredentials.Value.Password, domain: CachedCredentials.Value.Domain);
+                        CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
+                        CachedPerson = LdapExec.Login_AD(CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain);
                     }
-                    var people = LdapExec.ListPeopleByOu_AD(CachedPerson.Ou, CachedCredentials.Value.UserName, CachedCredentials.Value.Password, domain: CachedCredentials.Value.Domain);
+                    var people = LdapExec.ListPeopleByOu_AD(CachedPerson.Ou, CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain);
                     int counter = 10;
                     foreach (var person in people)
                     {
@@ -107,9 +107,9 @@ namespace TestConsole
                     {
                         var userName = PromptX.Input("User name");
                         var password = PromptX.Password("Password");
-                        CachedCredentials = new Credential(userName, password, isEncryptedPassword: false, domain: "lgeenergy.int");
+                        CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
-                    var ous = LdapExec.ListOus(CachedCredentials.Value.UserName, CachedCredentials.Value.Password, domain: CachedCredentials.Value.Domain, ou: null, recursive: false);
+                    var ous = LdapExec.ListOus(CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain, ou: null, recursive: false);
                     int counter = 10;
                     foreach (var ou in ous)
                     {
@@ -131,9 +131,9 @@ namespace TestConsole
                     {
                         var userName = PromptX.Input("User name");
                         var password = PromptX.Password("Password");
-                        CachedCredentials = new Credential(userName, password, isEncryptedPassword: false, domain: "lgeenergy.int");
+                        CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
-                    var ous = LdapExec.ListOus(CachedCredentials.Value.UserName, CachedCredentials.Value.Password, domain: CachedCredentials.Value.Domain, ou: null, recursive: true);
+                    var ous = LdapExec.ListOus(CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain, ou: null, recursive: true);
                     int counter = 10;
                     foreach (var ou in ous)
                     {
@@ -155,10 +155,10 @@ namespace TestConsole
                     {
                         var userName = PromptX.Input("User name");
                         var password = PromptX.Password("Password");
-                        CachedCredentials = new Credential(userName, password, isEncryptedPassword: false, domain: "lgeenergy.int");
+                        CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
                     var searchText = PromptX.Input("Search text");
-                    var people = LdapExec.SearchPeople_AD(searchText, CachedCredentials.Value.UserName, CachedCredentials.Value.Password, domain: CachedCredentials.Value.Domain, recursive: true);
+                    var people = LdapExec.SearchPeople_AD(searchText, CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain, recursive: true);
                     int counter = 10;
                     foreach (var person in people)
                     {

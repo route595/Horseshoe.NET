@@ -1,36 +1,34 @@
-﻿using System;
-using System.Text;
-
-using Horseshoe.NET.Crypto;
-using Horseshoe.NET.Db;
-using Horseshoe.NET.Objects;
-using Horseshoe.NET.Text;
+﻿using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.OleDb
 {
+    /// <summary>
+    /// A connection info specially suited to OLE DB
+    /// </summary>
     public class OleDbConnectionInfo : ConnectionInfo
     {
-        /* Other members, see base class...
-         * 
-         * public string ConnectionString { get; set; }
-         * public string ConnectionStringName { get; set; }
-         * public bool IsEncryptedPassword { get; set; }
-         * public string DataSource { get; set; }
-         * public Credential? Credentials { get; set; }
-         * public IDictionary<string, string> AdditionalConnectionAttributes  { get; set; }
-         * public DbPlatform? Platform  { get; set; }
-         */
-
+        /// <summary>
+        /// Creates new <c>OleDbConnectionInfo</c>
+        /// </summary>
         public OleDbConnectionInfo() { }
 
+        /// <summary>
+        /// Creates new <c>OleDbConnectionInfo</c> from another
+        /// </summary>
+        /// <param name="connectionInfo">Another <c>OleDbConnectionInfo</c></param>
         public OleDbConnectionInfo(ConnectionInfo connectionInfo)
         {
-            ObjectUtil.MapProperties(connectionInfo, this);
+            connectionInfo.MapProperties(this);
         }
 
-        public override string BuildConnectionString(CryptoOptions cryptoOptions = null)
+        /// <summary>
+        /// Builds a connection string for connecting to an OLE DB data source
+        /// </summary>
+        /// <returns>A connection string.</returns>
+        public override string BuildConnectionString()
         {
-            return OleDbUtil.BuildConnectionString(DataSource, Credentials, AdditionalConnectionAttributes, cryptoOptions);
+            return OleDbUtil.BuildConnectionString(DataSource, credentials: Credentials, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }
     }
 }

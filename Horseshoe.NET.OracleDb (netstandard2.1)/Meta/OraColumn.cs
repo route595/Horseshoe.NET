@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horseshoe.NET.OracleDb.Meta
 {
@@ -10,7 +12,7 @@ namespace Horseshoe.NET.OracleDb.Meta
         public int? Scale { get; set; }
         public bool IsNullable { get; set; }
         public int ColumnID { get; set; }
-        public string? DefaultValue { get; set; }
+        public string DefaultValue { get; set; }
 
         public OraColumn(string name, OraColumnType columnType) : base(name, OraObjectType.Column) 
         {

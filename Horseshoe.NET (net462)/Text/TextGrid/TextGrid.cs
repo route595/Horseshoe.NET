@@ -3,25 +3,62 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.Text.TextGrid
 {
+    /// <summary>
+    /// A container, formatter and displayer of tabular data.
+    /// </summary>
     public class TextGrid
     {
+        /// <summary>
+        /// The columns that comprise this grid.
+        /// </summary>
         public IList<IColumn> Columns { get; }
+
+        /// <summary>
+        /// The longest of the column counts.
+        /// </summary>
         public int MaxCount => Columns.Any() ? Columns.Max(c => c.Count) : 0;
+
+        /// <summary>
+        /// The desired width of the grid.
+        /// </summary>
         public int? TargetWidth { get; set; }
 
+        /// <summary>
+        /// Whether to render borders and which borders to render on the <c>TextGrid</c>.
+        /// </summary>
         public BorderPolicy BorderPolicy { get; set; }
+
         private bool HasOuterBorder => (BorderPolicy & BorderPolicy.Outer) == BorderPolicy.Outer;
         private bool HasHorizontalInnerBorders => (BorderPolicy & BorderPolicy.InnerHorizontal) == BorderPolicy.InnerHorizontal;
         private bool HasVerticalInnerBorders => (BorderPolicy & BorderPolicy.InnerVertical) == BorderPolicy.InnerVertical;
 
+        /// <summary>
+        /// Gets or sets the left cell padding.
+        /// </summary>
         public int CellPaddingLeft { get; set; }
+
+        /// <summary>
+        /// Gets or sets the right cell padding.
+        /// </summary>
         public int CellPaddingRight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the top cell padding.
+        /// </summary>
         public int CellPaddingTop { get; set; }
+
+        /// <summary>
+        /// Gets or sets the bottom cell padding.
+        /// </summary>
         public int CellPaddingBottom { get; set; }
+
+        /// <summary>
+        /// Simultaneously sets the left, right, top and bottom cell padding.
+        /// </summary>
         public int CellPadding
         {
             set
@@ -32,15 +69,42 @@ namespace Horseshoe.NET.Text.TextGrid
                 CellPaddingBottom = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets a distinct left cell padding on cells in the left column.
+        /// </summary>
         public int? CellPaddingLeftColumnLeft { get; set; }
+
+        /// <summary>
+        /// Gets or sets a distinct right cell padding on cells in the right column.
+        /// </summary>
         public int? CellPaddingRightColumnRight { get; set; }
         private int? AutomaticCellPaddingLeft { get; set; }
         private int? AutomaticCellPaddingLeftColumnLeft { get; set; }
 
+        /// <summary>
+        /// Gets or sets the left outer grid padding.
+        /// </summary>
         public int OuterPaddingLeft { get; set; }
+
+        /// <summary>
+        /// Gets or sets the right outer grid padding.
+        /// </summary>
         public int OuterPaddingRight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the top outer grid padding.
+        /// </summary>
         public int OuterPaddingTop { get; set; }
+
+        /// <summary>
+        /// Gets or sets the bottom outer grid padding.
+        /// </summary>
         public int OuterPaddingBottom { get; set; }
+
+        /// <summary>
+        /// Simultaneously sets the left, right, top and bottom outer grid padding.
+        /// </summary>
         public int OuterPadding
         {
             set
@@ -52,54 +116,93 @@ namespace Horseshoe.NET.Text.TextGrid
             }
         }
 
+        /// <summary>
+        /// Gets the combined horizontal outer grid padding.
+        /// </summary>
         public int CombinedHorizontalOuterPadding =>
             OuterPaddingLeft +
             OuterPaddingRight;
 
+        /// <summary>
+        /// Gets the combined vertical border widths.
+        /// </summary>
         public int CombinedBorderWidths =>
             (HasOuterBorder ? 2 : 0) +                          // (1 per border) * 2 = 2
             (HasVerticalInnerBorders ? Columns.Count - 1 : 0);  // (1 per border) * (columns - 1)
 
+        /// <summary>
+        /// Gets the combined horizontal cell padding
+        /// </summary>
         public int CombinedHorizontalCellPadding =>
             (CellPaddingLeftColumnLeft ?? CellPaddingLeft) +
             (CellPaddingRightColumnRight ?? CellPaddingRight) +
             CellPaddingLeft * (Columns.Count - 1) +
             CellPaddingRight * (Columns.Count - 1);
 
+        /// <summary>
+        /// Gets the combined final width of the rendered columns.
+        /// </summary>
         public int CombinedRenderedTextWidth => 
             Columns.Sum(c => c.WidthToRender);
 
+        /// <summary>
+        /// Gets the total width of the grid.
+        /// </summary>
         public int TotalWidth =>
             CombinedBorderWidths +
             CombinedHorizontalCellPadding +
             CombinedRenderedTextWidth;
 
+        /// <summary>
+        /// Gets the total width of the grid plus padding.
+        /// </summary>
         public int TotalWidthIncludingOuterPadding =>
             CombinedHorizontalOuterPadding +
             CombinedBorderWidths +
             CombinedHorizontalCellPadding +
             CombinedRenderedTextWidth;
 
+        /// <summary>
+        /// Gets the total extra width from borders and padding.
+        /// </summary>
         public int TotalExtra =>
             CombinedHorizontalOuterPadding +
             CombinedBorderWidths +
             CombinedHorizontalCellPadding;
 
+        /// <summary>
+        /// Creates a new <c>TextGrid</c>.
+        /// </summary>
         public TextGrid()
         {
             Columns = new List<IColumn>();
         }
 
+        /// <summary>
+        /// Creates a new <c>TextGrid</c>.
+        /// </summary>
+        /// <param name="columns">A collection of <c>IColumns</c> from which to build the grid.</param>
         public TextGrid(params IColumn[] columns)
         {
             Columns = columns;
         }
 
+        /// <summary>
+        /// Creates a new <c>TextGrid</c>.
+        /// </summary>
+        /// <param name="columns">A collection of <c>IColumns</c> from which to build the grid.</param>
         public TextGrid(IEnumerable<IColumn> columns)
         {
             Columns = columns.ToList();
         }
 
+        /// <summary>
+        /// Creates a new <c>TextGrid</c>.
+        /// </summary>
+        /// <param name="items">A collection of items.</param>
+        /// <param name="columns">The number of desired columns.</param>
+        /// <param name="targetWidth">The desired width of the <c>TextGrid</c>.</param>
+        /// <exception cref="ValidationException"></exception>
         public TextGrid(IEnumerable<string> items, int columns = 1, int? targetWidth = null) : this()
         {
             TargetWidth = targetWidth; 
@@ -139,6 +242,11 @@ namespace Horseshoe.NET.Text.TextGrid
             }
         }
 
+        /// <summary>
+        /// Renders this text grid.
+        /// </summary>
+        /// <returns>A <c>string</c> representation of this text grid for displaying to a console or other text based output</returns>
+        /// <exception cref="ValidationException"></exception>
         public string Render()
         {
             if (TargetWidth.HasValue)
@@ -321,9 +429,16 @@ namespace Horseshoe.NET.Text.TextGrid
             }
         }
 
+        /// <summary>
+        /// Builds a <c>TextGrid</c> from a collection of items.
+        /// </summary>
+        /// <typeparam name="T">The type of item to store and display in this <c>TextGrid</c>.</typeparam>
+        /// <param name="collection">A collection of items.</param>
+        /// <param name="formatGrid"></param>
+        /// <returns></returns>
         public static TextGrid FromCollection<T>(IEnumerable<T> collection, Action<TextGrid> formatGrid = null) where T : class, new()
         {
-            var props = ObjectUtil.GetInstanceProperties<T>();
+            var props = TypeUtil.GetInstanceProperties<T>();
             var cols = props
                 .Select(p => new TypedColumn(p.PropertyType) { Title = TextUtil.SpaceOutTitleCase(p.Name) })
                 .ToList();
@@ -341,6 +456,13 @@ namespace Horseshoe.NET.Text.TextGrid
             return grid;
         }
 
+        /// <summary>
+        /// Builds a <c>TextGrid</c> from an <c>IDictionary</c>.
+        /// </summary>
+        /// <typeparam name="TKey">The type of key.</typeparam>
+        /// <typeparam name="TValue">The type of value.</typeparam>
+        /// <param name="dictionary">An <c>IDictionary</c>.</param>
+        /// <returns></returns>
         public static TextGrid FromDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
         {
             var col1 = new Column<TKey>();

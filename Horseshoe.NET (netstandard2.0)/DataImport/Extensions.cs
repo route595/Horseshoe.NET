@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Horseshoe.NET.Collections;
-
 namespace Horseshoe.NET.DataImport
 {
+    /// <summary>
+    /// A collection of extension methods for <c>Horseshoe.NET.DataImport</c>
+    /// </summary>
     public static class DataImportExtensions
     {
+        /// <summary>
+        /// Renders of list of <c>Column</c> to text
+        /// </summary>
+        /// <param name="cols">a collection of <c>Column</c>s</param>
+        /// <param name="nullReplacement">how to display <c>null</c> values</param>
+        /// <returns>a <c>string</c> rendition of the collection</returns>
         public static string Render(this IList<Column> cols, string nullReplacement = "[null]")
         {
             // render the column values
@@ -57,16 +64,12 @@ namespace Horseshoe.NET.DataImport
             return strb.ToString();
         }
 
-        public static int GetErrorCount(this IList<Column> cols)
-        {
-            return cols.Sum(c => c.DataErrors.Count());
-        }
-
-        public static IList<DataError> GetErrors(this IList<Column> cols)
-        {
-            return cols.SelectMany(c => c.DataErrors).ToList();
-        }
-
+        /// <summary>
+        /// Renders a <c>Column</c> to text
+        /// </summary>
+        /// <param name="col">a <c>Column</c></param>
+        /// <param name="nullReplacement">how to display <c>null</c> values</param>
+        /// <returns>a <c>string</c> rendition of the <c>Column</c></returns>
         public static List<string> Render(this Column col, string nullReplacement = "[null]")
         {
             //var list = new List<string>(col.Select(o => col.Formatter == null || o is DataError ? o?.ToString() ?? nullReplacement : col.Formatter.Invoke(o) ?? nullReplacement));

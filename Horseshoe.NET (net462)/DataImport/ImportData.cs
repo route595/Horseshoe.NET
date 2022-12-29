@@ -11,7 +11,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET.DataImport
 {
     /// <summary>
-    /// Import data from text or from a file
+    /// Imports data from a text file
     /// </summary>
     public static class ImportData
     {
@@ -23,14 +23,15 @@ namespace Horseshoe.NET.DataImport
             /// <summary>
             /// Imports delimited text and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static IEnumerable<string[]> AsStrings(string rawData, char[] delimiters, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+            public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -41,7 +42,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = AsDataImport(rawData, delimiters, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -49,18 +50,19 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text using column metadata and returns it as <c>string[]</c>s to the requestor
+            /// Imports delimited text using supplied column metadata and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="columns"></param>
-            /// <param name="enforceColumnCount"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static IEnumerable<string[]> AsStrings(string rawData, char[] delimiters, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="enforceColumnCount">If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+            public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -71,7 +73,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = AsDataImport(rawData, delimiters, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -79,17 +81,18 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text using column metadata and returns it as <c>object[]</c>s to the requestor
+            /// Imports delimited text using supplied column metadata and returns it as <c>object[]</c>s to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="columns"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static IEnumerable<object[]> AsObjects(string rawData, char[] delimiters, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
+            public static IEnumerable<object[]> AsObjects(string rawData, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -100,7 +103,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = AsDataImport(rawData, delimiters, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -110,14 +113,15 @@ namespace Horseshoe.NET.DataImport
             /// <summary>
             /// Imports delimited text and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static DataImport AsDataImport(string rawData, char[] delimiters, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
+            public static DataImport AsDataImport(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -166,7 +170,7 @@ namespace Horseshoe.NET.DataImport
                     (raw, ci) =>
                     {
                         journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiters, journal);
+                        ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiter, null, false, dataImport.NextRow, journal);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -189,18 +193,19 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports delimited text and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="columns"></param>
-            /// <param name="enforceColumnCount"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static DataImport AsDataImport(string rawData, char[] delimiters, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="enforceColumnCount">If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
+            public static DataImport AsDataImport(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -211,7 +216,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = new DataImport(columns, enforceColumnCount: enforceColumnCount)
+                var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: enforceColumnCount)
                 {
                     BlankRowPolicy = blankRowPolicy,
                     DataErrorHandlingPolicy = errorHandlingPolicy,
@@ -249,7 +254,7 @@ namespace Horseshoe.NET.DataImport
                     (raw, ci) =>
                     {
                         journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiters, journal);
+                        ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow, journal);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -271,96 +276,107 @@ namespace Horseshoe.NET.DataImport
                 return dataImport;
             }
 
-            internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, char[] delimiters, TraceJournal journal)
+            internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount, int rowNum, TraceJournal journal)
             {
                 // validation
-                if (delimiters == null || delimiters.Length == 0)
-                    throw new DataImportException("cannot parse if 1 or more delimiters are not supplied");
-                if (delimiters.Contains('\"'))
+                if (delimiter == '\"')
                     throw new DataImportException("cannot use double quote (\\\") as a delimiter");
 
                 journal.Level++;
-
-                // variable declaration
-                StringBuilder valueBuilder;
-                var inQuotes = false;
-
                 // handle special cases
                 if (rawRow.IsEmpty)
                 {
-                    journal.WriteEntry("encountered empty row");
+                    journal.WriteEntry("encountered empty row on row " + rowNum);
+                    journal.Level--;
+                    return;
                 }
-                else
+
+                // variable declaration
+                StringBuilder valueBuilder = new StringBuilder();
+                var columnIndex = 0;
+                var inQuotes = false;
+                var columnCount = columns?.Count() ?? 0;
+                var mappedColumnCount = columns?.Count(c => !c.NotMapped) ?? 0;
+                Column column;
+
+                foreach (char c in rawRow)
                 {
-                    valueBuilder = new StringBuilder();
-                    var lastCharWasDelimiter = false;
+                    if (c == '\r')
+                        throw new ValidationException("Illegal char found: \\r");
+                    if (c == '\n')
+                        throw new ValidationException("Illegal char found: \\n");
 
-                    foreach (char c in rawRow)
+                    if (c == delimiter && !inQuotes)
                     {
-                        if (c == '\r')
-                            throw new ValidationException("Illegal char found: \\r");
-                        if (c == '\n')
-                            throw new ValidationException("Illegal char found: \\n");
-
-                        // we've reached a delimiter, process the value
-                        if (delimiters.Any(d => d == c) && !inQuotes)
-                        {
-                            if (!lastCharWasDelimiter)
-                            {
-                                processValue();
-                            }
-                            lastCharWasDelimiter = true;
-                            continue;
-                        }
-
-                        // handle quotes - example 1: "whole value, in quotes" - example 2: Tim "The Tool Man" Taylor
-                        if (c == '"')
-                        {
-                            inQuotes = !inQuotes;
-                        }
-
-                        // build the string
-                        valueBuilder.Append(c);
-
-                        // reset variables
-                        lastCharWasDelimiter = false;
+                        // we've reached a delimiter, get the column and process the value
+                        column = columnIndex <= columnCount - 1
+                            ? columns.ElementAt(columnIndex)
+                            : null;
+                        processValue(inQuotes, column, enforceColumnCount, rawValues, valueBuilder, journal);
+                        columnIndex++;
+                        continue;
                     }
 
-                    // end of row reached
-                    processValue();
+                    // handle quotes - example 1: "whole value, in quotes" - example 2: Tim "The Tool Man" Taylor
+                    if (c == '"')
+                    {
+                        inQuotes = !inQuotes;
+                    }
+
+                    // build the string
+                    valueBuilder.Append(c);
                 }
+
+                // end of row reached
+                column = columnIndex <= columnCount - 1
+                    ? columns.ElementAt(columnIndex)
+                    : null;
+                processValue(inQuotes, column, enforceColumnCount, rawValues, valueBuilder, journal);
 
                 // local function
-                void processValue()
+                void processValue(bool _inQuotes, Column _column, bool _enforceColumnCount, IList< string> _rawValues, StringBuilder _valueBuilder, TraceJournal _journal)
                 {
-                    if (inQuotes)
+                    if (_inQuotes)
                         throw new DataImportException("Unclosed quotation marks");
 
-                    rawValues.Add(valueBuilder.ToString());
-                    valueBuilder.Clear();
-                    journal.WriteEntry("parsed value: \"" + rawValues.Last() + "\"");
+                    if (_column != null && _column.NotMapped)
+                    {
+                        _journal.WriteEntry("not mapped: \"" + TextUtil.Crop(_valueBuilder.ToString(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"");
+                        _valueBuilder.Clear();
+                        return;
+                    }
+                    if (_column == null && _enforceColumnCount)
+                    {
+                        throw new DataImportException("No metadata for source column " + (columnIndex + 1) + ". Enforcing column count. The number of data elements on row " + rowNum + " may have exceeded the number of mapped columns: " + (_rawValues.Count + 1) + ", " + mappedColumnCount);
+                    }
+
+                    _rawValues.Add(_valueBuilder.ToString());
+                    _valueBuilder.Clear();
+                    _journal.WriteEntry("parsed value: \"" + TextUtil.Crop(_rawValues.Last(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"");
                 }
 
+                // finalize method
                 journal.Level--;
             }
         }
 
         /// <summary>
-        /// Contains methods for importing delimited data files such as CSV
+        /// Contains methods for importing delimited data from files such as CSV
         /// </summary>
         public static class DelimitedTextFile
         {
             /// <summary>
-            /// Imports delimited text file and returns it as <c>string[]</c>s to the requestor
+            /// Imports a delimited text file and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, char[] delimiters, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+            public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -371,7 +387,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = AsDataImport(file, delimiters, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -379,16 +395,17 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file and returns it as <c>string[]</c>s to the requestor
+            /// Imports a delimited text file asynchronously and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char[] delimiters, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -399,7 +416,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = await AsDataImportAsync(file, delimiters, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -407,18 +424,19 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file using column metadata and returns returns it as <c>string[]</c>s to the requestor
+            /// Imports a delimited text file and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="enforceColumnCount"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, char[] delimiters, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="enforceColumnCount">If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+            public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -429,7 +447,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = AsDataImport(file, delimiters, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -437,18 +455,19 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file using column metadata and returns it as <c>string[]</c>s to the requestor
+            /// Imports a delimited text file asynchronously and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="enforceColumnCount"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char[] delimiters, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="enforceColumnCount">If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -459,7 +478,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = await AsDataImportAsync(file, delimiters, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -467,17 +486,18 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file using column metadata and returns returns it as <c>object[]</c>s to the requestor
+            /// Imports a delimited text file and returns it as <c>object[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static IEnumerable<object[]> AsObjects(FilePath file, char[] delimiters, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
+            public static IEnumerable<object[]> AsObjects(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -488,7 +508,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = AsDataImport(file, delimiters, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -496,17 +516,18 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file using column metadata and returns it as <c>object[]</c>s to the requestor
+            /// Imports a delimited text file asynchronously and returns it as <c>object[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, char[] delimiters, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -517,7 +538,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = await AsDataImportAsync(file, delimiters, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -525,16 +546,17 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports a delimited text file and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static DataImport AsDataImport(FilePath file, char[] delimiters, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
+            public static DataImport AsDataImport(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -575,7 +597,7 @@ namespace Horseshoe.NET.DataImport
                     while (rawRow != null)
                     {
                         journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiters, journal);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, null, false, dataImport.NextRow, journal);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -599,16 +621,17 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports a delimited text file asynchronously and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static async Task<DataImport> AsDataImportAsync(FilePath file, char[] delimiters, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
+            public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -649,7 +672,7 @@ namespace Horseshoe.NET.DataImport
                     while (rawRow != null)
                     {
                         journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiters, journal);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, null, false, dataImport.NextRow, journal);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -673,18 +696,19 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports a delimited text file and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="enforceColumnCount"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static DataImport AsDataImport(FilePath file, char[] delimiters, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="enforceColumnCount">If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
+            public static DataImport AsDataImport(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -695,7 +719,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = new DataImport(columns, enforceColumnCount: enforceColumnCount)
+                var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: enforceColumnCount)
                 {
                     BlankRowPolicy = blankRowPolicy,
                     DataErrorHandlingPolicy = errorHandlingPolicy,
@@ -725,7 +749,7 @@ namespace Horseshoe.NET.DataImport
                     while (rawRow != null)
                     {
                         journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiters, journal);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow, journal);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -749,18 +773,19 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports delimited text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports a delimited text file asynchronously and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="enforceColumnCount"></param>
-            /// <param name="delimiters"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
-            public static async Task<DataImport> AsDataImportAsync(FilePath file, char[] delimiters, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="delimiter">The <c>char</c> that determines where to split the row into values</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="enforceColumnCount">If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
+            public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
                 if (journal == null)
@@ -771,7 +796,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = new DataImport(columns, enforceColumnCount: enforceColumnCount)
+                var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: enforceColumnCount)
                 {
                     BlankRowPolicy = blankRowPolicy,
                     DataErrorHandlingPolicy = errorHandlingPolicy,
@@ -801,7 +826,7 @@ namespace Horseshoe.NET.DataImport
                     while (rawRow != null)
                     {
                         journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiters, journal);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow, journal);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -831,16 +856,16 @@ namespace Horseshoe.NET.DataImport
         public static class FixedWidthText
         {
             /// <summary>
-            /// Imports fixed-width text using column metadata and returns it as <c>string[]</c>s to the requestor
+            /// Imports fixed-width text using supplied column metadata and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
             public static IEnumerable<string[]> AsStrings(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -860,16 +885,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text using column metadata and returns it as <c>object[]</c>s to the requestor
+            /// Imports fixed-width text using supplied column metadata and returns it as <c>object[]</c>s to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
             public static IEnumerable<object[]> AsObjects(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -889,16 +914,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports fixed-width text and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="rawData"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="rawData">The entire data set in <c>string</c> form; header row allowed, new lines separate rows, delimiter(s) separate columns</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
             public static DataImport AsDataImport(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -910,7 +935,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = new DataImport(columns, enforceColumnCount: true)
+                var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: true)
                 {
                     BlankRowPolicy = blankRowPolicy,
                     DataErrorHandlingPolicy = errorHandlingPolicy,
@@ -975,10 +1000,10 @@ namespace Horseshoe.NET.DataImport
             internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, IEnumerable<Column> columns, TraceJournal journal)
             {
                 // validation
-                if (columns == null || !columns.Any())
-                    throw new DataImportException("cannot parse if 1 or more columns are not supplied");
-                if (!columns.Any(c => c.FixedWidth > 0))
-                    throw new DataImportException("cannot parse data due to zero columns have a fixed width");
+                if (columns == null || !columns.Any(c => !c.NotMapped))
+                    throw new DataImportException("cannot parse data if 1 or more mapped columns are not supplied");
+                //if (!columns.Any(c => !c.NotMapped && c.FixedWidth > 0))
+                //    throw new DataImportException("cannot parse data due to zero mapped columns have a specified width");
 
                 journal.Level++;
 
@@ -991,15 +1016,28 @@ namespace Horseshoe.NET.DataImport
                 {
                     // variable declaration
                     var pos = 0;
+                    int fixedWidth;
 
                     foreach (var c in columns)
                     {
-                        if (c.FixedWidth > 0)
+                        fixedWidth = Math.Max(0, c.FixedWidth);
+                        if (!c.NotMapped)
                         {
-                            rawValues.Add(rawRow.Slice(pos, c.FixedWidth).ToString());
-                            pos += c.FixedWidth;
-                            journal.WriteEntry("parsed value: \"" + rawValues.Last() + "\"");
+                            if (fixedWidth > 0)
+                            {
+                                rawValues.Add(rawRow.Slice(pos, fixedWidth).ToString());
+                            }
+                            else
+                            {
+                                rawValues.Add("");
+                            }
+                            journal.WriteEntry("parsed value: \"" + TextUtil.Crop(rawValues.Last(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"  (width=" + fixedWidth + ")");
                         }
+                        else
+                        {
+                            journal.WriteEntry("not mapped: \"" + TextUtil.Crop(rawRow.Slice(pos, fixedWidth).ToString(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"");
+                        }
+                        pos += fixedWidth;
                     }
                 }
 
@@ -1013,16 +1051,16 @@ namespace Horseshoe.NET.DataImport
         public static class FixedWidthTextFile
         {
             /// <summary>
-            /// Imports fixed-width text file using column metadata and returns it as <c>string[]</c>s to the requestor
+            /// Imports a fixed-width text file and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
             public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -1042,16 +1080,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text file using column metadata and returns it as <c>string[]</c>s to the requestor
+            /// Imports a fixed-width text file asynchronously and returns it as <c>string[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
             public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -1071,16 +1109,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text file using column metadata and returns it as <c>object[]</c>s to the requestor
+            /// Imports a fixed-width text file and returns it as <c>object[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
             public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -1100,16 +1138,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text file using column metadata and returns it as <c>object[]</c>s to the requestor
+            /// Imports a fixed-width text file asynchronously and returns it as <c>object[]</c>s to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -1129,16 +1167,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports a fixed-width text file and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
             public static DataImport AsDataImport(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -1150,7 +1188,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = new DataImport(columns, enforceColumnCount: true)
+                var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: true)
                 {
                     BlankRowPolicy = blankRowPolicy,
                     DataErrorHandlingPolicy = errorHandlingPolicy,
@@ -1204,16 +1242,16 @@ namespace Horseshoe.NET.DataImport
             }
 
             /// <summary>
-            /// Imports fixed-width text file using column metadata and returns the backing <c>DataImport</c> instance to the requestor
+            /// Imports a fixed-width text file asynchronously and returns the backing <c>DataImport</c> instance to the requestor
             /// </summary>
-            /// <param name="file"></param>
-            /// <param name="columns"></param>
-            /// <param name="hasHeaderRow"></param>
-            /// <param name="blankRowPolicy"></param>
-            /// <param name="errorHandlingPolicy"></param>
-            /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
-            /// <returns></returns>
+            /// <param name="file">A file - accepts <c>string</c> path or <c>FileInfo</c> instance</param>
+            /// <param name="columns">A pre-determined collection of columns for enforcing certain rules about the imported data such as data types and number of items per row</param>
+            /// <param name="hasHeaderRow">If <c>true</c> the first row will be skipped</param>
+            /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
+            /// <param name="errorHandlingPolicy">How to handle data errors</param>
+            /// <param name="autoTrunc">How to interpret empty values</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <returns>a <c>DataImport</c> instance</returns>
             public static async Task<DataImport> AsDataImportAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
@@ -1225,7 +1263,7 @@ namespace Horseshoe.NET.DataImport
                 journal.Level++;
 
                 // variable declaration
-                var dataImport = new DataImport(columns, enforceColumnCount: true)
+                var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: true)
                 {
                     BlankRowPolicy = blankRowPolicy,
                     DataErrorHandlingPolicy = errorHandlingPolicy,

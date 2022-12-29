@@ -1,54 +1,140 @@
 ﻿using System;
 using System.Text;
 
-using Horseshoe.NET.Objects;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.DateAndTime
 {
     /// <summary>
-    /// A complement to the <c>TimeSpan</c> that includes months and years
+    /// A complement to <c>TimeSpan</c> that includes months and years
     /// </summary>
     /// <seealso cref="TimeSpan"/>
-    public struct YearSpan
+    public readonly struct YearSpan
     {
+        /// <summary>
+        /// The from date
+        /// </summary>
         public DateTime From { get; }
+
+        /// <summary>
+        /// The to date
+        /// </summary>
         public DateTime To { get; }
+
+        /// <summary>
+        /// One of the two interim <c>TimeSpan</c>s used in calculating years and months
+        /// </summary>
         public TimeSpan YearsTimeSpan { get; }
+
+        /// <summary>
+        /// The number of whole years represented in this <c>YearSpan</c>
+        /// </summary>
         public int Years { get; }
+
         private readonly double _totalYears;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in years with double precision 
+        /// </summary>
         public double TotalYears => Decimals >= 0
             ? Math.Round(_totalYears, Decimals)
             : _totalYears;
+
+        /// <summary>
+        /// One of the two interim <c>TimeSpan</c>s used in calculating years and months
+        /// </summary>
         public TimeSpan MonthsTimeSpan { get; }
+
+        /// <summary>
+        /// The number of whole months represented in this <c>YearSpan</c>
+        /// </summary>
         public int Months { get; }
+
         private readonly double _totalMonths;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in months with double precision 
+        /// </summary>
         public double TotalMonths => Decimals >= 0
             ? Math.Round(_totalMonths, Decimals)
             : _totalMonths;
+
+        /// <summary>
+        /// The main <c>TimeSpan</c>s used in calculating days, hours, minutes, seconds and milliseconds
+        /// </summary>
         public TimeSpan DaysTimeSpan { get; }
+
+        /// <summary>
+        /// The number of whole days represented in this <c>YearSpan</c>
+        /// </summary>
         public int Days => DaysTimeSpan.Days;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in days with double precision 
+        /// </summary>
         public double TotalDays => Decimals >= 0
             ? Math.Round(YearsTimeSpan.TotalDays, Decimals)
             : YearsTimeSpan.TotalDays;
+
+        /// <summary>
+        /// The number of whole hours represented in this <c>YearSpan</c>
+        /// </summary>
         public int Hours => DaysTimeSpan.Hours;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in hours with double precision 
+        /// </summary>
         public double TotalHours => Decimals >= 0
             ? Math.Round(YearsTimeSpan.TotalHours, Decimals)
             : YearsTimeSpan.TotalHours;
+
+        /// <summary>
+        /// The number of whole minutes represented in this <c>YearSpan</c>
+        /// </summary>
         public int Minutes => DaysTimeSpan.Minutes;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in minutes with double precision 
+        /// </summary>
         public double TotalMinutes => Decimals >= 0
             ? Math.Round(YearsTimeSpan.TotalMinutes, Decimals)
             : YearsTimeSpan.TotalMinutes;
+
+        /// <summary>
+        /// The number of whole seconds represented in this <c>YearSpan</c>
+        /// </summary>
         public int Seconds => DaysTimeSpan.Seconds;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in seconds with double precision 
+        /// </summary>
         public double TotalSeconds => Decimals >= 0
             ? Math.Round(YearsTimeSpan.TotalSeconds, Decimals)
             : YearsTimeSpan.TotalSeconds;
+
+        /// <summary>
+        /// The number of milliseconds represented in this <c>YearSpan</c>
+        /// </summary>
         public int Milliseconds => DaysTimeSpan.Milliseconds;
+
+        /// <summary>
+        /// The total time represented by this <c>YearSpan</c> expressed in milliseconds 
+        /// </summary>
         public double TotalMilliseconds => Decimals >= 0
             ? Math.Round(YearsTimeSpan.TotalMilliseconds, Decimals)
             : YearsTimeSpan.TotalMilliseconds;
+
+        /// <summary>
+        /// Optional, the number of decimals to use for rounding
+        /// </summary>
         public int Decimals { get; }
 
+        /// <summary>
+        /// Creates a new <c>YearSpan</c>
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="decimals"></param>
         public YearSpan(DateTime from, DateTime to, int decimals = -1)
         {
             DateTime temp;
@@ -109,13 +195,7 @@ namespace Horseshoe.NET.DateAndTime
             _totalYears = Years + _tempTotalMonths / 12.0;
         }
 
-        /// <summary>
-        /// Gets a weighted, fractional number of days "per month" for smoother decimal month calculations. 
-        /// </summary>
-        /// <param name="from">From date</param>
-        /// <param name="to">To date</param>
-        /// <param name="daysTimeSpan">Time span</param>
-        /// <returns></returns>
+        // Gets a weighted, fractional number of days "per month" for smoother decimal month calculations. 
         private static double CalculateDaysInMonth(DateTime from, DateTime to, TimeSpan daysTimeSpan)
         {
             var fromLength = DateUtil.GetNumberOfDaysInMonth(from.Year, from.Month);
@@ -129,11 +209,25 @@ namespace Horseshoe.NET.DateAndTime
             return fromLength + fromDiff;
         }
 
+        /// <summary>
+        /// Gets a common <c>string</c> representation of this <c>YearSpan</c>, for more display options see <see cref="ToString(DisplayOptions)"/>
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return ToString(new RangeOptions { MaxRange = 7 });
         }
 
+        /// <summary>
+        /// Gets a fine-tuned <c>string</c> representation of this <c>YearSpan</c> with options for range, specific sets of date/time parts
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <remarks>
+        /// <seealso cref="RangeOptions" />
+        /// <seealso cref="SetOptions" />
+        /// </remarks>
         public string ToString(DisplayOptions options)
         {
             var sb = new StringBuilder();
@@ -211,90 +305,6 @@ namespace Horseshoe.NET.DateAndTime
                 throw new ArgumentException("Invalid DisplayOptions instance, must be an instance of RangeOptions or SetOptions");
             }
             return sb.ToString();
-        }
-
-        public abstract class DisplayOptions
-        {
-            public string YearLabel { get; set; } = " year";
-            public string YearsLabel { get; set; } = " years";
-            public string BothYearLabels { set { YearLabel = value; YearsLabel = value; } }
-            public string MonthLabel { get; set; } = " month";
-            public string MonthsLabel { get; set; } = " months";
-            public string BothMonthLabels { set { MonthLabel = value; MonthsLabel = value; } }
-            public string DayLabel { get; set; } = " day";
-            public string DaysLabel { get; set; } = " days";
-            public string BothDayLabels { set { DayLabel = value; DaysLabel = value; } }
-            public string HourLabel { get; set; } = " hour";
-            public string HoursLabel { get; set; } = " hours";
-            public string BothHourLabels { set { HourLabel = value; HoursLabel = value; } }
-            public string MinuteLabel { get; set; } = " minute";
-            public string MinutesLabel { get; set; } = " minutes";
-            public string BothMinuteLabels { set { MinuteLabel = value; MinutesLabel = value; } }
-            public string SecondLabel { get; set; } = " second";
-            public string SecondsLabel { get; set; } = " seconds";
-            public string BothSecondLabels { set { SecondLabel = value; SecondsLabel = value; } }
-            public string MillisecondLabel { get; set; } = " millisecond";
-            public string MillisecondsLabel { get; set; } = " milliseconds";
-            public string BothMillisecondLabels { set { MillisecondLabel = value; MillisecondsLabel = value; } }
-        }
-
-        public class RangeOptions : DisplayOptions
-        {
-            public int MaxRange { get; set; }
-
-            public RangeOptions() { }
-
-            public RangeOptions(RangeOptions options)
-            {
-                options.MapProperties(this);
-            }
-        }
-
-        public class SetOptions : DisplayOptions
-        {
-            public TimePartDisplay DisplayYears { get; set; }
-            public TimePartDisplay DisplayMonths { get; set; }
-            public TimePartDisplay DisplayDays { get; set; }
-            public TimePartDisplay DisplayHours { get; set; }
-            public TimePartDisplay DisplayMinutes { get; set; }
-            public TimePartDisplay DisplaySeconds { get; set; }
-            public TimePartDisplay DisplayMilliseconds { get; set; }
-
-            public SetOptions() { }
-
-            public SetOptions(SetOptions options)
-            {
-                options.MapProperties(this);
-            }
-
-            public static SetOptions AllAuto { get; } = new SetOptions
-            {
-                DisplayYears = TimePartDisplay.Auto,
-                DisplayMonths = TimePartDisplay.Auto,
-                DisplayDays = TimePartDisplay.Auto,
-                DisplayHours = TimePartDisplay.Auto,
-                DisplayMinutes = TimePartDisplay.Auto,
-                DisplaySeconds = TimePartDisplay.Auto,
-                DisplayMilliseconds = TimePartDisplay.Auto
-            };
-
-            public static SetOptions AllOn { get; } = new SetOptions
-            {
-                DisplayYears = TimePartDisplay.On,
-                DisplayMonths = TimePartDisplay.On,
-                DisplayDays = TimePartDisplay.On,
-                DisplayHours = TimePartDisplay.On,
-                DisplayMinutes = TimePartDisplay.On,
-                DisplaySeconds = TimePartDisplay.On,
-                DisplayMilliseconds = TimePartDisplay.On
-            };
-        }
-
-        public enum TimePartDisplay
-        {
-            Off,
-            On,
-            Auto
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using Horseshoe.NET.ConsoleX;
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace TestConsole.CSharpTests
 {
@@ -18,9 +18,9 @@ namespace TestConsole.CSharpTests
                 {
                     ObjectFoo objectFoo = new ObjectFoo { Foo = "two" };
                     NumberFoo numberFoo = new NumberFoo { Foo = 2 };
-                    string renderMV(MemberValue mv) => mv + " (" + ((PropertyInfo)mv.Member).PropertyType.Name + ") (" + mv.Member.DeclaringType.Name + (mv.Member.DeclaringType == mv.Member.ReflectedType ? "" : ">" + mv.Member.ReflectedType.Name) + ")";
-                    RenderX.List(ObjectUtil.GetInstancePropertyValues(objectFoo), renderer: renderMV, title: objectFoo + " properties");
-                    RenderX.List(ObjectUtil.GetInstancePropertyValues(numberFoo), renderer: renderMV, title: numberFoo + " properties");
+                    string render(PropertyValue pv) => pv + " (" + pv.Property.PropertyType.Name + ") (" + pv.Property.DeclaringType.Name + (pv.Property.DeclaringType == pv.Property.ReflectedType ? "" : ">" + pv.Property.ReflectedType.Name) + ")";
+                    RenderX.List(ObjectUtil.GetInstancePropertyValues(objectFoo), renderer: render, title: objectFoo + " properties");
+                    RenderX.List(ObjectUtil.GetInstancePropertyValues(numberFoo), renderer: render, title: numberFoo + " properties");
                 }
             ),
             BuildMenuRoutine

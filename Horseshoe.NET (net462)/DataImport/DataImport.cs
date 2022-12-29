@@ -7,33 +7,71 @@ using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.DataImport
 {
+    /// <summary>
+    /// The backing structure and logic behind data imports
+    /// </summary>
     public class DataImport : List<ImportedRow>
     {
         private readonly List<Column> _columns;
 
+        /// <summary>
+        /// A <c>Column[]</c> view of the column metadata used during import
+        /// </summary>
         public Column[] Columns => _columns?.ToArray();
 
+        /// <summary>
+        /// The column count
+        /// </summary>
         public int ColumnCount => _columns?.Count ?? 0;
 
+        /// <summary>
+        /// The count of mapped columns only
+        /// </summary>
+        public int MappedColumnCount => _columns?.Count(c => !c.NotMapped) ?? 0;
+
+        /// <summary>
+        /// If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long
+        /// </summary>
         public bool EnforceColumnCount { get; }
 
+        /// <summary>
+        /// Keeps a tally of blank rows that were skipped to keep row number integrity
+        /// </summary>
         public int SkippedRows { get; internal set; }
 
+        /// <summary>
+        /// A count of the rows that have been imported
+        /// </summary>
         public int RowCount => Count;
 
+        /// <summary>
+        /// The calculated row number of the source row currently being parsed
+        /// </summary>
         public int NextRow => RowCount + SkippedRows + 1;
 
+        /// <summary>
+        /// How to interpret empty values
+        /// </summary>
         public AutoTruncate AutoTrunc { get; set; }
 
+        /// <summary>
+        /// How to handle blank rows, specifically leading and trailing
+        /// </summary>
         public BlankRowPolicy BlankRowPolicy { get; set; }
 
+        /// <summary>
+        /// How to handle data errors
+        /// </summary>
         public DataErrorHandlingPolicy DataErrorHandlingPolicy { get; set; }
 
         /// <summary>
-        /// Populated once a method such as <c>ExportToObjectArrays()</c> has executed
+        /// Errors are populated during certain export operations e.g. <c>ExportToObjectArrays()</c>
         /// </summary>
         public IEnumerable<DataError> DataErrors { get; set; }
 
+        /// <summary>
+        /// The number of data errors that occurred during the last data import
+        /// </summary>
         public int DataErrorCount => DataErrors?.Count() ?? 0;
 
         /// <summary>
@@ -61,6 +99,11 @@ namespace Horseshoe.NET.DataImport
             EnforceColumnCount = enforceColumnCount;
         }
 
+        /// <summary>
+        /// You can add new columns at any time, even during an import.  If <c>EnforceColumnCount == true</c> then already imported rows will grow in size.
+        /// </summary>
+        /// <param name="column">A <c>Column</c></param>
+        /// <exception cref="DataImportException"></exception>
         public void AddColumn(Column column)
         {
             //if (EnforceColumnCount && RowCount > 0)
@@ -70,7 +113,7 @@ namespace Horseshoe.NET.DataImport
                 throw new DataImportException("column may not be null");
             _columns.Add(column);
 
-            if (EnforceColumnCount && RowCount > 0)
+            if (EnforceColumnCount && RowCount > 0 && !column.NotMapped)
             {
                 for (int i = 0; i < RowCount; i++)
                 {
@@ -79,15 +122,30 @@ namespace Horseshoe.NET.DataImport
             }
         }
 
+        /// <summary>
+        /// You can add new columns at any time, even during an import.  If <c>EnforceColumnCount == true</c> then already imported rows will grow in size.
+        /// </summary>
+        /// <param name="name">The column name</param>
+        /// <param name="dataType">The column's data type</param>
+        /// <param name="fixedWidth">The column's fixed width, only set this value for fixed-width imports</param>
+        /// <param name="parser">A custom string-to-object converter, if required</param>
+        /// <param name="formatter">A custom object-to-string formatter, if required</param>
         public void AddColumn(string name, Type dataType = null, int fixedWidth = 0, Func<string, object> parser = null, Func<object, string> formatter = null)
         {
             AddColumn(new Column(name) { DataType = dataType, FixedWidth = fixedWidth, Parser = parser, Formatter = formatter });
         }
 
+        /// <summary>
+        /// This method populates a <c>List&lt;string&gt;</c> with the raw parsed row data
+        /// </summary>
+        /// <param name="rawImportedRow"></param>
+        /// <param name="sourceRowNumber"></param>
+        /// <exception cref="DataImportException"></exception>
+        /// <exception cref="StopImportingDataException"></exception>
         public void ImportRaw(List<string> rawImportedRow, int sourceRowNumber)
         {
-            if (EnforceColumnCount && ColumnCount == 0)
-                throw new DataImportException("data cannot be imported until 1 or more columns has been added");
+            if (EnforceColumnCount && MappedColumnCount == 0)
+                throw new DataImportException("data cannot be imported until 1 or more mapped columns has been added");
 
             if (ImportUtil.IsBlankRow(rawImportedRow))
             {
@@ -116,7 +174,7 @@ namespace Horseshoe.NET.DataImport
                         throw new DataImportException("encounterd blank row on source line #" + NextRow);
                 }
             }
-            else if (EnforceColumnCount && ColumnCount > 0 && rawImportedRow.Count > ColumnCount)
+            else if (EnforceColumnCount && MappedColumnCount > 0 && rawImportedRow.Count > MappedColumnCount)
             {
                 throw new DataImportException(rawImportedRow.Count + " items on source line #" + NextRow + " could not be imported (the import mechanism is only tracking " + ColumnCount + " columns and EnforceColumnCount is 'true')");
             }
@@ -124,7 +182,7 @@ namespace Horseshoe.NET.DataImport
             {
                 if (EnforceColumnCount)
                 {
-                    while (rawImportedRow.Count < ColumnCount)
+                    while (rawImportedRow.Count < MappedColumnCount)
                     {
                         rawImportedRow.Add("");
                     }
@@ -133,6 +191,11 @@ namespace Horseshoe.NET.DataImport
             }
         }
 
+        /// <summary>
+        /// Applies <c>AutoTrunc</c> (and potentially other future preferences) to each parsed datum
+        /// </summary>
+        /// <param name="datum"></param>
+        /// <returns></returns>
         private string HandleImportedDatum(string datum)
         {
             switch (AutoTrunc)
@@ -147,6 +210,10 @@ namespace Horseshoe.NET.DataImport
             }
         }
 
+        /// <summary>
+        /// Finalizes the import by applying <c>BlankRowPolicy</c> (and potentially other future preferences) to each parsed row
+        /// </summary>
+        /// <exception cref="DataImportException"></exception>
         public void FinalizeImport()
         {
             switch (BlankRowPolicy)
@@ -197,6 +264,10 @@ namespace Horseshoe.NET.DataImport
             }
         }
 
+        /// <summary>
+        /// Extract the data from each <c>ImportedRow</c> and generate and return an <c>IEnumerable&lt;string[]&gt;</c>
+        /// </summary>
+        /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
         public IEnumerable<string[]> ExportToStringArrays()
         {
             var list = new List<string[]>();
@@ -207,6 +278,12 @@ namespace Horseshoe.NET.DataImport
             return list;
         }
 
+        /// <summary>
+        /// Extract the data from each <c>ImportedRow</c> and generate and return an <c>IEnumerable&lt;object[]&gt;</c> 
+        /// based on the supplied column metadata
+        /// </summary>
+        /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
+        /// <exception cref="DataImportException"></exception>
         public IEnumerable<object[]> ExportToObjectArrays()
         {
             if (!EnforceColumnCount)
@@ -238,11 +315,26 @@ namespace Horseshoe.NET.DataImport
             return list;
         }
 
+        /// <summary>
+        /// Extract the data from each <c>ImportedRow</c> and generate an <c>IEnumerable&lt;object[]&gt;</c> 
+        /// based on the supplied column metadata, then formatting the data back to <c>string</c> according to the column metadata
+        /// </summary>
+        /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+        /// <remarks><seealso cref="ExportToObjectArrays"/></remarks>
         public IEnumerable<string[]> ExportToFormattedObjectStringArrays()
         {
             return ExportToFormattedObjectStringArrays(Columns, ExportToObjectArrays());
         }
 
+
+        /// <summary>
+        /// Extract the data from each <c>ImportedRow</c> and generate an <c>IEnumerable&lt;object[]&gt;</c> 
+        /// based on the supplied column metadata, then formatting the data back to <c>string</c> according to the column metadata
+        /// </summary>
+        /// <param name="columns">A collection of column metadata</param>
+        /// <param name="objectArrays">an <c>IEnumerable&lt;object[]&gt;</c></param>
+        /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
+        /// <remarks><seealso cref="ExportToObjectArrays"/></remarks>
         public static IEnumerable<string[]> ExportToFormattedObjectStringArrays(IEnumerable<Column> columns, IEnumerable<object[]> objectArrays)
         {
             if (columns == null || !columns.Any())

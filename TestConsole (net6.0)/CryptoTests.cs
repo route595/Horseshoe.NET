@@ -53,7 +53,7 @@ namespace TestConsole
                 () =>
                 {
                     var fileToHashPath = PromptX.Input("Input file (or drag and drop)").Replace("\"", "");
-                    var fileHash = Hash.File(fileToHashPath, new HashOptions { Algorithm = new System.Security.Cryptography.MD5CryptoServiceProvider() });
+                    var fileHash = Hash.String(fileToHashPath, new HashOptions { Algorithm = new System.Security.Cryptography.MD5CryptoServiceProvider() });
                     Console.WriteLine("Hash: " + fileHash);
                 }
             ),

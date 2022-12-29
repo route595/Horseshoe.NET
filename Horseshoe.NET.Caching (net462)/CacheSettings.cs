@@ -9,13 +9,14 @@ namespace Horseshoe.NET.Caching
         /// <summary>
         /// Gets or sets the default cache duration used by Caching.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:Caching:CacheDuration and OrganizationalDefaultSettings: key = Caching.CacheDuration)
         /// </summary>
-        public static int? DefaultCacheDuration
+        public static int DefaultCacheDurationInSeconds
         {
             get
             {
                 return _defaultCacheDuration
                     ?? Config.Get<int?>("Horseshoe.NET:Caching:CacheDuration") 
-                    ?? OrganizationalDefaultSettings.GetNInt("Caching.CacheDuration");
+                    ?? OrganizationalDefaultSettings.Get<int?>("Caching.CacheDuration")
+                    ?? CacheConstants.DefaultCacheDurationInSeconds;
             }
             set
             {

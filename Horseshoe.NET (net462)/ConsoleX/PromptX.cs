@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Text;
 
 using Horseshoe.NET.Collections;
-using Horseshoe.NET.DateAndTime;
+using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
@@ -18,19 +19,19 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts for input, accepts free text as well as certain commands i.e. 'cancel', 'exit' by default
         /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
         /// <param name="quickText">an optional common or predictive input that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="autoTrim">whether to trim leading and trailing whitespaces, default is <c>true</c></param>
         /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
         /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
         /// <returns>The text entered by the user</returns>
         public static string Input
         (
-            bool required = false, 
-            string requiredIndicator = "*",
+            bool required = false,
+            bool displayAsRequired = false,
             string quickText = null, 
             int padBefore = 0, 
             int padAfter = 0, 
@@ -41,9 +42,9 @@ namespace Horseshoe.NET.ConsoleX
         {
             return Input
             (
-                null, 
-                required: required, 
-                requiredIndicator: requiredIndicator,
+                null,
+                required: required,
+                displayAsRequired: displayAsRequired,
                 quickText: quickText, 
                 autoTrim: autoTrim,
                 padBefore: padBefore, 
@@ -56,12 +57,12 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts for input, accepts free text as well as certain commands i.e. 'cancel', 'exit' by default
         /// </summary>
-        /// <param name="prompt">The text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
         /// <param name="quickText">an optional common or predictive input that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="autoTrim">whether to trim leading and trailing whitespaces, default is <c>true</c></param>
         /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
         /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
@@ -69,8 +70,8 @@ namespace Horseshoe.NET.ConsoleX
         public static string Input
         (
             string prompt, 
-            bool required = false, 
-            string requiredIndicator = "*",
+            bool required = false,
+            bool displayAsRequired = false,
             string quickText = null,
             int padBefore = 0, 
             int padAfter = 0, 
@@ -88,7 +89,7 @@ namespace Horseshoe.NET.ConsoleX
             string input;
             while (true)
             {
-                RenderX.Prompt(prompt, required: required, requiredIndicator: requiredIndicator);
+                RenderX.Prompt(prompt, required: required || displayAsRequired);
                 input = autoTrim 
                     ? Console.ReadLine().Trim()
                     : Console.ReadLine();
@@ -97,7 +98,7 @@ namespace Horseshoe.NET.ConsoleX
                     if (quickText != null)
                     {
                         input = quickText;
-                        RenderX.Prompt(prompt, required: required, requiredIndicator: requiredIndicator);
+                        RenderX.Prompt(prompt, required: required || displayAsRequired);
                         Console.WriteLine(input);
                     }
                     else if (required)
@@ -133,15 +134,15 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts for input, accepts free text with no string trimming and no command recognition
         /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The exact text entered by the user</returns>
         public static string InputVerbatim
         (
             bool required = false,
-            string requiredIndicator = "*",
+            bool displayAsRequired = false,
             int padBefore = 0, 
             int padAfter = 0
         )
@@ -150,32 +151,32 @@ namespace Horseshoe.NET.ConsoleX
             (
                 null,
                 required: required,
-                requiredIndicator: requiredIndicator,
+                displayAsRequired: displayAsRequired,
                 padBefore: padBefore, 
                 padAfter: padAfter
             );
         }
 
         /// <summary>
-        /// Prompts for input, accepts free text with no string trimming and no command recognition
+        /// Prompts for input, accepts free text with no string trimming and no command recognition.
         /// </summary>
-        /// <param name="prompt">The text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The exact text entered by the user</returns>
         public static string InputVerbatim
         (
             string prompt,
             bool required = false,
-            string requiredIndicator = "*",
+            bool displayAsRequired = false,
             int padBefore = 0, 
             int padAfter = 0
         )
         {
             RenderX.Pad(padBefore);
-            RenderX.Prompt(prompt, required: required, requiredIndicator: requiredIndicator);
+            RenderX.Prompt(prompt, required: required || displayAsRequired);
             string input = Console.ReadLine();
             RenderX.Pad(padAfter);
             return input;
@@ -184,8 +185,8 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts for input, blanks become <c>null</c>s, accepts free text as well as certain commands i.e. 'cancel', 'exit' by default
         /// </summary>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
         /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
         /// <returns>The text entered by the user (or <c>null</c>)</returns>
@@ -212,9 +213,9 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts for input, blanks become <c>null</c>s, accepts free text as well as certain commands i.e. 'cancel', 'exit' by default
         /// </summary>
-        /// <param name="prompt">The text to render at the prompt</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
         /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
         /// <returns>The text entered by the user (or <c>null</c>)</returns>
@@ -245,13 +246,20 @@ namespace Horseshoe.NET.ConsoleX
         /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
         /// </summary>
         /// <typeparam name="T">a reference type</typeparam>
-        /// <param name="parser">A custom text-to-value converter</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
+        /// <param name="parser">An optional custom text-to-value converter</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="numberStyle">Applies to <c>Value&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>Value&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>Value&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="trueValues">Applies to <c>Value&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
+        /// <param name="falseValues">Applies to <c>Value&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
+        /// <param name="encoding">Applies to <c>Value&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
+        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
+        /// <param name="ignoreCase">Applies to <c>Value&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
         /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
         /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
         /// <returns>The value entered by the user</returns>
@@ -260,483 +268,35 @@ namespace Horseshoe.NET.ConsoleX
         (
             Func<string, object> parser = null,
             bool required = false,
-            string requiredIndicator = "*",
-            T quickValue = null,
-            Action<T> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        ) where T : class
-        {
-            return Value
-            (
-                null,
-                parser: parser,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for typesafe input, accepts <c>T</c> values only as well as certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <typeparam name="T">a reference type</typeparam>
-        /// <param name="prompt">The text to render at the prompt</param>
-        /// <param name="parser">A custom text-to-value converter</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static T Value<T>
-        (
-            string prompt,
-            Func<string, object> parser = null,
-            bool required = false,
-            string requiredIndicator = "*",
-            T quickValue = null,
-            Action<T> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        ) where T : class
-        {
-            while (true)
-            {
-                string input = Input
-                (
-                    prompt,
-                    required: required,
-                    requiredIndicator: requiredIndicator,
-                    quickText: quickValue?.ToString(),
-                    padBefore: padBefore,
-                    padAfter: padAfter,
-                    autoTrim: true,
-                    canCancel: canCancel,
-                    canExitApp: canExitApp
-                );
-
-                try
-                {
-                    var value = input.Length > 0
-                        ? ConvertString.To<T>(input, converter: parser)
-                        : quickValue;
-                    if (value == null)
-                        return null;
-                    validator?.Invoke(value);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    RenderX.Alert(ex.RenderMessage(typeRendering: ExceptionTypeRenderingPolicy.FqnExceptSystem));
-                    if (ex is ConversionException cex && cex.IsConverterNotSupplied)
-                    {
-                        ConsoleNavigation.CancelPrompt(cex.Message);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Prompts for typesafe input, accepts <c>T</c> values only as well as certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <typeparam name="T">a value type</typeparam>
-        /// <param name="parser">A custom text-to-value converter</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static T Value<T>
-        (
-            Func<string, object> parser = null,
-            bool required = false,
-            string requiredIndicator = "*",
-            T? quickValue = null,
-            Action<T> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        ) where T : struct
-        {
-            return Value
-            (
-                null,
-                parser: parser,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for typesafe input, accepts <c>T</c> values only as well as certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <typeparam name="T">a value type</typeparam>
-        /// <param name="prompt">The text to render at the prompt</param>
-        /// <param name="parser">A custom text-to-value converter</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static T Value<T>
-        (
-            string prompt,
-            Func<string, object> parser = null,
-            bool required = false,
-            string requiredIndicator = "*",
-            T? quickValue = null,
-            Action<T> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        ) where T : struct
-        {
-            while (true)
-            {
-                string input = Input
-                (
-                    prompt,
-                    required: required,
-                    requiredIndicator: requiredIndicator,
-                    quickText: quickValue?.ToString(),
-                    padBefore: padBefore,
-                    padAfter: padAfter,
-                    autoTrim: true,
-                    canCancel: canCancel,
-                    canExitApp: canExitApp
-                );
-
-                try
-                {
-                    var value = input.Length > 0
-                        ? ConvertString.To<T>(input, converter: parser)
-                        : quickValue ?? default;
-                    validator?.Invoke(value);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    RenderX.Alert(ex.RenderMessage(typeRendering: ExceptionTypeRenderingPolicy.FqnExceptSystem));
-                    if (ex is ConversionException cex && cex.IsConverterNotSupplied)
-                    {
-                        ConsoleNavigation.CancelPrompt(cex.Message);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Prompts for nullable typesafe input, accepts <c>T</c> values only as well as certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <typeparam name="T">a value type</typeparam>
-        /// <param name="parser">A custom text-to-value converter</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user or <c>null</c></returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static T? NValue<T>
-        (
-            Func<string, object> parser = null,
-            Action<T> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        ) where T : struct
-        {
-            return NValue<T>
-            (
-                null,
-                parser: parser,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for nullable typesafe input, accepts <c>T</c> values only as well as certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <typeparam name="T">a value type</typeparam>
-        /// <param name="prompt">The text to render at the prompt</param>
-        /// <param name="parser">A custom text-to-value converter</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user or <c>null</c></returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static T? NValue<T>
-        (
-            string prompt,
-            Func<string, object> parser = null,
-            Action<T> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        ) where T : struct
-        {
-            while (true)
-            {
-                var input = Input
-                (
-                    prompt,
-                    padBefore: padBefore,
-                    padAfter: padAfter,
-                    canCancel: canCancel,
-                    canExitApp: canExitApp
-                );
-
-                if (input.Length == 0)
-                {
-                    return null;
-                }
-
-                try
-                {
-                    var value = ConvertString.To<T>(input, converter: parser);
-                    validator?.Invoke(value);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    RenderX.Alert(ex.RenderMessage(typeRendering: ExceptionTypeRenderingPolicy.FqnExceptSystem));
-                    if (ex is ConversionException cex && cex.IsConverterNotSupplied)
-                    {
-                        ConsoleNavigation.CancelPrompt(cex.Message);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Prompts for a <c>true</c>/<c>false</c> value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="trueValues">pipe delimited list of <c>true</c> values, default = 'y|yes|t|true|1')</param>
-        /// <param name="falseValues">pipe delimited list of <c>false</c> values, default = 'n|no|f|false|0')</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static bool Bool
-        (
-            bool required = false, 
-            string requiredIndicator = "*",
-            string trueValues = "y|yes|t|true|1", 
-            string falseValues = "n|no|f|false|0",
-            bool? quickValue = null,
-            int padBefore = 0, 
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Value<bool>
-            (
-                parser: (input) => Zap.Bool(input, trueValues: trueValues, falseValues: falseValues, ignoreCase: true),
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a <c>true</c>/<c>false</c> value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="trueValues">pipe delimited list of <c>true</c> values, default = 'y|yes|t|true|1')</param>
-        /// <param name="falseValues">pipe delimited list of <c>false</c> values, default = 'n|no|f|false|0')</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static bool Bool
-        (
-            string prompt, 
-            bool required = false, 
-            string requiredIndicator = "*",
-            string trueValues = "y|yes|t|true|1", 
-            string falseValues = "n|no|f|false|0", 
-            bool? quickValue = null, 
-            int padBefore = 0, 
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Value<bool>
-            (
-                prompt,
-                parser: (input) => Zap.Bool(input, trueValues: trueValues, falseValues: falseValues, ignoreCase: true),
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable <c>true</c>/<c>false</c> value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="trueValues">pipe delimited list of <c>true</c> values, default = 'y|yes|t|true|1')</param>
-        /// <param name="falseValues">pipe delimited list of <c>false</c> values, default = 'n|no|f|false|0')</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static bool? NBool
-        (
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
+            Encoding encoding = null,
+            Type inheritedType = null,
+            bool ignoreCase = false,
+            T quickValue = default,
+            Action<T> validator = null,
             int padBefore = 0,
             int padAfter = 0,
             bool canCancel = true,
             bool canExitApp = true
-        )
+        ) 
         {
-            return NValue<bool>
-            (
-                parser: (input) => Zap.NBool(input, trueValues: trueValues, falseValues: falseValues, ignoreCase: true),
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable <c>true</c>/<c>false</c> value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="trueValues">pipe delimited list of <c>true</c> values, default = 'y|yes|t|true|1')</param>
-        /// <param name="falseValues">pipe delimited list of <c>false</c> values, default = 'n|no|f|false|0')</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        public static bool? NBool
-        (
-            string prompt, 
-            string trueValues = "y|yes|t|true|1", 
-            string falseValues = "n|no|f|false|0", 
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NValue<bool>
-            (
-                prompt,
-                parser: (input) => Zap.NBool(input, trueValues: trueValues, falseValues: falseValues, ignoreCase: true),
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int Int
-        (
-            bool required = false,
-            string requiredIndicator = "*",
-            int? quickValue = null,
-            Action<int> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Int
+            return Value
             (
                 null,
+                parser: parser,
                 required: required,
-                requiredIndicator: requiredIndicator,
+                numberStyle: numberStyle,
+                provider: provider,
+                locale: locale,
+                trueValues: trueValues,
+                falseValues: falseValues,
+                encoding: encoding,
+                inheritedType: inheritedType,
+                ignoreCase: ignoreCase,
                 quickValue: quickValue,
                 validator: validator,
                 padBefore: padBefore,
@@ -747,1046 +307,157 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
+        /// Prompts for typesafe input, accepts <c>T</c> values only as well as certain commands i.e. 'cancel', 'exit' by default.
         /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
         /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
+        /// <typeparam name="T">A runtime type.</typeparam>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="parser">An optional custom text-to-value converter</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="numberStyle">Applies to <c>Value&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>Value&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>Value&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="trueValues">Applies to <c>Value&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
+        /// <param name="falseValues">Applies to <c>Value&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
+        /// <param name="encoding">Applies to <c>Value&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
+        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
+        /// <param name="ignoreCase">Applies to <c>Value&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
         /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
         /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
         /// <returns>The value entered by the user</returns>
         /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int Int
+        public static T Value<T>
         (
             string prompt,
+            Func<string, object> parser = null,
             bool required = false,
-            string requiredIndicator = "*",
-            int? quickValue = null,
-            Action<int> validator = null,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            string trueValues = "y|yes|t|true|1",
+            string falseValues = "n|no|f|false|0",
+            Encoding encoding = null,
+            Type inheritedType = null,
+            bool ignoreCase = false,
+            T quickValue = default,
+            Action<T> validator = null,
             int padBefore = 0,
             int padAfter = 0,
             bool canCancel = true,
             bool canExitApp = true
         )
         {
-            return Value<int>
-            (
-                prompt,
-                parser: (input) => Convert.ToInt32(input),
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
+            if (typeof(T).IsEnumType())
+                return Enum<T>(prompt, required: required, padBefore: padBefore, padAfter: padAfter);
 
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int Int
-        (
-            bool required = false,
-            string requiredIndicator = "*",
-            int? min = null,
-            int? max = null,
-            int? quickValue = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Int
-            (
-                null,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                min: min,
-                max: max,
-                quickValue: quickValue,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
+            while (true)
+            {
+                string input = Input
+                (
+                    prompt,
+                    required: required,
+                    quickText: Equals(quickValue, default(T)) ? null : quickValue?.ToString(),
+                    padBefore: padBefore,
+                    padAfter: padAfter,
+                    autoTrim: true,
+                    canCancel: canCancel,
+                    canExitApp: canExitApp
+                );
 
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int Int
-        (
-            string prompt,
-            bool required = false,
-            string requiredIndicator = "*",
-            int? min = null,
-            int? max = null,
-            int? quickValue = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            // validation
-            if (min.HasValue && max.HasValue && min > max)
-                throw new ValidationException("min value may not exceed max value: " + min + " !< " + max);
-
-            return Int
-            (
-                prompt,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: (intValue) =>
+                try
                 {
-                    if (min.HasValue && intValue < min)
-                        throw new ArgumentOutOfRangeException(nameof(intValue), "input (" + intValue + ") may not be less than " + min);
-                    if (max.HasValue && intValue > max)
-                        throw new ArgumentOutOfRangeException(nameof(intValue), "input (" + intValue + ") may not exceed " + max);
-                },
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int? NInt
-        (
-            Action<int> validator,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NInt
-            (
-                null,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int? NInt
-        (
-            string prompt,
-            Action<int> validator,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NValue<int>
-            (
-                prompt,
-                parser: (input) => Convert.ToInt32(input),
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int? NInt
-        (
-            int? min = null,
-            int? max = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NInt
-            (
-                null,
-                min: min,
-                max: max,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static int? NInt
-        (
-            string prompt,
-            int? min = null,
-            int? max = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            // validation
-            if (min.HasValue && max.HasValue && min > max)
-                throw new ValidationException("min value may not exceed max value: " + min + " !< " + max);
-
-            return NInt
-            (
-                prompt,
-                validator: (intValue) =>
+                    if (parser != null)
+                        return (T)parser.Invoke(input);
+                    var value = input.Length > 0
+                        ? Zap.To<T>
+                          (
+                            input,
+                            numberStyle: numberStyle,
+                            provider: provider,
+                            locale: locale,
+                            trueValues: trueValues,
+                            falseValues: falseValues,
+                            encoding: encoding,
+                            inheritedType: inheritedType,
+                            ignoreCase: ignoreCase
+                          )
+                        : quickValue;
+                    if (value == null)
+                        return default;
+                    validator?.Invoke(value);
+                    return value;
+                }
+                catch (Exception ex)
                 {
-                    if (min.HasValue && intValue < min)
-                        throw new ArgumentOutOfRangeException(nameof(intValue), "input (" + intValue + ") may not be less than " + min);
-                    if (max.HasValue && intValue > max)
-                        throw new ArgumentOutOfRangeException(nameof(intValue), "input (" + intValue + ") may not exceed " + max);
-                },
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal Decimal
-        (
-            bool required = false,
-            string requiredIndicator = "*",
-            decimal? quickValue = null,
-            Action<decimal> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Decimal
-            (
-                null,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal Decimal
-        (
-            string prompt,
-            bool required = false,
-            string requiredIndicator = "*",
-            decimal? quickValue = null,
-            Action<decimal> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Value<decimal>
-            (
-                prompt,
-                parser: (input) => Convert.ToDecimal(input),
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal Decimal
-        (
-            bool required = false,
-            string requiredIndicator = "*",
-            decimal? min = null,
-            decimal? max = null,
-            decimal? quickValue = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Decimal
-            (
-                null,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                min: min,
-                max: max,
-                quickValue: quickValue,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal Decimal
-        (
-            string prompt,
-            bool required = false,
-            string requiredIndicator = "*",
-            decimal? min = null,
-            decimal? max = null,
-            decimal? quickValue = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            // validation
-            if (min.HasValue && max.HasValue && min > max)
-                throw new ValidationException("min value may not exceed max value: " + min + " !< " + max);
-
-            return Decimal
-            (
-                prompt,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: (decimalValue) =>
-                {
-                    if (min.HasValue && decimalValue < min)
-                        throw new ArgumentOutOfRangeException(nameof(decimalValue), "input (" + decimalValue + ") may not be less than " + min);
-                    if (max.HasValue && decimalValue > max)
-                        throw new ArgumentOutOfRangeException(nameof(decimalValue), "input (" + decimalValue + ") may not exceed " + max);
-                },
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal? NDecimal
-        (
-            Action<decimal> validator,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NDecimal
-            (
-                null,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal? NDecimal
-        (
-            string prompt,
-            Action<decimal> validator,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NValue<decimal>
-            (
-                prompt,
-                parser: (input) => Convert.ToDecimal(input),
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal? NDecimal
-        (
-            decimal? min = null,
-            decimal? max = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NDecimal
-            (
-                null,
-                min: min,
-                max: max,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static decimal? NDecimal
-        (
-            string prompt,
-            decimal? min = null,
-            decimal? max = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            // validation
-            if (min.HasValue && max.HasValue && min > max)
-                throw new ValidationException("min value may not exceed max value: " + min + " !< " + max);
-
-            return NDecimal
-            (
-                prompt,
-                validator: (decimalValue) =>
-                {
-                    if (min.HasValue && decimalValue < min)
-                        throw new ArgumentOutOfRangeException(nameof(decimalValue), "input (" + decimalValue + ") may not be less than " + min);
-                    if (max.HasValue && decimalValue > max)
-                        throw new ArgumentOutOfRangeException(nameof(decimalValue), "input (" + decimalValue + ") may not exceed " + max);
-                },
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime DateTime
-        (
-            bool required = false,
-            string requiredIndicator = "*",
-            DateTime? quickValue = null,
-            Action<DateTime> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return DateTime
-            (
-                null,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime DateTime
-        (
-            string prompt,
-            bool required = false,
-            string requiredIndicator = "*",
-            DateTime? quickValue = null,
-            Action<DateTime> validator = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return Value<DateTime>
-            (
-                prompt,
-                parser: (input) => Convert.ToDateTime(input),
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime DateTime
-        (
-            bool required = false,
-            string requiredIndicator = "*",
-            DateTime? min = null,
-            DateTime? max = null,
-            DateTime? quickValue = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return DateTime
-            (
-                null,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                min: min,
-                max: max,
-                quickValue: quickValue,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for an integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="quickValue">an optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime DateTime
-        (
-            string prompt,
-            bool required = false,
-            string requiredIndicator = "*",
-            DateTime? min = null,
-            DateTime? max = null,
-            DateTime? quickValue = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            // validation
-            if (min.HasValue && max.HasValue && min > max)
-                throw new ValidationException("min value may not exceed max value: " + min.Value.ToFlexStringUS() + " !< " + max.Value.ToFlexStringUS());
-
-            return DateTime
-            (
-                prompt,
-                required: required,
-                requiredIndicator: requiredIndicator,
-                quickValue: quickValue,
-                validator: (dateValue) =>
-                {
-                    if (min.HasValue && dateValue < min)
-                        throw new ArgumentOutOfRangeException(nameof(dateValue), "input (" + dateValue.ToFlexStringUS() + ") may not be less than " + min.Value.ToFlexStringUS());
-                    if (max.HasValue && dateValue > max)
-                        throw new ArgumentOutOfRangeException(nameof(dateValue), "input (" + dateValue.ToFlexStringUS() + ") may not exceed " + max.Value.ToFlexStringUS());
-                },
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime? NDateTime
-        (
-            Action<DateTime> validator,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NDateTime
-            (
-                null,
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="validator">an optional validation routine to be run on the parsed input value</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime? NDateTime
-        (
-            string prompt,
-            Action<DateTime> validator,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NValue<DateTime>
-            (
-                prompt,
-                parser: (input) => Convert.ToDateTime(input),
-                validator: validator,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime? NDateTime
-        (
-            DateTime? min = null,
-            DateTime? max = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            return NDateTime
-            (
-                null,
-                min: min,
-                max: max,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
-        }
-
-        /// <summary>
-        /// Prompts for a nullable integer value, also accepts certain commands i.e. 'cancel', 'exit' by default.
-        /// Always wrap in try block to catch <see cref="ConsoleNavigation.PromptCanceledException" />.
-        /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="min">the minimum acceptable value, optional</param>
-        /// <param name="max">the maximum acceptable value, optional</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="canCancel">whether typing 'cancel' at the prompt can cancel the prompt, default is <c>true</c></param>
-        /// <param name="canExitApp">whether typing 'exit' at the prompt can exit the application, default is <c>true</c></param>
-        /// <returns>The value entered by the user</returns>
-        /// <exception cref="ConsoleNavigation.PromptCanceledException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static DateTime? NDateTime
-        (
-            string prompt,
-            DateTime? min = null,
-            DateTime? max = null,
-            int padBefore = 0,
-            int padAfter = 0,
-            bool canCancel = true,
-            bool canExitApp = true
-        )
-        {
-            // validation
-            if (min.HasValue && max.HasValue && min > max)
-                throw new ValidationException("min value may not exceed max value: " + min.Value.ToFlexStringUS() + " !< " + max.Value.ToFlexStringUS());
-
-            return NDateTime
-            (
-                prompt,
-                validator: (dateValue) =>
-                {
-                    if (min.HasValue && dateValue < min)
-                        throw new ArgumentOutOfRangeException(nameof(dateValue), "input (" + dateValue.ToFlexStringUS() + ") may not be less than " + min.Value.ToFlexStringUS());
-                    if (max.HasValue && dateValue > max)
-                        throw new ArgumentOutOfRangeException(nameof(dateValue), "input (" + dateValue.ToFlexStringUS() + ") may not exceed " + max.Value.ToFlexStringUS());
-                },
-                padBefore: padBefore,
-                padAfter: padAfter,
-                canCancel: canCancel,
-                canExitApp: canExitApp
-            );
+                    RenderX.Alert(ex.RenderMessage(typeRendering: ExceptionTypeRenderingPolicy.FqnExceptSystem));
+                    if (ex is ConversionException cex && cex.IsConverterNotSupplied)
+                    {
+                        ConsoleNavigation.CancelPrompt(cex.Message);
+                    }
+                }
+            }
         }
 
         /// <summary>
         /// Prompts for <c>enum</c> value, also accepts certain commands i.e. 'cancel', 'exit' by default
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="title">The list title</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="except">Any <c>enum</c> values you want to omit from the list of choices</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <typeparam name="T">An enum type.</typeparam>
+        /// <param name="title">An optional list title.</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="except">Any <c>enum</c> values you want to omit from the list of choices.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value entered by the user</returns>
         public static T Enum<T>
         (
             Title? title = null, 
             bool required = false, 
-            string requiredIndicator = "*", 
             IList<T> except = null, 
             int padBefore = 0, 
             int padAfter = 0
-        ) where T : struct, Enum
+        )
         {
-            return NEnum<T>
-            (
-                title: title, 
-                required: required, 
-                requiredIndicator: requiredIndicator, 
-                except: except, 
-                padBefore: padBefore, 
-                padAfter: padAfter
-            ) ?? default;
-        }
+            // validation
+            if (!typeof(T).IsEnumType())
+                throw new ValidationException("Not an enum type: " + typeof(T).FullName);
 
-        /// <summary>
-        /// Prompts for <c>enum</c> value, also accepts certain commands i.e. 'cancel', 'exit' by default
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="title">The list title</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="except">Any <c>enum</c> values you want to omit from the list of choices</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <returns>The value entered by the user or <c>null</c></returns>
-        public static T? NEnum<T>
-        (
-            Title? title = null, 
-            bool required = false, 
-            string requiredIndicator = "*", 
-            IList<T> except = null, 
-            int padBefore = 0,
-            int padAfter = 0
-        ) where T : struct, Enum
-        {
-            T? choice = null;
-            var enumValues = System.Enum.GetValues(typeof(T))
-                .Cast<T?>()
-                .Where(e => !e.In(except?.Select(_e => (T?)_e)));
+            // transform to non-nullable
+            Type enumTypeForList = typeof(T);
+            if (typeof(T).TryGetUnderlyingType(out Type underlyingType))
+                enumTypeForList = underlyingType;
+
+            // prepare variables
+            T choice = default;
+            var enumValues = System.Enum.GetValues(enumTypeForList)
+                .Cast<T>()
+                .Where(e => !e.In(except));
 
             // create / configure custom menu
+            if (title == null)
+            {
+                title = enumTypeForList.Name + (required ? RenderX.RequiredIndicator : "");
+            }
+            else if (required)
+            {
+                title += (required ? RenderX.RequiredIndicator : "");
+            }
+
+            // create / customize menu
             var customItems = enumValues
                 .Select(e => RoutineX.BuildCustomRoutine(e.ToString(), () => choice = e, ((int)(object)e).ToString()) as MenuObject)
                 .ToList();
-            if (title == null)
+
+            if (underlyingType != null)
             {
-                title = typeof(T).Name;
-            }
-            if (requiredIndicator == null)
-            {
-                requiredIndicator = required ? "*" : "";
-            }
-            if (!required)
-            {
-                customItems.Add(RoutineX.BuildCustomRoutine("Press 'Enter' to skip...", () => { }));
+                customItems.Insert(0, RoutineX.BuildCustomRoutine("Press 'Enter' for null...", () => { }));
             }
 
             // prompt custom menu for choice selection
-            MenuSelection<T?> menuSelection = null;
-            while (true)
-            {
-                menuSelection = Menu(null as IList<T?>, customItemsToAppend: customItems, title: requiredIndicator + title, padBefore: padBefore, padAfter: padAfter);
-                if (menuSelection != null)
-                {
-                    break;
-                }
-                RenderX.Alert("A selection is required.");
-            }
+            var menuSelection = Menu(null as IList<T>, customItemsToAppend: customItems, title: title, padBefore: padBefore, padAfter: padAfter);
 
             return choice;
         }
@@ -1794,16 +465,15 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompt a user to choose from a collection of items
         /// </summary>
-        /// <typeparam name="T">type of item</typeparam>
+        /// <typeparam name="T">A runtime type.</typeparam>
         /// <param name="collection">a collection</param>
         /// <param name="title">a collection title</param>
         /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="choicePrompt">the text to render at the prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="choicePrompt">the text to render at the prompt.</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying collection items</param>
-        /// <param name="padBefore">the number of new lines to render before the collection</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the collection</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user</returns>
         /// <remarks><seealso cref="Enum"/></remarks>
         public static T List<T>
@@ -1812,7 +482,6 @@ namespace Horseshoe.NET.ConsoleX
             Title? title = null,
             ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
             bool required = false,
-            string requiredIndicator = "*",
             string choicePrompt = ">",
             Func<T, string> renderer = null,
             int padBefore = 0,
@@ -1825,7 +494,6 @@ namespace Horseshoe.NET.ConsoleX
                 title: title, 
                 indexPolicy: indexPolicy, 
                 required: required, 
-                requiredIndicator: requiredIndicator, 
                 choicePrompt: choicePrompt, 
                 renderer: renderer, 
                 padBefore: padBefore, 
@@ -1840,12 +508,11 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="list">a list</param>
         /// <param name="title">a list title</param>
         /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="choicePrompt">the text to render at the prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="choicePrompt">the text to render at the prompt.</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
-        /// <param name="padBefore">the number of new lines to render before the list</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the list</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user</returns>
         /// <remarks><seealso cref="Enum"/></remarks>
         public static T List<T>
@@ -1854,7 +521,6 @@ namespace Horseshoe.NET.ConsoleX
             Title? title = null,
             ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
             bool required = false,
-            string requiredIndicator = "*",
             string choicePrompt = null,
             Func<T, string> renderer = null,
             int padBefore = 0,
@@ -1868,7 +534,6 @@ namespace Horseshoe.NET.ConsoleX
                 title: title,
                 indexPolicy: indexPolicy,
                 required: required,
-                requiredIndicator: requiredIndicator,
                 choicePrompt: choicePrompt,
                 renderer: renderer,
                 padBefore: padBefore,
@@ -1884,12 +549,11 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="selectedIndex">returns the index selected by the user</param>
         /// <param name="title">a list title</param>
         /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        /// <param name="choicePrompt">the text to render at the prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="choicePrompt">the text to render at the prompt.</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
-        /// <param name="padBefore">the number of new lines to render before the list</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the list</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user</returns>
         /// <exception cref="ValidationException"></exception>
         /// <remarks><seealso cref="Enum"/></remarks>
@@ -1900,7 +564,6 @@ namespace Horseshoe.NET.ConsoleX
             Title? title = null,
             ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
             bool required = false,
-            string requiredIndicator = "*",
             string choicePrompt = null,
             Func<T, string> renderer = null,
             int padBefore = 0,
@@ -1914,21 +577,11 @@ namespace Horseshoe.NET.ConsoleX
 
             T choice;
 
-            if (requiredIndicator == null)
-            {
-                requiredIndicator = required ? "*" : "";
-            }
-
-            RenderX.List(list, title: title, indexPolicy: indexPolicy, renderer: renderer, requiredIndicator: requiredIndicator, padBefore: padBefore, padAfter: 0);
+            RenderX.List(list, title: title, indexPolicy: indexPolicy, renderer: renderer, padBefore: padBefore, padAfter: 0);
 
             if (list != null && list.Any())
             {
-                // required indicator would have been added to the title (if any), if so blank it out here
-                if (title != null)
-                {
-                    requiredIndicator = "";
-                }
-                var index = Int(choicePrompt, required: required, min: indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1, max: list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? -1 : 0), requiredIndicator: requiredIndicator);
+                var index = Value<int>(choicePrompt, required: required, validator: (i) => AssertIntInRange(i, 0 + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1), list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1)));
                 RenderX.Pad(padAfter);
 
                 choice = list[index + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : -1)];
@@ -1946,9 +599,9 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to press any key to continue
         /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="prompt">the text to render at the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         public static void Continue
         (
             string prompt = "Press any key to continue...",
@@ -1965,8 +618,8 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to press any key to exit
         /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
+        /// <param name="prompt">the text to render at the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         public static void Exit
         (
             string prompt = "Press any key to exit...",
@@ -1982,8 +635,8 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to enter a password (the password is hidden)
         /// </summary>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="cancelable">whether to allow escape to throw a <see cref="ConsoleNavigation.CancelPasswordException"/>, remember to catch the exception if <c>true</c>!</param>
         /// <exception cref="ConsoleNavigation.CancelPasswordException"></exception>
         public static string Password
@@ -1993,16 +646,16 @@ namespace Horseshoe.NET.ConsoleX
             bool cancelable = false
         )
         {
-            return Password(null, padBefore: padBefore, padAfter: padAfter);
+            return Password(null, padBefore: padBefore, padAfter: padAfter, cancelable: cancelable);
         }
 
         /// <summary>
         /// Prompts a user to enter a password (the password is hidden)
         /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
-        /// <param name="cancelable">whether to allow escape to throw a <see cref="ConsoleNavigation.CancelPasswordException"/>, remember to catch the exception if <c>true</c>!</param>
+        /// <param name="prompt">the text to render at the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <param name="cancelable">Whether to allow escape to throw a <see cref="ConsoleNavigation.CancelPasswordException"/>, remember to catch the exception if <c>true</c>!</param>
         /// <exception cref="ConsoleNavigation.CancelPasswordException"></exception>
         public static string Password
         (
@@ -2015,7 +668,7 @@ namespace Horseshoe.NET.ConsoleX
             var plainTextBuilder = new StringBuilder();
 
             RenderX.Pad(padBefore);
-            RenderX.Prompt(prompt, required: false, requiredIndicator: null);
+            RenderX.Prompt(prompt, required: false);
 
             while (true)
             {
@@ -2068,8 +721,8 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to enter a secure password (the password is hidden)
         /// </summary>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="cancelable">whether to allow escape to throw a <see cref="ConsoleNavigation.CancelPasswordException"/>, remember to catch the exception if <c>true</c>!</param>
         /// <exception cref="ConsoleNavigation.CancelPasswordException"></exception>
         public static SecureString PasswordSecure
@@ -2085,9 +738,9 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to enter a secure password (the password is hidden)
         /// </summary>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="prompt">the text to render at the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="cancelable">whether to allow escape to throw a <see cref="ConsoleNavigation.CancelPasswordException"/>, remember to catch the exception if <c>true</c>!</param>
         /// <exception cref="ConsoleNavigation.CancelPasswordException"></exception>
         public static SecureString PasswordSecure
@@ -2101,7 +754,7 @@ namespace Horseshoe.NET.ConsoleX
             var secureString = new SecureString();
 
             RenderX.Pad(padBefore);
-            RenderX.Prompt(prompt, required: false, requiredIndicator: null);
+            RenderX.Prompt(prompt, required: false);
 
             while (true)
             {
@@ -2161,9 +814,9 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="customItemsToAppend">custom items to list after the regular menu items</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
         /// <param name="title">a title</param>
-        /// <param name="prompt">the text to render at the prompt</param>
-        /// <param name="padBefore">the number of new lines to render before the prompt</param>
-        /// <param name="padAfter">the number of new lines to render after the prompt</param>
+        /// <param name="prompt">the text to render at the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="columns">the number of columns in which to render the list</param>
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
         /// <param name="allowArbitraryInput">allow arbitrary text in addition to menu item selection</param>
@@ -2334,6 +987,21 @@ namespace Horseshoe.NET.ConsoleX
                 }
             }
             return menuSelection;
+        }
+
+        /// <summary>
+        /// Throws an <c>AssertionFailedException</c> if <c>value</c> is not in the specified range.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <exception cref="AssertionFailedException"></exception>
+        public static void AssertIntInRange(int value, int? min = null, int? max = null)
+        {
+            if (min.HasValue && value < min)
+                throw new AssertionFailedException("The integer " + value + " is less than the minimum: " + min);
+            if (max.HasValue && value > max)
+                throw new AssertionFailedException("The integer " + value + " is greater than the maximum: " + max);
         }
     }
 }

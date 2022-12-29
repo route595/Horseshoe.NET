@@ -1,25 +1,24 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Net;
 
-using Horseshoe.NET.Http;
 using Horseshoe.NET.IO;
 
 namespace Horseshoe.NET.Http.ReportingServices
 {
     public static class ReportServer
     {
-        public static string Render(string reportPath, string reportServer = null, IDictionary<string, object> parameters = null, ReportFormat reportFormat = ReportFormat.PDF, string targetFileName = null, string targetDirectory = null, Credential? credentials = null)
+        public static FilePath Render(string reportPath, string reportServer = null, IDictionary<string, object> parameters = null, ReportFormat reportFormat = ReportFormat.PDF, string targetFileName = null, string targetDirectory = null, Credential? credentials = null)
         {
             var targetExt = ReportUtil.ConvertOutputTypeToFileType(reportFormat);
             var bytes = RenderBytes(reportPath, reportServer: reportServer, parameters: parameters, reportFormat: reportFormat, credentials: credentials);
-
-            return FileUtil.Create
+            FilePath filePath = Path.Combine
             (
-                bytes,
-                targetDirectory: targetDirectory,
-                targetFileName: FileUtil.AppendExtension(targetFileName ?? ReportUtil.ParseReportName(reportPath), targetExt),
-                fileType: targetExt
+                targetDirectory ?? Path.GetTempPath(),
+                FileUtil.AppendExtension(targetFileName ?? ReportUtil.ParseReportName(reportPath), targetExt)
             );
+            filePath.WriteAllBytes(bytes);
+            return filePath;
         }
 
         public static byte[] RenderBytes(string url, IDictionary<string, object> parameters = null, Credential? credentials = null)

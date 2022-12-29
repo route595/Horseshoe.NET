@@ -1,5 +1,8 @@
 ﻿namespace Horseshoe.NET.Email.Sms
 {
+    /// <summary>
+    /// Configuration settings for Horseshoe.NET.Email.Sms
+    /// </summary>
     public static class SmsSettings
     {
         static string _defaultFrom;
@@ -13,7 +16,7 @@
             {
                 return _defaultFrom
                     ?? _Config.Get("Horseshoe.NET:Sms:From")
-                    ?? OrganizationalDefaultSettings.GetString("Sms.From");
+                    ?? OrganizationalDefaultSettings.Get<string>("Sms.From");
             }
             set
             {

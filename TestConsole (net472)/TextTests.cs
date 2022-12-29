@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Horseshoe.NET;
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Text;
@@ -23,14 +24,14 @@ namespace TestConsole
                     Console.WriteLine("phrase:");
                     Console.WriteLine(phrase1);
                     Console.WriteLine("revealed:");
-                    Console.WriteLine(TextUtil.Reveal(phrase1, new RevealOptions{ RevealAll = true}));
+                    Console.WriteLine(TextUtil.Reveal(phrase1, new RevealOptions{ CharsToReveal = RevealCharCategory.All }));
                     Console.WriteLine();
                     Console.WriteLine("phrase:");
                     Console.WriteLine(phrase2);
                     Console.WriteLine("revealed:");
-                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ RevealAll = true}));
+                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = RevealCharCategory.All }));
                     Console.WriteLine("revealed (newlines preserved):");
-                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ RevealAll = true, PreserveNewLines = true}));
+                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = RevealCharCategory.All, PreserveNewLines = true}));
                 }
             ),
             BuildMenuRoutine
@@ -39,14 +40,12 @@ namespace TestConsole
                 () =>
                 {
                     var phrase = "Å¢t Øñę\u0000";
-                    var log = new Dictionary<int, string>();
                     Console.WriteLine("phrase: " + phrase);
-                    Console.WriteLine("to ASCII: " + TextClean.ToASCIIPrintable(phrase, replacementLog: log));
-                    Console.Write(log.Dump());
+                    Console.WriteLine("to ASCII: " + TextClean.ToASCIIPrintable(phrase));
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
                     Console.WriteLine();
-                    log.Clear();
-                    Console.WriteLine("to xtd ASCII: " + TextClean.ToASCIIPrintable(phrase, replacementLog: log, extendedASCII: true));
-                    Console.Write(log.Dump());
+                    Console.WriteLine("to xtd ASCII: " + TextClean.ToASCIIPrintable(phrase, extendedASCII: true));
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
                 }
             ),
             BuildMenuRoutine

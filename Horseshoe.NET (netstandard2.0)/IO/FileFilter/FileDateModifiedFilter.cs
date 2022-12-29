@@ -2,38 +2,55 @@
 
 namespace Horseshoe.NET.IO.FileFilter
 {
-    public class FileDateModifiedFilter : IFileFilter
+    /// <summary>
+    /// A <c>FileFilter</c> implementation for filtering based on modified date.
+    /// </summary>
+    public class FileDateModifiedFilter : FileFilter
     {
+        /// <summary>
+        /// Minimum date.  If omitted, all modified dates than or equal the maximum modified date are a match.
+        /// </summary>
         public DateTime? MinDate { get; }
 
+        /// <summary>
+        /// Maximum date.  If omitted, all modified dates greater than or equal the minimum modified date are a match.
+        /// </summary>
         public DateTime? MaxDate { get; }
 
-        public FilterMode FilterMode { get; }  // implements interface, otherwise serves no purpose
-
-        public bool CaseSensitive => false;
-
-        public FileDateModifiedFilter(DateTime? minDate, DateTime? maxDate)
+        /// <summary>
+        /// Creates a new <c>FileSizeFilter</c>
+        /// </summary>
+        /// <param name="minDate">Minimum date.  If omitted, all modified dates than or equal the maximum modified date are a match.</param>
+        /// <param name="maxDate">Maximum date.  If omitted, all modified dates greater than or equal the minimum modified date are a match.</param>
+        /// <param name="filterMode">Optional, dictates which items to include based on criteria matching.</param>
+        /// <exception cref="ValidationException"></exception>
+        public FileDateModifiedFilter(DateTime? minDate, DateTime? maxDate, FilterMode filterMode = default)
         {
-            if (!minDate.HasValue && !maxDate.HasValue)
+            // validation
+            if (minDate.HasValue)
+            {
+                if (maxDate.HasValue)
+                {
+                    if (minDate > maxDate)
+                        throw new ValidationException("Invalid filter: min date cannot exceed max date");
+                }
+            }
+            else if (!maxDate.HasValue)
                 throw new ValidationException("Invalid filter: a min date or max date (or both) must be supplied");
-            //if (minDate > maxDate)
-            //    throw new ValidationException("Invalid filter: min date cannot exceed max date");
+
             MinDate = minDate;
             MaxDate = maxDate;
+            FilterMode = filterMode;
         }
 
-        public bool IsMatch(FilePath file)
+        /// <summary>
+        /// Indicates whether the supplied file constitutes a critea match.
+        /// </summary>
+        /// <param name="file">a file path</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public override bool IsMatch(FilePath file)
         {
-            if (MinDate.HasValue)
-            {
-                if (MaxDate < MinDate)  // account for switched min/max values
-                    return file.DateModified <= MaxDate || file.DateModified >= MinDate;
-                if (file.DateModified < MinDate)
-                    return false;
-            }
-            if (MaxDate.HasValue && file.DateModified > MaxDate)
-                return false;
-            return true;
+            return (!MinDate.HasValue || file.DateModified >= MinDate) && (!MaxDate.HasValue || file.DateModified <= MaxDate);
         }
     }
 }

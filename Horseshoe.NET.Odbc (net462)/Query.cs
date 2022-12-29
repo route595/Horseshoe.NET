@@ -4,636 +4,2014 @@ using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.Text;
-using Horseshoe.NET.Text.TextClean;
 
 namespace Horseshoe.NET.Odbc
 {
+    /// <summary>
+    /// Factory methods for querying database objects
+    /// </summary>
     public static class Query
     {
+        /// <summary>
+        /// Factory methods for executing SQL query statements
+        /// </summary>
         public static class SQL
         {
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 string statement,
                 OdbcConnectionInfo connectionInfo = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsCollection(conn, statement, objectParser: objectParser, readerParser: readerParser, autoSort: autoSort, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsCollection(conn, statement, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 string statement,
                 OdbcConnectionInfo connectionInfo = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsCollectionAsync(conn, statement, objectParser: objectParser, readerParser: readerParser, autoSort: autoSort, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsCollectionAsync(conn, statement, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 OdbcConnection conn,
                 string statement,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = BuildList
-                (
-                    conn,
-                    statement,
-                    null,
-                    null,
-                    objectParser, 
-                    readerParser,
-                    autoSort, 
-                    autoTrunc,
-                    timeout, 
-                    modifyCommand
-                );
-                return list;
-            }
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-            public static async Task<IEnumerable<T>> AsCollectionAsync<T>
-            (
-                OdbcConnection conn,
-                string statement,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
-                AutoSort<T> autoSort = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var list = await BuildListAsync
+                // data stuff
+                var result = BuildList
                 (
                     conn,
                     statement,
                     null,
-                    null,
-                    objectParser,
-                    readerParser,
+                    dbCapture,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static object AsScalar
-            (
-                string statement,
-                OdbcConnectionInfo connectionInfo = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsScalar(conn, statement, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static async Task<object> AsScalarAsync
-            (
-                string statement,
-                OdbcConnectionInfo connectionInfo = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsScalarAsync(conn, statement, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static object AsScalar
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
+            public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 OdbcConnection conn,
                 string statement,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
+                AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var obj = cmd.ExecuteScalar();
-                    if (ObjectUtil.IsNull(obj)) return null;
-                    if (obj is string stringValue)
-                    {
-                        switch (autoTrunc)
-                        {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
-                                if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
-                        }
-                    }
-                    return obj;
+                    journal = TraceJournal.ResetDefault();
                 }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var result = await BuildListAsync
+                (
+                    conn,
+                    statement,
+                    null,
+                    dbCapture,
+                    rowParser,
+                    autoSort,
+                    autoTrunc,
+                    commandTimeout,
+                    alterCommand,
+                    journal
+                );
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static async Task<object> AsScalarAsync
-            (
-                OdbcConnection conn,
-                string statement,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    var obj = await cmd.ExecuteScalarAsync();
-                    if (ObjectUtil.IsNull(obj)) return null;
-                    if (obj is string stringValue)
-                    {
-                        switch (autoTrunc)
-                        {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
-                                if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
-                        }
-                    }
-                    return obj;
-                }
-            }
-
-            public static OdbcDataReader AsDataReader
-            (
-                string statement,
-                OdbcConnectionInfo connectionInfo = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsDataReader(conn, statement, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static async Task<OdbcDataReader> AsDataReaderAsync
-            (
-                string statement,
-                OdbcConnectionInfo connectionInfo = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsDataReaderAsync(conn, statement, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static OdbcDataReader AsDataReader
-            (
-                OdbcConnection conn,
-                string statement,
-                bool keepOpen = false,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand);
-                var reader = keepOpen
-                    ? cmd.ExecuteReader(CommandBehavior.Default)
-                    : cmd.ExecuteReader(CommandBehavior.CloseConnection);
-                return reader;
-            }
-
-            public static async Task<OdbcDataReader> AsDataReaderAsync
-            (
-                OdbcConnection conn,
-                string statement,
-                bool keepOpen = false,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand);
-                var reader = keepOpen
-                    ? await cmd.ExecuteReaderAsync(CommandBehavior.Default)
-                    : await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
-                return (OdbcDataReader)reader;
-            }
-
-            public static DataTable AsDataTable
-            (
-                string statement,
-                OdbcConnectionInfo connectionInfo = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsDataTable(conn, statement, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static DataTable AsDataTable
-            (
-                OdbcConnection conn,
-                string statement,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var dataTable = new DataTable();
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    using (var adapter = new OdbcDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-                switch (autoTrunc)
-                {
-                    case AutoTruncate.Trim:
-                        DbUtil.TrimDataTable(dataTable);
-                        break;
-                    case AutoTruncate.Zap:
-                    case AutoTruncate.ZapEmptyStringsOnly:
-                        throw new UtilityException("Zap does not work on data tables");
-                }
-                return dataTable;
-            }
-
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 string statement,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsObjects(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsObjects(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 string statement,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsObjectsAsync(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsObjectsAsync(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 OdbcConnection conn,
                 string statement,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = new List<object[]>();
-                using (var reader = AsDataReader(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
+                    journal = TraceJournal.ResetDefault();
                 }
-                return list;
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = AsDataReader(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
             }
 
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 OdbcConnection conn,
                 string statement,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = new List<object[]>();
-                using (var reader = await AsDataReaderAsync(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
+                    journal = TraceJournal.ResetDefault();
                 }
-                return list;
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = await AsDataReaderAsync(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
             }
 
-            public static IEnumerable<string[]> AsStrings
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query. 
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static object AsScalar
+            (
+                string statement,
+                OdbcConnectionInfo connectionInfo = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsScalar(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static async Task<object> AsScalarAsync
+            (
+                string statement,
+                OdbcConnectionInfo connectionInfo = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsScalarAsync(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static object AsScalar
+            (
+                OdbcConnection conn,
+                string statement,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                {
+                    var result = command.ExecuteScalar();
+                    journal.Level--;  // finalize
+                    if (ObjectUtil.IsNull(result))
+                        return null;
+                    if (result is string stringValue)
+                    {
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                        {
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
+                                if (stringValue.Length == 0)
+                                    stringValue = null;
+                            }
+                        }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
+                    }
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static async Task<object> AsScalarAsync
+            (
+                OdbcConnection conn,
+                string statement,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                {
+                    var result = await command.ExecuteScalarAsync();
+                    journal.Level--;  // finalize
+                    if (ObjectUtil.IsNull(result))
+                        return null;
+                    if (result is string stringValue)
+                    {
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                        {
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
+                                if (stringValue.Length == 0)
+                                    stringValue = null;
+                            }
+                        }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
+                    }
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
             (
                 string statement,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsStrings(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
                 }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static async Task<IEnumerable<string[]>> AsStringsAsync
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
             (
                 string statement,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsStringsAsync(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
                 }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = await AsDataReaderAsync(conn, statement, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static IEnumerable<string[]> AsStrings
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
             (
                 OdbcConnection conn,
                 string statement,
                 DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = new List<string[]>();
-                using (var reader = AsDataReader(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        var strings = objects
-                            .Select(o => o?.ToString())
-                            .ToArray();
-                        list.Add(strings);
-                    }
+                    journal = TraceJournal.ResetDefault();
                 }
-                return list;
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var result = keepOpen
+                    ? command.ExecuteReader(CommandBehavior.Default)
+                    : command.ExecuteReader(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static async Task<IEnumerable<string[]>> AsStringsAsync
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
             (
                 OdbcConnection conn,
                 string statement,
                 DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = new List<string[]>();
-                using (var reader = await AsDataReaderAsync(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var result = keepOpen
+                    ? await command.ExecuteReaderAsync(CommandBehavior.Default)
+                    : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes the user-supplied SQL query.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            public static DataTable AsDataTable
+            (
+                string statement,
+                OdbcConnectionInfo connectionInfo = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsDataTable(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a SQL statement using an existing open connection.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="statement">Typically a SQL 'select' statement</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            /// <exception cref="ValidationException"></exception>
+            public static DataTable AsDataTable
+            (
+                OdbcConnection conn,
+                string statement,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var result = new DataTable();
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                {
+                    using (var adapter = new OdbcDataAdapter(command))
                     {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        var strings = objects
-                            .Select(o => o?.ToString())
-                            .ToArray();
-                        list.Add(strings);
+                        journal.WriteEntry("adapter.Fill()");
+                        adapter.Fill(result);
                     }
                 }
-                return list;
+
+                if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                    throw new ValidationException("Zap does not work on data tables");
+                if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                    DbUtil.TrimDataTable(result);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
 
-        public static class TableOrView
+        /// <summary>
+        /// Factory methods for executing table or view based queries
+        /// </summary>
+        public static class Table
         {
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
-                string tableOrViewName,
+                string tableName,
                 OdbcConnectionInfo connectionInfo = null,
                 IEnumerable<string> columns = null,
-                Filter where = null,
+                IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsCollection(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoSort: autoSort, objectParser: objectParser, readerParser: readerParser, timeout: timeout, autoTrunc: autoTrunc, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsCollection(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view.
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
-                string tableOrViewName,
+                string tableName,
                 OdbcConnectionInfo connectionInfo = null,
                 IEnumerable<string> columns = null,
-                Filter where = null,
+                IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsCollectionAsync(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoSort: autoSort, objectParser: objectParser, readerParser: readerParser, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsCollectionAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 OdbcConnection conn,
-                string tableOrViewName,
+                string tableName,
                 IEnumerable<string> columns = null,
-                Filter where = null,
+                IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var statement = BuildStatement(tableOrViewName, columns, where, groupBy, orderBy, peekStatement);
-                var list = BuildList
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var statement = BuildStatement
+                (
+                    tableName,
+                    columns,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                var result = BuildList
                 (
                     conn,
                     statement,
                     null,
-                    null,
-                    objectParser,
-                    readerParser,
+                    dbCapture,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 OdbcConnection conn,
-                string tableOrViewName,
+                string tableName,
                 IEnumerable<string> columns = null,
-                Filter where = null,
+                IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                DbCapture dbCapture = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var statement = BuildStatement(tableOrViewName, columns, where, groupBy, orderBy, peekStatement);
-                var list = await BuildListAsync
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var statement = BuildStatement
+                (
+                    tableName,
+                    columns,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                var result = await BuildListAsync
                 (
                     conn,
                     statement,
                     null,
-                    null,
-                    objectParser,
-                    readerParser,
+                    dbCapture,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            static string BuildStatement
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static IEnumerable<object[]> AsObjects
             (
-                string tableOrViewName,
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsObjects(conn, tableName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            (
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsObjectsAsync(conn, tableName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static IEnumerable<object[]> AsObjects
+            (
+                OdbcConnection conn,
+                string tableName,
+                DbCapture dbCapture = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            (
+                OdbcConnection conn,
+                string tableName,
+                DbCapture dbCapture = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="column">The column in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static object AsScalar
+            (
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                string column = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsScalar(conn, tableName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="column">The column in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static async Task<object> AsScalarAsync
+            (
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                string column = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsScalarAsync(conn, tableName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, commandTimeout: commandTimeout, autoTrunc: autoTrunc, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="column">The column in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static object AsScalar
+            (
+                OdbcConnection conn,
+                string tableName,
+                string column = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var statement = BuildStatement
+                (
+                    tableName,
+                    column != null ? new[] { column } : null,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                {
+                    var result = command.ExecuteScalar();
+                    journal.Level--;  // finalize
+                    if (ObjectUtil.IsNull(result))
+                        return null;
+                    if (result is string stringValue)
+                    {
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                        {
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
+                                if (stringValue.Length == 0)
+                                    stringValue = null;
+                            }
+                        }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
+                    }
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="column">The column in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static async Task<object> AsScalarAsync
+            (
+                OdbcConnection conn,
+                string tableName,
+                string column = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var statement = BuildStatement
+                (
+                    tableName,
+                    column != null ? new[] { column } : null,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                {
+                    var result = await command.ExecuteScalarAsync();
+                    journal.Level--;  // finalize
+                    if (ObjectUtil.IsNull(result))
+                        return null;
+                    if (result is string stringValue)
+                    {
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                        {
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
+                                if (stringValue.Length == 0)
+                                    stringValue = null;
+                            }
+                        }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
+                    }
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
+            (
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
+            (
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
+            (
+                OdbcConnection conn,
+                string tableName,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var statement = BuildStatement
+                (
+                    tableName,
+                    columns,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var result = keepOpen
+                    ? command.ExecuteReader(CommandBehavior.Default)
+                    : command.ExecuteReader(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
+            (
+                OdbcConnection conn,
+                string tableName,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var statement = BuildStatement
+                (
+                    tableName,
+                    columns,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var result = keepOpen
+                    ? await command.ExecuteReaderAsync(CommandBehavior.Default)
+                    : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied table or view.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            public static DataTable AsDataTable
+            (
+                string tableName,
+                OdbcConnectionInfo connectionInfo = null,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsDataTable(conn, tableName, columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied table or view using an existing open connection.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="tableName">Typically a table or view to query.</param>
+            /// <param name="columns">The columns in the table or view to return in the result.</param>
+            /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
+            /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
+            /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            /// <exception cref="ValidationException"></exception>
+            public static DataTable AsDataTable
+            (
+                OdbcConnection conn,
+                string tableName,
+                IEnumerable<string> columns = null,
+                IFilter where = null,
+                IEnumerable<string> groupBy = null,
+                IEnumerable<string> orderBy = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var result = new DataTable(tableName);
+                var statement = BuildStatement
+                (
+                    tableName,
+                    columns,
+                    where,
+                    groupBy,
+                    orderBy,
+                    journal
+                );
+
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                {
+                    using (var adapter = new OdbcDataAdapter(command))
+                    {
+                        journal.WriteEntry("adapter.Fill()");
+                        adapter.Fill(result);
+                    }
+                }
+
+                if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                    throw new ValidationException("Zap does not work on data tables");
+                if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                    DbUtil.TrimDataTable(result);
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            private static string BuildStatement
+            (
+                string tableName,
                 IEnumerable<string> columns,
-                Filter where,
+                IFilter where,
                 IEnumerable<string> groupBy,
                 IEnumerable<string> orderBy,
-                Action<string> peekStatement
+                TraceJournal journal
             )
             {
+                // trace journaling
+                journal.WriteEntry("BuildStatement()");
+                journal.Level++;
+
+                // data stuff
                 var statement = @"
                     SELECT " + (columns != null ? string.Join(", ", columns) : "*") + @"
-                    FROM " + tableOrViewName;
+                    FROM " + tableName;
                 if (where != null)
                 {
                     statement += @"
@@ -651,741 +2029,251 @@ namespace Horseshoe.NET.Odbc
                 }
 
                 statement = statement.MultilineTrim();
-                peekStatement?.Invoke(statement);
+                journal.AddAndWriteEntry("sql.statement", string.Join(" ", statement.Replace("\r\n", "\n").Split('\n')));
 
+                // finalize
+                journal.Level--;
                 return statement;
             }
-
-            public static object AsScalar
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                string column = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsScalar(conn, tableOrViewName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static async Task<object> AsScalarAsync
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                string column = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsScalarAsync(conn, tableOrViewName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, timeout: timeout, autoTrunc: autoTrunc, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static object AsScalar
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                string column = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var statement = BuildStatement(tableOrViewName, column != null ? new[] { column } : null, where, groupBy, orderBy, peekStatement);
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    var obj = cmd.ExecuteScalar();
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        switch (autoTrunc)
-                        {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
-                                if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
-                        }
-                    }
-                    return obj;
-                }
-            }
-
-            public static async Task<object> AsScalarAsync
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                string column = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var statement = BuildStatement(tableOrViewName, column != null ? new[] { column } : null, where, groupBy, orderBy, peekStatement);
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    var obj = await cmd.ExecuteScalarAsync();
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        switch (autoTrunc)
-                        {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
-                                if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
-                        }
-                    }
-                    return obj;
-                }
-            }
-
-            public static OdbcDataReader AsDataReader
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo);
-                return AsDataReader(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-            }
-
-            public static async Task<OdbcDataReader> AsDataReaderAsync
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo);
-                return await AsDataReaderAsync(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-            }
-
-            public static OdbcDataReader AsDataReader
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var statement = BuildStatement(tableOrViewName, columns, where, groupBy, orderBy, peekStatement);
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand);
-                var reader = keepOpen
-                    ? cmd.ExecuteReader(CommandBehavior.Default)
-                    : cmd.ExecuteReader(CommandBehavior.CloseConnection);
-                return reader;
-            }
-
-            public static async Task<OdbcDataReader> AsDataReaderAsync
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var statement = BuildStatement(tableOrViewName, columns, where, groupBy, orderBy, peekStatement);
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand);
-                var reader = keepOpen
-                    ? await cmd.ExecuteReaderAsync(CommandBehavior.Default)
-                    : await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
-                return (OdbcDataReader)reader;
-            }
-
-            public static DataTable AsDataTable
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsDataTable(conn, tableOrViewName, columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
-
-            public static DataTable AsDataTable
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var dataTable = new DataTable(tableOrViewName);
-                var statement = BuildStatement(tableOrViewName, columns, where, groupBy, orderBy, peekStatement);
-
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    using (var adapter = new OdbcDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-                switch (autoTrunc)
-                {
-                    case AutoTruncate.Trim:
-                        DbUtil.TrimDataTable(dataTable);
-                        break;
-                    case AutoTruncate.Zap:
-                    case AutoTruncate.ZapEmptyStringsOnly:
-                        throw new ValidationException("Zap does not work on data tables");
-                }
-                return dataTable;
-            }
-
-            public static IEnumerable<object[]> AsObjects
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsObjects(conn, tableOrViewName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
-
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsObjectsAsync(conn, tableOrViewName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
-
-            public static IEnumerable<object[]> AsObjects
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var list = new List<object[]>();
-                using (var reader = AsDataReader(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
-                }
-                return list;
-            }
-
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var list = new List<object[]>();
-                using (var reader = await AsDataReaderAsync(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
-                }
-                return list;
-            }
-
-            public static IEnumerable<string[]> AsStrings
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsStrings(conn, tableOrViewName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
-
-            public static async Task<IEnumerable<string[]>> AsStringsAsync
-            (
-                string tableOrViewName,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsStringsAsync(conn, tableOrViewName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
-
-            public static IEnumerable<string[]> AsStrings
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var list = new List<string[]>();
-                using (var reader = AsDataReader(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        var strings = objects
-                            .Select(o => o?.ToString())
-                            .ToArray();
-                        list.Add(strings);
-                    }
-                }
-                return list;
-            }
-
-            public static async Task<IEnumerable<string[]>> AsStringsAsync
-            (
-                OdbcConnection conn,
-                string tableOrViewName,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                Filter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var list = new List<string[]>();
-                using (var reader = await AsDataReaderAsync(conn, tableOrViewName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        var strings = objects
-                            .Select(o => o?.ToString())
-                            .ToArray();
-                        list.Add(strings);
-                    }
-                }
-                return list;
-            }
         }
 
+        /// <summary>
+        /// Factory methods for executing stored procedures
+        /// </summary>
         public static class Procedure
         {
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsCollection<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, objectParser: objectParser, readerParser: readerParser, autoSort: autoSort, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsCollection<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsCollectionAsync<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, objectParser: objectParser, readerParser: readerParser, autoSort: autoSort, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsCollectionAsync<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 OdbcConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = BuildList
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var result = BuildList
                 (
                     conn,
                     procedureName,
                     parameters ?? Enumerable.Empty<DbParameter>(),
                     dbCapture,
-                    objectParser,
-                    readerParser,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 OdbcConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = await BuildListAsync
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var result = await BuildListAsync
                 (
                     conn,
                     procedureName,
                     parameters ?? Enumerable.Empty<DbParameter>(),
                     dbCapture,
-                    objectParser,
-                    readerParser,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static OdbcDataReader AsDataReader
-            (
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static async Task<OdbcDataReader> AsDataReaderAsync
-            (
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static OdbcDataReader AsDataReader
-            (
-                OdbcConnection conn,
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, procedureName, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand);
-                var reader = keepOpen
-                    ? cmd.ExecuteReader(CommandBehavior.Default)
-                    : cmd.ExecuteReader(CommandBehavior.CloseConnection);
-                if (dbCapture != null)
-                {
-                    dbCapture.OutputParameters = cmd.Parameters
-                        .Cast<OdbcParameter>()
-                        .Where(p => p.Direction == ParameterDirection.Output)
-                        .ToArray();
-                }
-                return reader;
-            }
-
-            public static async Task<OdbcDataReader> AsDataReaderAsync
-            (
-                OdbcConnection conn,
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                bool keepOpen = false,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, procedureName, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand);
-                var reader = keepOpen
-                    ? await cmd.ExecuteReaderAsync(CommandBehavior.Default)
-                    : await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
-                if (dbCapture != null)
-                {
-                    dbCapture.OutputParameters = cmd.Parameters
-                        .Cast<OdbcParameter>()
-                        .Where(p => p.Direction == ParameterDirection.Output)
-                        .ToArray();
-                }
-                return (OdbcDataReader)reader;
-            }
-
-            public static DataTable AsDataTable
-            (
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsDataTable(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static DataTable AsDataTable
-            (
-                OdbcConnection conn,
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var dataTable = new DataTable(procedureName);
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, procedureName, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    if (dbCapture != null)
-                    {
-                        dbCapture.OutputParameters = cmd.Parameters
-                            .Cast<OdbcParameter>()
-                            .Where(p => p.Direction == ParameterDirection.Output)
-                            .ToArray();
-                    }
-                    using (var adapter = new OdbcDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-                switch (autoTrunc)
-                {
-                    case AutoTruncate.Trim:
-                        DbUtil.TrimDataTable(dataTable);
-                        break;
-                    case AutoTruncate.Zap:
-                    case AutoTruncate.ZapEmptyStringsOnly:
-                        throw new UtilityException("Zap does not work on data tables");
-                }
-                return dataTable;
-            }
-
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 string procedureName,
@@ -1393,18 +2281,45 @@ namespace Horseshoe.NET.Odbc
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsObjects(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsObjects(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 string procedureName,
@@ -1412,18 +2327,44 @@ namespace Horseshoe.NET.Odbc
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsObjectsAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsObjectsAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 OdbcConnection conn,
@@ -1431,25 +2372,43 @@ namespace Horseshoe.NET.Odbc
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = new List<object[]>();
-                using (var reader = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
+                    journal = TraceJournal.ResetDefault();
                 }
-                return list;
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 OdbcConnection conn,
@@ -1457,754 +2416,1504 @@ namespace Horseshoe.NET.Odbc
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                var list = new List<object[]>();
-                using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
+                    journal = TraceJournal.ResetDefault();
                 }
-                return list;
-            }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-            public static IEnumerable<string[]> AsStrings
-            (
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // data stuff
+                using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    return AsStrings(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
-            public static async Task<IEnumerable<string[]>> AsStringsAsync
-            (
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsStringsAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
-                }
-            }
-
-            public static IEnumerable<string[]> AsStrings
-            (
-                OdbcConnection conn,
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var list = new List<string[]>();
-                using (var reader = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        var strings = objects
-                            .Select(o => o?.ToString())
-                            .ToArray();
-                        list.Add(strings);
-                    }
-                }
-                return list;
-            }
-
-            public static async Task<IEnumerable<string[]>> AsStringsAsync
-            (
-                OdbcConnection conn,
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                var list = new List<string[]>();
-                using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        var strings = objects
-                            .Select(o => o?.ToString())
-                            .ToArray();
-                        list.Add(strings);
-                    }
-                }
-                return list;
-            }
-
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsScalar(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsScalar(conn, procedureName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
+            (
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                OdbcConnectionInfo connectionInfo = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsScalarAsync(conn, procedureName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static object AsScalar
+            (
+                OdbcConnection conn,
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var command = OdbcUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+                {
+                    var obj = command.ExecuteScalar();
+                    journal.Level--;  // finalize
+                    if (ObjectUtil.IsNull(obj))
+                        return null;
+                    if (obj is string stringValue)
+                    {
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                        {
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
+                                if (stringValue.Length == 0)
+                                    stringValue = null;
+                            }
+                        }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
+                    }
+                    return obj;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
+            public static async Task<object> AsScalarAsync
+            (
+                OdbcConnection conn,
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var command = OdbcUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+                {
+                    var obj = await command.ExecuteScalarAsync();
+                    journal.Level--;  // finalize
+                    if (ObjectUtil.IsNull(obj))
+                        return null;
+                    if (obj is string stringValue)
+                    {
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                        {
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
+                                if (stringValue.Length == 0)
+                                    stringValue = null;
+                            }
+                        }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
+                    }
+                    return obj;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
+            (
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
+            (
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
+            (
+                OdbcConnection conn,
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var command = OdbcUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand);
+                var result = keepOpen
+                    ? command.ExecuteReader(CommandBehavior.Default)
+                    : command.ExecuteReader(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
+            (
+                OdbcConnection conn,
+                string procedureName,
+                IEnumerable<DbParameter> parameters = null,
+                DbCapture dbCapture = null,
+                bool keepOpen = false,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var command = OdbcUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand);
+                var result = keepOpen
+                    ? await command.ExecuteReaderAsync(CommandBehavior.Default)
+                    : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied stored procedure.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            public static DataTable AsDataTable
             (
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsScalarAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsDataTable(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
-            public static object AsScalar
+            /// <summary>
+            /// Executes a query on the user-supplied stored procedure using an existing open connection.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="procedureName">The name of the stored procedure being queried.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            /// <exception cref="UtilityException"></exception>
+            public static DataTable AsDataTable
             (
                 OdbcConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, procedureName, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
+                // trace journaling
+                if (journal == null)
                 {
-                    var obj = cmd.ExecuteScalar();
-                    if (dbCapture != null)
-                    {
-                        dbCapture.OutputParameters = cmd.Parameters
-                            .Cast<OdbcParameter>()
-                            .Where(p => p.Direction == ParameterDirection.Output)
-                            .ToArray();
-                    }
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        switch (autoTrunc)
-                        {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
-                                if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
-                        }
-                    }
-                    return obj;
+                    journal = TraceJournal.ResetDefault();
                 }
-            }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-            public static async Task<object> AsScalarAsync
-            (
-                OdbcConnection conn,
-                string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null
-            )
-            {
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, procedureName, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
+                // data stuff
+                var result = new DataTable(procedureName);
+                using (var command = OdbcUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
                 {
-                    var obj = await cmd.ExecuteScalarAsync();
                     if (dbCapture != null)
                     {
-                        dbCapture.OutputParameters = cmd.Parameters
+                        dbCapture.OutputParameters = command.Parameters
                             .Cast<OdbcParameter>()
                             .Where(p => p.Direction == ParameterDirection.Output)
                             .ToArray();
                     }
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
+                    using (var adapter = new OdbcDataAdapter(command))
                     {
-                        switch (autoTrunc)
-                        {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
-                                if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
-                        }
+                        journal.WriteEntry("adapter.Fill()");
+                        adapter.Fill(result);
                     }
-                    return obj;
                 }
+
+                if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                    throw new ValidationException("Zap does not work on data tables");
+                if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                    DbUtil.TrimDataTable(result);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
 
+        /// <summary>
+        /// Factory methods for executing functions
+        /// </summary>
         public static class TableFunction
         {
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsCollection<T>(conn, functionName, parameters: parameters, objectParser: objectParser, readerParser: readerParser, autoSort: autoSort, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsCollection<T>(conn, platform, functionName, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsCollectionAsync<T>(conn, functionName, parameters: parameters, objectParser: objectParser, readerParser: readerParser, autoSort: autoSort, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsCollectionAsync<T>(conn, platform, functionName, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT * FROM TABLE(" + functionName + "())";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + "))";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                var list = BuildList
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                var result = BuildList
                 (
                     conn,
                     statement,
                     null,
                     null,
-                    objectParser,
-                    readerParser,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection. 
+            /// The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
+            /// </summary>
+            /// <typeparam name="T">The type of items to return in the collection.</typeparam>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
+            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
-                Func<object[], T> objectParser = null,
-                Func<IDataReader, T> readerParser = null,
+                RowParser<T> rowParser = null,
                 AutoSort<T> autoSort = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT * FROM TABLE(" + functionName + "())";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + "))";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                var list = await BuildListAsync
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                var result = await BuildListAsync
                 (
                     conn,
                     statement,
                     null,
                     null,
-                    objectParser,
-                    readerParser,
+                    rowParser,
                     autoSort,
                     autoTrunc,
-                    timeout,
-                    modifyCommand
+                    commandTimeout,
+                    alterCommand,
+                    journal
                 );
-                return list;
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static IEnumerable<object[]> AsObjects
+            (
+                DbPlatform platform,
+                string functionName,
+                IEnumerable<DbParameter> parameters = null,
+                OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsObjects(conn, platform, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            (
+                DbPlatform platform,
+                string functionName,
+                IEnumerable<DbParameter> parameters = null,
+                OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                CryptoOptions cryptoOptions = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsObjectsAsync(conn, platform, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static IEnumerable<object[]> AsObjects
+            (
+                OdbcConnection conn,
+                DbPlatform platform,
+                string functionName,
+                IEnumerable<DbParameter> parameters = null,
+                DbCapture dbCapture = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = AsDataReader(conn, platform, functionName, parameters: parameters, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection.
+            /// Data is presented as plain <c>object[]</c>s.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The data as <c>object[]</c>s.</returns>
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            (
+                OdbcConnection conn,
+                DbPlatform platform,
+                string functionName,
+                IEnumerable<DbParameter> parameters = null,
+                DbCapture dbCapture = null,
+                AutoTruncate autoTrunc = default,
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
+            )
+            {
+                // trace journaling
+                if (journal == null)
+                {
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var reader = await AsDataReaderAsync(conn, platform, functionName, parameters: parameters, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                {
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsScalar(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsScalar(conn, platform, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsScalarAsync(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = await AsScalarAsync(conn, platform, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT " + functionName + "() FROM DUAL";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT " + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + ") FROM DUAL";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))  // not including parameters here due to already embedded in the SQL statement
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))  // not including parameters here due to already embedded in the SQL statement
                 {
-                    var obj = cmd.ExecuteScalar();
+                    var obj = command.ExecuteScalar();
+                    journal.Level--;  // finalize
                     if (ObjectUtil.IsNull(obj))
                         return null;
                     if (obj is string stringValue)
                     {
-                        switch (autoTrunc)
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
                         {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
+                                    stringValue = null;
+                            }
                         }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
                     }
                     return obj;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection.
+            /// Returns the selected datum or the first field of the first row of the result set.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT " + functionName + "() FROM DUAL";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT " + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + ") FROM DUAL";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))  // not including parameters here due to already embedded in the SQL statement
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))  // not including parameters here due to already embedded in the SQL statement
                 {
-                    var obj = await cmd.ExecuteScalarAsync();
+                    var obj = await command.ExecuteScalarAsync();
+                    journal.Level--;  // finalize
                     if (ObjectUtil.IsNull(obj))
                         return null;
                     if (obj is string stringValue)
                     {
-                        switch (autoTrunc)
+                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
                         {
-                            case AutoTruncate.Trim:
-                                return stringValue.Trim();
-                            case AutoTruncate.Zap:
-                                return Zap.String(stringValue);
-                            case AutoTruncate.ZapEmptyStringsOnly:
+                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                            {
+                                if (string.IsNullOrWhiteSpace(stringValue))
+                                {
+                                    if (stringValue.Length == 0)
+                                        stringValue = null;
+                                }
+                                else
+                                    stringValue = stringValue.Trim();
+                            }
+                            else
+                            {
+                                stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    return null;
-                                return stringValue;
+                                    stringValue = null;
+                            }
                         }
+                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                            stringValue = stringValue.Trim();
+                        return stringValue;
                     }
                     return obj;
                 }
             }
 
-            public static OdbcDataReader AsDataReader
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
                 bool keepOpen = false,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsDataReader(conn, functionName, parameters: parameters, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
                 }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = AsDataReader(conn, platform, functionName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static async Task<OdbcDataReader> AsDataReaderAsync
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
+                DbCapture dbCapture = null,
                 bool keepOpen = false,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return await AsDataReaderAsync(conn, functionName, parameters: parameters, keepOpen: keepOpen, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
                 }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal);
+                var result = await AsDataReaderAsync(conn, platform, functionName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static OdbcDataReader AsDataReader
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static DbDataReader AsDataReader
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                DbCapture dbCapture = null,
                 bool keepOpen = false,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT * FROM TABLE(" + functionName + "())";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + "))";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand);  // not including parameters here due to already embedded in the SQL statement
-                var reader = keepOpen
-                    ? cmd.ExecuteReader(CommandBehavior.Default)
-                    : cmd.ExecuteReader(CommandBehavior.CloseConnection);
-                return reader;
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);  // not including parameters here due to already embedded in the SQL statement
+                var result = keepOpen
+                    ? command.ExecuteReader(CommandBehavior.Default)
+                    : command.ExecuteReader(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
-            public static async Task<OdbcDataReader> AsDataReaderAsync
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection. 
+            /// Returns the raw data reader.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>The raw data reader</returns>
+            public static async Task<DbDataReader> AsDataReaderAsync
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                DbCapture dbCapture = null,
                 bool keepOpen = false,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT * FROM TABLE(" + functionName + "())";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + "))";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand);  // not including parameters here due to already embedded in the SQL statement
-                var reader = keepOpen
-                    ? await cmd.ExecuteReaderAsync(CommandBehavior.Default)
-                    : await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
-                return (OdbcDataReader)reader;
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);  // not including parameters here due to already embedded in the SQL statement
+                var result = keepOpen
+                    ? await command.ExecuteReaderAsync(CommandBehavior.Default)
+                    : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
+
+                if (dbCapture != null)
+                {
+                    dbCapture.DataColumns = result.GetDataColumns();
+                    dbCapture.OutputParameters = command.Parameters
+                        .Cast<OdbcParameter>()
+                        .Where(p => p.Direction == ParameterDirection.Output)
+                        .ToArray();
+                }
+
+                // finalize
+                journal.Level--;
+                return result;
             }
 
+            /// <summary>
+            /// Creates a database connection and executes a query on the user-supplied function.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
             public static DataTable AsDataTable
             (
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 OdbcConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
+                int? commandTimeout = null,
                 CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+                // trace journaling
+                if (journal == null)
                 {
-                    return AsDataTable(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                    journal = TraceJournal.ResetDefault();
+                }
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
+
+                // data stuff
+                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+                {
+                    var result = AsDataTable(conn, platform, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                    // finalize
+                    journal.Level--;
+                    return result;
                 }
             }
 
+            /// <summary>
+            /// Executes a query on the user-supplied function using an existing open connection.
+            /// Returns the data as a <see cref="DataTable"/>.
+            /// </summary>
+            /// <param name="conn">An open DB connection.</param>
+            /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+            /// <param name="functionName">The name of the function being called.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <returns>A <see cref="DataTable"/></returns>
+            /// <exception cref="UtilityException"></exception>
             public static DataTable AsDataTable
             (
                 OdbcConnection conn,
+                DbPlatform platform,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                DbPlatform? platform = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
+                int? commandTimeout = null,
+                Action<OdbcCommand> alterCommand = null,
+                TraceJournal journal = null
             )
             {
-                string statement;
-                if (parameters == null)
+                // trace journaling
+                if (journal == null)
                 {
-                    statement = "SELECT * FROM TABLE(" + functionName + "())";
+                    journal = TraceJournal.ResetDefault();
                 }
-                else
-                {
-                    statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => DbUtil.Sqlize(p.Value, platform: platform))) + "))";
-                }
-                peekStatement?.Invoke(statement);
+                journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+                journal.Level++;
 
-                var dataTable = new DataTable(functionName);
-                using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.Text, statement, timeout: timeout, modifyCommand: modifyCommand))  // not including parameters here due to already embedded in the SQL statement
+                // data stuff
+                var statement = DbUtil.BuildFunctionStatement(platform, functionName, parameters: parameters, journal: journal);
+                var result = new DataTable(functionName);
+                using (var command = OdbcUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))  // not including parameters here due to already embedded in the SQL statement
                 {
-                    using (var adapter = new OdbcDataAdapter(cmd))
+                    using (var adapter = new OdbcDataAdapter(command))
                     {
-                        adapter.Fill(dataTable);
+                        journal.WriteEntry("adapter.Fill()");
+                        adapter.Fill(result);
                     }
                 }
-                switch (autoTrunc)
-                {
-                    case AutoTruncate.Trim:
-                        DbUtil.TrimDataTable(dataTable);
-                        break;
-                    case AutoTruncate.Zap:
-                    case AutoTruncate.ZapEmptyStringsOnly:
-                        throw new UtilityException("Zap does not work on data tables");
-                }
-                return dataTable;
-            }
 
-            public static IEnumerable<object[]> AsObjects
-            (
-                string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return AsObjects(conn, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
+                if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                    throw new ValidationException("Zap does not work on data tables");
+                if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                    DbUtil.TrimDataTable(result);
 
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
-            (
-                string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OdbcConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                CryptoOptions cryptoOptions = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<OdbcConnectionInfo> resultantConnectionInfo = null,
-                Action<string> peekStatement = null
-            )
-            {
-                using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
-                {
-                    return await AsObjectsAsync(conn, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement);
-                }
-            }
-
-            public static IEnumerable<object[]> AsObjects
-            (
-                OdbcConnection conn,
-                string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var list = new List<object[]>();
-                using (var reader = AsDataReader(conn, functionName, parameters: parameters, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (reader.Read())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
-                }
-                return list;
-            }
-
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
-            (
-                OdbcConnection conn,
-                string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                AutoTruncate autoTrunc = default,
-                int? timeout = null,
-                Action<OdbcCommand> modifyCommand = null,
-                Action<string> peekStatement = null
-            )
-            {
-                var list = new List<object[]>();
-                using (var reader = await AsDataReaderAsync(conn, functionName, parameters: parameters, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand, peekStatement: peekStatement))
-                {
-                    var cols = reader.GetDataColumns();
-                    if (dbCapture != null)
-                        dbCapture.DataColumns = cols;
-                    while (await reader.ReadAsync())
-                    {
-                        var objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                        list.Add(objects);
-                    }
-                }
-                return list;
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
 
@@ -2214,143 +3923,78 @@ namespace Horseshoe.NET.Odbc
             string statement,
             IEnumerable<DbParameter> parameters,
             DbCapture dbCapture,
-            Func<object[], T> objectParser,
-            Func<IDataReader, T> readerParser,
+            RowParser<T> rowParser,
             AutoSort<T> autoSort,
             AutoTruncate autoTrunc,
-            int? timeout,
-            Action<OdbcCommand> modifyCommand
+            int? commandTimeout,
+            Action<OdbcCommand> alterCommand,
+            TraceJournal journal
         )
         {
+            journal.WriteEntry("BuildList()");
+            journal.Level++;
+
             var list = new List<T>();
             var fromStoredProc = parameters != null;
+            rowParser = rowParser ?? RowParser.BuildAutoParser<T>();
 
-            if (objectParser != null)
+            if (rowParser.IsObjectParser)
             {
-                if (readerParser != null) 
-                    throw new UtilityException("This method accepts a maximum of one parser");
-
+                journal.WriteEntry("rowParser.IsObjectParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var command = OdbcUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
                     {
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            var cols = reader.GetDataColumns();
-                            if (dbCapture != null)
-                            {
-                                dbCapture.DataColumns = cols;
-                                dbCapture.OutputParameters = cmd.Parameters
-                                    .Cast<OdbcParameter>()
-                                    .Where(p => p.Direction == ParameterDirection.Output)
-                                    .ToArray();
-                            }
-                            object[] objects;
-                            while (reader.Read())
-                            {
-                                objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                                list.Add(objectParser.Invoke(objects));
-                            }
-                        }
+                        var objectArrays = DbUtil.ReadAsObjects(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
                 else
                 {
-                    using (var reader = SQL.AsDataReader(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                     {
-                        var cols = reader.GetDataColumns();
-                        object[] objects;
-                        while (reader.Read())
-                        {
-                            objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                            list.Add(objectParser.Invoke(objects));
-                        }
+                        var objectArrays = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
             }
-            else if (readerParser != null)
+            else if (rowParser.IsReaderParser)
             {
+                journal.WriteEntry("rowParser.IsReaderParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var command = OdbcUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
                     {
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            if (dbCapture != null)
-                            {
-                                dbCapture.DataColumns = reader.GetDataColumns();
-                                dbCapture.OutputParameters = cmd.Parameters
-                                    .Cast<OdbcParameter>()
-                                    .Where(p => p.Direction == ParameterDirection.Output)
-                                    .ToArray();
-                            }
-                            while (reader.Read())
-                            {
-                                list.Add(readerParser.Invoke(reader));
-                            }
-                        }
+                        list.AddRange(DbUtil.ParseRows(command, rowParser.ReaderParser, dbCapture: dbCapture, journal: journal));
                     }
                 }
                 else
                 {
-                    using (var reader = SQL.AsDataReader(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                     {
                         while (reader.Read())
                         {
-                            list.Add(readerParser.Invoke(reader));
+                            list.Add(rowParser.Parse(reader));
                         }
                     }
                 }
             }
             else
             {
-                if (!typeof(T).IsClass || !typeof(T).GetConstructors().Any(c => !c.GetParameters().Any()))
-                {
-                    throw new UtilityException("Cannot auto-generate instances of " + typeof(T).FullName + ".  Use only classes with a parameterless constructor.");
-                }
-                if (fromStoredProc)
-                {
-                    using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
-                    {
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            if (dbCapture != null)
-                            {
-                                dbCapture.DataColumns = reader.GetDataColumns();
-                                dbCapture.OutputParameters = cmd.Parameters
-                                    .Cast<OdbcParameter>()
-                                    .Where(p => p.Direction == ParameterDirection.Output)
-                                    .ToArray();
-                            }
-                            BuildAndAddInstances
-                            (
-                                list,
-                                reader,
-                                autoTrunc
-                            );
-                        }
-                    }
-                }
-                else
-                {
-                    var _dbCapture = dbCapture ?? new DbCapture();
-                    var objectArrays = SQL.AsObjects(conn, statement, dbCapture: _dbCapture, timeout: timeout, autoTrunc: autoTrunc, modifyCommand: modifyCommand);
-                    BuildAndAddInstances
-                    (
-                        list,
-                        objectArrays,
-                        _dbCapture.DataColumns
-                    );
-                }
+                throw new ThisShouldNeverHappenException("No row parser.");
             }
+
             if (autoSort != null)
             {
                 list = AutoSortList
                 (
                     list,
-                    autoSort
+                    autoSort,
+                    journal
                 );
             }
+
+            journal.Level--;
             return list;
         }
 
@@ -2360,239 +4004,115 @@ namespace Horseshoe.NET.Odbc
             string statement,
             IEnumerable<DbParameter> parameters,
             DbCapture dbCapture,
-            Func<object[], T> objectParser,
-            Func<IDataReader, T> readerParser,
+            RowParser<T> rowParser,
             AutoSort<T> autoSort,
             AutoTruncate autoTrunc,
-            int? timeout,
-            Action<OdbcCommand> modifyCommand
+            int? commandTimeout,
+            Action<OdbcCommand> alterCommand,
+            TraceJournal journal
         )
         {
+            journal.WriteEntry("BuildListAsync()");
+            journal.Level++;
+
             var list = new List<T>();
             var fromStoredProc = parameters != null;
+            rowParser = rowParser ?? RowParser.BuildAutoParser<T>();
 
-            if (objectParser != null)
+            if (rowParser.IsObjectParser)
             {
-                if (readerParser != null)
-                    throw new UtilityException("This method accepts a maximum of one parser");
-
+                journal.WriteEntry("rowParser.IsObjectParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var command = OdbcUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
                     {
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            var cols = reader.GetDataColumns();
-                            if (dbCapture != null)
-                            {
-                                dbCapture.DataColumns = cols;
-                                dbCapture.OutputParameters = cmd.Parameters
-                                    .Cast<OdbcParameter>()
-                                    .Where(p => p.Direction == ParameterDirection.Output)
-                                    .ToArray();
-                            }
-                            object[] objects;
-                            while (await reader.ReadAsync())
-                            {
-                                objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                                list.Add(objectParser.Invoke(objects));
-                            }
-                        }
+                        var objectArrays = await DbUtil.ReadAsObjectsAsync(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
                 else
                 {
-                    using (var reader = await SQL.AsDataReaderAsync(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                     {
-                        var cols = reader.GetDataColumns();
-                        object[] objects;
-                        while (await reader.ReadAsync())
-                        {
-                            objects = DbUtil.GetAllValues(reader, cols.Length, autoTrunc: autoTrunc);
-                            list.Add(objectParser.Invoke(objects));
-                        }
+                        var objectArrays = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
             }
-            else if (readerParser != null)
+            else if (rowParser.IsReaderParser)
             {
+                journal.WriteEntry("rowParser.IsReaderParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var command = OdbcUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
                     {
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            if (dbCapture != null)
-                            {
-                                dbCapture.DataColumns = reader.GetDataColumns();
-                                dbCapture.OutputParameters = cmd.Parameters
-                                    .Cast<OdbcParameter>()
-                                    .Where(p => p.Direction == ParameterDirection.Output)
-                                    .ToArray();
-                            }
-                            while (await reader.ReadAsync())
-                            {
-                                list.Add(readerParser.Invoke(reader));
-                            }
-                        }
+                        list.AddRange(await DbUtil.ParseRowsAsync(command, rowParser.ReaderParser, dbCapture: dbCapture, journal: journal));
                     }
                 }
                 else
                 {
-                    using (var reader = await SQL.AsDataReaderAsync(conn, statement, keepOpen: true, timeout: timeout, modifyCommand: modifyCommand))
+                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                     {
-                        while (await reader.ReadAsync())
+                        while (reader.Read())
                         {
-                            list.Add(readerParser.Invoke(reader));
+                            list.Add(rowParser.Parse(reader));
                         }
                     }
                 }
             }
             else
             {
-                if (!typeof(T).IsClass || !typeof(T).GetConstructors().Any(c => !c.GetParameters().Any()))
-                {
-                    throw new UtilityException("Cannot auto-generate instances of " + typeof(T).FullName + ".  Use only classes with a parameterless constructor.");
-                }
-                if (fromStoredProc)
-                {
-                    using (var cmd = OdbcUtil.BuildCommand(conn, CommandType.StoredProcedure, statement, parameters: parameters, timeout: timeout, modifyCommand: modifyCommand))
-                    {
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            if (dbCapture != null)
-                            {
-                                dbCapture.DataColumns = reader.GetDataColumns();
-                                dbCapture.OutputParameters = cmd.Parameters
-                                    .Cast<OdbcParameter>()
-                                    .Where(p => p.Direction == ParameterDirection.Output)
-                                    .ToArray();
-                            }
-                            await BuildAndAddInstancesAsync
-                            (
-                                list,
-                                (OdbcDataReader)reader,
-                                autoTrunc
-                            );
-                        }
-                    }
-                }
-                else
-                {
-                    var _dbCapture = dbCapture ?? new DbCapture();
-                    var objectArrays = SQL.AsObjects(conn, statement, dbCapture: _dbCapture, timeout: timeout, autoTrunc: autoTrunc, modifyCommand: modifyCommand);
-                    BuildAndAddInstances
-                    (
-                        list,
-                        objectArrays,
-                        _dbCapture.DataColumns
-                    );
-                }
+                throw new ThisShouldNeverHappenException("No row parser.");
             }
+
             if (autoSort != null)
             {
                 list = AutoSortList
                 (
                     list,
-                    autoSort
+                    autoSort,
+                    journal
                 );
             }
+
+            journal.Level--;
             return list;
-        }
-
-        internal static void BuildAndAddInstances<T>
-        (
-            List<T> list,
-            IEnumerable<object[]> objectArrays,
-            DataColumn[] dataColumns
-        )
-        {
-            var normalizedColumnNames = dataColumns
-                .Select(c => Zap.String(c.ColumnName, preProcess: (n) => TextClean.RemoveWhitespace(n)))
-                .ToArray();
-            foreach (var objects in objectArrays)
-            {
-                T e = (T)ObjectUtil.GetInstance(typeof(T));
-                for (int i = 0; i < objects.Length; i++)
-                {
-                    ObjectUtil.SetInstancePropertyValue(e, normalizedColumnNames[i], objects[i], ignoreCase: true);
-                }
-                list.Add(e);
-            }
-        }
-
-        internal static void BuildAndAddInstances<T>
-        (
-            List<T> list,
-            OdbcDataReader reader,
-            AutoTruncate autoTrunc
-        )
-        {
-            var dataColumns = reader.GetDataColumns();
-            var normalizedColumnNames = dataColumns
-                .Select(c => Zap.String(c.ColumnName, preProcess: (n) => TextClean.RemoveWhitespace(n)))
-                .ToArray();
-            object[] objects;
-            while (reader.Read())
-            {
-                objects = DbUtil.GetAllValues(reader, dataColumns.Length, autoTrunc: autoTrunc);
-                T e = (T)ObjectUtil.GetInstance(typeof(T));
-                for (int i = 0; i < objects.Length; i++)
-                {
-                    ObjectUtil.SetInstancePropertyValue(e, normalizedColumnNames[i], objects[i], ignoreCase: true);
-                }
-                list.Add(e);
-            }
-        }
-
-        internal static async Task BuildAndAddInstancesAsync<T>
-        (
-            List<T> list,
-            OdbcDataReader reader,
-            AutoTruncate autoTrunc
-        )
-        {
-            var dataColumns = reader.GetDataColumns();
-            var normalizedColumnNames = dataColumns
-                .Select(c => Zap.String(c.ColumnName, preProcess: (n) => TextClean.RemoveWhitespace(n)))
-                .ToArray();
-            object[] objects;
-            while (await reader.ReadAsync())
-            {
-                objects = DbUtil.GetAllValues(reader, dataColumns.Length, autoTrunc: autoTrunc);
-                T e = (T)ObjectUtil.GetInstance(typeof(T));
-                for (int i = 0; i < objects.Length; i++)
-                {
-                    ObjectUtil.SetInstancePropertyValue(e, normalizedColumnNames[i], objects[i], ignoreCase: true);
-                }
-                list.Add(e);
-            }
         }
 
         internal static List<T> AutoSortList<T>
         (
             List<T> list,
-            AutoSort<T> autoSort
+            AutoSort<T> autoSort,
+            TraceJournal journal
         )
         {
+            journal.WriteEntry("AutoSortList()");
+            journal.Level++;
+
             if (autoSort.Sorter != null)
             {
+                journal.WriteEntry("autoSort.Sorter");
                 list = list
                     .OrderBy(autoSort.Sorter)
                     .ToList();
             }
             else if (autoSort.Comparer != null)
             {
+                journal.WriteEntry("autoSort.Comparer");
                 list.Sort(autoSort.Comparer);
             }
             else if (autoSort.Comparison != null)
             {
+                journal.WriteEntry("autoSort.Comparison");
                 list.Sort(autoSort.Comparison);
             }
             else
             {
+                journal.WriteEntry("Sort()");
                 list.Sort();
             }
+
+            journal.Level--;
             return list;
         }
     }

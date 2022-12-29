@@ -15,13 +15,12 @@ namespace Horseshoe.NET.ActiveDirectory
             {
                 return _defaultDomain
                     ?? Config.Get("Horseshoe.NET:ActiveDirectory:Domain")
-                    ?? OrganizationalDefaultSettings.GetString("ActiveDirectory.Domain");
+                    ?? OrganizationalDefaultSettings.Get<string>("ActiveDirectory.Domain");
             }
             set
             {
                 _defaultDomain = value;
             }
         }
-
     }
 }

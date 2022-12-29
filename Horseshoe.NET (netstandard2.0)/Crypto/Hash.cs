@@ -95,7 +95,7 @@ namespace Horseshoe.NET.Crypto
         /// <param name="filePath">source text file</param>
         /// <param name="options">hash options</param>
         /// <returns>hash</returns>
-        public static string File(FilePath filePath, HashOptions options = null)
+        public static string String(FilePath filePath, HashOptions options = null)
         {
             return String(filePath.OpenRead(), options);
         }

@@ -7,13 +7,23 @@ using System.Text;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.OleDb
 {
+    /// <summary>
+    /// A suite of factory and utility methods for <c>Horseshoe.NET.OleDb</c>
+    /// </summary>
     public static class OleDbUtil
     {
-        public static string BuildConnectionString(string dataSource, Credential? credentials, IDictionary<string, string> additionalConnectionAttributes, CryptoOptions cryptoOptions)
+        /// <summary>
+        /// Builds a connection string for OLE DB from the supplied data source and other parts.
+        /// </summary>
+        /// <param name="dataSource">An OLE DB data source name or DNS alias</param>
+        /// <param name="credentials">User name and password.</param>
+        /// <param name="additionalConnectionAttributes">Additional connection attributes.</param>
+        /// <param name="connectionTimeout">The time to wait while trying to establish a connection before terminating the attempt and generating an error.</param>
+        /// <returns></returns>
+        public static string BuildConnectionString(string dataSource, Credential? credentials = null, IDictionary<string, string> additionalConnectionAttributes = null, int? connectionTimeout = null)
         {
             if (dataSource == null)
             {
@@ -27,18 +37,7 @@ namespace Horseshoe.NET.OleDb
             if (credentials.HasValue)
             {
                 sb.Append(";User ID=" + credentials.Value.UserName);
-                if (credentials.Value.HasSecurePassword)
-                {
-                    sb.Append(";Password=" + credentials.Value.SecurePassword.ToUnsecureString());
-                }
-                else if (credentials.Value.IsEncryptedPassword)
-                {
-                    sb.Append(";Password=" + Decrypt.String(credentials.Value.Password, options: cryptoOptions));
-                }
-                else if (credentials.Value.Password != null)
-                {
-                    sb.Append(";Password=" + credentials.Value.Password);
-                }
+                sb.Append(";Password=" + credentials.Value.Password.ToUnsecurePassword());
             }
 
             // additional attributes
@@ -50,37 +49,98 @@ namespace Horseshoe.NET.OleDb
                 }
             }
 
+            // additional attributes
+            // ref https://learn.microsoft.com/en-us/dotnet/api/system.data.oledb.oledbconnection.connectiontimeout?view=dotnet-plat-ext-6.0
+            if (connectionTimeout.HasValue)
+            {
+                sb.Append(";Connect Timeout=" + connectionTimeout);
+            }
+
             return sb.ToString();
         }
 
-        public static string BuildConnectionStringFromConfig(CryptoOptions cryptoOptions)
+        /// <summary>
+        /// Builds a connection string piecemeal from configuration
+        /// </summary>
+        /// <returns></returns>
+        public static string BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(OleDbSettings.DefaultDataSource, OleDbSettings.DefaultCredentials, OleDbSettings.DefaultAdditionalConnectionAttributes, cryptoOptions);
+            return BuildConnectionString(OleDbSettings.DefaultDataSource, credentials: OleDbSettings.DefaultCredentials, additionalConnectionAttributes: OleDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OleDbSettings.DefaultConnectionTimeout);
         }
 
+        /// <summary>
+        /// Creates and opens a DB connection from the supplied connection information
+        /// </summary>
+        /// <param name="connectionInfo">Connection information.</param>
+        /// <param name="cryptoOptions">Options for decrypting DB passwords.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns></returns>
         public static OleDbConnection LaunchConnection
         (
             OleDbConnectionInfo connectionInfo = null, 
             CryptoOptions cryptoOptions = null,
-            Action<OleDbConnectionInfo> resultantConnectionInfo = null
+            TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(cryptoOptions: cryptoOptions));
-            resultantConnectionInfo?.Invoke(connectionInfo);
-
-            var conn = new OleDbConnection(connectionInfo.ConnectionString);
+            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            var conn = new OleDbConnection
+            (
+                connectionInfo.IsEncryptedPassword
+                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: cryptoOptions)
+                  : connectionInfo.ConnectionString
+            );
             conn.Open();
             return conn;
         }
 
-        internal static OleDbCommand BuildCommand
+        internal static OleDbCommand BuildTextCommand
+        (
+            OleDbConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OleDbCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.Text,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
+        internal static OleDbCommand BuildProcedureCommand
+        (
+            OleDbConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OleDbCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.StoredProcedure,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
+        private static OleDbCommand BuildCommand
         (
             OleDbConnection conn,
             CommandType commandType,
             string commandText,
-            IEnumerable<DbParameter> parameters = null,
-            int? timeout = null,
-            Action<OleDbCommand> modifyCommand = null
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OleDbCommand> alterCommand
         )
         {
             var cmd = new OleDbCommand
@@ -119,11 +179,11 @@ namespace Horseshoe.NET.OleDb
                     }
                 }
             }
-            if ((timeout ?? OleDbSettings.DefaultTimeout).HasValue)
+            if (commandTimeout.TryHasValue(out int value))
             {
-                cmd.CommandTimeout = (timeout ?? OleDbSettings.DefaultTimeout).Value;
+                cmd.CommandTimeout = value;
             }
-            modifyCommand?.Invoke(cmd);
+            alterCommand?.Invoke(cmd);
             return cmd;
         }
     }

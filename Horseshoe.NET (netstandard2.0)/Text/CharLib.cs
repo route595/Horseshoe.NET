@@ -5,8 +5,17 @@ using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Text
 {
-    // Unicode ref https://en.wikipedia.org/wiki/List_of_Unicode_characters#Basic_Latin
-    // Punctuation ref https://en.wikipedia.org/wiki/Punctuation  (stopped right before Armenian)
+    /// <summary>
+    /// A <c>char</c> categorization library for text cleaning and Unicode-to-ASCII conversions. 
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Unicode ref: https://en.wikipedia.org/wiki/List_of_Unicode_characters#Basic_Latin
+    /// </para>
+    /// <para>
+    /// Punctuation ref: https://en.wikipedia.org/wiki/Punctuation  (I stopped right before Armenian)
+    /// </para>
+    /// </remarks>
     public static class CharLib
     {
         /// <summary>
@@ -25,12 +34,15 @@ namespace Horseshoe.NET.Text
             .ToArray();
 
         /// <summary>
-        /// The subset of ASCII whitespace characters comprising only carriage return (<c>\r</c>) and line feed (<c>\n</c>)
+        /// The subset of ASCII whitespace <c>char</c>s comprising only carriage return (<c>\r</c>) and line feed (<c>\n</c>)
         /// </summary>
         public static char[] SubsetNewLines => ASCIIWhitespaces
             .Where(c => c.In(10, 13))
             .ToArray();
 
+        /// <summary>
+        /// ASCII alphabetic <c>char</c>s (i.e. upper and lowercase A - Z).
+        /// </summary>
         public static char[] ASCIIAlpha { get; } = new[]
         {
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -39,28 +51,49 @@ namespace Horseshoe.NET.Text
             'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
         };
 
+        /// <summary>
+        /// Upper case ASCII alphabetic <c>char</c>s (i.e. A - Z).
+        /// </summary>
         public static char[] SubsetUCaseASCIIAlpha => ASCIIAlpha
-            .Where(c => char.IsUpper(c))
+            .Take(26)
             .ToArray();
 
+        /// <summary>
+        /// Lower case ASCII alphabetic <c>char</c>s (i.e. a - z).
+        /// </summary>
         public static char[] SubsetLCaseASCIIAlpha => ASCIIAlpha
-            .Where(c => char.IsLower(c))
+            .Skip(26)
             .ToArray();
 
+        /// <summary>
+        /// ASCII alphabetic <c>char</c>s (i.e. 0 - 9).
+        /// </summary>
         public static char[] ASCIINumeric { get; } = new[]
         {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
         };
 
+        /// <summary>
+        /// ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
+        /// </summary>
         public static char[] AllASCIIAlphaNumeric =>
             ArrayUtil.Combine(ASCIIAlpha, ASCIINumeric);
 
-        public static char[] AllUCaseASCIIAlphaNumeric =>
+        /// <summary>
+        /// Upper case ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
+        /// </summary>
+        public static char[] SubsetUCaseASCIIAlphaNumeric =>
             ArrayUtil.Combine(SubsetUCaseASCIIAlpha, ASCIINumeric);
 
-        public static char[] AllLCaseASCIIAlphaNumeric =>
+        /// <summary>
+        /// Lower case ASCII alpanumeric <c>char</c>s (i.e. a - z and 0 - 9).
+        /// </summary>
+        public static char[] SubsetLCaseASCIIAlphaNumeric =>
             ArrayUtil.Combine(SubsetLCaseASCIIAlpha, ASCIINumeric);
 
+        /// <summary>
+        /// ASCII punctuation and symbols.
+        /// </summary>
         public static char[] ASCIISymbols { get; } = new[]
         {
             // punctuation
@@ -69,18 +102,33 @@ namespace Horseshoe.NET.Text
             '#', '$', '%', '*', '+', '&', '/', '/', '|', '\\', '^', '_', '`', '~'
         };
 
-        public static char[] AllASCIIPrintables =>
-            ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols);
+        /// <summary>
+        /// Gets all ASCII printable <c>char</c>s potentially including any whitespaces indicated in <c>whitespacePolicy</c>.
+        /// </summary>
+        /// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
+        /// <returns>An array of all ASCII printable <c>char</c>s.</returns>
+        public static char[] GetAllASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
+        {
+            var includedWhitespaces = new List<char>();
+            if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
+            {
+                includedWhitespaces.Add(' ');
+            }
+            if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
+            {
+                includedWhitespaces.Add('\t');
+            }
+            if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+            {
+                includedWhitespaces.Add('\r');
+                includedWhitespaces.Add('\n');
+            }
+            return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, includedWhitespaces);
+        }
 
-        public static char[] AllASCIIPrintablesAndSpace =>
-            AllASCIIPrintables.Append(' ');
-
-        public static char[] AllASCIIPrintablesAndWhitespaces =>
-            ArrayUtil.Combine(ASCIIWhitespaces, AllASCIIPrintables);
-
-        public static char[] AllASCIIPrintablesAndWhitespacesExceptNewLines =>
-            ArrayUtil.Combine(SubsetASCIIWhitespacesExceptNewLines, AllASCIIPrintables);
-
+        /// <summary>
+        /// ASCII control characters (not including tabs and new lines)
+        /// </summary>
         public static char[] ASCIINonprintables { get; } = new[]
         {   
             // Controls (in 0 - 31 range, excluding whitespaces)                                       \t (9)    \n (10)                       \r (13)
@@ -92,7 +140,7 @@ namespace Horseshoe.NET.Text
         };
 
         /// <summary>
-        /// A subset of whitespace characters
+        /// Extended ASCII whitespaces (includes only the non-breaking space).
         /// </summary>
         public static char[] ExtendedASCIIWhitespaces { get; } = new[]
         {
@@ -101,17 +149,20 @@ namespace Horseshoe.NET.Text
         };
 
         /// <summary>
-        /// A complete set of whitespace characters
+        /// The complete set of ASCII and extended ASCII whitespace characters.
         /// </summary>
         public static char[] AllWhitespaces =>
             ArrayUtil.Combine(ASCIIWhitespaces, ExtendedASCIIWhitespaces);
 
         /// <summary>
-        /// A subset of whitespace characters
+        /// The complete set of ASCII and extended ASCII whitespace characters (except new lines).
         /// </summary>
-        public static char[] AllWhitespacesExceptNewLines =>
+        public static char[] SubsetWhitespacesExceptNewLines =>
             ArrayUtil.Combine(SubsetASCIIWhitespacesExceptNewLines, ExtendedASCIIWhitespaces);
 
+        /// <summary>
+        /// Extended ASCII Latin <c>char</c>s.
+        /// </summary>
         public static char[] ExtendedASCIIAlpha { get; } = new[]
         {
             'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 
@@ -140,26 +191,47 @@ namespace Horseshoe.NET.Text
             'ž'
         };
 
+        /// <summary>
+        /// Upper case extended ASCII Latin <c>char</c>s.
+        /// </summary>
         public static char[] SubsetUCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
             .Where(c => char.IsUpper(c))
             .ToArray();
 
+        /// <summary>
+        /// Lower case extended ASCII Latin <c>char</c>s.
+        /// </summary>
         public static char[] SubsetLCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
             .Where(c => char.IsLower(c))
             .ToArray();
 
+        /// <summary>
+        /// ASCII and extended ASCII Latin <c>char</c>s.
+        /// </summary>
         public static char[] AllExtendedASCIIAlpha =>
             ArrayUtil.Combine(ASCIIAlpha, ExtendedASCIIAlpha);
 
+        /// <summary>
+        /// ASCII and extended ASCII alphanumeric <c>char</c>s.
+        /// </summary>
         public static char[] AllExtendedASCIIAlphaNumeric =>
             ArrayUtil.Combine(AllASCIIAlphaNumeric, ExtendedASCIIAlpha);
 
-        public static char[] AllUCaseExtendedASCIIAlphaNumeric =>
-            ArrayUtil.Combine(AllUCaseASCIIAlphaNumeric, SubsetUCaseExtendedASCIIAlpha);
+        /// <summary>
+        /// Upper case ASCII and extended ASCII alphanumeric <c>char</c>s.
+        /// </summary>
+        public static char[] SubsetUCaseExtendedASCIIAlphaNumeric =>
+            ArrayUtil.Combine(SubsetUCaseASCIIAlphaNumeric, SubsetUCaseExtendedASCIIAlpha);
 
-        public static char[] AllLCaseExtendedASCIIAlphaNumeric =>
-            ArrayUtil.Combine(AllLCaseASCIIAlphaNumeric, SubsetLCaseExtendedASCIIAlpha);
+        /// <summary>
+        /// Lower case ASCII and extended ASCII alphanumeric <c>char</c>s.
+        /// </summary>
+        public static char[] SubsetLCaseExtendedASCIIAlphaNumeric =>
+            ArrayUtil.Combine(SubsetLCaseASCIIAlphaNumeric, SubsetLCaseExtendedASCIIAlpha);
 
+        /// <summary>
+        /// Extended ASCII punctuation and symbols.
+        /// </summary>
         public static char[] ExtendedASCIISymbols { get; } = new[]
         {
             // punctuation
@@ -176,18 +248,37 @@ namespace Horseshoe.NET.Text
             'ª', '²', '³', '¹', 'º'
         };
 
-        public static char[] AllExtendedASCIIPrintables =>
-            ArrayUtil.Combine(AllASCIIPrintables, ExtendedASCIIAlpha, ExtendedASCIISymbols);
+        /// <summary>
+        /// Gets all ASCII and extended ASCII printable <c>char</c>s including any whitespaces indicated in <c>whitespacePolicy</c>.
+        /// </summary>
+        /// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
+        /// <returns>An array of all ASCII printable <c>char</c>s.</returns>
+        public static char[] GetAllExtendedASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
+        {
+            var includedWhitespaces = new List<char>();
+            if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
+            {
+                includedWhitespaces.Add(' ');
+            }
+            if ((whitespacePolicy & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace)
+            {
+                includedWhitespaces.Add('\u00A0');
+            }
+            if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
+            {
+                includedWhitespaces.Add('\t');
+            }
+            if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+            {
+                includedWhitespaces.Add('\r');
+                includedWhitespaces.Add('\n');
+            }
+            return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, ExtendedASCIIAlpha, ExtendedASCIISymbols, includedWhitespaces);
+        }
 
-        public static char[] AllExtendedASCIIPrintablesAndSpace =>
-            AllExtendedASCIIPrintables.Append(' ');
-
-        public static char[] AllExtendedASCIIPrintablesAndWhitespaces =>
-            ArrayUtil.Combine(AllExtendedASCIIPrintables, AllWhitespaces);
-
-        public static char[] AllExtendedASCIIPrintablesAndWhitespacesExceptNewLines =>
-            ArrayUtil.Combine(AllExtendedASCIIPrintables, AllWhitespacesExceptNewLines);
-
+        /// <summary>
+        /// Extended ASCII control <c>char</c>s.
+        /// </summary>
         public static char[] ExtendedASCIINonprintables { get; } = new[]
         {
             // Controls (in 128 - 159 range)
@@ -195,61 +286,76 @@ namespace Horseshoe.NET.Text
             '\u0090', '\u0091', '\u0092', '\u0093', '\u0094', '\u0095', '\u0096', '\u0097', '\u0098', '\u0099', '\u009A', '\u009B', '\u009C', '\u009D', '\u009E', '\u009F'
         };
 
+        /// <summary>
+        /// ASCII and extended ASCII control <c>char</c>s.
+        /// </summary>
         public static char[] AllExtendedASCIINonprintables =>
             ArrayUtil.Combine(ASCIINonprintables, ExtendedASCIINonprintables);
 
+        /// <summary>
+        /// Other Unicode non-printable <c>char</c>s.
+        /// </summary>
         public static char[] OtherNonprintables { get; } = new[]
         {
             /* ByteOrderMark (65279)    UnicodeReplacementChar � (65533) */
             '\uFEFF',                   '\uFFFD'
         };
 
+        /// <summary>
+        /// ASCII and extended ASCII control <c>char</c>s and Unicode non-printable <c>char</c>s.
+        /// </summary>
         public static char[] AllNonprintables =>
             ArrayUtil.Combine(AllExtendedASCIINonprintables, OtherNonprintables);
 
+        /// <summary>
+        /// A Unicode Latin-to-ASCII conversion chart. 
+        /// </summary>
         public static IDictionary<char, char[]> UnicodeLatinToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
         {
             { 'A', new[] { 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å'  } },
-            { 'C', new[] { 'Ç' } },
+            { 'C', new[] { 'Ç', 'Ⅽ' } },
+            { 'D', new[] { 'Ⅾ' } },
             { 'E', new[] { 'È', 'É', 'Ê', 'Ë' } },
-            { 'I', new[] { 'Ì', 'Í', 'Î', 'Ï' } },
+            { 'I', new[] { 'Ì', 'Í', 'Î', 'Ï', 'Ⅰ'} },
+            { 'L', new[] { 'Ⅼ' } },
+            { 'M', new[] { 'Ⅿ' } },
             { 'N', new[] { 'Ñ' } },
             { 'O', new[] { 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø' } },
             { 'U', new[] { 'Ù', 'Ú', 'Û', 'Ü' } },
+            { 'V', new[] { 'Ⅴ' } },
+            { 'X', new[] { 'Ⅹ' } },
             { 'Y', new[] { 'Ý', 'Ÿ' } },
             { 'a', new[] { 'à', 'á', 'â', 'ã', 'ä', 'å' } },
-            { 'c', new[] { 'ç' } },
+            { 'c', new[] { 'ç', 'ⅽ' } },
+            { 'd', new[] { 'ⅾ' } },
             { 'e', new[] { 'è', 'é', 'ê', 'ë' } },
-            { 'i', new[] { 'ì', 'í', 'î', 'ï' } },
+            { 'i', new[] { 'ì', 'í', 'î', 'ï', 'ⅰ' } },
+            { 'm', new[] { 'ⅿ' } },
             { 'n', new[] { 'ñ' } },
             { 'o', new[] { 'ò', 'ó', 'ô', 'õ', 'ö', 'ø' } },
             { 'u', new[] { 'ù', 'ú', 'û', 'ü' } },
+            { 'v', new[] { 'ⅴ' } },
+            { 'x', new[] { 'ⅹ' } },
             { 'y', new[] { 'ý', 'ÿ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode Latin-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
+        /// </summary>
         public static IDictionary<string, char[]> UnicodeLatinToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
         {
             { "AE", new[] { 'Æ' } },
-            { "C", new[] { 'Ⅽ' } },
-            { "D", new[] { 'Ⅾ' } },
-            { "I", new[] { 'Ⅰ' } },
             { "II", new[] { 'Ⅱ' } },
             { "III", new[] { 'Ⅲ' } },
             { "IV", new[] { 'Ⅳ' } },
             { "IX", new[] { 'Ⅸ' } },
-            { "L", new[] { 'Ⅼ' } },
-            { "M", new[] { 'Ⅿ' } },
-            { "V", new[] { 'Ⅴ' } },
             { "VI", new[] { 'Ⅵ' } },
             { "VII", new[] { 'Ⅶ' } },
             { "VIII", new[] { 'Ⅷ' } },
-            { "X", new[] { 'Ⅹ' } },
             { "XI", new[] { 'Ⅺ' } },
             { "XII", new[] { 'Ⅻ' } },
             { "YR", new[] { 'Ʀ' }},
             { "ae", new[] { 'æ' } },
-            { "c", new[] { 'ⅽ' } },
-            { "d", new[] { 'ⅾ' } },
             { "ff", new[] { 'ﬀ' } },
             { "fi", new[] { 'ﬁ' } },
             { "fl", new[] { 'ﬂ' } },
@@ -257,22 +363,21 @@ namespace Horseshoe.NET.Text
             { "ffl", new[] { 'ﬄ' } },
             { "ft", new[] { 'ﬅ' } },
             { "hv", new[] { 'ƕ' } },
-            { "i", new[] { 'ⅰ' } },
             { "ii", new[] { 'ⅱ' } },
             { "iii", new[] { 'ⅲ' } },
             { "iv", new[] { 'ⅳ' } },
             { "ix", new[] { 'ⅸ' } },
-            { "m", new[] { 'ⅿ' } },
             { "st", new[] { 'ﬆ' } },
-            { "v", new[] { 'ⅴ' } },
             { "vi", new[] { 'ⅵ' } },
             { "vii", new[] { 'ⅶ' } },
             { "viii", new[] { 'ⅷ' } },
-            { "x", new[] { 'ⅹ' } },
             { "xi", new[] { 'ⅺ' } },
             { "xii", new[] { 'ⅻ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode extended Latin-to-ASCII conversion chart. 
+        /// </summary>
         public static IDictionary<char, char[]> UnicodeExtendedLatinToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
         {
             { 'A', new[] { 'Ā', 'Ă', 'Ą', 'Ǎ', 'Ǟ', 'Ǡ', 'Ǻ', 'Ȁ', 'Ȃ', 'Ȧ', 'Ⱥ' } },
@@ -326,6 +431,9 @@ namespace Horseshoe.NET.Text
             { 'z', new[] { 'ź', 'ż', 'ž', 'ƶ', 'ȥ', 'ɀ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode extended Latin-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
+        /// </summary>
         public static IDictionary<string, char[]> UnicodeExtendedLatinToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
         {
             { "AE", new[] { 'Ǣ', 'Ǽ' } },
@@ -351,6 +459,9 @@ namespace Horseshoe.NET.Text
             { "qp", new[] { 'ȹ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode Greek-to-ASCII conversion chart. 
+        /// </summary>
         public static IDictionary<char, char[]> UnicodeGreekToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
         {
             { 'A', new[] { 'Ά', 'Α' } },
@@ -392,6 +503,9 @@ namespace Horseshoe.NET.Text
             { 'z', new[] { 'ζ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode extended Greek-to-ASCII conversion chart. 
+        /// </summary>
         public static IDictionary<char, char[]> UnicodeExtendedGreekToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
         {
             { 'A', new[] { 'Ἀ', 'Ἁ', 'Ἂ', 'Ἃ', 'Ἄ', 'Ἅ', 'Ἆ', 'Ἇ', 'ᾈ', 'ᾉ', 'ᾊ', 'ᾋ', 'ᾌ', 'ᾍ', 'ᾎ', 'ᾏ', 'Ᾰ', 'Ᾱ', 'Ὰ', 'Ά', 'ᾼ' } },
@@ -411,6 +525,9 @@ namespace Horseshoe.NET.Text
             { 'w', new[] { 'ὠ', 'ὡ', 'ὢ', 'ὣ', 'ὤ', 'ὥ', 'ὦ', 'ὧ', 'ὼ', 'ώ', 'ᾠ', 'ᾡ', 'ᾢ', 'ᾣ', 'ᾤ', 'ᾥ', 'ᾦ', 'ᾧ', 'ῲ', 'ῳ', 'ῴ', 'ῶ', 'ῷ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode Greek-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
+        /// </summary>
         public static IDictionary<string, char[]> UnicodeGreekToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
         {
             { "PI", new[] { 'Π' } },
@@ -418,6 +535,9 @@ namespace Horseshoe.NET.Text
             { "mu", new[] { 'μ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode extended Cyrillic-to-ASCII conversion chart. 
+        /// </summary>
         public static IDictionary<char, char[]> UnicodeCyrillicToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
         {
             { 'A', new[] { 'А', 'Ѧ' } },
@@ -461,6 +581,9 @@ namespace Horseshoe.NET.Text
             { '3', new[] { 'З', 'з', 'Ҙ', 'ҙ', 'Ӟ', 'ӟ', 'Ӡ', 'ӡ'  } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode Cyrillic-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
+        /// </summary>
         public static IDictionary<string, char[]> UnicodeCyrillicToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
         {
             { "Bl", new[] { 'Ӹ' } },
@@ -471,6 +594,9 @@ namespace Horseshoe.NET.Text
             { "oy", new[] { 'ѹ' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode symbols-to-ASCII conversion chart. Included are letter-like, number-like, punctation-like and other symbols.
+        /// </summary>
         public static IDictionary<char, char[]> UnicodeSymbolsToASCIIConversions { get; } = new Dictionary<char, char[]>
         {
             // letter-like (incl. superscripts, subscripts)
@@ -507,23 +633,23 @@ namespace Horseshoe.NET.Text
             { 'e', new[] { 'ⓔ', '℮', 'ℯ', 'ⅇ', 'ₑ', 'ₔ' } },
             { 'f', new[] { 'ⓕ' } },
             { 'g', new[] { 'ⓖ', 'ℊ' } },
-            { 'h', new[] { 'ⓗ', 'ℎ', 'ℏ', 'ℎ', 'ℏ', 'ʰ', 'ʱ', 'ₕ' } },
+            { 'h', new[] { 'ⓗ', 'ℎ', 'ℏ', 'ʰ', 'ʱ', 'ₕ' } },
             { 'i', new[] { 'ⓘ', '℩', 'ℹ', 'ⅈ', '⍳', '⍸', 'ⁱ' } },
             { 'j', new[] { 'ⓙ', 'ⅉ', 'ʲ' } },
             { 'k', new[] { 'ⓚ', 'ₖ' } },
-            { 'l', new[] { 'ⓛ', 'ℓ', 'ˡ', 'ˡ', 'ₗ' } },
-            { 'm', new[] { 'ⓜ', '₥', 'ⁿ', 'ₘ' } },
+            { 'l', new[] { 'ⓛ', 'ℓ', 'ˡ', 'ₗ' } },
+            { 'm', new[] { 'ⓜ', '₥', 'ₘ' } },
             { 'n', new[] { 'ⓝ', 'ⁿ', 'ₙ' } },
             { 'o', new[] { 'ⓞ', 'ℴ', '∘' /* U+2218 Ring operator */, 'º', 'ₒ', '᛫' } },
             { 'p', new[] { 'ⓟ', '⍴', 'ₚ' } },
             { 'q', new[] { 'ⓠ' } },
             { 'r', new[] { 'ⓡ', 'ʳ', 'ʴ', 'ʵ' } },
-            { 's', new[] { 'ⓢ', 'ˢ', 'ˢ', 'ₛ' } },
-            { 't', new[] { 'ⓣ', '†', 'ₜ' } },
+            { 's', new[] { 'ⓢ', 'ˢ', 'ₛ' } },
+            { 't', new[] { 'ⓣ', 'ₜ' } },
             { 'u', new[] { 'ⓤ' } },
             { 'v', new[] { 'ⓥ', '˅', '˯' } },
             { 'w', new[] { 'ⓦ', '⍵', '⍹', 'ʷ' } },
-            { 'x', new[] { 'ⓧ', '˟', 'ˣ', '×' /* U+00D7 Multiplication sign */, '˟', 'ˣ', 'ₓ', '⸼' } },
+            { 'x', new[] { 'ⓧ', '˟', 'ˣ', '×' /* U+00D7 Multiplication sign */, 'ₓ', '⸼' } },
             { 'y', new[] { 'ⓨ', 'ˠ', 'ʸ' } },
             { 'z', new[] { 'ⓩ' } },
             // number-like (incl. superscripts, subscripts)
@@ -560,8 +686,8 @@ namespace Horseshoe.NET.Text
             { '#', new[] { '♯', '﹟', '＃' } },
             { '&', new[] { '⅋', '﹠', '＆' } },
             { '@', new[] { '﹫', '＠' } },
-            { '|', new[] { '¦', '⁞', '⧘', '⧙', '︳', '︴', '।', '⁞', '⸽', '⸾' } },
-            { '/', new[] { '⁄', '⁄', '∕', '√', '／' } },  // not including '÷'
+            { '|', new[] { '¦', '⧘', '⧙', '︳', '︴', '।', '⁞', '⸽', '⸾' } },
+            { '/', new[] { '⁄', '∕', '√', '／' } },  // not including '÷'
             { '\\', new[] { '∖', '﹨', '＼' } },
             { '^', new[] { 'ˆ', '˄', '˰', '‸', '⁁' } },
             { '%', new[] { '⸓', '﹪', '％' } },
@@ -575,6 +701,10 @@ namespace Horseshoe.NET.Text
 
         }.AsImmutable();
 
+        /// <summary>
+        /// A Unicode symbols-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
+        /// Included are letter-like, number-like, punctation-like, math/programming, emoji, meta and other symbols.
+        /// </summary>
         public static IDictionary<string, char[]> UnicodeSymbolsToASCIIComplexConversions { get; } = new Dictionary<string, char[]>
         {
             // letter-like and currencies
@@ -742,23 +872,29 @@ namespace Horseshoe.NET.Text
             { "[square]", new[] { '⸋' } },
         }.AsImmutable();
 
+        /// <summary>
+        /// A collection of all the single <c>char</c>-based Unicode-to-ASCII conversion charts.
+        /// </summary>
         public static IDictionary<string, IDictionary<char, char[]>> AllUnicodeToASCIIConversions => new Dictionary<string, IDictionary<char, char[]>>
         {
-            { "latin", CharLib.UnicodeLatinToASCIIAlphaConversions },
-            { "extended latin", CharLib.UnicodeExtendedLatinToASCIIAlphaConversions },
-            { "greek", CharLib.UnicodeGreekToASCIIAlphaConversions },
-            { "extended greek", CharLib.UnicodeExtendedGreekToASCIIAlphaConversions },
-            { "cyrillic", CharLib.UnicodeCyrillicToASCIIAlphaConversions },
-            { "symbols", CharLib.UnicodeSymbolsToASCIIConversions }
+            { "latin", UnicodeLatinToASCIIAlphaConversions },
+            { "extended latin", UnicodeExtendedLatinToASCIIAlphaConversions },
+            { "greek", UnicodeGreekToASCIIAlphaConversions },
+            { "extended greek", UnicodeExtendedGreekToASCIIAlphaConversions },
+            { "cyrillic", UnicodeCyrillicToASCIIAlphaConversions },
+            { "symbols", UnicodeSymbolsToASCIIConversions }
         };
 
+        /// <summary>
+        /// A collection of all the multi-<c>char</c>-based Unicode-to-ASCII conversion charts.
+        /// </summary>
         public static IDictionary<string, IDictionary<string, char[]>> AllUnicodeToASCIIComplexConversions => new Dictionary<string, IDictionary<string, char[]>>
         {
-            { "complex latin", CharLib.UnicodeLatinToASCIIAlphaComplexConversions },
-            { "complex extended latin", CharLib.UnicodeExtendedLatinToASCIIAlphaComplexConversions },
-            { "complex greek", CharLib.UnicodeGreekToASCIIAlphaComplexConversions },
-            { "complex cyrillic", CharLib.UnicodeCyrillicToASCIIAlphaComplexConversions },
-            { "complex symbols", CharLib.UnicodeSymbolsToASCIIComplexConversions }
+            { "complex latin", UnicodeLatinToASCIIAlphaComplexConversions },
+            { "complex extended latin", UnicodeExtendedLatinToASCIIAlphaComplexConversions },
+            { "complex greek", UnicodeGreekToASCIIAlphaComplexConversions },
+            { "complex cyrillic", UnicodeCyrillicToASCIIAlphaComplexConversions },
+            { "complex symbols", UnicodeSymbolsToASCIIComplexConversions }
         };
     }
 }

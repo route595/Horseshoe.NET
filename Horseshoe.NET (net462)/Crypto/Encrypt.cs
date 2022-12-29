@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.IO;

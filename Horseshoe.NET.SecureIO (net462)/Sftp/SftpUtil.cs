@@ -34,7 +34,7 @@ namespace Horseshoe.NET.SecureIO.Sftp
                     pos2 = connectionString.ToLower().IndexOf("?encryptedpassword=");
                     if (pos2 > pos)
                     {
-                        connectionInfo.Credentials = new Credential(connectionString.Substring(0, pos), connectionString.Substring(pos2 + 19), isEncryptedPassword: true);
+                        connectionInfo.Credentials = new Credential(connectionString.Substring(0, pos), new Password(connectionString.Substring(pos2 + 19), isEncrypted: true));
                     }
                     else if (!string.Equals(connectionString.Substring(0, pos), "anonymous", StringComparison.OrdinalIgnoreCase))
                     {

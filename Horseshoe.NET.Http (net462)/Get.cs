@@ -115,7 +115,7 @@ namespace Horseshoe.NET.Http
             return response;
         }
 
-        public static E AsValue<E>
+        public static T AsValue<T>
         (
             UriString uri,
             string method = "GET",
@@ -128,7 +128,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             TraceJournal journal = null
         )
         {
@@ -158,15 +158,25 @@ namespace Horseshoe.NET.Http
 
             getRawResponse?.Invoke(stringResult);
 
-            var result = (responseParser ?? HttpResponseParsers.Get<E>() ?? throw new ValidationException("response parser was not supplied"))
-                .Invoke(stringResult);
+            T result;
+            if (responseParser != null)
+            {
+                journal.WriteEntry("using user-supplied response parser");
+                result = responseParser.Invoke(stringResult);
+            }
+            else
+            {
+                journal.WriteEntry("attempting built-in parser for response");
+                result = Zap.To<T>(stringResult);
+            }
+            journal.WriteEntry("parser appears to have succeeded");
 
             // finalize
             journal.Level--;
             return result;
         }
 
-        public async static Task<E> AsValueAsync<E>
+        public async static Task<T> AsValueAsync<T>
         (
             UriString uri,
             string method = "GET",
@@ -179,7 +189,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             TraceJournal journal = null
         )
         {
@@ -209,15 +219,25 @@ namespace Horseshoe.NET.Http
 
             getRawResponse?.Invoke(stringResult);
 
-            var result = (responseParser ?? HttpResponseParsers.Get<E>() ?? throw new ValidationException("response parser was not supplied"))
-                .Invoke(stringResult);
+            T result;
+            if (responseParser != null)
+            {
+                journal.WriteEntry("using user-supplied response parser");
+                result = responseParser.Invoke(stringResult);
+            }
+            else
+            {
+                journal.WriteEntry("attempting built-in parser for response");
+                result = Zap.To<T>(stringResult);
+            }
+            journal.WriteEntry("parser appears to have succeeded");
 
             // finalize
             journal.Level--;
             return result;
         }
 
-        public static E AsJson<E>
+        public static T AsJson<T>
         (
             UriString uri,
             string method = "GET",
@@ -230,7 +250,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             bool zapBackingFields = false,
             TraceJournal journal = null
         )
@@ -244,7 +264,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = AsValue<E>
+            var result = AsValue<T>
             (
                 uri,
                 method: method,
@@ -257,7 +277,7 @@ namespace Horseshoe.NET.Http
                 alterRequest: alterRequest,
                 handleResponse: handleResponse,
                 getRawResponse: getRawResponse,
-                responseParser: responseParser ?? WebResponseFactory.GetJsonDeserializer<E>(zapBackingFields),
+                responseParser: responseParser ?? WebResponseFactory.GetJsonDeserializer<T>(zapBackingFields),
                 journal: journal
             );
 
@@ -266,7 +286,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public async static Task<E> AsJsonAsync<E>
+        public async static Task<T> AsJsonAsync<T>
         (
             UriString uri,
             string method = "GET",
@@ -279,7 +299,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             bool zapBackingFields = false,
             TraceJournal journal = null
         )
@@ -293,7 +313,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = await AsValueAsync<E>
+            var result = await AsValueAsync<T>
             (
                 uri,
                 method: method,
@@ -306,7 +326,7 @@ namespace Horseshoe.NET.Http
                 alterRequest: alterRequest,
                 handleResponse: handleResponse,
                 getRawResponse: getRawResponse,
-                responseParser: responseParser ?? WebResponseFactory.GetJsonDeserializer<E>(zapBackingFields),
+                responseParser: responseParser ?? WebResponseFactory.GetJsonDeserializer<T>(zapBackingFields),
                 journal: journal
             );
 

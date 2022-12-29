@@ -11,7 +11,7 @@ namespace Horseshoe.NET.SqlDb
 {
     public static class SqlDbUtil
     {
-        public static string BuildConnectionString(string dataSource, string initialCatalog, bool hasCredentials, IDictionary<string,string> additionalConnectionAttributes)
+        public static string BuildConnectionString(string dataSource, string initialCatalog, bool hasCredentials, IDictionary<string,string> additionalConnectionAttributes, int? connectionTimeout)
         {
             if (dataSource == null)
             {
@@ -42,28 +42,72 @@ namespace Horseshoe.NET.SqlDb
                 }
             }
 
+            // timeout
+            if (connectionTimeout.HasValue)
+            {
+                sb.Append(";Connect Timeout = " + connectionTimeout);
+            }
+
             return sb.ToString();
         }
 
         public static string BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(SqlDbSettings.DefaultDataSource, SqlDbSettings.DefaultInitialCatalog, SqlDbSettings.DefaultCredentials.HasValue, SqlDbSettings.DefaultAdditionalConnectionAttributes);
+            return BuildConnectionString(SqlDbSettings.DefaultDataSource, SqlDbSettings.DefaultInitialCatalog, SqlDbSettings.DefaultCredentials.HasValue, SqlDbSettings.DefaultAdditionalConnectionAttributes, SqlDbSettings.DefaultConnectionTimeout);
         }
 
         public static SqlConnection LaunchConnection
         (
             SqlDbConnectionInfo connectionInfo = null,
-            Action<SqlDbConnectionInfo> resultantConnectionInfo = null
+            TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig());
-            resultantConnectionInfo?.Invoke(connectionInfo);
-
+            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
             var conn = connectionInfo.SqlCredentials != null
                 ? new SqlConnection(connectionInfo.ConnectionString, connectionInfo.SqlCredentials)
                 : new SqlConnection(connectionInfo.ConnectionString);
             conn.Open();
             return conn;
+        }
+
+        internal static SqlCommand BuildTextCommand
+        (
+            SqlConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<SqlCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.Text,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
+        internal static SqlCommand BuildProcedureCommand
+        (
+            SqlConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<SqlCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.StoredProcedure,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
         }
 
         internal static SqlCommand BuildCommand
@@ -72,7 +116,7 @@ namespace Horseshoe.NET.SqlDb
             CommandType commandType,
             string commandText,
             IEnumerable<DbParameter> parameters = null,
-            int? timeout = null,
+            int? commandTimeout = null,
             Action<SqlCommand> modifyCommand = null
         )
         {
@@ -96,7 +140,7 @@ namespace Horseshoe.NET.SqlDb
                     }
                 }
             }
-            if ((timeout ?? SqlDbSettings.DefaultTimeout).TryHasValue(out int value))
+            if (commandTimeout.TryHasValue(out int value))
             {
                 cmd.CommandTimeout = value;
             }

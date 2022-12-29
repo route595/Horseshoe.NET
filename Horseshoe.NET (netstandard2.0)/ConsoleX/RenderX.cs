@@ -22,6 +22,11 @@ namespace Horseshoe.NET.ConsoleX
         public static int ConsoleWidth => Console.WindowWidth - 2;
 
         /// <summary>
+        /// Gets or sets what marks required fields, default is <c>"*"</c>.
+        /// </summary>
+        public static string RequiredIndicator { get; set; } = "*";
+
+        /// <summary>
         /// Global exception rendering preferences
         /// </summary>
         public static ExceptionRendering ExceptionRendering { get; } = new ExceptionRendering();
@@ -86,24 +91,15 @@ namespace Horseshoe.NET.ConsoleX
         /// Render a title underlined with dashes (-)
         /// </summary>
         /// <param name="title"><c>Title</c> or text</param>
-        /// <param name="requiredIndicator">if the collection belonging to this title is a required selection, mark with this or the default '*'</param>
         /// <param name="padBefore">the number of new lines to render before the title</param>
         /// <param name="padAfter">the number of new lines to render after the title</param>
-        public static void ListTitle(Title? title, string requiredIndicator = "*", int padBefore = 0, int padAfter = 0)
+        public static void ListTitle(Title? title, int padBefore = 0, int padAfter = 0)
         {
             Pad(padBefore);
             if (title.HasValue)
             {
-                if (string.IsNullOrEmpty(requiredIndicator))
-                {
-                    Console.WriteLine(title);
-                    Console.WriteLine(new string('-', title.Value.Text.Length));
-                }
-                else
-                {
-                    Console.WriteLine(requiredIndicator + title.Value.Text + (title.Value.Xtra ?? ""));
-                    Console.WriteLine(new string('-', title.Value.Text.Length + requiredIndicator.Length));
-                }
+                Console.WriteLine(title);
+                Console.WriteLine(new string('-', title.Value.Text.Length));
             }
             Pad(padAfter);
         }
@@ -151,7 +147,6 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="columns">the number of columns in which to render the list</param>
         /// <param name="padBefore">the number of new lines to render before the list</param>
         /// <param name="padAfter">the number of new lines to render after the list</param>
-        /// <param name="requiredIndicator">if the list belonging to this title is a required selection, mark with this or the default '*'</param>
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
         public static void List<T>
         (
@@ -163,12 +158,11 @@ namespace Horseshoe.NET.ConsoleX
             int columns = 1,
             int padBefore = 0,
             int padAfter = 0,
-            string requiredIndicator = "*",
             Action<TextGrid> configureTextGrid = null
         )
         {
             Pad(padBefore);
-            ListTitle(title: title, requiredIndicator: requiredIndicator, padBefore: 0, padAfter: 0);
+            ListTitle(title: title, padBefore: 0, padAfter: 0);
             if (list == null)
             {
                 Console.WriteLine("[null list]");
@@ -238,7 +232,6 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
         /// <param name="renderer">alternative to <c>ToString()</c></param>
         /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
-        /// <param name="requiredIndicator">if the list belonging to this title is a required selection, mark with this or the default '*'</param>
         /// <param name="padBefore">the number of new lines to render before the list</param>
         /// <param name="padAfter">the number of new lines to render after the list</param>
         public static void Menu<T>
@@ -251,13 +244,12 @@ namespace Horseshoe.NET.ConsoleX
             Action<TextGrid> configureTextGrid = null,
             Func<T, string> renderer = null,
             MenuAndListRealtimeConfigurator listConfigurator = null,
-            string requiredIndicator = "*",
             int padBefore = 0,
             int padAfter = 0
         )
         {
             Pad(padBefore);
-            ListTitle(title: title, requiredIndicator: requiredIndicator, padBefore: 0, padAfter: 0);
+            ListTitle(title: title, padBefore: 0, padAfter: 0);
             if (!CollectionUtil.ContainsAny(customItemsToPrepend) && !CollectionUtil.ContainsAny(customItemsToAppend))
             {
                 if (menuItems == null)
@@ -355,26 +347,36 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Renders a prompt for user input e.g. free text, menu selection, etc.
         /// </summary>
-        /// <param name="prompt">an input prompt</param>
-        /// <param name="required"><c>true</c> to force non-blank input</param>
-        /// <param name="requiredIndicator">input prompt decoration for required inputs</param>
-        public static void Prompt(string prompt, bool required = false, string requiredIndicator = "*")
+        /// <param name="prompt">An input prompt.</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="requiredIndicator">The optional <c>string</c> value that marks required fields, default is <c>"*"</c>.</param>
+        public static void Prompt(string prompt, bool required = false, string requiredIndicator = null)
         {
-            requiredIndicator = required ? requiredIndicator : "";
-
             if (prompt == null)
             {
-                prompt = ">" + requiredIndicator;
+                Console.Write(">" + (required ? (requiredIndicator ?? RequiredIndicator) : "") + " ");
             }
             else if (WordOrPhrasePattern.IsMatch(prompt))
             {
-                prompt += requiredIndicator + ":";
+                Console.Write(prompt + (required ? (requiredIndicator ?? RequiredIndicator) : "") + ": ");
             }
             else
             {
-                prompt += requiredIndicator;
+                prompt = prompt.Replace("\r", "");
+                var promptParts = prompt.Split('\n');
+
+                switch (promptParts.Length)
+                {
+                    case 1:
+                        Console.Write(promptParts[0] + (required ? (requiredIndicator ?? RequiredIndicator) : " "));
+                        break;
+
+                    default:
+                        promptParts[0] = promptParts[0] + (required ? (requiredIndicator ?? RequiredIndicator) : "");
+                        Console.Write(string.Join(Environment.NewLine, promptParts));
+                        break;
+                }
             }
-            Console.Write(prompt + " ");
         }
 
         /// <summary>

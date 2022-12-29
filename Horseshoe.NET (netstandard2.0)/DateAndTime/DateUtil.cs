@@ -1,18 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Horseshoe.NET.DateAndTime
 {
+    /// <summary>
+    /// Date / time utility methods
+    /// </summary>
     public static class DateUtil
     {
+        /// <summary>
+        /// Gets whether year referred to in <c>date</c> is a leap year
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
         public static bool IsLeapYear(DateTime date)
         {
             return IsLeapYear(date.Year);
         }
 
+        /// <summary>
+        /// Gets whether the specified year is a leap year
+        /// </summary>
+        /// <param name="year"></param>
+        /// <returns></returns>
         public static bool IsLeapYear(int year)
         {
             if (year % 400 == 0) return true;
@@ -21,6 +30,12 @@ namespace Horseshoe.NET.DateAndTime
             return false;
         }
 
+        /// <summary>
+        /// Gets how many leap days occur in the specified date range
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
         public static int CountLeapDaysBetween(DateTime from, DateTime to)
         {
             if (from > to)
@@ -50,21 +65,44 @@ namespace Horseshoe.NET.DateAndTime
             return leapDayCounter;
         }
 
-        public static bool SameDay(DateTime date1, DateTime date2)
+        /// <summary>
+        /// Equality check of two dates comparing the year, month and day
+        /// </summary>
+        /// <param name="date">a date/time</param>
+        /// <param name="other">another date/time</param>
+        /// <returns></returns>
+        public static bool SameDay(DateTime date, DateTime other)
         {
-            return date1.Year == date2.Year && date1.Month == date2.Month && date1.Day == date2.Day;
+            return date.Year == other.Year && date.Month == other.Month && date.Day == other.Day;
         }
 
-        public static bool SameMonth(DateTime date1, DateTime date2)
+        /// <summary>
+        /// Equality check of two dates comparing the year and month only
+        /// </summary>
+        /// <param name="date">a date/time</param>
+        /// <param name="other">another date/time</param>
+        /// <returns></returns>
+        public static bool SameMonth(DateTime date, DateTime other)
         {
-            return date1.Year == date2.Year && date1.Month == date2.Month;
+            return date.Year == other.Year && date.Month == other.Month;
         }
 
+        /// <summary>
+        /// Gets the number of days in the month and year referred to in <c>date</c>
+        /// </summary>
+        /// <param name="dateTime">a date/time</param>
+        /// <returns></returns>
         public static int GetNumberOfDaysInMonth(DateTime dateTime)
         {
             return GetNumberOfDaysInMonth(dateTime.Year, dateTime.Month);
         }
 
+        /// <summary>
+        /// Gets the number of days in the specified month and year
+        /// </summary>
+        /// <param name="year">a year</param>
+        /// <param name="month">a month</param>
+        /// <returns></returns>
         public static int GetNumberOfDaysInMonth(int year, int month)
         {
             switch (month)

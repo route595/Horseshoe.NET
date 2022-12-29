@@ -3,47 +3,62 @@ using System.Linq;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
-    public class DirectoryFilterGroup : IDirectoryFilter
+    /// <summary>
+    /// A specialized filter that checks a directory against a list of directory filters.  Runs either in <c>And</c> or <c>Or</c> mode.  
+    /// </summary>
+    public class DirectoryFilterGroup : DirectoryFilter
     {
-        private List<IDirectoryFilter> _dirFilters = new List<IDirectoryFilter>();
+        private List<DirectoryFilter> _dirFilters = new List<DirectoryFilter>();
 
-        public FilterMode FilterMode { get; }
+        /// <summary>
+        /// <c>And</c> or <c>Or</c>
+        /// </summary>
+        public GroupFilterMode? Mode { get; }
 
-        public bool CaseSensitive { get; }
-
-        public DirectoryFilterGroup(IEnumerable<IDirectoryFilter> dirFilters, FilterMode filterMode = default, bool caseSensitive = false)
+        /// <summary>
+        /// Creates a new directory filter group.
+        /// </summary>
+        /// <param name="dirFilters">A collection of one or more directory filters.</param>
+        /// <param name="groupFilterMode"><c>And</c> or <c>Or</c></param>
+        /// <param name="filterMode">Optional, dictates which directories to include based on criteria matching.</param>
+        /// <exception cref="ValidationException">If no directory filters or no group filter mode was supplied.</exception>
+        public DirectoryFilterGroup(IEnumerable<DirectoryFilter> dirFilters, GroupFilterMode? groupFilterMode, FilterMode filterMode = default)
         {
+            // validation
             if (dirFilters == null || !dirFilters.Any())
-            {
-                switch (filterMode)
-                {
-                    case FilterMode.FilterInAll:
-                    case FilterMode.FilterOutAll:
-                    default:
-                        throw new ValidationException("Invalid \"and\" group filter: must supply one or more directory filters");
-                    case FilterMode.FilterInAny:
-                    case FilterMode.FilterOutAny:
-                        throw new ValidationException("Invalid \"or\" group filter: must supply one or more directory filters");
-                }
-            }
+                throw new ValidationException("Invalid filter: must supply one or more directory filters");
+            if (!groupFilterMode.HasValue)
+                throw new ValidationException("Invalid filter: must supply a value for groupFilterMode");
+
             _dirFilters.AddRange(dirFilters);
             FilterMode = filterMode;
-            CaseSensitive = caseSensitive;
+            Mode = groupFilterMode.Value;
         }
 
-        public bool IsMatch(DirectoryPath dir)
+        /// <summary>
+        /// Indicates whether the supplied directory constitutes a critea match.
+        /// </summary>
+        /// <param name="dir">a directory path</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public override bool IsMatch(DirectoryPath dir)
         {
-            switch (FilterMode)
+            switch (Mode)
             {
-                case FilterMode.FilterInAll:
+                case GroupFilterMode.Or:
                 default:
-                    return _dirFilters.All(f => f.IsMatch(dir));
-                case FilterMode.FilterInAny:
-                    return _dirFilters.Any(f => f.IsMatch(dir));
-                case FilterMode.FilterOutAll:
-                    return !_dirFilters.All(f => f.IsMatch(dir));
-                case FilterMode.FilterOutAny:
-                    return !_dirFilters.Any(f => f.IsMatch(dir));
+                    foreach (var dirFilter in _dirFilters)
+                    {
+                        if (dirFilter.IsMatch(dir))
+                            return true;
+                    }
+                    return false;
+                case GroupFilterMode.And:
+                    foreach (var dirFilter in _dirFilters)
+                    {
+                        if (!dirFilter.IsMatch(dir))
+                            return false;
+                    }
+                    return true;
             }
         }
     }

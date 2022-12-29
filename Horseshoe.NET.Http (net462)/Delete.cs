@@ -92,7 +92,7 @@ namespace Horseshoe.NET.Http
             return response;
         }
 
-        public static E AsValue<E>
+        public static T AsValue<T>
         (
             UriString uri,
             SecurityProtocolType? securityProtocol = null,
@@ -104,7 +104,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             TraceJournal journal = null
         )
         {
@@ -117,7 +117,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = Get.AsValue<E>
+            var result = Get.AsValue<T>
             (
                 uri,
                 method: "DELETE",
@@ -139,7 +139,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public async static Task<E> AsValueAsync<E>
+        public async static Task<T> AsValueAsync<T>
         (
             UriString uri,
             SecurityProtocolType? securityProtocol = null,
@@ -151,7 +151,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             TraceJournal journal = null
         )
         {
@@ -164,7 +164,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = await Get.AsValueAsync<E>
+            var result = await Get.AsValueAsync<T>
             (
                 uri,
                 method: "DELETE",
@@ -186,7 +186,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public static E AsJson<E>
+        public static T AsJson<T>
         (
             UriString uri,
             SecurityProtocolType? securityProtocol = null,
@@ -198,7 +198,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             bool zapBackingFields = false,
             TraceJournal journal = null
         )
@@ -212,7 +212,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = Get.AsJson<E>
+            var result = Get.AsJson<T>
             (
                 uri,
                 method: "DELETE",
@@ -235,7 +235,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public async static Task<E> AsJsonAsync<E>
+        public async static Task<T> AsJsonAsync<T>
         (
             UriString uri,
             SecurityProtocolType? securityProtocol = null,
@@ -247,7 +247,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             bool zapBackingFields = false,
             TraceJournal journal = null
         )
@@ -261,7 +261,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = await Get.AsJsonAsync<E>
+            var result = await Get.AsJsonAsync<T>
             (
                 uri,
                 method: "DELETE",

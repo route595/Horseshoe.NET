@@ -1,95 +1,120 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security;
 using System.Text;
 
-using Horseshoe.NET.Collections;
-
 namespace Horseshoe.NET.Text
 {
+    /// <summary>
+    /// A collection of extension methods for <c>string</c> and <c>char</c> interpretation and <c>string</c> manipulation.
+    /// </summary>
     public static class Extensions
     {
+        /// <inheritdoc cref="TextUtil.Fill" />
         public static string Fill(this string text, int targetLength, bool allowOverflow = false)
         {
             return TextUtil.Fill(text, targetLength, allowOverflow: allowOverflow);
         }
 
-        public static string Fit(this string text, int targetLength, Direction direction = Direction.Left, string padding = null, string leftPadding = null, Direction? truncateDirection = null, string truncateMarker = null)
+        /// <inheritdoc cref="TextUtil.Fit" />
+        public static string Fit(this string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Left, string padding = null, string leftPadding = null, HorizontalPosition? truncateDirection = null, string truncateMarker = null)
         {
             return TextUtil.Fit(text, targetLength, direction: direction, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
         }
 
-        public static string FitCenter(this string text, int targetLength, string padding = null, string leftPadding = null, Direction? truncateDirection = null, string truncateMarker = null)
+        /// <inheritdoc cref="TextUtil.Fit" />
+        public static string FitCenter(this string text, int targetLength, string padding = null, string leftPadding = null, HorizontalPosition? truncateDirection = null, string truncateMarker = null)
         {
-            return TextUtil.Fit(text, targetLength, direction: Direction.Center, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
+            return TextUtil.Fit(text, targetLength, direction: HorizontalPosition.Center, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
         }
 
-        public static string FitLeft(this string text, int targetLength, string padding = null, string leftPadding = null, Direction? truncateDirection = null, string truncateMarker = null)
+        /// <inheritdoc cref="TextUtil.Fit" />
+        public static string FitLeft(this string text, int targetLength, string padding = null, string leftPadding = null, HorizontalPosition? truncateDirection = null, string truncateMarker = null)
         {
-            return TextUtil.Fit(text, targetLength, direction: Direction.Left, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
+            return TextUtil.Fit(text, targetLength, direction: HorizontalPosition.Left, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
         }
 
-        public static string FitRight(this string text, int targetLength, string padding = null, string leftPadding = null, Direction? truncateDirection = null, string truncateMarker = null)
+        /// <inheritdoc cref="TextUtil.Fit" />
+        public static string FitRight(this string text, int targetLength, string padding = null, string leftPadding = null, HorizontalPosition? truncateDirection = null, string truncateMarker = null)
         {
-            return TextUtil.Fit(text, targetLength, direction: Direction.Right, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
+            return TextUtil.Fit(text, targetLength, direction: HorizontalPosition.Right, padding: padding, leftPadding: leftPadding, truncateDirection: truncateDirection, truncateMarker: truncateMarker);
         }
 
+        /// <inheritdoc cref="TextUtil.HasWhitespace" />
         public static bool HasWhitespace(this string text)
         {
             return TextUtil.HasWhitespace(text);
         }
 
+        /// <inheritdoc cref="TextUtil.MultilineTrim" />
         public static string MultilineTrim(this string text)
         {
             return TextUtil.MultilineTrim(text);
         }
 
-        public static string Pad(this string text, int targetLength, Direction direction = Direction.Right, string padding = null, string leftPadding = null, bool cannotExceedTargetLength = false)
+        /// <inheritdoc cref="TextUtil.Pad" />
+        public static string Pad(this string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Right, string padding = null, string leftPadding = null, bool cannotExceedTargetLength = false)
         {
             return TextUtil.Pad(text, targetLength, direction: direction, padding: padding, leftPadding: leftPadding, cannotExceedTargetLength: cannotExceedTargetLength);
         }
 
+        /// <inheritdoc cref="TextUtil.Pad" />
         public static string PadCenter(this string text, int targetLength, string padding = null, string leftPadding = null, bool cannotExceedTargetLength = false)
         {
-            return TextUtil.Pad(text, targetLength, direction: Direction.Center, padding: padding, leftPadding: leftPadding, cannotExceedTargetLength: cannotExceedTargetLength);
+            return TextUtil.Pad(text, targetLength, direction: HorizontalPosition.Center, padding: padding, leftPadding: leftPadding, cannotExceedTargetLength: cannotExceedTargetLength);
         }
 
+        /// <inheritdoc cref="TextUtil.Pad" />
         public static string PadLeft(this string text, int targetLength, string padding = null, bool cannotExceedTargetLength = false)
         {
-            return TextUtil.Pad(text, targetLength, direction: Direction.Left, padding: padding, cannotExceedTargetLength: cannotExceedTargetLength);
+            return TextUtil.Pad(text, targetLength, direction: HorizontalPosition.Left, padding: padding, cannotExceedTargetLength: cannotExceedTargetLength);
         }
 
+        /// <inheritdoc cref="TextUtil.Pad" />
         public static string PadRight(this string text, int targetLength, string padding = null, bool cannotExceedTargetLength = false)
         {
-            return TextUtil.Pad(text, targetLength, direction: Direction.Right, padding: padding, cannotExceedTargetLength: cannotExceedTargetLength);
+            return TextUtil.Pad(text, targetLength, direction: HorizontalPosition.Right, padding: padding, cannotExceedTargetLength: cannotExceedTargetLength);
         }
 
+        /// <inheritdoc cref="TextUtil.Repeat" />
         public static string Repeat(this string text, int numberOfTimes)
         {
             return TextUtil.Repeat(text, numberOfTimes);
         }
 
-        public static string Crop(this string text, int targetLength, Direction direction = Direction.Right, string truncateMarker = null)
+        /// <inheritdoc cref="TextUtil.Crop" />
+        public static string Crop(this string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Right, string truncateMarker = null)
         {
             return TextUtil.Crop(text, targetLength, direction: direction, truncateMarker: truncateMarker);
         }
 
+        /// <inheritdoc cref="TextUtil.Crop" />
         public static string CropCenter(this string text, int targetLength, string truncateMarker = null)
         {
-            return TextUtil.Crop(text, targetLength, direction: Direction.Center, truncateMarker: truncateMarker);
+            return TextUtil.Crop(text, targetLength, direction: HorizontalPosition.Center, truncateMarker: truncateMarker);
         }
 
+        /// <inheritdoc cref="TextUtil.Crop" />
         public static string CropLeft(this string text, int targetLength, string truncateMarker = null)
         {
-            return TextUtil.Crop(text, targetLength, direction: Direction.Left, truncateMarker: truncateMarker);
+            return TextUtil.Crop(text, targetLength, direction: HorizontalPosition.Left, truncateMarker: truncateMarker);
         }
 
+        /// <inheritdoc cref="TextUtil.Crop" />
         public static string CropRight(this string text, int targetLength, string truncateMarker = null)
         {
-            return TextUtil.Crop(text, targetLength, direction: Direction.Right, truncateMarker: truncateMarker);
+            return TextUtil.Crop(text, targetLength, direction: HorizontalPosition.Right, truncateMarker: truncateMarker);
         }
 
+        /// <summary>
+        /// Appends a <c>string</c> to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <param name="sb">A <c>StringBuilder</c>.</param>
+        /// <param name="criteria"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
+        /// <returns>The <c>StringBuilder</c>.</returns>
         public static StringBuilder AppendIf(this StringBuilder sb, bool criteria, string valueIfTrue, string valueIfFalse = null)
         {
             if (criteria)
@@ -103,6 +128,15 @@ namespace Horseshoe.NET.Text
             return sb;
         }
 
+        /// <summary>
+        /// Appends an <c>object</c> to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <param name="sb">A <c>StringBuilder</c>.</param>
+        /// <param name="criteria"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
+        /// <returns>The <c>StringBuilder</c>.</returns>
         public static StringBuilder AppendIf(this StringBuilder sb, bool criteria, object valueIfTrue, object valueIfFalse = null)
         {
             if (criteria)
@@ -116,6 +150,12 @@ namespace Horseshoe.NET.Text
             return sb;
         }
 
+        /// <summary>
+        /// Appends a new line to a <c>StringBuilder</c> if <c>criteria == true</c>.
+        /// </summary>
+        /// <param name="sb">A <c>StringBuilder</c>.</param>
+        /// <param name="criteria"><c>true</c> or <c>false</c></param>
+        /// <returns>The <c>StringBuilder</c>.</returns>
         public static StringBuilder AppendLineIf(this StringBuilder sb, bool criteria)
         {
             if (criteria)
@@ -125,6 +165,15 @@ namespace Horseshoe.NET.Text
             return sb;
         }
 
+        /// <summary>
+        /// Appends a new line of content to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended to a new line.
+        /// </summary>
+        /// <param name="sb">A <c>StringBuilder</c>.</param>
+        /// <param name="criteria"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
+        /// <returns></returns>
         public static StringBuilder AppendLineIf(this StringBuilder sb, bool criteria, string valueIfTrue, string valueIfFalse = null)
         {
             if (criteria)
@@ -138,60 +187,77 @@ namespace Horseshoe.NET.Text
             return sb;
         }
 
+
+        /// <inheritdoc cref="TextUtil.ReplaceLast" />
         public static string ReplaceLast(this string textToSearch, string textToReplace, string replacementText)
         {
             return TextUtil.ReplaceLast(textToSearch, textToReplace, replacementText);
         }
 
+        /// <inheritdoc cref="TextUtil.ConvertToSecureString" />
         public static SecureString ToSecureString(this string unsecureString)
         {
             return TextUtil.ConvertToSecureString(unsecureString);
         }
 
+        /// <inheritdoc cref="TextUtil.ConvertToUnsecureString" />
         public static string ToUnsecureString(this SecureString secureString)
         {
             return TextUtil.ConvertToUnsecureString(secureString);
         }
 
+        /// <inheritdoc cref="TextUtil.IsASCIIPrintable(char, bool, bool, bool, bool)" />
         public static bool IsASCIIPrintable(this char c, bool spacesAreConsideredPrintable = false, bool tabsAreConsideredPrintable = false, bool newLinesAreConsideredPrintable = false, bool extendedASCII = false)
         {
             return TextUtil.IsASCIIPrintable(c, spacesAreConsideredPrintable: spacesAreConsideredPrintable, tabsAreConsideredPrintable: tabsAreConsideredPrintable, newLinesAreConsideredPrintable: newLinesAreConsideredPrintable, extendedASCII: extendedASCII);
         }
 
+        /// <inheritdoc cref="TextUtil.IsASCIIPrintable(string, bool, bool, bool, bool)" />
         public static bool IsASCIIPrintable(this string text, bool spacesAreConsideredPrintable = false, bool tabsAreConsideredPrintable = false, bool newLinesAreConsideredPrintable = false, bool extendedASCII = false)
         {
             return TextUtil.IsASCIIPrintable(text, spacesAreConsideredPrintable: spacesAreConsideredPrintable, tabsAreConsideredPrintable: tabsAreConsideredPrintable, newLinesAreConsideredPrintable: newLinesAreConsideredPrintable, extendedASCII: extendedASCII);
         }
 
+        /// <summary>
+        /// Tests to see if <c>text</c> contains at least one of a group of <c>string</c>s.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAny(this string text, params string[] contentsToSearchFor)
         {
-            return ContainsAny(text, contentsToSearchFor, out _, ignoreCase: false);
+            return ContainsAny(text, contentsToSearchFor, ignoreCase: false);
         }
 
+        /// <summary>
+        /// Tests to see if <c>text</c> contains at least one of a group of <c>string</c>s, not case-sensitive if <c>ignoreCase == true</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <param name="ignoreCase">If <c>true</c> the search is not case-senstive, default is <c>false</c>.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAny(this string text, IEnumerable<string> contentsToSearchFor, bool ignoreCase = false)
-        {
-            return ContainsAny(text, contentsToSearchFor, out _, ignoreCase: ignoreCase);
-        }
-
-        public static bool ContainsAny(this string text, IEnumerable<string> contentsToSearchFor, out string contentFound, bool ignoreCase = false)
         {
             if (contentsToSearchFor != null)
             {
-                foreach (var content in contentsToSearchFor)
+                if (ignoreCase)
                 {
-                    if (ignoreCase && text.ToLower().Contains(content.ToLower()))
+                    var upper = text.ToUpper();
+                    foreach (var content in contentsToSearchFor)
                     {
-                        contentFound = content;
-                        return true;
+                        if (upper.Contains(content.ToUpper()))
+                            return true;
                     }
-                    if (!ignoreCase && text.Contains(content))
+                }
+                else
+                {
+                    foreach (var content in contentsToSearchFor)
                     {
-                        contentFound = content;
-                        return true;
+                        if (text.Contains(content))
+                            return true;
                     }
                 }
             }
-            contentFound = null; 
             return false;
         }
 
@@ -213,7 +279,122 @@ namespace Horseshoe.NET.Text
         /// <returns></returns>
         public static bool IsNewLine(this char chr)
         {
-            return In(chr, new[] { 10, 13 });
+            return In(chr, 10, 13);
+        }
+
+        internal static void IncrementCleanedWhitespaces(this TraceJournal journal)
+        {
+            if (journal.ContainsKey("text.clean.whitespaces.count"))
+            {
+                journal["text.clean.whitespaces.count"] = (int)journal["text.clean.whitespaces.count"] + 1;
+            }
+            else
+            {
+                journal.Add("text.clean.whitespaces.count", 1);
+            }
+        }
+
+        internal static void IncrementCleanedNonprintables(this TraceJournal journal)
+        {
+            if (journal.ContainsKey("text.clean.nonprintables.count"))
+            {
+                journal["text.clean.nonprintables.count"] = (int)journal["text.clean.nonprintables.count"] + 1;
+            }
+            else
+            {
+                journal.Add("text.clean.nonprintables.count", 1);
+            }
+        }
+
+        internal static void IncrementCleanedUnicode(this TraceJournal journal)
+        {
+            if (journal.ContainsKey("text.clean.unicode.count"))
+            {
+                journal["text.clean.unicode.count"] = (int)journal["text.clean.unicode.count"] + 1;
+            }
+            else
+            {
+                journal.Add("text.clean.unicode.count", 1);
+            }
+        }
+
+        internal static void IncrementCleanedOther(this TraceJournal journal)
+        {
+            if (journal.ContainsKey("text.clean.other.count"))
+            {
+                journal["text.clean.other.count"] = (int)journal["text.clean.other.count"] + 1;
+            }
+            else
+            {
+                journal.Add("text.clean.other.count", 1);
+            }
+        }
+
+        /// <summary>
+        /// Gets the count of whitespace <c>char</c>s that were eliminated or converted during a 'clean' operation.
+        /// </summary>
+        /// <param name="journal"></param>
+        /// <returns>Affected whitespace <c>char</c> count</returns>
+        public static int GetCleanedWhitespaceCharacters(this TraceJournal journal)
+        {
+            if (journal.TryGetValue("text.clean.whitespaces.count", out object count))
+                return (int)count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the count of nonprintable <c>char</c>s that were eliminated or converted during a 'clean' operation.
+        /// </summary>
+        /// <param name="journal"></param>
+        /// <returns>Affected nonprintable <c>char</c> count</returns>
+        public static int GetCleanedNonprintableCharacters(this TraceJournal journal)
+        {
+            if (journal.TryGetValue("text.clean.nonprintables.count", out object count))
+                return (int)count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the count of Unicode <c>char</c>s that were eliminated or converted during a 'clean' operation.
+        /// </summary>
+        /// <param name="journal"></param>
+        /// <returns>Affected Unicode <c>char</c> count</returns>
+        public static int GetCleanedUnicodeCharacters(this TraceJournal journal)
+        {
+            if (journal.TryGetValue("text.clean.unicode.count", out object count))
+                return (int)count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the count of other <c>char</c>s that were eliminated or converted during a 'clean' operation.
+        /// </summary>
+        /// <param name="journal"></param>
+        /// <returns>Other affected <c>char</c> count</returns>
+        public static int GetCleanedOtherCharacters(this TraceJournal journal)
+        {
+            if (journal.TryGetValue("text.clean.other.count", out object count))
+                return (int)count;
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the total count of <c>char</c>s that were eliminated or converted during a 'clean' operation.
+        /// </summary>
+        /// <param name="journal"></param>
+        /// <returns></returns>
+        public static int GetTotalCleanedCharacters(this TraceJournal journal)
+        {
+            var total = 0;
+            if (journal.TryGetValue("text.clean.whitespaces.count", out object whitespacesCount))
+                total += (int)whitespacesCount;
+            if (journal.TryGetValue("text.clean.nonprintables.count", out object nonprintablesCount))
+                total += (int)nonprintablesCount;
+            if (journal.TryGetValue("text.clean.unicode.count", out object unicodeCount))
+                total += (int)unicodeCount;
+            if (journal.TryGetValue("text.clean.other.count", out object otherCount))
+                total += (int)otherCount;
+            return total;
         }
     }
 }

@@ -1,63 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
-using System.Linq;
+using System.Reflection;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.OleDb
 {
+    /// <summary>
+    /// Factory methods for updating database tables.
+    /// </summary>
     public static class Update
     {
+        /// <summary>
+        /// Creates a connection and updates a database table.
+        /// </summary>
+        /// <param name="platform">A DB platform lends hints about how to render SQL expression or entire SQL statements.</param>
+        /// <param name="tableName">A table name.</param>
+        /// <param name="columns">The table columns and values to update (uses <c>DbParameter</c> as column info).</param>
+        /// <param name="where">A filter indicating which rows to update.</param>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+        /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
+        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns>The number of updated rows.</returns>
         public static int Table
         (
+            DbPlatform platform,
             string tableName, 
             IEnumerable<DbParameter> columns, 
+            Filter where, 
             OleDbConnectionInfo connectionInfo = null, 
-            Filter where = null, 
-            int? timeout = null,
-            DbPlatform? platform = null,
+            int? commandTimeout = null,
             CryptoOptions cryptoOptions = null,
-            Action<OleDbCommand> modifyCommand = null,
-            Action<OleDbConnectionInfo> resultantConnectionInfo = null,
-            Action<string> peekStatement = null
+            Action<OleDbCommand> alterCommand = null,
+            TraceJournal journal = null
         )
         {
-            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, resultantConnectionInfo: resultantConnectionInfo))
+            // trace journaling
+            if (journal == null)
             {
-                return Table(conn, tableName, columns, where: where, timeout: timeout, platform: platform, modifyCommand: modifyCommand, peekStatement: peekStatement);
+                journal = TraceJournal.ResetDefault();
+            }
+            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+            journal.Level++;
+
+            // data stuff
+            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            {
+                var result = Table(conn, platform, tableName, columns, where, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+
+                // finalize
+                journal.Level--;
+                return result;
             }
         }
 
+        /// <summary>
+        /// Updates a database table using an existing open connection.
+        /// </summary>
+        /// <param name="conn">An open DB connection.</param>
+        /// <param name="platform">A DB platform lends hints about how to render SQL expression or entire SQL statements.</param>
+        /// <param name="tableName">A table name.</param>
+        /// <param name="columns">The table columns and values to update (uses <c>DbParameter</c> as column info).</param>
+        /// <param name="where">A filter indicating which rows to update.</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
+        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <returns>The number of updated rows.</returns>
         public static int Table
         (
             OleDbConnection conn, 
+            DbPlatform platform,
             string tableName, 
             IEnumerable<DbParameter> columns, 
-            Filter where = null, 
-            int? timeout = null,
-            DbPlatform? platform = null,
-            Action<OleDbCommand> modifyCommand = null,
-            Action<string> peekStatement = null
+            Filter where, 
+            int? commandTimeout = null,
+            Action<OleDbCommand> alterCommand = null,
+            TraceJournal journal = null
         )
         {
-            var statement = @"
-                UPDATE " + tableName + @"
-                SET " + string.Join(", ", columns.Select(c => c.ToDMLString(platform: platform)));
-            if (where != null)
+            // trace journaling
+            if (journal == null)
             {
-                statement += @"
-                WHERE " + where;
+                journal = TraceJournal.ResetDefault();
             }
+            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
+            journal.Level++;
 
-            statement = statement.MultilineTrim();
-            peekStatement?.Invoke(statement);
+            // data stuff
+            var statement = DbUtil.BuildUpdateStatement(platform, tableName, columns, where, journal: journal);
+            var result = Execute.SQL(conn, statement, commandTimeout: commandTimeout, alterCommand: alterCommand);
 
-            return Execute.SQL(conn, statement, timeout: timeout, modifyCommand: modifyCommand);
+            // finalize
+            journal.Level--;
+            return result;
         }
     }
 }

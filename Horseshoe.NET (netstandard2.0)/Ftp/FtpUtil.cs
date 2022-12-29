@@ -1,16 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Horseshoe.NET.Text;
+using System;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Horseshoe.NET.Ftp
 {
+    /// <summary>
+    /// A set of utility methods for supporting FTP operations
+    /// </summary>
     public static class FtpUtil
     {
+        /// <summary>
+        /// Parses an FTP connection string 
+        /// </summary>
+        /// <param name="connectionString">A pseudo connection string for FTP</param>
+        /// <returns></returns>
+        /// <exception cref="ValidationException"></exception>
+        /// <remarks>
+        /// Pseudo connection strings 
+        /// <para>
+        /// Example #1: ftp://george@11.22.33.44/dir/subdir?password=akdj$8iO(d@1sd
+        /// </para>
+        /// <para>
+        /// Example #2: ftp://george@11.22.33.44/dir/subdir?encryptedPassword=a6bd9cf8a07dbc15d==
+        /// </para>
+        /// </remarks>
         public static FtpConnectionInfo ParseFtpConnectionString(string connectionString)
         {
-            // example pseudo connection string: ftp://george@11.22.33.44/dir/subdir?encryptedPassword=akdj$8iO(d@1sd==
             if (connectionString == null) return null;
 
             var connectionInfo = new FtpConnectionInfo();
@@ -42,7 +57,7 @@ namespace Horseshoe.NET.Ftp
                     pos2 = connectionString.ToLower().IndexOf("?encryptedpassword=");
                     if (pos2 > pos)
                     {
-                        connectionInfo.Credentials = new Credential(connectionString.Substring(0, pos), connectionString.Substring(pos2 + 19), isEncryptedPassword: true);
+                        connectionInfo.Credentials = new Credential(connectionString.Substring(0, pos), new Password(connectionString.Substring(pos2 + 19), isEncrypted: true));
                     }
                     else if (!string.Equals(connectionString.Substring(0, pos), "anonymous", StringComparison.OrdinalIgnoreCase))
                     {
@@ -84,6 +99,45 @@ namespace Horseshoe.NET.Ftp
             }
 
             return connectionInfo;
+        }
+
+        /// <summary>
+        /// Builds a pseudo connection string
+        /// </summary>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="hidePassword">hide the password</param>
+        /// <returns></returns>
+        public static string BuildConnectionString(FtpConnectionInfo connectionInfo, bool hidePassword = false)
+        {
+            if (connectionInfo == null)
+                return null;
+            return BuildConnectionString(connectionInfo.Server, connectionInfo.Port, connectionInfo.ServerPath, connectionInfo.EnableSsl, connectionInfo.Credentials, hidePassword: hidePassword);
+        }
+
+        /// <summary>
+        /// Builds a pseudo connection string
+        /// </summary>
+        /// <param name="server">FTP server name or DNS alias</param>
+        /// <param name="port">optional TCP port</param>
+        /// <param name="serverPath">the virtual path on the FTP server to set as the current directory</param>
+        /// <param name="enableSsl">set to <c>true</c> to enable SSL on the FTP connection</param>
+        /// <param name="credentials">the FTP login username and password</param>
+        /// <param name="hidePassword">hide the password</param>
+        /// <returns></returns>
+        public static string BuildConnectionString(string server, int? port, string serverPath, bool enableSsl, Credential? credentials, bool hidePassword = false)
+        {
+            var strb = new StringBuilder(enableSsl ? "ftps://" : "ftp://")
+                .AppendIf(credentials.HasValue, credentials.Value.UserName + "@")
+                .Append(server)
+                .AppendIf(port.HasValue, ":" + port)
+                .Append(serverPath);
+
+            if (credentials.HasValue)
+            {
+                strb.Append("?password=")
+                    .Append(hidePassword ? "<password>" : credentials.Value.Password.ToUnsecurePassword());
+            }
+            return strb.ToString();
         }
     }
 }

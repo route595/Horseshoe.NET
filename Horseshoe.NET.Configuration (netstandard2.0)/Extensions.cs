@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.Configuration
 {
@@ -49,86 +49,56 @@ namespace Horseshoe.NET.Configuration
         /// <param name="config">An instance of <c>IConfiguration</c></param>
         /// <param name="key">configuration key</param>
         /// <param name="required">if <c>true</c>, throws error if configuration is null or key is not found</param>
-        /// <param name="suppressErrors">if <c>true</c>, suppresses any object instantiation errors</param>
+        /// <param name="strict">If a <c>Type</c> matching <c>className</c> cannot be found then <c>strict == true</c> causes an exception to be thrown, default is <c>false</c>.</param>
         /// <returns></returns>
-        public static object GetInstance(this IConfiguration config, string key, bool required = false, bool suppressErrors = false)
+        public static object GetInstance(this IConfiguration config, string key, bool required = false, bool strict = false)
         {
             var className = Get(config, key, required: required);
             if (className == null)
                 return null;
-            return ObjectUtil.GetInstance(className, suppressErrors: suppressErrors);
+            return TypeUtil.GetInstance(className, strict: strict);
         }
 
         /// <summary>
         /// Gets a configuration value as an instance of the specified type.  
         /// You may need to supply a <c>parseFunc</c> for custom / complex types.
         /// </summary>
-        /// <typeparam name="T">type parameter</typeparam>
-        /// <param name="config">An instance of <c>IConfiguration</c></param>
-        /// <param name="key">configuration key</param>
-        /// <param name="parseFunc">parsing function</param>
-        /// <param name="numberStyles">Available for parsing numeric formats (e.g. hexadecimal)</param>
-        /// <param name="dateTimeStyles">Available for parsing date time formats</param>
-        /// <param name="provider">Available for parsing numeric or date time formats</param>
-        /// <param name="ignoreCase">if <c>true</c>, allows case insensitive enum parsing</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration is null or key is not found</param>
-        /// <param name="suppressErrors">if <c>true</c>, throws error if enum parse error occurs</param>
-        /// <returns></returns>
-        public static T Get<T>(this IConfiguration config, string key, Func<string, T> parseFunc = null, NumberStyles? numberStyles = null, DateTimeStyles? dateTimeStyles = null, IFormatProvider provider = null, bool ignoreCase = false, bool required = false, bool suppressErrors = false)
+        /// <typeparam name="T">A runtime type.</typeparam>
+        /// <param name="config">An instance of <c>IConfiguration</c>.</param>
+        /// <param name="key">A configuration key.</param>
+        /// <param name="required">If <c>true</c>, throws error if configuration key not found.</param>
+        /// <param name="parseFunc">A custom parsing function.</param>
+        /// <param name="dateTimeStyle">Applies to <c>Get&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
+        /// <param name="numberStyle">Applies to <c>Get&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>Get&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>Get&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="trueValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
+        /// <param name="falseValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
+        /// <param name="encoding">Applies to <c>Get&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
+        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
+        /// <param name="ignoreCase">Applies to <c>Get&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
+        /// <returns>A configuration value converted to an instance of <c>T</c>.</returns>
+        public static T Get<T>
+        (
+            this IConfiguration config, 
+            string key, 
+            bool required = false,
+            Func<string, T> parseFunc = null,
+            DateTimeStyles? dateTimeStyle = null,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            string trueValues = "y|yes|t|true|1",
+            string falseValues = "n|no|f|false|0",
+            Encoding encoding = null,
+            Type inheritedType = null,
+            bool ignoreCase = false
+        )
         {
             var value = Get(config, key, required: required);
-            if (value == null)
-                return default;
-            if (parseFunc == null)
-                parseFunc = GetParser<T>(numberStyles, dateTimeStyles, provider, ignoreCase, suppressErrors);
             if (parseFunc != null)
                 return parseFunc.Invoke(value);
-            throw new UtilityException("Cannot convert " + value + " to " + typeof(T).FullName + ". Try supplying arg 'parseFunc'.");
-        }
-
-        static Func<string, T> GetParser<T>(NumberStyles? numberStyles, DateTimeStyles? dateTimeStyles, IFormatProvider provider, bool ignoreCase, bool suppressErrors)
-        {
-            if (typeof(T) == typeof(string))
-                return (s) => (T)(object)Zap.String(s);
-            if (typeof(T) == typeof(byte?))
-                return (s) => (T)(object)Zap.NByte(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(byte))
-                return (s) => (T)(object)Zap.Byte(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(short?))
-                return (s) => (T)(object)Zap.NShort(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(short))
-                return (s) => (T)(object)Zap.Short(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(int?))
-                return (s) => (T)(object)Zap.NInt(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(int))
-                return (s) => (T)(object)Zap.Int(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(long?))
-                return (s) => (T)(object)Zap.NLong(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(long))
-                return (s) => (T)(object)Zap.Long(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(float?))
-                return (s) => (T)(object)Zap.NFloat(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(float))
-                return (s) => (T)(object)Zap.Float(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(double?))
-                return (s) => (T)(object)Zap.NDouble(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(double))
-                return (s) => (T)(object)Zap.Double(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(decimal?))
-                return (s) => (T)(object)Zap.NDecimal(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(decimal))
-                return (s) => (T)(object)Zap.Decimal(s, numberStyles: numberStyles, provider: provider);
-            if (typeof(T) == typeof(DateTime?))
-                return (s) => (T)(object)Zap.NDateTime(s, dateTimeStyles: dateTimeStyles, provider: provider);
-            if (typeof(T) == typeof(DateTime))
-                return (s) => (T)(object)Zap.DateTime(s, dateTimeStyles: dateTimeStyles, provider: provider);
-            if (typeof(T) == typeof(bool?))
-                return (s) => (T)(object)Zap.NBool(s);
-            if (typeof(T) == typeof(bool))
-                return (s) => (T)(object)Zap.Bool(s);
-            if (typeof(T).IsEnum)
-                return (s) => (T)Zap.EnumOfType(typeof(T), s, ignoreCase: ignoreCase, suppressErrors: suppressErrors);
-            return null;
+            return Zap.To<T>(key, dateTimeStyle: dateTimeStyle, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
         }
 
         /// <summary>
@@ -154,7 +124,7 @@ namespace Horseshoe.NET.Configuration
                     return null;
                 throw new ConfigurationException("Required configuration section not found: " + path);
             }
-            var t = ObjectUtil.GetDefaultInstance<T>();
+            var t = TypeUtil.GetDefaultInstance<T>();
             section.Bind(t);  // binder
             return t;
         }

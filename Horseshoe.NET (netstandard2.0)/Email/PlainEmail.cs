@@ -6,8 +6,25 @@ using Microsoft.Extensions.Primitives;
 
 namespace Horseshoe.NET.Email
 {
+    /// <summary>
+    /// Utility methods for generating unformatted emails
+    /// </summary>
     public static class PlainEmail
     {
+        /// <summary>
+        /// Sends a plain email
+        /// </summary>
+        /// <param name="subject">Email subject</param>
+        /// <param name="body">Email content</param>
+        /// <param name="to">Recipient email address(es)</param>
+        /// <param name="cc">CC: email address(es)</param>
+        /// <param name="bcc">BCC: email address(es)</param>
+        /// <param name="from">Sender email address</param>
+        /// <param name="attach">Optional attachment file path(s)</param>
+        /// <param name="footerText">Optional footer text</param>
+        /// <param name="encoding">Optional email body encoding</param>
+        /// <param name="connectionInfo">SMTP connection info</param>
+        /// <exception cref="ValidationException">if any critical part of the email is missing</exception>
         public static void Send
         (
             string subject,
@@ -23,8 +40,7 @@ namespace Horseshoe.NET.Email
         )
         {
             // create the mail client
-            var smtpClient = SmtpUtil.GetSmtpClient(connectionInfo: connectionInfo) ??
-                throw new ValidationException("Not enough info to create an SMTP client");
+            var smtpClient = SmtpUtil.GetSmtpClient(connectionInfo: connectionInfo);
 
             // validate and create the mail message
             SmtpUtil.Validate
@@ -40,10 +56,13 @@ namespace Horseshoe.NET.Email
             {
                 Subject = subject ?? "",
                 Body = JoinBodyAndFooter(body ?? "", footerText ?? EmailSettings.DefaultFooterText),
-                BodyEncoding = encoding ?? Encoding.ASCII,
                 From = new MailAddress(from ?? EmailSettings.DefaultFrom),
                 IsBodyHtml = false
             };
+            if (encoding != null)
+            {
+                mailMessage.BodyEncoding = encoding;
+            }
 
             foreach (var recipient in to.ToArray())
             {
@@ -71,7 +90,8 @@ namespace Horseshoe.NET.Email
 
         private static string JoinBodyAndFooter(string body, string footerText)
         {
-            if (footerText == null) return body;
+            if (footerText == null) 
+                return body;
             return body + Environment.NewLine + Environment.NewLine + footerText;
         }
     }

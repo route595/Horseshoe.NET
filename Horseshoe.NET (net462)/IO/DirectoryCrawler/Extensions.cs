@@ -1,13 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.IO.DirectoryCrawler
 {
+    /// <summary>
+    /// A set of extenion methods for <c>DirectoryCrawler</c>
+    /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Generates a printable list of the statistics
+        /// </summary>
+        /// <param name="stats">a set of basic file and directory statistics gathered by the directory traversal engine</param>
+        /// <returns></returns>
         public static IEnumerable<string> Display(this DirectoryCrawlStatistics stats)
         {
             return new List<string>()

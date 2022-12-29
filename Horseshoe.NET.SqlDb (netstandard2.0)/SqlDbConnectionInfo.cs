@@ -1,6 +1,5 @@
-﻿using Horseshoe.NET.Crypto;
-using Horseshoe.NET.Db;
-using Horseshoe.NET.Objects;
+﻿using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.SqlDb.Meta;
 
 namespace Horseshoe.NET.SqlDb
@@ -53,9 +52,9 @@ namespace Horseshoe.NET.SqlDb
             Server = server;
         }
 
-        public override string BuildConnectionString(CryptoOptions cryptoOptions = null)
+        public override string BuildConnectionString()
         {
-            return SqlDbUtil.BuildConnectionString(DataSource, InitialCatalog, Credentials != null, AdditionalConnectionAttributes);
+            return SqlDbUtil.BuildConnectionString(DataSource, InitialCatalog, Credentials != null, AdditionalConnectionAttributes, ConnectionTimeout);
         }
     }
 }

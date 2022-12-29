@@ -1,14 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Horseshoe.NET.Collections;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET
 {
     /// <summary>
-    /// Write trace journaling into your code with easy, out-of-the-box functionality
+    /// <para>
+    /// A basic logging utility aimed at giving developers and testers the ability to view details of each in a chain 
+    /// of nested method calls.  For example, a variable's value, a switch statement output, which method is being called next and why.
+    /// </para>
+    /// <para>
+    /// By convention, please use concise language and always hide passwords.
+    /// </para>
+    /// <para>
+    /// Each method in the chain that includes a <c>TraceJournal</c> parameter can receive the logging mechanism and 
+    /// potentially pass it farther down the chain.  
+    /// </para>
+    /// <para>
+    /// Write trace journaling into your code starting today with easy, out-of-the-box functionality.
+    /// </para>
     /// </summary>
-    public class TraceJournal
+    public class TraceJournal : Dictionary<string, object>
     {
         /// <summary>
         /// Used to indicate depth of nested calls
@@ -30,12 +43,45 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// Writes <c>obj</c> to the write
+        /// Invokes the 'write' action on <c>message</c>, the default action adds indented messages to the entry list.
         /// </summary>
-        /// <param name="obj"></param>
-        public void WriteEntry(object obj)
+        /// <param name="message">A journal entry</param>
+        public void WriteEntry(string message)
+        {
+            writeEntryAction.Invoke(Level, TextUtil.Reveal(message));
+        }
+
+        /// <summary>
+        /// Invokes the 'write' action on <c>obj</c>, the default action converts objects to indented messages and adds them to the entry list.
+        /// </summary>
+        /// <param name="obj">An object or message</param>
+        public void Write(object obj)
         {
             writeEntryAction.Invoke(Level, TextUtil.Reveal(obj));
+        }
+
+        /// <summary>
+        /// Adds or replaces a key / value and then invokes the 'write' action on it.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void AddAndWriteEntry(string key, object value) 
+        {
+            this.AddOrReplace(key, value);
+            WriteEntry(key + " = " + value);
+        }
+
+        /// <summary>
+        /// Throws an exception but not before invoking the 'write' action on it.
+        /// </summary>
+        /// <param name="ex">An exception.</param>
+        /// <param name="levelDown">Whether to decrement the level by one.</param>
+        public void WriteEntryAndThrow(Exception ex, bool levelDown = false)
+        {
+            WriteEntry(ex.RenderMessage());
+            if (levelDown)
+                Level--;
+            throw ex;
         }
 
         private static void DefaultWriteEntry(int level, string entry) => 
@@ -66,6 +112,7 @@ namespace Horseshoe.NET
         {
             DefaultEntries.Clear();
             Default.Level = 0;
+            Default.Clear();
             return Default;
         }
     }

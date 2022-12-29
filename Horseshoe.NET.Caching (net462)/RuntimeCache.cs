@@ -31,7 +31,7 @@ namespace Horseshoe.NET.Caching
             }
 
             E freshObj = refreshFunction.Invoke();
-            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             fromCache = false;
             return freshObj;
@@ -52,7 +52,7 @@ namespace Horseshoe.NET.Caching
             }
 
             E freshObj = refreshFunction.Invoke();
-            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null) 
                 metadata.FromCache = false;
@@ -74,7 +74,7 @@ namespace Horseshoe.NET.Caching
             }
 
             E freshObj = await refreshFunction.Invoke();
-            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null)
                 metadata.FromCache = false;
@@ -94,7 +94,7 @@ namespace Horseshoe.NET.Caching
             }
 
             IList<E> freshObj = refreshFunction.Invoke();
-            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             fromCache = false;
             return freshObj;
@@ -115,7 +115,7 @@ namespace Horseshoe.NET.Caching
             }
 
             IList<E> freshObj = refreshFunction.Invoke();
-            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null) 
                 metadata.FromCache = false;
@@ -137,7 +137,7 @@ namespace Horseshoe.NET.Caching
             }
 
             IList<E> freshObj = await refreshFunction.Invoke();
-            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = DateTimeOffset.UtcNow.AddSeconds(cacheDuration ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null)
                 metadata.FromCache = false;

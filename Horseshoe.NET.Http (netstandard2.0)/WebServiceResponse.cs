@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Horseshoe.NET.Collections;
-using Horseshoe.NET.Objects;
+using Horseshoe.NET.ObjectsAndTypes;
 
 namespace Horseshoe.NET.Http
 {
@@ -168,7 +168,7 @@ namespace Horseshoe.NET.Http
         /// <summary>
         /// Creates a <c>WebServiceException</c> from the exception info in a <c>WebServiceResponse</c> if and only if the status is <c>Error</c>
         /// </summary>
-        /// <param name="typeRendering">If <c>Fqn</c> (default) displays the fully qualified type of the exception</param>
+        /// <param name="typeRendering">If <c>Fqn</c>(default) display the fully qualified type name</param>
         /// <param name="includeStackTrace">If <c>true</c> renders the stack trace (default is <c>true</c>)</param>
         /// <param name="indent">Number of spaces to indent detail lines in the output</param>
         /// <param name="recursive">If <c>true</c> renders inner exceptions (default is <c>false</c>)</param>

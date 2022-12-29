@@ -10,23 +10,35 @@ using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Ftp
 {
-    // ref: https://docs.microsoft.com/en-us/dotnet/framework/network-programming/how-to-upload-files-with-ftp
+    /// <summary>
+    /// A collection of factory methods for FTP operations
+    /// </summary>
+    /// <remarks>
+    /// Reference: https://docs.microsoft.com/en-us/dotnet/framework/network-programming/how-to-upload-files-with-ftp
+    /// </remarks>
     public static class Ftp
     {
-        public static event RequestUriCreated RequestUriCreated;
-        public static event FileUploaded FileUploaded;
-        public static event FileDownloaded FileDownloaded;
-        public static event DirectoryContentsListed DirectoryContentsListed;
-        public static event FileDeleted FileDeleted;
-
+        /// <summary>
+        /// Uploads a file to an FTP server
+        /// </summary>
+        /// <param name="filePath">The source file path</param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="serverFileName">What to name the uploaded file (default is the file's current name)</param>
+        /// <param name="isBinary">Affects how the file is read into memory before sending to the FTP server, default is <c>false</c></param>
+        /// <param name="encoding">An optional text encoding used when <c>isBinary == false</c> to read the file from storage and convert it to bytes</param>
+        /// <param name="fileUploaded">Action to perform on file upload, e.g. <c>fileUploaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
         public static void UploadFile
         (
-            string filePath,
+            FilePath filePath,
             FtpConnectionInfo connectionInfo = null,
             string serverPath = null,
             string serverFileName = null,
             bool isBinary = false,
-            Encoding encoding = null
+            Encoding encoding = null,
+            Action<string, long, int, string> fileUploaded = null,
+            Action<string> requestUriCreated = null
         )
         {
             byte[] fileContents;
@@ -34,84 +46,107 @@ namespace Horseshoe.NET.Ftp
             // Get the file bytes
             if (isBinary)
             {
-                fileContents = File.ReadAllBytes(filePath);
+                fileContents = filePath.ReadAllBytes();
             }
             else
             {
-                using (StreamReader sourceStream = new StreamReader(filePath))
+                using (StreamReader sourceStream = encoding != null ? new StreamReader(filePath.FullName, encoding) : new StreamReader(filePath.FullName))
                 {
                     fileContents = (encoding ?? Encoding.Default).GetBytes(sourceStream.ReadToEnd());
                 }
             }
 
-            UploadFile(serverFileName ?? Path.GetFileName(filePath), fileContents, connectionInfo: connectionInfo, serverPath: serverPath);
+            UploadFile(serverFileName ?? filePath.Name, fileContents, connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded, requestUriCreated: requestUriCreated);
         }
 
-        public static void UploadFile
-        (
-            FileInfo file,
-            FtpConnectionInfo connectionInfo = null,
-            string serverPath = null,
-            string serverFileName = null,
-            bool isBinary = false,
-            Encoding encoding = null
-        )
-        {
-            UploadFile
-            (
-                file.FullName,
-                connectionInfo: connectionInfo,
-                serverPath: serverPath,
-                serverFileName: serverFileName,
-                isBinary: isBinary,
-                encoding: encoding
-            );
-        }
-
+        /// <summary>
+        /// Uploads a file to an FTP server
+        /// </summary>
+        /// <param name="fileName">What to name the uploaded file</param>
+        /// <param name="contents">Contents as a <c>string</c></param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="encoding">An optional text encoding to convert it to bytes</param>
+        /// <param name="fileUploaded">Action to perform on file upload, e.g. <c>fileUploaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
         public static void UploadFile
         (
             string fileName,
             string contents,
             FtpConnectionInfo connectionInfo = null,
             string serverPath = null,
-            Encoding encoding = null
+            Encoding encoding = null,
+            Action<string, long, int, string> fileUploaded = null,
+            Action<string> requestUriCreated = null
         )
         {
             // Get the content bytes
             byte[] fileContents = (encoding ?? Encoding.Default).GetBytes(contents);
 
-            UploadFile(fileName, fileContents, connectionInfo: connectionInfo, serverPath: serverPath);
+            UploadFile(fileName, fileContents, connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded, requestUriCreated: requestUriCreated);
         }
 
+        /// <summary>
+        /// Uploads a file to an FTP server
+        /// </summary>
+        /// <param name="namedStream">A named memory stream</param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="fileUploaded">Action to perform on file upload, e.g. <c>fileUploaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
         public static void UploadFile
         (
             NamedMemoryStream namedStream,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<string, long, int, string> fileUploaded = null,
+            Action<string> requestUriCreated = null
         )
         {
-            UploadFile(namedStream.Name, namedStream.ToArray(), connectionInfo: connectionInfo, serverPath: serverPath);
+            UploadFile(namedStream.Name, namedStream.ToArray(), connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded, requestUriCreated: requestUriCreated);
         }
 
+        /// <summary>
+        /// Uploads a file to an FTP server
+        /// </summary>
+        /// <param name="fileName">What to name the uploaded file</param>
+        /// <param name="contents">Contents as a <c>Stream</c></param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="fileUploaded">Action to perform on file upload, e.g. <c>fileUploaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
         public static void UploadFile
         (
             string fileName,
             Stream contents,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<string, long, int, string> fileUploaded = null,
+            Action<string> requestUriCreated = null
         )
         {
             var memoryStream = new MemoryStream();
             contents.CopyTo(memoryStream);
-            UploadFile(fileName, memoryStream.ToArray(), connectionInfo: connectionInfo, serverPath: serverPath);
+            UploadFile(fileName, memoryStream.ToArray(), connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded, requestUriCreated: requestUriCreated);
         }
 
+        /// <summary>
+        /// Uploads a file to an FTP server
+        /// </summary>
+        /// <param name="fileName">What to name the uploaded file</param>
+        /// <param name="contents">Contents as a <c>byte[]</c></param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="fileUploaded">Action to perform on file upload, e.g. <c>fileUploaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
         public static void UploadFile
         (
             string fileName,
             byte[] contents,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<string, long, int, string> fileUploaded = null,
+            Action<string> requestUriCreated = null
         )
         {
             ConnectAndDoAction
@@ -130,42 +165,72 @@ namespace Horseshoe.NET.Ftp
                 },
                 responseAction: (response) =>
                 {
-                    FileUploaded?.Invoke(TextUtil.Reveal(fileName), contents.LongLength, (int)response.StatusCode, response.StatusDescription);
-                }
+                    fileUploaded?.Invoke(TextUtil.Reveal(fileName), contents.LongLength, (int)response.StatusCode, response.StatusDescription);
+                },
+                requestUriCreated
             );
         }
 
+        /// <summary>
+        /// Downloads a file from an FTP server
+        /// </summary>
+        /// <param name="serverFileName">The file to download from the FTP server</param>
+        /// <param name="localDirectory"></param>
+        /// <param name="localFileName">Optionally rename the downloaded file</param>
+        /// <param name="overwrite">Set to <c>true</c> to overwrite an existing file if applicable, default is <c>false</c></param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="fileDownloaded">Action to perform on file download, e.g. <c>fileDownloaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
+        /// <exception cref="FtpOperationException"></exception>
         public static void DownloadFile
         (
             string serverFileName,
-            string downloadFilePath,
+            DirectoryPath localDirectory,
+            string localFileName = null,
             bool overwrite = false,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<string, long, int, string> fileDownloaded = null,
+            Action<string> requestUriCreated = null
         )
         {
+            if (!localDirectory.Exists)
+                localDirectory.Create();
+
             var stream = DownloadFile
             (
                 serverFileName,
                 connectionInfo: connectionInfo,
-                serverPath: serverPath
+                serverPath: serverPath,
+                fileDownloaded: fileDownloaded,
+                requestUriCreated: requestUriCreated
             );
-            if (Directory.Exists(downloadFilePath))
+
+            FilePath downloadedFilePath = Path.Combine(localDirectory, localFileName ?? serverFileName);
+            if (downloadedFilePath.Exists && !overwrite)
             {
-                downloadFilePath = Path.Combine(downloadFilePath, serverFileName);
+                throw new FtpOperationException("A file named '" + downloadedFilePath.Name + "' already exists in '" + localDirectory.FullName + "'");
             }
-            if (File.Exists(downloadFilePath) && !overwrite)
-            {
-                throw new UtilityException("A file named '" + Path.GetFileName(downloadFilePath) + "' already exists in '" + Path.GetDirectoryName(downloadFilePath) + "'");
-            }
-            File.WriteAllBytes(downloadFilePath, stream.ToArray());
+            downloadedFilePath.WriteAllBytes(stream.ToArray());
         }
 
+        /// <summary>
+        /// Downloads a file from an FTP server
+        /// </summary>
+        /// <param name="serverFileName">The file to download from the FTP server</param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="fileDownloaded">Action to perform on file download, e.g. <c>fileDownloaded(string fileName, long fileSize, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
+        /// <returns></returns>
         public static NamedMemoryStream DownloadFile
         (
             string serverFileName,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<string, long, int, string> fileDownloaded = null,
+            Action<string> requestUriCreated = null
         )
         {
             var memoryStream = new NamedMemoryStream(serverFileName);
@@ -179,20 +244,34 @@ namespace Horseshoe.NET.Ftp
                 requestAction: null,
                 responseAction: (response) =>
                 {
-                    var stream = response.GetResponseStream();
-                    stream.CopyTo(memoryStream);
-                    FileDownloaded?.Invoke(serverFileName, memoryStream.Length, (int)response.StatusCode, response.StatusDescription);
-                }
+                    using (var stream = response.GetResponseStream())
+                    {
+                        stream.CopyTo(memoryStream);
+                    }
+                    fileDownloaded?.Invoke(serverFileName, memoryStream.Length, (int)response.StatusCode, response.StatusDescription);
+                },
+                requestUriCreated
             );
 
             return memoryStream;
         }
 
+        /// <summary>
+        /// Lists the contents of a remote virtual directory on an FTP server
+        /// </summary>
+        /// <param name="fileMask">Optional file mask for filtering the list (for exmaple use *.txt)</param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="directoryContentsListed">Action to perform on file download, e.g. <c>directoryContentsListed(int count, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
+        /// <returns></returns>
         public static string[] ListDirectoryContents
         (
             string fileMask = null,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<int, int, string> directoryContentsListed = null,
+            Action<string> requestUriCreated = null
         )
         {
             string[] contents = null;
@@ -225,17 +304,28 @@ namespace Horseshoe.NET.Ftp
                             .ToArray();
                     }
 
-                    DirectoryContentsListed?.Invoke(contents.Length, (int)response.StatusCode, response.StatusDescription);
-                }
+                    directoryContentsListed?.Invoke(contents.Length, (int)response.StatusCode, response.StatusDescription);
+                },
+                requestUriCreated
             );
 
             return contents;
         }
 
+        /// <summary>
+        /// Lists the contents of a remote virtual directory on an FTP server
+        /// </summary>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="directoryContentsListed">Action to perform on file download, e.g. <c>directoryContentsListed(int count, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
+        /// <returns></returns>
         public static string[] ListDetailedDirectoryContents
         (
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<int, int, string> directoryContentsListed = null,
+            Action<string> requestUriCreated = null
         )
         {
             string[] contents = null;
@@ -251,18 +341,29 @@ namespace Horseshoe.NET.Ftp
                 {
                     var streamReader = new StreamReader(response.GetResponseStream());
                     contents = streamReader.ReadToEnd().Replace("\r\n", "\n").Split('\n');
-                    DirectoryContentsListed?.Invoke(contents.Length, (int)response.StatusCode, response.StatusDescription);
-                }
+                    directoryContentsListed?.Invoke(contents.Length, (int)response.StatusCode, response.StatusDescription);
+                },
+                requestUriCreated
             );
 
             return contents;
         }
 
+        /// <summary>
+        /// Deletes a file remotely from an FTP server
+        /// </summary>
+        /// <param name="serverFileName">The file to download from the FTP server</param>
+        /// <param name="connectionInfo">FTP connection info</param>
+        /// <param name="serverPath">The upload destination virtual path, overrides <c>ServerPath</c> in <c>connectionInfo</c></param>
+        /// <param name="fileDeleted">Action to perform on file download, e.g. <c>fileDeleted(string fileName, int statusCode, string statusDescription)</c></param>
+        /// <param name="requestUriCreated">View the request URI, e.g. <c>requestUriCreated(string requestUri)</c></param>
         public static void DeleteFile
         (
             string serverFileName,
             FtpConnectionInfo connectionInfo = null,
-            string serverPath = null
+            string serverPath = null,
+            Action<string, int, string> fileDeleted = null,
+            Action<string> requestUriCreated = null
         )
         {
             ConnectAndDoAction
@@ -274,8 +375,9 @@ namespace Horseshoe.NET.Ftp
                 requestAction: null,
                 responseAction: (response) =>
                 {
-                    FileDeleted?.Invoke(serverFileName, (int)response.StatusCode, response.StatusDescription);
-                }
+                    fileDeleted?.Invoke(serverFileName, (int)response.StatusCode, response.StatusDescription);
+                },
+                requestUriCreated
             );
         }
 
@@ -285,8 +387,9 @@ namespace Horseshoe.NET.Ftp
             string method,
             string serverPath,
             string serverFileName,
-            Action<FtpWebRequest> requestAction,   // optional
-            Action<FtpWebResponse> responseAction  // required
+            Action<FtpWebRequest> requestAction,   // optional 
+            Action<FtpWebResponse> responseAction, // required
+            Action<string> requestUriCreated
         )
         {
             string server;
@@ -300,7 +403,7 @@ namespace Horseshoe.NET.Ftp
                 port = connectionInfo.Port;
                 enableSsl = connectionInfo.EnableSsl;
                 credentials = connectionInfo.Credentials;
-                serverPath = connectionInfo.ServerPath ?? serverPath;
+                serverPath = serverPath ?? connectionInfo.ServerPath;
             }
             else
             {
@@ -312,7 +415,7 @@ namespace Horseshoe.NET.Ftp
             }
 
             // Get the object used to communicate with the server
-            var uriString = CreateRequestUriString(server, port, enableSsl, serverPath, serverFileName);
+            var uriString = CreateRequestUriString(server, port, enableSsl, serverPath, serverFileName, requestUriCreated);
             var request = (FtpWebRequest)WebRequest.Create(uriString);
             if (enableSsl)
             {
@@ -329,7 +432,15 @@ namespace Horseshoe.NET.Ftp
             }
         }
 
-        static string CreateRequestUriString(string server, int? port, bool enableSsl, string serverPath, string fileName)
+        static string CreateRequestUriString
+        (
+            string server, 
+            int? port, 
+            bool enableSsl, 
+            string serverPath, 
+            string fileName,
+            Action<string> requestUriCreated
+        )
         {
             if (server == null) throw new ArgumentNullException(nameof(server));
             var sb = new StringBuilder()
@@ -371,7 +482,7 @@ namespace Horseshoe.NET.Ftp
             {
                 sb.Append(fileName);
             }
-            RequestUriCreated?.Invoke(sb.ToString());
+            requestUriCreated?.Invoke(sb.ToString());
             return sb.ToString();
         }
     }

@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-using Horseshoe.NET.Objects;
 
 namespace Horseshoe.NET.SqlDb.Meta
 {

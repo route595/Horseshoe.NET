@@ -1,16 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Horseshoe.NET.Text.Internal;
 
 namespace Horseshoe.NET.Text
 {
+    /// <summary>
+    /// Factory methods for object deserialization (e.g. JSON, possibly XML in the future).
+    /// </summary>
     public static class Deserialize
     {
+        /// <summary>
+        /// Deserializes an object from JSON (either <c>System.Text.Json</c> or <c>Newtonsoft.Json</c> is required).
+        /// </summary>
+        /// <param name="json">A JSON string.</param>
+        /// <param name="objectType">A reference type.</param>
+        /// <param name="onBeforeDeserialize">An action to perform pre-deserialization.</param>
+        /// <returns>An object deserialized from the supplied JSON string.</returns>
+        /// <exception cref="UtilityException"></exception>
         public static object Json(string json, Type objectType = null, Func<string, string> onBeforeDeserialize = null)
         {
             switch (TextSettings.JsonProvider)
@@ -28,6 +35,14 @@ namespace Horseshoe.NET.Text
             }
         }
 
+        /// <summary>
+        /// Deserializes an object from JSON (either <c>System.Text.Json</c> or <c>Newtonsoft.Json</c> is required).
+        /// </summary>
+        /// <param name="json">A JSON string.</param>
+        /// <param name="objectType">A reference type.</param>
+        /// <param name="onBeforeDeserialize">An action to perform pre-deserialization.</param>
+        /// <returns>An object deserialized from the supplied JSON string.</returns>
+        /// <exception cref="UtilityException"></exception>
         public async static Task<object> JsonAsync(string json, Type objectType = null, Func<string, string> onBeforeDeserialize = null)
         {
             switch (TextSettings.JsonProvider)
@@ -49,6 +64,14 @@ namespace Horseshoe.NET.Text
             }
         }
 
+        /// <summary>
+        /// Deserializes an object from JSON (either <c>System.Text.Json</c> or <c>Newtonsoft.Json</c> is required).
+        /// </summary>
+        /// <typeparam name="E">A reference type.</typeparam>
+        /// <param name="json">A JSON string.</param>
+        /// <param name="onBeforeDeserialize">An action to perform pre-deserialization.</param>
+        /// <returns>An object deserialized from the supplied JSON string.</returns>
+        /// <exception cref="UtilityException"></exception>
         public static E Json<E>(string json, Func<string, string> onBeforeDeserialize = null)
         {
             switch (TextSettings.JsonProvider)
@@ -62,6 +85,14 @@ namespace Horseshoe.NET.Text
             }
         }
 
+        /// <summary>
+        /// Deserializes an object from JSON (either <c>System.Text.Json</c> or <c>Newtonsoft.Json</c> is required).
+        /// </summary>
+        /// <typeparam name="E">A reference type.</typeparam>
+        /// <param name="json">A JSON string.</param>
+        /// <param name="onBeforeDeserialize">An action to perform pre-deserialization.</param>
+        /// <returns>An object deserialized from the supplied JSON string.</returns>
+        /// <exception cref="UtilityException"></exception>
         public async static Task<E> JsonAsync<E>(string json, Func<string, string> onBeforeDeserialize = null)
         {
             switch (TextSettings.JsonProvider)

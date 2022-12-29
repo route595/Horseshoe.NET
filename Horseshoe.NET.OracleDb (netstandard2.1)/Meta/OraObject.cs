@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -10,7 +11,7 @@ namespace Horseshoe.NET.OracleDb.Meta
     {
         public OraObject(string name, OraObjectType objectType) : base(name, objectType) { }
 
-        internal static OraObject Parse(string name, string type, string? parentType = null)
+        internal static OraObject Parse(string name, string type, string parentType = null)
         {
             if (type == null) throw new UtilityException("type cannot be null");
             var objectType = OracleTypes.LookupObjectType(type.ToUpper());

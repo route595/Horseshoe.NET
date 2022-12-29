@@ -1,57 +1,73 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.IO
 {
+    /// <summary>
+    /// Utility methods for files and directories
+    /// </summary>
     public static class FileUtil
     {
-        private static Regex FullPathIndicator { get; } = new Regex(@"^(\/|[A-Z]:\\|\\\\|[a-z]+:\/\/).*", RegexOptions.IgnoreCase);
-
+        /// <summary>
+        /// Appends an extension to a file name
+        /// </summary>
+        /// <param name="fileName">A file name</param>
+        /// <param name="extension">A common file type extension</param>
+        /// <param name="preferUpperCase">Optional, set to <c>true</c> to append the extension in upper case, default is <c>false</c></param>
+        /// <returns></returns>
         public static string AppendExtension(string fileName, FileType extension, bool preferUpperCase = false)
         {
             return AppendExtension(fileName, preferUpperCase ? extension.ToString() : extension.ToString().ToLower());
         }
 
+        /// <summary>
+        /// Appends an extension to a file name
+        /// </summary>
+        /// <param name="fileName">A file name</param>
+        /// <param name="extension">An extension</param>
+        /// <returns></returns>
         public static string AppendExtension(string fileName, string extension)
         {
             if (!extension.StartsWith("."))
-            {
                 extension = "." + extension;
-            }
-            return TextUtil.AppendIf(!fileName.ToLower().EndsWith(extension.ToLower()), fileName, extension);
+            if (fileName.ToLower().EndsWith(extension.ToLower()))
+                return fileName;
+            return fileName + extension;
         }
 
-        public static string Create(byte[] contents, string targetDirectory = null, string targetFileName = null, FileType? fileType = null)
-        {
-            var targetPath = Path.Combine
-            (
-                targetDirectory ?? Path.GetTempPath(),
-                targetFileName ?? "file" + (fileType.HasValue ? "." + fileType.ToString().ToLower() : "")
-            );
-            File.WriteAllBytes(targetPath, contents);
-            return targetPath;
-        }
-
-        public static string Create(string contents, string targetDirectory = null, string targetFileName = null, FileType? fileType = null, Encoding encoding = null)
-        {
-            var bytes = (encoding ?? Encoding.Default).GetBytes(contents);
-            return Create(bytes, targetDirectory: targetDirectory, targetFileName: targetFileName, fileType: fileType);
-        }
-
-        public static string GetDisplayFileSize(FilePath file, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = true, FileSize.Unit? unit = null, bool? bi = null)
+        /// <summary>
+        /// Formats a file size as a number of bytes, kilobytes, etc.
+        /// </summary>
+        /// <param name="file">A file</param>
+        /// <param name="minDecimalPlaces">Decimal places for rounding</param>
+        /// <param name="maxDecimalPlaces">Decimal places for rounding</param>
+        /// <param name="addSeparators">Set to <c>true</c> to add separators, such as commas like in culture <c>"en-US"</c></param>
+        /// <param name="unit">The preferred file size unit, e.g. KB, MB, etc.  If not supplied the software will use its best guess.</param>
+        /// <param name="bi">Whether to use kibibytes vs kilobytes, for example, default is <c>false</c>.</param>
+        /// <returns></returns>
+        public static string GetDisplayFileSize(FilePath file, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = false, FileSizeUnit? unit = null, bool bi = false)
         {
             return GetDisplayFileSize(file.Exists ? file.Length : -1L, minDecimalPlaces: minDecimalPlaces, maxDecimalPlaces: maxDecimalPlaces, addSeparators: addSeparators, unit: unit, bi: bi);
         }
 
-        public static string GetDisplayFileSize(long size, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = true, FileSize.Unit? unit = null, bool? bi = null)
+        /// <summary>
+        /// Formats a file size as a number of bytes, kilobytes, etc.
+        /// </summary>
+        /// <param name="size">A <c>long</c> representing the size of a file</param>
+        /// <param name="minDecimalPlaces">Decimal places for rounding</param>
+        /// <param name="maxDecimalPlaces">Decimal places for rounding</param>
+        /// <param name="addSeparators">Set to <c>true</c> to add separators, such as commas like in culture <c>"en-US"</c></param>
+        /// <param name="unit">The preferred file size unit, e.g. KB, MB, etc.  If not supplied the software will use its best guess.</param>
+        /// <param name="bi">Whether to use kibibytes vs kilobytes, for example, default is <c>false</c>.</param>
+        /// <returns></returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string GetDisplayFileSize(long size, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = true, FileSizeUnit? unit = null, bool bi = false)
         {
             if (size < 0L) return size + (unit.HasValue ? " " + unit : "");
-            if (size == 0L) return size + " " + (unit ?? FileSize.Unit.B);
+            if (size == 0L) return size + " " + (unit ?? FileSizeUnit.B);
 
             minDecimalPlaces = minDecimalPlaces ?? 0;
             maxDecimalPlaces = maxDecimalPlaces ?? NumberFormatInfo.CurrentInfo.NumberDecimalDigits;
@@ -65,21 +81,20 @@ namespace Horseshoe.NET.IO
                 throw new ValidationException("Maximum decimal places must be >= minimum decimal places");
             }
 
-            if (unit.HasValue && bi.HasValue)
+            if (unit.HasValue)
             {
-                if (bi.Value && !unit.Value.IsBI())
+                if (bi && !unit.Value.IsBi())
                 {
                     throw new ValidationException(unit + " is a non-'bi' unit");
                 }
-                if (!bi.Value && unit.Value.IsBI())
-                {
-                    throw new ValidationException(unit + " is a 'bi' unit");
-                }
+                //if (!bi && unit.Value.IsBi())
+                //{
+                //    throw new ValidationException(unit + " is a 'bi' unit");
+                //}
             }
-
-            if (!unit.HasValue)
+            else
             {
-                unit = FileSize.DeriveUnit(size, bi ?? false);
+                unit = FileSize.DeriveUnit(size, bi);
             }
 
             var sb = new StringBuilder();
@@ -119,39 +134,6 @@ namespace Horseshoe.NET.IO
                 path += Path.DirectorySeparatorChar;
             }
             return path;
-        }
-
-        public static DirectoryInfo ParseDirectory(string path)
-        {
-            if (path == null) throw new ArgumentNullException(nameof(path));
-            path = path.Trim();
-            if (path.Length == 0) throw new Exception("path cannot be blank");
-            return new DirectoryInfo(path);
-        }
-
-        static readonly string LinuxRootDirectory = "/";
-        static readonly Regex WindowRootDirectoryPattern = new Regex(@"^[A-Z]\:\\$", RegexOptions.IgnoreCase);
-
-        /// <summary>
-        /// Determines whether two directories are on the same local drive for easier file moving.
-        /// </summary>
-        /// <returns>true if both the same Windows root (e.g. C:\) or Linux root (e.g. /), false otherwise</returns>
-        public static bool IsOnSameLocalDrive(DirectoryInfo dir1, DirectoryInfo dir2)
-        {
-            if (dir1.Root.Equals(dir2.Root))
-            {
-                switch (Environment.OSVersion.Platform)
-                {
-                    case PlatformID.Win32NT:
-                        return WindowRootDirectoryPattern.IsMatch(dir1.Root.FullName);
-                    case PlatformID.Unix:
-                    case PlatformID.MacOSX:
-                        return dir1.Root.FullName.Equals(LinuxRootDirectory);
-                    default:
-                        throw new PlatformNotSupportedException(Environment.OSVersion.Platform + " is not supported");
-                }
-            }
-            return false;
         }
     }
 }

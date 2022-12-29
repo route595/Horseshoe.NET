@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Horseshoe.NET.Configuration;
+﻿using Horseshoe.NET.Configuration;
 
 namespace Horseshoe.NET.Http.ReportingServices
 {
@@ -21,7 +15,7 @@ namespace Horseshoe.NET.Http.ReportingServices
             {
                 return _defaultReportServer
                     ?? Config.Get("Horseshoe.NET:ReportingServices:ReportServer")
-                    ?? OrganizationalDefaultSettings.GetString("ReportingServices.ReportServer");
+                    ?? OrganizationalDefaultSettings.Get<string>("ReportingServices.ReportServer");
             }
             set
             {

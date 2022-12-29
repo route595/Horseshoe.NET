@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+
+using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Collections
 {
@@ -10,10 +13,10 @@ namespace Horseshoe.NET.Collections
     public static class CollectionUtil
     {
         /// <summary>
-        /// Creates a new <c>List&lt;T&gt;</c> from any collection
+        /// Creates a new <c>List&lt;T&gt;</c> from any collection.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collection"></param>
+        /// <typeparam name="T">A collection type.</typeparam>
+        /// <param name="collection">A collection to copy into the list.</param>
         /// <returns>A new <c>List&lt;T&gt;</c></returns>
         public static List<T> ToList<T>(IEnumerable<T> collection)
         {
@@ -23,8 +26,8 @@ namespace Horseshoe.NET.Collections
         /// <summary>
         /// Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collection"></param>
+        /// <typeparam name="T">A collection type.</typeparam>
+        /// <param name="collection">A collection to cast to a list.</param>
         /// <returns>A collection as a <c>List&lt;T&gt;</c></returns>
         public static List<T> AsList<T>(IEnumerable<T> collection)
         {
@@ -44,7 +47,6 @@ namespace Horseshoe.NET.Collections
         /// <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
         /// <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
         /// <returns>The resized collection</returns>
-        /// <exception cref="NullReferenceException"></exception>
         /// <exception cref="ValidationException"></exception>
         public static IEnumerable<T> Pad<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary boundary = default, T padWith = default, bool cannotExceedTargetSize = false, bool keepOriginalListDataSource = false)
         {
@@ -791,6 +793,98 @@ namespace Horseshoe.NET.Collections
 
             controlCollection = _controlCollection;
             compareCollection = _compareCollection;
+        }
+
+        /// <summary>
+        /// Displays the object arrays in <c>string</c> format.
+        /// </summary>
+        /// <param name="objectArrays">A collection of <c>object[]</c>.</param>
+        /// <param name="columnNames">Optional. The names of the corresponding columns.</param>
+        /// <returns>A <c>string</c> representation of the collection.</returns>
+        /// <exception cref="UtilityException"></exception>
+        public static string Dump(IEnumerable<object[]> objectArrays, string[] columnNames = null)
+        {
+            var sb = new StringBuilder();
+            var colWidths = new int[objectArrays.Max(a => a?.Length ?? 0)];
+            int _width;
+
+            if (columnNames != null)
+            {
+                if (columnNames.Length > colWidths.Length)
+                {
+                    throw new UtilityException("The supplied columns exceed the width of the data: " + columnNames.Length + " / " + colWidths.Length);
+                }
+
+                // prep widths - column names
+                for (int i = 0; i < columnNames.Length; i++)
+                {
+                    colWidths[i] = columnNames[i].Length;
+                }
+            }
+
+            // prep widths - data values
+            foreach (var array in objectArrays)
+            {
+                if (array == null)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    _width = TextUtil.DumpDatum(array[i]).Length;
+                    if (_width > colWidths[i])
+                    {
+                        colWidths[i] = _width;
+                    }
+                }
+            }
+
+            if (columnNames != null)
+            {
+                // build column headers
+                for (int i = 0; i < colWidths.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(" ");
+                    }
+                    sb.Append(columnNames[i].PadRight(colWidths[i]));
+                }
+                sb.AppendLine();
+
+                // build separators
+                for (int i = 0; i < colWidths.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(" ");
+                    }
+                    sb.Append("".PadRight(colWidths[i], '-'));
+                }
+                sb.AppendLine();
+            }
+
+            // build data rows
+            foreach (var array in objectArrays)
+            {
+                if (array == null)
+                {
+                    sb.AppendLine();
+                    continue;
+                }
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(" ");
+                    }
+                    sb.Append(TextUtil.DumpDatum(array[i]).PadRight(colWidths[i]));
+                }
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
     }
 }

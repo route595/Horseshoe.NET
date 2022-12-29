@@ -108,7 +108,7 @@ namespace Horseshoe.NET.Http
             return response;
         }
 
-        public static E AsValue<E>
+        public static T AsValue<T>
         (
             UriString uri,
             object content,
@@ -123,7 +123,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             TraceJournal journal = null
         )
         {
@@ -136,7 +136,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = Post.AsValue<E>
+            var result = Post.AsValue<T>
             (
                 uri,
                 content,
@@ -161,7 +161,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public async static Task<E> AsValueAsync<E>
+        public async static Task<T> AsValueAsync<T>
         (
             UriString uri,
             object content,
@@ -176,7 +176,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             TraceJournal journal = null
         )
         {
@@ -189,7 +189,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = await Post.AsValueAsync<E>
+            var result = await Post.AsValueAsync<T>
             (
                 uri,
                 content,
@@ -214,7 +214,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public static E AsJson<E>
+        public static T AsJson<T>
         (
             UriString uri,
             object content,
@@ -229,7 +229,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             bool zapBackingFields = false,
             TraceJournal journal = null
         )
@@ -243,7 +243,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = Post.AsJson<E>
+            var result = Post.AsJson<T>
             (
                 uri,
                 content,
@@ -269,7 +269,7 @@ namespace Horseshoe.NET.Http
             return result;
         }
 
-        public async static Task<E> AsJsonAsync<E>
+        public async static Task<T> AsJsonAsync<T>
         (
             UriString uri,
             object content,
@@ -284,7 +284,7 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, E> responseParser = null,
+            Func<string, T> responseParser = null,
             bool zapBackingFields = false,
             TraceJournal journal = null
         )
@@ -298,7 +298,7 @@ namespace Horseshoe.NET.Http
             journal.Level++;
 
             // pass the buck
-            var result = await Post.AsJsonAsync<E>
+            var result = await Post.AsJsonAsync<T>
             (
                 uri,
                 content,

@@ -15,7 +15,7 @@ namespace Horseshoe.NET.OracleDb
 {
     public static class OracleDbUtil
     {
-        public static string BuildConnectionString(string dataSource, OraServer server, IDictionary<string, string> additionalConnectionAttributes)
+        public static string BuildConnectionString(string dataSource, OraServer server = null, IDictionary<string, string> additionalConnectionAttributes = null, int? connectionTimeout = null)
         {
             if (dataSource == null)
             {
@@ -51,23 +51,28 @@ namespace Horseshoe.NET.OracleDb
                 }
             }
 
+            // additional attributes
+            // ref https://learn.microsoft.com/en-us/dotnet/api/system.data.oracleclient.oracleconnection.connectiontimeout?view=netframework-4.8
+            if (connectionTimeout.HasValue)
+            {
+                sb.Append(";Connection Timeout=" + connectionTimeout);
+            }
+
             return sb.ToString();
         }
 
         public static string BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(OracleDbSettings.DefaultDataSource, OracleDbSettings.DefaultServer, OracleDbSettings.DefaultAdditionalConnectionAttributes);
+            return BuildConnectionString(OracleDbSettings.DefaultDataSource, server: OracleDbSettings.DefaultServer, additionalConnectionAttributes: OracleDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OracleDbSettings.DefaultConnectionTimeout);
         }
 
         public static OracleConnection LaunchConnection
         (
             OracleDbConnectionInfo connectionInfo = null,
-            Action<OracleDbConnectionInfo> resultantConnectionInfo = null
+            TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig());
-            resultantConnectionInfo?.Invoke(connectionInfo);
-
+            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal);
             var conn = connectionInfo.OracleCredentials != null
                 ? new OracleConnection(connectionInfo.ConnectionString, connectionInfo.OracleCredentials)
                 : new OracleConnection(connectionInfo.ConnectionString);
@@ -98,13 +103,53 @@ namespace Horseshoe.NET.OracleDb
             return conn;
         }
 
+        internal static OracleCommand BuildTextCommand
+        (
+            OracleConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OracleCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.Text,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
+        internal static OracleCommand BuildProcedureCommand
+        (
+            OracleConnection conn,
+            string commandText,
+            IEnumerable<DbParameter> parameters,
+            int? commandTimeout,
+            Action<OracleCommand> alterCommand
+        )
+        {
+            return BuildCommand
+            (
+                conn,
+                CommandType.StoredProcedure,
+                commandText,
+                parameters,
+                commandTimeout,
+                alterCommand
+            );
+        }
+
         public static OracleCommand BuildCommand
         (
             OracleConnection conn,
             CommandType commandType,
             string commandText,
             IEnumerable<DbParameter> parameters = null,
-            int? timeout = null,
+            int? commandTimeout = null,
             Action<OracleCommand> modifyCommand = null
         )
         {
@@ -128,7 +173,7 @@ namespace Horseshoe.NET.OracleDb
                     }
                 }
             }
-            if ((timeout ?? OracleDbSettings.DefaultTimeout).TryHasValue(out int value))
+            if (commandTimeout.TryHasValue(out int value))
             {
                 cmd.CommandTimeout = value;
             }

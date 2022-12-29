@@ -70,7 +70,6 @@
     <Compile Include="Delete.cs" />
     <Compile Include="Extensions[net4x].cs" />
     <Compile Include="Get.cs" />
-    <Compile Include="HttpResponseParsers.cs" />
     <Compile Include="HttpUtil.cs" />
     <Compile Include="PatchJson.cs" />
     <Compile Include="Patch.cs" />

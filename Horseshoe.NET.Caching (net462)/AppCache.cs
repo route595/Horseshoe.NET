@@ -10,7 +10,7 @@ namespace Horseshoe.NET.Caching
     /// </summary>
     public class AppCache : IAppCache
     {
-        public const int DEFAULT_CACHE_DURATION_SECONDS = 120;
+        public const int DEFAULT_CACHE_DURATION_IN_SECONDS = 120;
         private readonly IMemoryCache memoryCache;
 
         public static AppCache Launch()
@@ -23,7 +23,7 @@ namespace Horseshoe.NET.Caching
             this.memoryCache = memoryCache;
         }
 
-        public E GetFromCache<E>(object key, Func<E> refreshFunction, out bool fromCache, int? cacheDuration = null, bool forceRefresh = false)
+        public E GetFromCache<E>(object key, Func<E> refreshFunction, out bool fromCache, int? cacheDurationInSeconds = null, bool forceRefresh = false)
         {
             object cachedObj = forceRefresh
                 ? null
@@ -36,13 +36,13 @@ namespace Horseshoe.NET.Caching
             }
 
             E freshObj = refreshFunction.Invoke();
-            var expires = TimeSpan.FromSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = TimeSpan.FromSeconds(cacheDurationInSeconds ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             fromCache = false;
             return freshObj;
         }
 
-        public E GetFromCache<E>(object key, Func<E> refreshFunction, ICacheMetadata metadata = null, int? cacheDuration = null, bool forceRefresh = false)
+        public E GetFromCache<E>(object key, Func<E> refreshFunction, ICacheMetadata metadata = null, int? cacheDurationInSeconds = null, bool forceRefresh = false)
         {
             metadata = metadata ?? new CacheMetadata();
 
@@ -57,14 +57,14 @@ namespace Horseshoe.NET.Caching
             }
 
             E freshObj = refreshFunction.Invoke();
-            var expires = TimeSpan.FromSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = TimeSpan.FromSeconds(cacheDurationInSeconds ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null)
                 metadata.FromCache = false;
             return freshObj;
         }
 
-        public async Task<E> GetFromCacheAsync<E>(object key, Func<Task<E>> refreshFunction, ICacheMetadata metadata = null, int? cacheDuration = null, bool forceRefresh = false)
+        public async Task<E> GetFromCacheAsync<E>(object key, Func<Task<E>> refreshFunction, ICacheMetadata metadata = null, int? cacheDurationInSeconds = null, bool forceRefresh = false)
         {
             metadata = metadata ?? new CacheMetadata();
 
@@ -79,14 +79,14 @@ namespace Horseshoe.NET.Caching
             }
 
             E freshObj = await refreshFunction.Invoke();
-            var expires = TimeSpan.FromSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = TimeSpan.FromSeconds(cacheDurationInSeconds ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null)
                 metadata.FromCache = false;
             return freshObj;
         }
 
-        public IList<E> GetListFromCache<E>(object key, Func<IList<E>> refreshFunction, out bool fromCache, int? cacheDuration = null, bool forceRefresh = false)
+        public IList<E> GetListFromCache<E>(object key, Func<IList<E>> refreshFunction, out bool fromCache, int? cacheDurationInSeconds = null, bool forceRefresh = false)
         {
             object cachedObj = forceRefresh
                 ? null
@@ -99,13 +99,13 @@ namespace Horseshoe.NET.Caching
             }
 
             IList<E> freshObj = refreshFunction.Invoke();
-            var expires = TimeSpan.FromSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = TimeSpan.FromSeconds(cacheDurationInSeconds ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             fromCache = false;
             return freshObj;
         }
 
-        public IList<E> GetListFromCache<E>(object key, Func<IList<E>> refreshFunction, ICacheMetadata metadata = null, int? cacheDuration = null, bool forceRefresh = false)
+        public IList<E> GetListFromCache<E>(object key, Func<IList<E>> refreshFunction, ICacheMetadata metadata = null, int? cacheDurationInSeconds = null, bool forceRefresh = false)
         {
             metadata = metadata ?? new CacheMetadata();
 
@@ -120,14 +120,14 @@ namespace Horseshoe.NET.Caching
             }
 
             IList<E> freshObj = refreshFunction.Invoke();
-            var expires = TimeSpan.FromSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = TimeSpan.FromSeconds(cacheDurationInSeconds ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null)
                 metadata.FromCache = false;
             return freshObj;
         }
 
-        public async Task<IList<E>> GetListFromCacheAsync<E>(object key, Func<Task<IList<E>>> refreshFunction, ICacheMetadata metadata = null, int? cacheDuration = null, bool forceRefresh = false)
+        public async Task<IList<E>> GetListFromCacheAsync<E>(object key, Func<Task<IList<E>>> refreshFunction, ICacheMetadata metadata = null, int? cacheDurationInSeconds = null, bool forceRefresh = false)
         {
             metadata = metadata ?? new CacheMetadata();
 
@@ -142,7 +142,7 @@ namespace Horseshoe.NET.Caching
             }
 
             IList<E> freshObj = await refreshFunction.Invoke();
-            var expires = TimeSpan.FromSeconds(cacheDuration ?? CacheSettings.DefaultCacheDuration ?? DEFAULT_CACHE_DURATION_SECONDS);
+            var expires = TimeSpan.FromSeconds(cacheDurationInSeconds ?? CacheSettings.DefaultCacheDurationInSeconds);
             memoryCache.Set(key, freshObj, expires);
             if (metadata != null)
                 metadata.FromCache = false;

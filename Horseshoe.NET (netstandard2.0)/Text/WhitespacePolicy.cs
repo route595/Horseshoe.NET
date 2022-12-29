@@ -2,24 +2,60 @@
 
 namespace Horseshoe.NET.Text
 {
+    /// <summary>
+    /// Determines which whitespaces to include in an operation and other actions such as normalize and combine.
+    /// </summary>
     [Flags]
     public enum WhitespacePolicy
     {
-        Allow = 0,
-        Combine = 1,
-        CombineExceptNewLines = 2,
-        ConvertToSpaces = 4,
-        Drop = 8,
-        AllowSpaces = 16,
-        DropSpaces = 32,
-        AllowTabs = 64,
-        ConvertTabsToSpaces = 128,
-        DropTabs = 256,
-        AllowNewLines = 512,
-        ConvertNewLinesToSpaces = 1024,
-        DropNewLines = 2048,
-        AllowNonBreakingSpaces = 4096,
-        ConvertNonBreakingSpacesToSpaces = 8192,
-        DropNonBreakingSpaces = 16384
+        /// <summary>
+        /// Includes no whitespaces or new lines.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Include normal spaces.
+        /// </summary>
+        IncludeASCIISpace = 1,
+
+        /// <summary>
+        /// Include non-breaking spaces.
+        /// </summary>
+        IncludeNonbreakingSpace = 2,
+
+        /// <summary>
+        /// Include both normal and non-breaking spaces.
+        /// </summary>
+        IncludeAllSpaces = 3,
+
+        /// <summary>
+        /// Includes tabs.
+        /// </summary>
+        IncludeTab = 4,
+
+        /// <summary>
+        /// Includes new lines.
+        /// </summary>
+        IncludeNewLines = 8,
+
+        /// <summary>
+        /// Includes all whitespaces (except non-breaking spaces) and new lines.
+        /// </summary>
+        IncludeAllASCIIWhitespaces = 13,
+
+        /// <summary>
+        /// Includes all whitespaces and new lines.
+        /// </summary>
+        IncludeAllWhitespaces = 15,
+
+        /// <summary>
+        /// Converts all whitespaces to normal spaces.  Often used in conjunction with <c>CombineSpaces</c>.
+        /// </summary>
+        NormalizeWhitespaces = 16,
+
+        /// <summary>
+        /// Combines multiple contiguous spaces into one.
+        /// </summary>
+        CombineSpaces = 32
     }
 }

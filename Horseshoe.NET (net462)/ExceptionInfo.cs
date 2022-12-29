@@ -44,6 +44,9 @@ namespace Horseshoe.NET
         /// </summary>
         public string MachineName { get; }
 
+        /// <summary>
+        /// Creates a new <c>ExceptionInfo</c>
+        /// </summary>
         public ExceptionInfo()
         {
             DateTime = DateTime.Now;
@@ -57,12 +60,24 @@ namespace Horseshoe.NET
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fullType"></param>
+        /// <param name="message"></param>
         public ExceptionInfo(string fullType, string message) : this()
         {
             FullType = fullType;
             Message = message;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fullType"></param>
+        /// <param name="message"></param>
+        /// <param name="stackTrace"></param>
+        /// <param name="innerException"></param>
         public ExceptionInfo(string fullType, string message, string stackTrace, ExceptionInfo innerException) : this(fullType, message)
         {
             StackTrace = stackTrace;
@@ -87,10 +102,21 @@ namespace Horseshoe.NET
             );
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public Exception ToException() => new ReconstitutedException(this);
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void ThrowReconstituted() => throw ToException();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="exception"></param>
         public static implicit operator ExceptionInfo(Exception exception) => From(exception);
     }
 }
