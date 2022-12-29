@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+
 using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.OracleDb;
 using Horseshoe.NET.OracleDb.Meta;
 using Oracle.ManagedDataAccess.Client;
-using Oracle.ManagedDataAccess.Types;
 
 namespace TestConsole.DbTests
 {
@@ -16,14 +16,14 @@ namespace TestConsole.DbTests
     {
         private static OracleDbConnectionInfo NetCoreConnectionInfo { get; } = new OracleDbConnectionInfo
         {
-            Server = new OraServer("DB1", port: 1560, serviceName: "SVC1"),
-            //OracleCredentials = new Credential("USER1", "PWD1", isEncryptedPassword: true)
+            Server = new OraServer("ALIAS1", port: 1560, serviceName: "SVC1"),
+            OracleCredentials = new Credential("USER1", "PWD1")
         };
 
         private static OracleDbConnectionInfo NetFmwkConnectionInfo { get; } = new OracleDbConnectionInfo
         {
             Server = new OraServer("ALIAS1", serviceName: "SVC1"),
-            //OracleCredentials = new Credential("USER1", "PWD1", isEncryptedPassword: true)
+            //OracleCredentials = new Credential("USER1", "PWD1")
         };
 
         static OracleTests()
@@ -48,7 +48,7 @@ namespace TestConsole.DbTests
                             var dataTable = new DataTable();
                             var adapter = new OracleDataAdapter(cmd);
                             adapter.Fill(dataTable);
-                            Console.WriteLine(dataTable.Rows[0][0].GetType().Name);
+                            Console.WriteLine(dataTable.Rows[0][0] + " - " + dataTable.Rows[0][0].GetType().Name);
                         }
                         Console.Write("SYSDATE - ExecuteReader(): ");
                         using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, sysdateStatement))
@@ -56,14 +56,14 @@ namespace TestConsole.DbTests
                             using (var reader = cmd.ExecuteReader())
                             {
                                 reader.Read();
-                                Console.WriteLine(reader[0].GetType().Name);
+                                Console.WriteLine(reader[0] + " - " + reader[0].GetType().Name);
                             }
                         }
                         Console.Write("SYSDATE - ExecuteScalar(): ");
                         using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, sysdateStatement))
                         {
                             var result = cmd.ExecuteScalar();
-                            Console.WriteLine(result.GetType().Name);
+                            Console.WriteLine(result + " - " + result.GetType().Name);
                         }
                         Console.Write("Chars - DataTable (via adapter): ");
                         using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, charStatement))
@@ -79,14 +79,14 @@ namespace TestConsole.DbTests
                             using (var reader = cmd.ExecuteReader())
                             {
                                 reader.Read();
-                                Console.WriteLine(reader[0].GetType().Name);
+                                Console.WriteLine(reader[0] + " - " + reader[0].GetType().Name);
                             }
                         }
                         Console.Write("Chars - ExecuteScalar(): ");
                         using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, charStatement))
                         {
                             var result = cmd.ExecuteScalar();
-                            Console.WriteLine(result.GetType().Name);
+                            Console.WriteLine(result + " - " + result.GetType().Name);
                         }
                     }
                 }

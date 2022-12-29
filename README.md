@@ -9,6 +9,7 @@ A suite of .NET utilities with a dual purpose: simplify coding tasks (contains l
 - Horseshoe.NET (NuGet)
   - Horseshoe.NET.Bootstrap
   - Horseshoe.NET.Collections
+  - Horseshoe.NET.Compare
   - Horseshoe.NET.ConsoleX
     - Horseshoe.NET.ConsoleX.Plugins
   - Horseshoe.NET.Crypto
@@ -22,7 +23,7 @@ A suite of .NET utilities with a dual purpose: simplify coding tasks (contains l
     - Horseshoe.NET.IO.DirectoryCrawler
     - Horseshoe.NET.IO.FileFilter
   - Horseshoe.NET.Iterator
-  - Horseshoe.NET.Objects
+  - Horseshoe.NET.ObjectsAndTypes
   - Horseshoe.NET.OleDb  (.NET Framework only)
   - Horseshoe.NET.Text
     - Horseshoe.NET.Text.TextClean
