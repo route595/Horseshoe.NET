@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Horseshoe.NET.Jwt.Abstractions")]
 [assembly: AssemblyDescription("Datatypes for Horseshoe.NET.Jwt.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.Jwt.Abstractions")]
-[assembly: AssemblyCopyright("Copyright © Route 595 Software Services 2023")]
+[assembly: AssemblyCopyright("Copyright © 2020-2023 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

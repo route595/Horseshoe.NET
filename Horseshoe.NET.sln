@@ -81,7 +81,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Excel (net472
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Abstractions (net462)", "Horseshoe.NET.Abstractions (net462)\Horseshoe.NET.Abstractions (net462).csproj", "{AD82CBAA-FD68-40B0-AB19-57F255505EFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Abstractions (netstandard2.0)", "Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj", "{575B320D-C207-4CB8-8892-90E862519790}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Abstractions (netstandard2.0)", "Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj", "{575B320D-C207-4CB8-8892-90E862519790}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Jwt (net7.0)", "Horseshoe.NET.Jwt (net7.0)\Horseshoe.NET.Jwt (net7.0).csproj", "{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -237,6 +239,10 @@ Global
 		{575B320D-C207-4CB8-8892-90E862519790}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{575B320D-C207-4CB8-8892-90E862519790}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{575B320D-C207-4CB8-8892-90E862519790}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

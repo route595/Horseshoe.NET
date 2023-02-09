@@ -4,8 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.SecureIO</RootNamespace>
     <Authors>Carl Thomas</Authors>
-    <Company>Route 595 Software Services</Company>
-    <Copyright>Copyright © Route 595 Software Services 2023</Copyright>
+    <Company>Route 595</Company>
+    <Copyright>Copyright © 2020-2023 Route 595</Copyright>
     <Version>3.0.0</Version>
     <Description>Adds SFTP to the Horseshoe.NET suite (uses SSH.NET).</Description>
     <SignAssembly>true</SignAssembly>

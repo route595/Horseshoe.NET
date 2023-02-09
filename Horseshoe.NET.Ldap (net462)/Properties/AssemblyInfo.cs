@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Horseshoe.NET.Ldap")]
 [assembly: AssemblyDescription("Encapsulates common LDAP functions e.g. directory query and user login.  Linux and Windows compatible but not Kerberos enabled (uses Novell.Directory.Ldap).")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.Ldap")]
-[assembly: AssemblyCopyright("Copyright © Route 595 Software Services 2023")]
+[assembly: AssemblyCopyright("Copyright © 2020-2023 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -7,9 +7,9 @@
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <Version>3.0.0</Version>
     <Authors>Carl Thomas</Authors>
-    <Company>Route 595 Software Services</Company>
+    <Company>Route 595</Company>
     <Description>Datatypes for Horseshoe.NET.Jwt.</Description>
-    <Copyright>Copyright © Route 595 Software Services 2023</Copyright>
+    <Copyright>Copyright © 2020-2023 Route 595</Copyright>
     <AssemblyName>Horseshoe.NET.Jwt.Abstractions</AssemblyName>
   </PropertyGroup>
 

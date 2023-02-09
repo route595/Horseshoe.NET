@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Horseshoe.NET.Caching")]
-[assembly: AssemblyDescription("Boilerplate code for in-memory caching")]
+[assembly: AssemblyDescription("Boilerplate code for in-memory caching.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.Caching")]
-[assembly: AssemblyCopyright("Copyright © Route 595 Software Services 2023")]
+[assembly: AssemblyCopyright("Copyright © 2020-2023 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

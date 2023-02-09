@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Horseshoe.NET.Excel")]
-[assembly: AssemblyDescription("An Excel file import utility for .NET (uses NPOI)")]
+[assembly: AssemblyDescription("An Excel file import utility for .NET (uses NPOI).")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.Excel")]
-[assembly: AssemblyCopyright("Copyright © 2022 Route 595 Software Services")]
+[assembly: AssemblyCopyright("Copyright © 2020-2023 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.5.0")]
-[assembly: AssemblyFileVersion("2.0.5.0")]
+[assembly: AssemblyVersion("3.0.0.0")]
+[assembly: AssemblyFileVersion("3.0.0.0")]

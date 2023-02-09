@@ -5,8 +5,8 @@
     <RootNamespace>Horseshoe.NET.ExcelHelper</RootNamespace>
     <Description>An Excel file import utility for .NET (uses NPOI).</Description>
     <Authors>Carl Thomas</Authors>
-    <Company>Route 595 Software Services</Company>
-    <Copyright>Copyright © Route 595 Software Services 2023</Copyright>
+    <Company>Route 595</Company>
+    <Copyright>Copyright © 2020-2023 Route 595</Copyright>
     <Version>3.0.0</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>

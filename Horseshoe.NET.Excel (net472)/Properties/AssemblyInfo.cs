@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Horseshoe.NET.Excel")]
 [assembly: AssemblyDescription("An Excel file import utility for .NET (uses NPOI).")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.Excel")]
-[assembly: AssemblyCopyright("Copyright © Route 595 Software Services 2023")]
+[assembly: AssemblyCopyright("Copyright © 2020-2023 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

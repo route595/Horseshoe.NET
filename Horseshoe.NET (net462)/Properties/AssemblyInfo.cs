@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Horseshoe.NET")]
 [assembly: AssemblyDescription("A suite of .NET utilities with a dual purpose: simplify coding tasks and offer a variety of new and unique features")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Route 595 Software Services")]
+[assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET")]
-[assembly: AssemblyCopyright("Copyright © Route 595 Software Services 2023")]
+[assembly: AssemblyCopyright("Copyright © 2020-2023 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
