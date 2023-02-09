@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Horseshoe.NET.Configuration;
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.SqlDb.Meta;
 
@@ -130,12 +131,15 @@ namespace Horseshoe.NET.SqlDb
         {
             get
             {
+                var configUserName = Config.Get("Horseshoe.NET:SqlDb:UserID");
+                var configPassword = Config.Get("Horseshoe.NET:SqlDb:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:SqlDb:IsEncryptedPassword");
                 return _defaultCredentials
-                    ?? Credential.Build
+                    ??
                     (
-                        Config.Get("Horseshoe.NET:SqlDb:UserID"), 
-                        Config.Get("Horseshoe.NET:SqlDb:Password"), 
-                        isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:SqlDb:IsEncryptedPassword")
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                        : new Credential(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("SqlDb.Credentials");
             }

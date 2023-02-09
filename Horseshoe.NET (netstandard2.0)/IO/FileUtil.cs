@@ -7,7 +7,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET.IO
 {
     /// <summary>
-    /// Utility methods for files and directories
+    /// Utility methods for files and directories.
     /// </summary>
     public static class FileUtil
     {
@@ -50,7 +50,7 @@ namespace Horseshoe.NET.IO
         /// <returns></returns>
         public static string GetDisplayFileSize(FilePath file, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = false, FileSizeUnit? unit = null, bool bi = false)
         {
-            return GetDisplayFileSize(file.Exists ? file.Length : -1L, minDecimalPlaces: minDecimalPlaces, maxDecimalPlaces: maxDecimalPlaces, addSeparators: addSeparators, unit: unit, bi: bi);
+            return GetDisplayFileSize(file.Exists ? file.Size : -1L, minDecimalPlaces: minDecimalPlaces, maxDecimalPlaces: maxDecimalPlaces, addSeparators: addSeparators, unit: unit, bi: bi);
         }
 
         /// <summary>

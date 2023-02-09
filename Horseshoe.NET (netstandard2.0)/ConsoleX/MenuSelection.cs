@@ -111,7 +111,7 @@ namespace Horseshoe.NET.ConsoleX
                 }
             }
 
-            input = TextClean.RemoveWhitespace(input);
+            input = TextClean.RemoveAllWhitespace(input);
 
             var match = NumericRangePattern.Match(input);
 

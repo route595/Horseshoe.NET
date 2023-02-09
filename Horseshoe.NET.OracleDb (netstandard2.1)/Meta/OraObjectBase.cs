@@ -6,11 +6,11 @@ namespace Horseshoe.NET.OracleDb.Meta
 {
     public abstract class OraObjectBase : IEquatable<OraObjectBase>
     {
-        public OraObjectBase Parent { get; set; }
+        public OraObjectBase? Parent { get; set; }
         public string Name { get; }
         public OraObjectType ObjectType { get; }
-        public OraSchema Schema => _GetSchema();
-        public OraServer Server => _GetServer();
+        public OraSchema? Schema => _GetSchema();
+        public OraServer? Server => _GetServer();
 
         public OraObjectBase(string name, OraObjectType objectType)
         {
@@ -29,9 +29,9 @@ namespace Horseshoe.NET.OracleDb.Meta
             return Parent.ToFullyQualifiedString(startingWith: startingWith) + "." + ToString();
         }
 
-        private OraSchema _GetSchema()
+        private OraSchema? _GetSchema()
         {
-            OraObjectBase obj = this;
+            OraObjectBase? obj = this;
             while (obj != null)
             {
                 if (obj is OraSchema schema) return schema;
@@ -51,9 +51,9 @@ namespace Horseshoe.NET.OracleDb.Meta
             return this;
         }
 
-        private OraServer _GetServer()
+        private OraServer? _GetServer()
         {
-            OraObjectBase obj = this;
+            OraObjectBase? obj = this;
             while (obj != null)
             {
                 if (obj is OraServer server) return server;

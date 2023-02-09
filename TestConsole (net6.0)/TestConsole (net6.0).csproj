@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.ActiveDirectory (netstandard2.0)\Horseshoe.NET.ActiveDirectory (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Caching (netstandard2.0)\Horseshoe.NET.Caching (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Caching.Abstractions (netstandard2.0)\Horseshoe.NET.Caching.Abstractions (netstandard2.0).csproj" />

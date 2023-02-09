@@ -153,8 +153,8 @@ namespace Horseshoe.NET.Db
                 {
                     propertiesToSet = reader.GetDataColumns()
                         .Select(c => ignoreCase
-                            ? instanceProperties.FirstOrDefault(p => string.Equals(p.Name, TextClean.RemoveWhitespace(c.ColumnName), StringComparison.OrdinalIgnoreCase))
-                            : instanceProperties.SingleOrDefault(p => string.Equals(p.Name, TextClean.RemoveWhitespace(c.ColumnName)))
+                            ? instanceProperties.FirstOrDefault(p => string.Equals(p.Name, TextClean.RemoveAllWhitespace(c.ColumnName), StringComparison.OrdinalIgnoreCase))
+                            : instanceProperties.SingleOrDefault(p => string.Equals(p.Name, TextClean.RemoveAllWhitespace(c.ColumnName)))
                         )
                         .ToArray();
                 }

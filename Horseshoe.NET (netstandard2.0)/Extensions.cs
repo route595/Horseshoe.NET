@@ -2,13 +2,13 @@
 using System.Linq;
 using System.Reflection;
 using System.Text;
-
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET
 {
     /// <summary>
-    /// 
+    /// A set of utility methods for some of the base Horseshoe.NET classes.
     /// </summary>
     public static class Extensions
     {
@@ -210,12 +210,12 @@ namespace Horseshoe.NET
         private static void _Render(ExceptionInfo exceptionInfo, StringBuilder strb, ExceptionTypeRenderingPolicy typeRendering, bool includeDateTime, bool includeMachineName, bool includeStackTrace, int indent, bool recursive)
         {
             _RenderMessage(exceptionInfo, strb, typeRendering);
-            strb.AppendLineIf(includeDateTime, "Date/Time: " + exceptionInfo.DateTime.ToString("yyyy-MM-dd HH:mm:ss"))
-                .AppendLineIf(includeMachineName, "Machine Name: " + TextUtil.Reveal(exceptionInfo.MachineName));
+            strb.AppendLineIf(includeDateTime, "Date/Time: " + TextUtil.Reveal(exceptionInfo.DateTime?.ToString("yyyy-MM-dd HH:mm:ss")))
+                .AppendLineIf(includeMachineName, "Source Location: " + TextUtil.Reveal(exceptionInfo.SourceLocation));
             if (includeStackTrace)
             {
                 strb.AppendLine("Stack Trace:")
-                    .Append(IndentStackTrace(exceptionInfo.StackTrace, indent));
+                    .AppendLine(IndentStackTrace(exceptionInfo.StackTrace, indent));
             }
             if (recursive && exceptionInfo.InnerException != null)
             {
@@ -227,18 +227,29 @@ namespace Horseshoe.NET
         private static string IndentStackTrace(string stackTrace, int indent)
         {
             if (stackTrace == null)
-                return Environment.NewLine;
-            var lines = Zap.Strings(stackTrace.Split('\r', '\n'), prunePolicy: PrunePolicy.All)
+                return string.Empty;
+            var lines = stackTrace.Replace("\r\n", "\n")
+                .Split('\n')
                 .Select(ln => new string(' ', indent) + ln);
             return string.Join(Environment.NewLine, lines);
         }
 
         /// <summary>
-        /// 
+        /// Converts the <c>Password</c> to an encrypted <c>string</c>.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="password"></param>
+        /// <param name="cryptoOptions"></param>
+        /// <returns>An encrypted password</returns>
+        public static string ToEncryptedPassword(this Password password, CryptoOptions cryptoOptions) => password.HasSecurePassword
+            ? Encrypt.String(TextUtil.ConvertToUnsecureString(password), cryptoOptions)
+            : null;
+
+        /// <summary>
+        /// A easy-to-use value sniffing method for nullable numerics.
+        /// </summary>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this byte? inValue, out byte value)
         {
             if (inValue.HasValue)
@@ -251,11 +262,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable numerics.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this short? inValue, out short value)
         {
             if (inValue.HasValue)
@@ -268,11 +279,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable numerics.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this int? inValue, out int value)
         {
             if (inValue.HasValue)
@@ -285,11 +296,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable numerics.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this long? inValue, out long value)
         {
             if (inValue.HasValue)
@@ -302,11 +313,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable numerics.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this float? inValue, out float value)
         {
             if (inValue.HasValue)
@@ -319,11 +330,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable numerics.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this double? inValue, out double value)
         {
             if (inValue.HasValue)
@@ -336,11 +347,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable numerics.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this decimal? inValue, out decimal value)
         {
             if (inValue.HasValue)
@@ -353,11 +364,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable date/times.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this DateTime? inValue, out DateTime value)
         {
             if (inValue.HasValue)
@@ -370,11 +381,11 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// 
+        /// A easy-to-use value sniffing method for nullable Booleans.
         /// </summary>
-        /// <param name="inValue"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="inValue">The nullable value.</param>
+        /// <param name="value">The non-nullable value, if any.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this bool? inValue, out bool value)
         {
             if (inValue.HasValue)

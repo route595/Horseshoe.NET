@@ -17,7 +17,7 @@ namespace Horseshoe.NET.OracleDb.Meta
             { "PACKAGE BODY", OraObjectType.PackageBody }
         };
 
-        internal static OraObjectType LookupObjectType(string type)
+        internal static OraObjectType LookupObjectType(string? type)
         {
             if (type != null)
             {

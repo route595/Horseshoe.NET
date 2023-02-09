@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET</RootNamespace>
+    <AssemblyName>Horseshoe.NET.Abstractions</AssemblyName>
+    <Version>3.0.0</Version>
+    <Authors>Carl Thomas</Authors>
+    <Company>Route 595 Software Services</Company>
+    <Description>Datatypes for the base Horseshoe.NET package.</Description>
+    <Copyright>Copyright © Route 595 Software Services 2023</Copyright>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>

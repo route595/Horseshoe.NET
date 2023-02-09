@@ -11,47 +11,47 @@ namespace Horseshoe.NET.OracleDb.Meta
 {
     public static class Extensions
     {
-        public static IEnumerable<OraSchema> ListSchemas(this OraServer server, Credential? credentials = null, Predicate<OraSchema> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraSchema> ListSchemas(this OraServer server, Credential? credentials = null, Predicate<OraSchema>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Schemas.List(server, credentials: credentials, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraSchema> ListSchemas(this OraServer server, OracleConnection conn, Predicate<OraSchema> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraSchema> ListSchemas(this OraServer server, OracleConnection conn, Predicate<OraSchema>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Schemas.List(conn, server, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraObject> ListObjects(this OraServer server, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraObject> ListObjects(this OraServer server, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Objects.List(server, credentials: credentials, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraObject> ListObjects(this OraServer server, OracleConnection conn, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraObject> ListObjects(this OraServer server, OracleConnection conn, OraObjectType? objectType = null, Predicate<OraObject>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Objects.List(conn, server, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraObject> ListObjects(this OraServer server, string schemaName, Credential? credentials = null, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraObject> ListObjects(this OraServer server, string schemaName, Credential? credentials = null, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Objects.List(server, schemaName, credentials: credentials, ignoreCase: ignoreCase, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraObject> ListObjects(this OraServer server, OracleConnection conn, string schemaName, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraObject> ListObjects(this OraServer server, OracleConnection conn, string schemaName, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Objects.List(conn, server, schemaName, ignoreCase: ignoreCase, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraObject> ListObjects(this OraSchema schema, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraObject> ListObjects(this OraSchema schema, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Objects.List(schema, credentials: credentials, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraObject> ListObjects(this OraSchema schema, OracleConnection conn, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraObject> ListObjects(this OraSchema schema, OracleConnection conn, OraObjectType? objectType = null, Predicate<OraObject>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Objects.List(conn, schema, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
         }
 
-        public static IEnumerable<OraColumn> ListColumns(this OraObject dbObject, Predicate<OraColumn> filter = null, int? commandTimeout = null)
+        public static IEnumerable<OraColumn> ListColumns(this OraObject dbObject, Predicate<OraColumn>? filter = null, int? commandTimeout = null)
         {
             return MetaSearch.Columns.List(dbObject, filter: filter, commandTimeout: commandTimeout);
         }

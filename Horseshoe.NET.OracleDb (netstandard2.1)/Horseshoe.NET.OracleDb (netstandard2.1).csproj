@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>Horseshoe.NET.OracleDb</RootNamespace>
     <Nullable>enable</Nullable>
-    <Version>2.0.5</Version>
+    <Version>3.0.0</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595 Software Services</Company>
-    <Description>A typesafe, object-oriented ADO.NET-based native Oracle data access utility</Description>
-    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
+    <Description>A typesafe, object-oriented ADO.NET-based native Oracle data access utility.</Description>
+    <Copyright>Copyright © Route 595 Software Services 2023</Copyright>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.OracleDb</AssemblyName>
@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
   </ItemGroup>
 

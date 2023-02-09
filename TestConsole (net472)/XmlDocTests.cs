@@ -75,7 +75,7 @@ namespace TestConsole
                                 case DirectoryCrawlEvent.OnComplete:
                                     Console.WriteLine();
                                     Console.WriteLine("Statistics...");
-                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.Display().Select(s => "  " + s)));
+                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.ToCuratedList().Select(s => "  " + s)));
                                     break;
                             }
                         },
@@ -83,17 +83,17 @@ namespace TestConsole
                         {
                             switch (@event)
                             {
-                                case FileCrawlEvent.FileFound:
+                                case FileCrawlEvent.FileProcessing:
                                     Console.WriteLine(new string(' ', metadata.Level) + "found: " + file);
                                     break;
                                 case FileCrawlEvent.FileSkipped:
                                     Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + file);
-                                    Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + metadata.SkipReason + ": " + TextUtil.Reveal(metadata.SkipComment));
+                                    Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + metadata.SkipReason);
                                     break;
                             }
                         }
                     ).Go();
-                    new RecursiveDelete
+                    DirectoryCrawler.RecursiveDeleteDirectory
                     (
                         @"C:\Users\E029791\OneDrive - lge-ku.com\Desktop\horseshoe.net\docs",
                         directoryCrawled: (@event, dir, metadata) =>
@@ -111,6 +111,9 @@ namespace TestConsole
                                     Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + dir);
                                     Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + metadata.SkipReason);
                                     break;
+                                case DirectoryCrawlEvent.DirectoryDeleted:
+                                    Console.WriteLine(new string(' ', metadata.Level) + "deleted: " + dir + "    (dir)");
+                                    break;
                                 case DirectoryCrawlEvent.OnHalt:
                                     Console.WriteLine();
                                     Console.WriteLine("Halted!");
@@ -120,7 +123,7 @@ namespace TestConsole
                                 case DirectoryCrawlEvent.OnComplete:
                                     Console.WriteLine();
                                     Console.WriteLine("Statistics...");
-                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.Display().Select(s => "  " + s)));
+                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.ToCuratedList().Select(s => "  " + s)));
                                     break;
                             }
                         },
@@ -130,17 +133,12 @@ namespace TestConsole
                             {
                                 case FileCrawlEvent.FileSkipped:
                                     Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + file);
-                                    Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + metadata.SkipReason + ": " + TextUtil.Reveal(metadata.SkipComment));
+                                    Console.WriteLine(new string(' ', metadata.Level) + "skipped: " + metadata.SkipReason);
+                                    break;
+                                case FileCrawlEvent.FileDeleted:
+                                    Console.WriteLine(new string(' ', metadata.Level) + "deleted: " + file + " (" + FileUtil.GetDisplayFileSize(file) + ")");
                                     break;
                             }
-                        },
-                        deletingFile: (file, metadata) =>
-                        {
-                            Console.WriteLine(new string(' ', metadata.Level) + "deleted: " + file + " (" + FileUtil.GetDisplayFileSize(file) + ")");
-                        },
-                        directoryDeleted: (dir, metadata) =>
-                        {
-                            Console.WriteLine(new string(' ', metadata.Level) + "deleted: " + dir + "    (dir)");
                         },
                         precludeRootDirectory: true
                     ).Go();

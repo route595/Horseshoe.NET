@@ -10,38 +10,6 @@ using Horseshoe.NET.Collections;
 namespace Horseshoe.NET.Compare
 {
     /// <summary>
-    /// Everything needed to perform a standard comparison bundled into a single class.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class Comparator<T> : IComparator<T> where T : IComparable<T>
-    {
-        /// <summary>
-        /// The compare mode, e.g. Equals, Contains, Between, etc.
-        /// </summary>
-        public CompareMode Mode { get; set; }
-
-        /// <summary>
-        /// The criteria value(s) to compare against.
-        /// </summary>
-        public ObjectValues Criteria { get; set; }
-
-        /// <summary>
-        /// Whether to ignore the letter case of the criteria.
-        /// </summary>
-        public bool IgnoreCase { get; set; }
-
-        /// <summary>
-        /// Indicates whether the input item is a criteria match.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public bool IsMatch(T input)
-        {
-            return Comparator.IsMatch(input, Mode, Criteria, ignoreCase: IgnoreCase);
-        }
-    }
-
-    /// <summary>
     /// Factory methods for validating, building and running <c>Comparator</c> instances.
     /// </summary>
     public static class Comparator

@@ -10,11 +10,11 @@ namespace Horseshoe.NET.OracleDb.Meta
 
         public int? Port { get; }
 
-        public string ServiceName { get; }
+        public string? ServiceName { get; }
 
-        public string InstanceName { get; }
+        public string? InstanceName { get; }
 
-        public OraServer(string dataSource, int? port = null, string serviceName = null, string instanceName = null, string name = null) : base(name ?? dataSource, OraObjectType.Server)
+        public OraServer(string dataSource, int? port = null, string? serviceName = null, string? instanceName = null, string? name = null) : base(name ?? dataSource, OraObjectType.Server)
         {
             DataSource = (Zap.String(dataSource) ?? throw new UtilityException("Data source cannot be null or blank")) + (port.HasValue ? ":" + port : "");
             Port = port;
@@ -27,7 +27,7 @@ namespace Horseshoe.NET.OracleDb.Meta
             return OracleDbSettings.ServerList;
         }
 
-        public static OraServer Lookup(string nameOrDataSource, bool suppressErrors = false)
+        public static OraServer? Lookup(string nameOrDataSource, bool suppressErrors = false)
         {
             var list = LookupAll();
             if (list == null || !list.Any())

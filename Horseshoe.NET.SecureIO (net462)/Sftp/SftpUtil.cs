@@ -1,4 +1,5 @@
 ﻿using System;
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Ftp;
 
 namespace Horseshoe.NET.SecureIO.Sftp
@@ -34,7 +35,7 @@ namespace Horseshoe.NET.SecureIO.Sftp
                     pos2 = connectionString.ToLower().IndexOf("?encryptedpassword=");
                     if (pos2 > pos)
                     {
-                        connectionInfo.Credentials = new Credential(connectionString.Substring(0, pos), new Password(connectionString.Substring(pos2 + 19), isEncrypted: true));
+                        connectionInfo.Credentials = Credential.Build(connectionString.Substring(0, pos), () => Decrypt.String(connectionString.Substring(pos2 + 19)));
                     }
                     else if (!string.Equals(connectionString.Substring(0, pos), "anonymous", StringComparison.OrdinalIgnoreCase))
                     {

@@ -6,7 +6,7 @@ using Horseshoe.NET.Collections;
 namespace Horseshoe.NET.Text
 {
     /// <summary>
-    /// A <c>char</c> categorization library for text cleaning and Unicode-to-ASCII conversions. 
+    /// A <c>char</c> categorization library for Unicode-to-ASCII conversions. 
     /// </summary>
     /// <remarks>
     /// <para>
@@ -18,294 +18,294 @@ namespace Horseshoe.NET.Text
     /// </remarks>
     public static class CharLib
     {
-        /// <summary>
-        /// A subset of whitespace characters
-        /// </summary>
-        public static char[] ASCIIWhitespaces { get; } = new[]
-        {//   9    10    13    32
-            '\t', '\n', '\r', ' '
-        };
+        ///// <summary>
+        ///// A subset of whitespace characters
+        ///// </summary>
+        //public static char[] ASCIIWhitespaces { get; } = new[]
+        //{//   9    10    13    32
+        //    '\t', '\n', '\r', ' '
+        //};
 
-        /// <summary>
-        /// A subset of whitespace characters
-        /// </summary>
-        public static char[] SubsetASCIIWhitespacesExceptNewLines => ASCIIWhitespaces
-            .Where(c => !c.In(10, 13))
-            .ToArray();
+        ///// <summary>
+        ///// A subset of whitespace characters
+        ///// </summary>
+        //public static char[] SubsetASCIIWhitespacesExceptNewLines => ASCIIWhitespaces
+        //    .Where(c => !c.In(10, 13))
+        //    .ToArray();
 
-        /// <summary>
-        /// The subset of ASCII whitespace <c>char</c>s comprising only carriage return (<c>\r</c>) and line feed (<c>\n</c>)
-        /// </summary>
-        public static char[] SubsetNewLines => ASCIIWhitespaces
-            .Where(c => c.In(10, 13))
-            .ToArray();
+        ///// <summary>
+        ///// The subset of ASCII whitespace <c>char</c>s comprising only carriage return (<c>\r</c>) and line feed (<c>\n</c>)
+        ///// </summary>
+        //public static char[] SubsetNewLines => ASCIIWhitespaces
+        //    .Where(c => c.In(10, 13))
+        //    .ToArray();
 
-        /// <summary>
-        /// ASCII alphabetic <c>char</c>s (i.e. upper and lowercase A - Z).
-        /// </summary>
-        public static char[] ASCIIAlpha { get; } = new[]
-        {
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
-        };
+        ///// <summary>
+        ///// ASCII alphabetic <c>char</c>s (i.e. upper and lowercase A - Z).
+        ///// </summary>
+        //public static char[] ASCIIAlpha { get; } = new[]
+        //{
+        //    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        //    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        //    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+        //    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+        //};
 
-        /// <summary>
-        /// Upper case ASCII alphabetic <c>char</c>s (i.e. A - Z).
-        /// </summary>
-        public static char[] SubsetUCaseASCIIAlpha => ASCIIAlpha
-            .Take(26)
-            .ToArray();
+        ///// <summary>
+        ///// Upper case ASCII alphabetic <c>char</c>s (i.e. A - Z).
+        ///// </summary>
+        //public static char[] SubsetUCaseASCIIAlpha => ASCIIAlpha
+        //    .Take(26)
+        //    .ToArray();
 
-        /// <summary>
-        /// Lower case ASCII alphabetic <c>char</c>s (i.e. a - z).
-        /// </summary>
-        public static char[] SubsetLCaseASCIIAlpha => ASCIIAlpha
-            .Skip(26)
-            .ToArray();
+        ///// <summary>
+        ///// Lower case ASCII alphabetic <c>char</c>s (i.e. a - z).
+        ///// </summary>
+        //public static char[] SubsetLCaseASCIIAlpha => ASCIIAlpha
+        //    .Skip(26)
+        //    .ToArray();
 
-        /// <summary>
-        /// ASCII alphabetic <c>char</c>s (i.e. 0 - 9).
-        /// </summary>
-        public static char[] ASCIINumeric { get; } = new[]
-        {
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-        };
+        ///// <summary>
+        ///// ASCII alphabetic <c>char</c>s (i.e. 0 - 9).
+        ///// </summary>
+        //public static char[] ASCIINumeric { get; } = new[]
+        //{
+        //    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+        //};
 
-        /// <summary>
-        /// ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
-        /// </summary>
-        public static char[] AllASCIIAlphaNumeric =>
-            ArrayUtil.Combine(ASCIIAlpha, ASCIINumeric);
+        ///// <summary>
+        ///// ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
+        ///// </summary>
+        //public static char[] AllASCIIAlphaNumeric =>
+        //    ArrayUtil.Combine(ASCIIAlpha, ASCIINumeric);
 
-        /// <summary>
-        /// Upper case ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
-        /// </summary>
-        public static char[] SubsetUCaseASCIIAlphaNumeric =>
-            ArrayUtil.Combine(SubsetUCaseASCIIAlpha, ASCIINumeric);
+        ///// <summary>
+        ///// Upper case ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
+        ///// </summary>
+        //public static char[] SubsetUCaseASCIIAlphaNumeric =>
+        //    ArrayUtil.Combine(SubsetUCaseASCIIAlpha, ASCIINumeric);
 
-        /// <summary>
-        /// Lower case ASCII alpanumeric <c>char</c>s (i.e. a - z and 0 - 9).
-        /// </summary>
-        public static char[] SubsetLCaseASCIIAlphaNumeric =>
-            ArrayUtil.Combine(SubsetLCaseASCIIAlpha, ASCIINumeric);
+        ///// <summary>
+        ///// Lower case ASCII alpanumeric <c>char</c>s (i.e. a - z and 0 - 9).
+        ///// </summary>
+        //public static char[] SubsetLCaseASCIIAlphaNumeric =>
+        //    ArrayUtil.Combine(SubsetLCaseASCIIAlpha, ASCIINumeric);
 
-        /// <summary>
-        /// ASCII punctuation and symbols.
-        /// </summary>
-        public static char[] ASCIISymbols { get; } = new[]
-        {
-            // punctuation
-            '.', ',', ':', ';', '<', '!', '?', '"', '\'', '[', ']', '(', ')', '{', '}',
-            // symbols
-            '#', '$', '%', '*', '+', '&', '/', '/', '|', '\\', '^', '_', '`', '~'
-        };
+        ///// <summary>
+        ///// ASCII punctuation and symbols.
+        ///// </summary>
+        //public static char[] ASCIISymbols { get; } = new[]
+        //{
+        //    // punctuation
+        //    '.', ',', ':', ';', '<', '!', '?', '"', '\'', '[', ']', '(', ')', '{', '}',
+        //    // symbols
+        //    '#', '$', '%', '*', '+', '&', '/', '/', '|', '\\', '^', '_', '`', '~'
+        //};
 
-        /// <summary>
-        /// Gets all ASCII printable <c>char</c>s potentially including any whitespaces indicated in <c>whitespacePolicy</c>.
-        /// </summary>
-        /// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
-        /// <returns>An array of all ASCII printable <c>char</c>s.</returns>
-        public static char[] GetAllASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
-        {
-            var includedWhitespaces = new List<char>();
-            if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
-            {
-                includedWhitespaces.Add(' ');
-            }
-            if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
-            {
-                includedWhitespaces.Add('\t');
-            }
-            if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
-            {
-                includedWhitespaces.Add('\r');
-                includedWhitespaces.Add('\n');
-            }
-            return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, includedWhitespaces);
-        }
+        ///// <summary>
+        ///// Gets all ASCII printable <c>char</c>s potentially including any whitespaces indicated in <c>whitespacePolicy</c>.
+        ///// </summary>
+        ///// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
+        ///// <returns>An array of all ASCII printable <c>char</c>s.</returns>
+        //public static char[] GetAllASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
+        //{
+        //    var includedWhitespaces = new List<char>();
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
+        //    {
+        //        includedWhitespaces.Add(' ');
+        //    }
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
+        //    {
+        //        includedWhitespaces.Add('\t');
+        //    }
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+        //    {
+        //        includedWhitespaces.Add('\r');
+        //        includedWhitespaces.Add('\n');
+        //    }
+        //    return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, includedWhitespaces);
+        //}
 
-        /// <summary>
-        /// ASCII control characters (not including tabs and new lines)
-        /// </summary>
-        public static char[] ASCIINonprintables { get; } = new[]
-        {   
-            // Controls (in 0 - 31 range, excluding whitespaces)                                       \t (9)    \n (10)                       \r (13)
-            '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008',                     '\u000B', '\u000C',           '\u000E', '\u000F',
-            '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001A', '\u001B', '\u001C', '\u001D', '\u001E', '\u001F', 
+        ///// <summary>
+        ///// ASCII control characters (not including tabs and new lines)
+        ///// </summary>
+        //public static char[] ASCIINonprintables { get; } = new[]
+        //{   
+        //    // Controls (in 0 - 31 range, excluding whitespaces)                                       \t (9)    \n (10)                       \r (13)
+        //    '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008',                     '\u000B', '\u000C',           '\u000E', '\u000F',
+        //    '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001A', '\u001B', '\u001C', '\u001D', '\u001E', '\u001F', 
             
-            // Control (127)
-            '\u007f'
-        };
+        //    // Control (127)
+        //    '\u007f'
+        //};
 
-        /// <summary>
-        /// Extended ASCII whitespaces (includes only the non-breaking space).
-        /// </summary>
-        public static char[] ExtendedASCIIWhitespaces { get; } = new[]
-        {
-            // Char (160)
-            '\u00A0' /* nbsp */
-        };
+        ///// <summary>
+        ///// Extended ASCII whitespaces (includes only the non-breaking space).
+        ///// </summary>
+        //public static char[] ExtendedASCIIWhitespaces { get; } = new[]
+        //{
+        //    // Char (160)
+        //    '\u00A0' /* nbsp */
+        //};
 
-        /// <summary>
-        /// The complete set of ASCII and extended ASCII whitespace characters.
-        /// </summary>
-        public static char[] AllWhitespaces =>
-            ArrayUtil.Combine(ASCIIWhitespaces, ExtendedASCIIWhitespaces);
+        ///// <summary>
+        ///// The complete set of ASCII and extended ASCII whitespace characters.
+        ///// </summary>
+        //public static char[] AllWhitespaces =>
+        //    ArrayUtil.Combine(ASCIIWhitespaces, ExtendedASCIIWhitespaces);
 
-        /// <summary>
-        /// The complete set of ASCII and extended ASCII whitespace characters (except new lines).
-        /// </summary>
-        public static char[] SubsetWhitespacesExceptNewLines =>
-            ArrayUtil.Combine(SubsetASCIIWhitespacesExceptNewLines, ExtendedASCIIWhitespaces);
+        ///// <summary>
+        ///// The complete set of ASCII and extended ASCII whitespace characters (except new lines).
+        ///// </summary>
+        //public static char[] SubsetWhitespacesExceptNewLines =>
+        //    ArrayUtil.Combine(SubsetASCIIWhitespacesExceptNewLines, ExtendedASCIIWhitespaces);
 
-        /// <summary>
-        /// Extended ASCII Latin <c>char</c>s.
-        /// </summary>
-        public static char[] ExtendedASCIIAlpha { get; } = new[]
-        {
-            'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 
-            'Ç', 
-            'Ð',
-            'È', 'É', 'Ê', 'Ë',
-            'ƒ',
-            'Ì', 'Í', 'Î', 'Ï', 
-            'Ñ', 
-            'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Œ', 
-            'Š', 'ß',
-            'Þ', 'þ', 
-            'Ù', 'Ú', 'Û', 'Ü',
-            'Ý', 'Ÿ',
-            'Ž',
-            'à', 'á', 'â', 'ã', 'ä', 'å', 'æ',
-            'ç', 
-            'ð', 
-            'è', 'é', 'ê', 'ë',
-            'ì', 'í', 'î', 'ï',
-            'ñ',
-            'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'œ', 
-            'š',
-            'ù', 'ú', 'û', 'ü', 
-            'ý', 'ÿ', 
-            'ž'
-        };
+        ///// <summary>
+        ///// Extended ASCII Latin <c>char</c>s.
+        ///// </summary>
+        //public static char[] ExtendedASCIIAlpha { get; } = new[]
+        //{
+        //    'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 
+        //    'Ç', 
+        //    'Ð',
+        //    'È', 'É', 'Ê', 'Ë',
+        //    'ƒ',
+        //    'Ì', 'Í', 'Î', 'Ï', 
+        //    'Ñ', 
+        //    'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Œ', 
+        //    'Š', 'ß',
+        //    'Þ', 'þ', 
+        //    'Ù', 'Ú', 'Û', 'Ü',
+        //    'Ý', 'Ÿ',
+        //    'Ž',
+        //    'à', 'á', 'â', 'ã', 'ä', 'å', 'æ',
+        //    'ç', 
+        //    'ð', 
+        //    'è', 'é', 'ê', 'ë',
+        //    'ì', 'í', 'î', 'ï',
+        //    'ñ',
+        //    'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'œ', 
+        //    'š',
+        //    'ù', 'ú', 'û', 'ü', 
+        //    'ý', 'ÿ', 
+        //    'ž'
+        //};
 
-        /// <summary>
-        /// Upper case extended ASCII Latin <c>char</c>s.
-        /// </summary>
-        public static char[] SubsetUCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
-            .Where(c => char.IsUpper(c))
-            .ToArray();
+        ///// <summary>
+        ///// Upper case extended ASCII Latin <c>char</c>s.
+        ///// </summary>
+        //public static char[] SubsetUCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
+        //    .Where(c => char.IsUpper(c))
+        //    .ToArray();
 
-        /// <summary>
-        /// Lower case extended ASCII Latin <c>char</c>s.
-        /// </summary>
-        public static char[] SubsetLCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
-            .Where(c => char.IsLower(c))
-            .ToArray();
+        ///// <summary>
+        ///// Lower case extended ASCII Latin <c>char</c>s.
+        ///// </summary>
+        //public static char[] SubsetLCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
+        //    .Where(c => char.IsLower(c))
+        //    .ToArray();
 
-        /// <summary>
-        /// ASCII and extended ASCII Latin <c>char</c>s.
-        /// </summary>
-        public static char[] AllExtendedASCIIAlpha =>
-            ArrayUtil.Combine(ASCIIAlpha, ExtendedASCIIAlpha);
+        ///// <summary>
+        ///// ASCII and extended ASCII Latin <c>char</c>s.
+        ///// </summary>
+        //public static char[] AllExtendedASCIIAlpha =>
+        //    ArrayUtil.Combine(ASCIIAlpha, ExtendedASCIIAlpha);
 
-        /// <summary>
-        /// ASCII and extended ASCII alphanumeric <c>char</c>s.
-        /// </summary>
-        public static char[] AllExtendedASCIIAlphaNumeric =>
-            ArrayUtil.Combine(AllASCIIAlphaNumeric, ExtendedASCIIAlpha);
+        ///// <summary>
+        ///// ASCII and extended ASCII alphanumeric <c>char</c>s.
+        ///// </summary>
+        //public static char[] AllExtendedASCIIAlphaNumeric =>
+        //    ArrayUtil.Combine(AllASCIIAlphaNumeric, ExtendedASCIIAlpha);
 
-        /// <summary>
-        /// Upper case ASCII and extended ASCII alphanumeric <c>char</c>s.
-        /// </summary>
-        public static char[] SubsetUCaseExtendedASCIIAlphaNumeric =>
-            ArrayUtil.Combine(SubsetUCaseASCIIAlphaNumeric, SubsetUCaseExtendedASCIIAlpha);
+        ///// <summary>
+        ///// Upper case ASCII and extended ASCII alphanumeric <c>char</c>s.
+        ///// </summary>
+        //public static char[] SubsetUCaseExtendedASCIIAlphaNumeric =>
+        //    ArrayUtil.Combine(SubsetUCaseASCIIAlphaNumeric, SubsetUCaseExtendedASCIIAlpha);
 
-        /// <summary>
-        /// Lower case ASCII and extended ASCII alphanumeric <c>char</c>s.
-        /// </summary>
-        public static char[] SubsetLCaseExtendedASCIIAlphaNumeric =>
-            ArrayUtil.Combine(SubsetLCaseASCIIAlphaNumeric, SubsetLCaseExtendedASCIIAlpha);
+        ///// <summary>
+        ///// Lower case ASCII and extended ASCII alphanumeric <c>char</c>s.
+        ///// </summary>
+        //public static char[] SubsetLCaseExtendedASCIIAlphaNumeric =>
+        //    ArrayUtil.Combine(SubsetLCaseASCIIAlphaNumeric, SubsetLCaseExtendedASCIIAlpha);
 
-        /// <summary>
-        /// Extended ASCII punctuation and symbols.
-        /// </summary>
-        public static char[] ExtendedASCIISymbols { get; } = new[]
-        {
-            // punctuation
-            '‚', '„', '…', '¨', '‹', '‘', '’', '“', '”', '–', '—', '›', '¡', '«', '­', '»', '¿', '·',
+        ///// <summary>
+        ///// Extended ASCII punctuation and symbols.
+        ///// </summary>
+        //public static char[] ExtendedASCIISymbols { get; } = new[]
+        //{
+        //    // punctuation
+        //    '‚', '„', '…', '¨', '‹', '‘', '’', '“', '”', '–', '—', '›', '¡', '«', '­', '»', '¿', '·',
 
-            // symbols
-            '€', '†', 'ˆ', '•', '˜', '™', '¢', '£', '¤', '¥', '¦', '§', '©', '¬', '®', '¯', '°',
-            '±', '´', 'µ', '¶', '¸', 
+        //    // symbols
+        //    '€', '†', 'ˆ', '•', '˜', '™', '¢', '£', '¤', '¥', '¦', '§', '©', '¬', '®', '¯', '°',
+        //    '±', '´', 'µ', '¶', '¸', 
 
-            // math and programming
-            '×', '÷', '¼', '½', '¾', '‰',
+        //    // math and programming
+        //    '×', '÷', '¼', '½', '¾', '‰',
 
-            // superscripts and subscripts
-            'ª', '²', '³', '¹', 'º'
-        };
+        //    // superscripts and subscripts
+        //    'ª', '²', '³', '¹', 'º'
+        //};
 
-        /// <summary>
-        /// Gets all ASCII and extended ASCII printable <c>char</c>s including any whitespaces indicated in <c>whitespacePolicy</c>.
-        /// </summary>
-        /// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
-        /// <returns>An array of all ASCII printable <c>char</c>s.</returns>
-        public static char[] GetAllExtendedASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
-        {
-            var includedWhitespaces = new List<char>();
-            if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
-            {
-                includedWhitespaces.Add(' ');
-            }
-            if ((whitespacePolicy & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace)
-            {
-                includedWhitespaces.Add('\u00A0');
-            }
-            if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
-            {
-                includedWhitespaces.Add('\t');
-            }
-            if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
-            {
-                includedWhitespaces.Add('\r');
-                includedWhitespaces.Add('\n');
-            }
-            return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, ExtendedASCIIAlpha, ExtendedASCIISymbols, includedWhitespaces);
-        }
+        ///// <summary>
+        ///// Gets all ASCII and extended ASCII printable <c>char</c>s including any whitespaces indicated in <c>whitespacePolicy</c>.
+        ///// </summary>
+        ///// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
+        ///// <returns>An array of all ASCII printable <c>char</c>s.</returns>
+        //public static char[] GetAllExtendedASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
+        //{
+        //    var includedWhitespaces = new List<char>();
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
+        //    {
+        //        includedWhitespaces.Add(' ');
+        //    }
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace)
+        //    {
+        //        includedWhitespaces.Add('\u00A0');
+        //    }
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
+        //    {
+        //        includedWhitespaces.Add('\t');
+        //    }
+        //    if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+        //    {
+        //        includedWhitespaces.Add('\r');
+        //        includedWhitespaces.Add('\n');
+        //    }
+        //    return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, ExtendedASCIIAlpha, ExtendedASCIISymbols, includedWhitespaces);
+        //}
 
-        /// <summary>
-        /// Extended ASCII control <c>char</c>s.
-        /// </summary>
-        public static char[] ExtendedASCIINonprintables { get; } = new[]
-        {
-            // Controls (in 128 - 159 range)
-            '\u0080', '\u0081', '\u0082', '\u0083', '\u0084', '\u0085', '\u0086', '\u0087', '\u0088', '\u0089', '\u008A', '\u008B', '\u008C', '\u008D', '\u008E', '\u008F',
-            '\u0090', '\u0091', '\u0092', '\u0093', '\u0094', '\u0095', '\u0096', '\u0097', '\u0098', '\u0099', '\u009A', '\u009B', '\u009C', '\u009D', '\u009E', '\u009F'
-        };
+        ///// <summary>
+        ///// Extended ASCII control <c>char</c>s.
+        ///// </summary>
+        //public static char[] ExtendedASCIINonprintables { get; } = new[]
+        //{
+        //    // Controls (in 128 - 159 range)
+        //    '\u0080', '\u0081', '\u0082', '\u0083', '\u0084', '\u0085', '\u0086', '\u0087', '\u0088', '\u0089', '\u008A', '\u008B', '\u008C', '\u008D', '\u008E', '\u008F',
+        //    '\u0090', '\u0091', '\u0092', '\u0093', '\u0094', '\u0095', '\u0096', '\u0097', '\u0098', '\u0099', '\u009A', '\u009B', '\u009C', '\u009D', '\u009E', '\u009F'
+        //};
 
-        /// <summary>
-        /// ASCII and extended ASCII control <c>char</c>s.
-        /// </summary>
-        public static char[] AllExtendedASCIINonprintables =>
-            ArrayUtil.Combine(ASCIINonprintables, ExtendedASCIINonprintables);
+        ///// <summary>
+        ///// ASCII and extended ASCII control <c>char</c>s.
+        ///// </summary>
+        //public static char[] AllExtendedASCIINonprintables =>
+        //    ArrayUtil.Combine(ASCIINonprintables, ExtendedASCIINonprintables);
 
-        /// <summary>
-        /// Other Unicode non-printable <c>char</c>s.
-        /// </summary>
-        public static char[] OtherNonprintables { get; } = new[]
-        {
-            /* ByteOrderMark (65279)    UnicodeReplacementChar � (65533) */
-            '\uFEFF',                   '\uFFFD'
-        };
+        ///// <summary>
+        ///// Other Unicode non-printable <c>char</c>s.
+        ///// </summary>
+        //public static char[] UnicodeNonprintables { get; } = new[]
+        //{
+        //    /* ByteOrderMark (65279)    UnicodeReplacementChar � (65533) */
+        //    '\uFEFF',                   '\uFFFD'
+        //};
 
-        /// <summary>
-        /// ASCII and extended ASCII control <c>char</c>s and Unicode non-printable <c>char</c>s.
-        /// </summary>
-        public static char[] AllNonprintables =>
-            ArrayUtil.Combine(AllExtendedASCIINonprintables, OtherNonprintables);
+        ///// <summary>
+        ///// ASCII and extended ASCII control <c>char</c>s and Unicode non-printable <c>char</c>s.
+        ///// </summary>
+        //public static char[] AllNonprintables =>
+        //    ArrayUtil.Combine(AllExtendedASCIINonprintables, UnicodeNonprintables);
 
         /// <summary>
         /// A Unicode Latin-to-ASCII conversion chart. 

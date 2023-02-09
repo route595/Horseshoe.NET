@@ -27,10 +27,10 @@ namespace Horseshoe.NET.OracleDb
         (
             string tableName,
             IEnumerable<DbParameter> columns,
-            OracleDbConnectionInfo connectionInfo = null,
+            OracleDbConnectionInfo? connectionInfo = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -68,8 +68,8 @@ namespace Horseshoe.NET.OracleDb
             string tableName,
             IEnumerable<DbParameter> columns,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -106,11 +106,11 @@ namespace Horseshoe.NET.OracleDb
             out int? identity,
             string tableName,
             IEnumerable<DbParameter> columns,
-            OracleDbConnectionInfo connectionInfo = null,
-            string getIdentitySql = null,
+            OracleDbConnectionInfo? connectionInfo = null,
+            string? getIdentitySql = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -150,10 +150,10 @@ namespace Horseshoe.NET.OracleDb
             OracleConnection conn,
             string tableName,
             IEnumerable<DbParameter> columns,
-            string getIdentitySql = null,
+            string? getIdentitySql = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling

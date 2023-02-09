@@ -79,6 +79,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestRESTApi (net6.0)", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Excel (net472)", "Horseshoe.NET.Excel (net472)\Horseshoe.NET.Excel (net472).csproj", "{02332B12-2B0B-400B-AB0C-22D467F73CC4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Abstractions (net462)", "Horseshoe.NET.Abstractions (net462)\Horseshoe.NET.Abstractions (net462).csproj", "{AD82CBAA-FD68-40B0-AB19-57F255505EFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Abstractions (netstandard2.0)", "Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj", "{575B320D-C207-4CB8-8892-90E862519790}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -225,6 +229,14 @@ Global
 		{02332B12-2B0B-400B-AB0C-22D467F73CC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02332B12-2B0B-400B-AB0C-22D467F73CC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02332B12-2B0B-400B-AB0C-22D467F73CC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{575B320D-C207-4CB8-8892-90E862519790}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{575B320D-C207-4CB8-8892-90E862519790}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{575B320D-C207-4CB8-8892-90E862519790}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{575B320D-C207-4CB8-8892-90E862519790}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

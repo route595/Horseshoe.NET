@@ -13,30 +13,18 @@ namespace Horseshoe.NET
 
         internal static string ClassName => "Config";
 
-        internal static string Get(string key, bool required = false)
+        internal static string Get(string key)
         {
-            var value = Lib.TryInvokeStaticMethod<string>(Assembly, null, ClassName, nameof(Get), out _, key, required);
+            var value = Lib.TryInvokeStaticMethod<string>(Assembly, null, ClassName, nameof(Get), out _, key, false);
             return value;
         }
 
-        internal static T Get<T>
-        (
-            string key,
-            DateTimeStyles? dateTimeStyle = null,
-            NumberStyles? numberStyle = null,
-            IFormatProvider provider = null,
-            string locale = null,
-            string trueValues = "y|yes|t|true|1",
-            string falseValues = "n|no|f|false|0",
-            Encoding encoding = null,
-            Type inheritedType = null,
-            bool ignoreCase = false
-        )
+        internal static T Get<T>(string key, NumberStyles? numberStyle = null, IFormatProvider provider = null, string locale = null, string trueValues = "y|yes|t|true|1", string falseValues = "n|no|f|false|0", Encoding encoding = null, Type inheritedType = null, bool ignoreCase = false)
         {
             var value = Get(key);
             if (value == null)
                 return default;
-            return Zap.To<T>(value, dateTimeStyle: dateTimeStyle, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
+            return Zap.To<T>(value, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
         }
 
         internal static T GetInstance<T>(string key, bool ignoreCase = false, bool nonPublic = false)

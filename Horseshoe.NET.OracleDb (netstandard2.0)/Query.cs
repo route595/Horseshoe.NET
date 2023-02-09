@@ -522,7 +522,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -531,7 +531,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -587,7 +587,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -596,7 +596,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -1503,7 +1503,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -1512,7 +1512,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -1586,7 +1586,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -1595,7 +1595,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -2526,7 +2526,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -2535,7 +2535,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -2593,7 +2593,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -2602,7 +2602,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -3431,7 +3431,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -3440,7 +3440,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -3499,7 +3499,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -3508,7 +3508,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)

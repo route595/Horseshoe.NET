@@ -41,14 +41,14 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<T> AsCollection<T>
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -88,14 +88,14 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -136,13 +136,13 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string statement,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -192,13 +192,13 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string statement,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -244,12 +244,12 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<object[]> AsObjects
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -286,12 +286,12 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -329,11 +329,11 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string statement,
-                DbCapture dbCapture = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -371,11 +371,11 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string statement,
-                DbCapture dbCapture = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -408,14 +408,14 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -448,14 +448,14 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -488,14 +488,14 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 OracleConnection conn,
                 string statement,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -522,7 +522,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -531,7 +531,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -553,14 +553,14 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 OracleConnection conn,
                 string statement,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -587,7 +587,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -596,7 +596,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -622,12 +622,12 @@ namespace Horseshoe.NET.OracleDb
             public static DbDataReader AsDataReader
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -662,12 +662,12 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -703,11 +703,11 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string statement,
-                DbCapture dbCapture = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -754,11 +754,11 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string statement,
-                DbCapture dbCapture = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -803,11 +803,11 @@ namespace Horseshoe.NET.OracleDb
             public static DataTable AsDataTable
             (
                 string statement,
-                OracleDbConnectionInfo connectionInfo = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -847,8 +847,8 @@ namespace Horseshoe.NET.OracleDb
                 string statement,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -908,18 +908,18 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<T> AsCollection<T>
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -963,18 +963,18 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1019,17 +1019,17 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1093,17 +1093,17 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1163,16 +1163,16 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<object[]> AsObjects
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1213,16 +1213,16 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1264,15 +1264,15 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                DbCapture? dbCapture = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1314,15 +1314,15 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                DbCapture dbCapture = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                DbCapture? dbCapture = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1359,18 +1359,18 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                string column = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                string? column = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1407,18 +1407,18 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                string column = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                string? column = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1455,18 +1455,18 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 OracleConnection conn,
                 string tableName,
-                string column = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                string? column = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1503,7 +1503,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -1512,7 +1512,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -1538,18 +1538,18 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 OracleConnection conn,
                 string tableName,
-                string column = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                string? column = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1586,7 +1586,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -1595,7 +1595,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -1625,16 +1625,16 @@ namespace Horseshoe.NET.OracleDb
             public static DbDataReader AsDataReader
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1673,16 +1673,16 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1722,15 +1722,15 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1791,15 +1791,15 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
-                DbCapture dbCapture = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1858,15 +1858,15 @@ namespace Horseshoe.NET.OracleDb
             public static DataTable AsDataTable
             (
                 string tableName,
-                OracleDbConnectionInfo connectionInfo = null,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1908,14 +1908,14 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string tableName,
-                IEnumerable<string> columns = null,
-                IFilter where = null,
-                IEnumerable<string> groupBy = null,
-                IEnumerable<string> orderBy = null,
+                IEnumerable<string>? columns = null,
+                IFilter? where = null,
+                IEnumerable<string>? groupBy = null,
+                IEnumerable<string>? orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -1960,10 +1960,10 @@ namespace Horseshoe.NET.OracleDb
             private static string BuildStatement
             (
                 string tableName,
-                IEnumerable<string> columns,
-                IFilter where,
-                IEnumerable<string> groupBy,
-                IEnumerable<string> orderBy,
+                IEnumerable<string>? columns,
+                IFilter? where,
+                IEnumerable<string>? groupBy,
+                IEnumerable<string>? orderBy,
                 TraceJournal journal
             )
             {
@@ -2024,15 +2024,15 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<T> AsCollection<T>
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2073,15 +2073,15 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2123,14 +2123,14 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2181,14 +2181,14 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2235,13 +2235,13 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<object[]> AsObjects
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2279,13 +2279,13 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2324,12 +2324,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2368,12 +2368,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2407,15 +2407,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2449,15 +2449,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2491,15 +2491,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
+                IEnumerable<DbParameter>? parameters = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2526,7 +2526,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -2535,7 +2535,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -2558,15 +2558,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
+                IEnumerable<DbParameter>? parameters = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2593,7 +2593,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -2602,7 +2602,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -2629,13 +2629,13 @@ namespace Horseshoe.NET.OracleDb
             public static DbDataReader AsDataReader
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2671,13 +2671,13 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2714,12 +2714,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2767,12 +2767,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2819,13 +2819,13 @@ namespace Horseshoe.NET.OracleDb
             public static DataTable AsDataTable
             (
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2865,12 +2865,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string procedureName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2933,14 +2933,14 @@ namespace Horseshoe.NET.OracleDb
             public static IEnumerable<T> AsCollection<T>
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -2980,14 +2980,14 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3028,13 +3028,13 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3085,13 +3085,13 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                IEnumerable<DbParameter>? parameters = null,
+                RowParser<T>? rowParser = null,
+                AutoSort<T>? autoSort = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3136,16 +3136,16 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3180,16 +3180,16 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3224,16 +3224,16 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3268,16 +3268,16 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3311,15 +3311,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3353,15 +3353,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3395,15 +3395,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static object AsScalar
+            public static object? AsScalar
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
+                IEnumerable<DbParameter>? parameters = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3431,7 +3431,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -3440,7 +3440,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -3463,15 +3463,15 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The first field of the first row of the result set.</returns>
-            public static async Task<object> AsScalarAsync
+            public static async Task<object?> AsScalarAsync
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
+                IEnumerable<DbParameter>? parameters = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3499,7 +3499,7 @@ namespace Horseshoe.NET.OracleDb
                                 if (string.IsNullOrWhiteSpace(stringValue))
                                 {
                                     if (stringValue.Length == 0)
-                                        stringValue = null;
+                                        return null;
                                 }
                                 else
                                     stringValue = stringValue.Trim();
@@ -3508,7 +3508,7 @@ namespace Horseshoe.NET.OracleDb
                             {
                                 stringValue = stringValue.Trim();
                                 if (stringValue.Length == 0)
-                                    stringValue = null;
+                                    return null;
                             }
                         }
                         else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
@@ -3535,13 +3535,13 @@ namespace Horseshoe.NET.OracleDb
             public static DbDataReader AsDataReader
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3577,13 +3577,13 @@ namespace Horseshoe.NET.OracleDb
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3620,12 +3620,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3674,12 +3674,12 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                DbCapture dbCapture = null,
+                IEnumerable<DbParameter>? parameters = null,
+                DbCapture? dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3726,12 +3726,12 @@ namespace Horseshoe.NET.OracleDb
             public static DataTable AsDataTable
             (
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
-                OracleDbConnectionInfo connectionInfo = null,
+                IEnumerable<DbParameter>? parameters = null,
+                OracleDbConnectionInfo? connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3770,11 +3770,11 @@ namespace Horseshoe.NET.OracleDb
             (
                 OracleConnection conn,
                 string functionName,
-                IEnumerable<DbParameter> parameters = null,
+                IEnumerable<DbParameter>? parameters = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<OracleCommand> alterCommand = null,
-                TraceJournal journal = null
+                Action<OracleCommand>? alterCommand = null,
+                TraceJournal? journal = null
             )
             {
                 // trace journaling
@@ -3812,13 +3812,13 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string statement,
-            IEnumerable<DbParameter> parameters,
-            DbCapture dbCapture,
-            RowParser<T> rowParser,
-            AutoSort<T> autoSort,
+            IEnumerable<DbParameter>? parameters,
+            DbCapture? dbCapture,
+            RowParser<T>? rowParser,
+            AutoSort<T>? autoSort,
             AutoTruncate autoTrunc,
             int? commandTimeout,
-            Action<OracleCommand> alterCommand,
+            Action<OracleCommand>? alterCommand,
             TraceJournal journal
         )
         {
@@ -3893,13 +3893,13 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string statement,
-            IEnumerable<DbParameter> parameters,
-            DbCapture dbCapture,
-            RowParser<T> rowParser,
-            AutoSort<T> autoSort,
+            IEnumerable<DbParameter>? parameters,
+            DbCapture? dbCapture,
+            RowParser<T>? rowParser,
+            AutoSort<T>? autoSort,
             AutoTruncate autoTrunc,
             int? commandTimeout,
-            Action<OracleCommand> alterCommand,
+            Action<OracleCommand>? alterCommand,
             TraceJournal journal
         )
         {
@@ -3970,7 +3970,7 @@ namespace Horseshoe.NET.OracleDb
             return list;
         }
 
-        internal static List<T> AutoSortList<T>
+        internal static List<T>? AutoSortList<T>
         (
             List<T> list,
             AutoSort<T> autoSort,

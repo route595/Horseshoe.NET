@@ -69,8 +69,8 @@ namespace Horseshoe.NET.Db
             return string.Format
             (
                 "{0} = {1}",
-                DbUtil.RenderColumnName(parameter, platform: platform),
-                DbUtil.Sqlize(parameter.Value, platform: platform)
+                DbUtil.RenderColumnName(parameter, platform: platform ?? DbSettings.DefaultPlatform ?? default),
+                DbUtil.Sqlize(parameter.Value, platform: platform ?? DbSettings.DefaultPlatform ?? default)
             );
         }
 

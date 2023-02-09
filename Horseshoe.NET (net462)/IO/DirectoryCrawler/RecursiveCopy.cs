@@ -12,6 +12,8 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
     /// </summary>
     public class RecursiveCopy : DirectoryCrawler
     {
+        //private DirectoryCrawlStatistics statistics = new DirectoryCrawlStatistics();
+
         /// <summary>
         /// The destination counterpart of <c>Root</c>, the directory whose contents and self are to be copied
         /// </summary>
@@ -36,7 +38,7 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
         /// (
         ///     @"C:\myFilesAndFolders",
         ///     @"D:\myFilesAndFolders",
-        ///     directoryCrawled: (@event, dir, metadata, statistics) =&gt;
+        ///     directoryCrawled: (@event, dir, metadata) =&gt;
         ///     {
         ///         switch(@event) 
         ///         {
@@ -68,11 +70,11 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
         /// (
         ///     @"C:\myFilesAndFolders",
         ///     @"D:\myFilesAndFolders",
-        ///     fileCrawled: (@event, file, metadata, statistics) =&gt;
+        ///     fileCrawled: (@event, file, metadata) =&gt;
         ///     {
         ///         switch(@event) 
         ///         {
-        ///             case FileCrawlEvent.FileEncountered:
+        ///             case FileCrawlEvent.FileProcessing:
         ///                 if (file.Size >= 1024000)
         ///                 {
         ///                     largeFiles.Add(file + " (" + FileUtil.GetDisplayFileSize(file.Size) + ")");
@@ -87,45 +89,10 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
         /// </para>
         /// </example>
         /// </param>
-        /// <param name="copyingFile">
-        /// A an optional, pluggable action to perform when a file is about to be copied.
-        /// <example>
-        /// <para>
-        /// Here's an example that lists all files greater than 1 MB that were copied by the directory traversal engine.
-        /// <code>
-        /// using Horseshoe.NET.ConsoleX;
-        /// using Horseshoe.NET.IO;
-        /// using Horseshoe.NET.IO.DirectoryCrawler;
-        /// 
-        /// var largeFiles = new List&lt;string&gt;();
-        /// new RecursiveCopy
-        /// (
-        ///     @"C:\myFilesAndFolders",
-        ///     @"D:\myFilesAndFolders",
-        ///     copyingFile: (srcFile, destFile, metadata) =&gt;
-        ///     {
-        ///         if (file.Size >= 1024000)
-        ///         {
-        ///             largeFiles.Add(file + " (" + FileUtil.GetDisplayFileSize(file.Size) + ")");
-        ///         }
-        ///     },
-        /// ).Go();
-        /// largeFiles.Sort();
-        /// RenderX.List(largeFiles);
-        /// </code>
-        /// </para>
-        /// </example>
-        /// </param>
-        /// <param name="fileCopied"></param>
-        /// <param name="deletingFile"></param>
-        /// <param name="fileDeleted"></param>
-        /// <param name="creatingDestinationDirectory"></param>
+        /// <param name="destinationDirectoryCreating"></param>
         /// <param name="destinationDirectoryCreated"></param>
-        /// <param name="creatingDestinationRootDirectory"></param>
-        /// <param name="destinationRootDirectoryCreated"></param>
-        /// <param name="deletingDirectory"></param>
-        /// <param name="directoryDeleted"></param>
-        /// <param name="options"></param>
+        /// <param name="options">Optional traversal engine options.</param>
+        /// <param name="statistics">Optional traversal engine statistics.</param>
         /// <exception cref="DirectoryCrawlException"></exception>
         public RecursiveCopy
         (
@@ -133,62 +100,57 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
             DirectoryPath destinationRoot,
             Action<DirectoryCrawlEvent, DirectoryPath, DirectoryMetadata<DirectoryPath>> directoryCrawled = null,
             Action<FileCrawlEvent, FilePath, FileMetadata<DirectoryPath>> fileCrawled = null,
-            Action<FilePath, FilePath, FileMetadata<DirectoryPath>> copyingFile = null,
-            Action<FilePath, FilePath, FileMetadata<DirectoryPath>> fileCopied = null,
-            Action<FilePath, FileMetadata<DirectoryPath>> deletingFile = null,
-            Action<FilePath, FileMetadata<DirectoryPath>> fileDeleted = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> creatingDestinationDirectory = null,
+            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationDirectoryCreating = null,
             Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationDirectoryCreated = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> creatingDestinationRootDirectory = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationRootDirectoryCreated = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> deletingDirectory = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> directoryDeleted = null,
-            CopyOptions options = null
+            CopyOptions options = null,
+            TraversalStatistics statistics = null
         ) : base
         (
             sourceRoot,
-            directoryCrawled: (@event, dir, metadata) =>
+            options: options ?? new CopyOptions(),
+            statistics: statistics
+        )
+        {
+            DestinationRoot = destinationRoot;
+            DirectoryCrawled = (@event, dir, metadata) =>
             {
-                var fileCopy = (RecursiveCopy)metadata.DirectoryCrawler;
-                options = options ?? new CopyOptions();
-                DirectoryPath destinationDirectory = Path.Combine(fileCopy.DestinationRoot.FullName, dir.FullName.Substring(fileCopy.RootLength));
-                
+                directoryCrawled?.Invoke(@event, dir, metadata);  /* let client handle events first, if applicable */
+
+                DirectoryPath destinationDirectory = Path.Combine(DestinationRoot.FullName, dir.FullName.Substring(Root.Length));
+
                 switch (@event)
                 {
                     case DirectoryCrawlEvent.OnInit:
                         if (destinationDirectory.Exists)  // <- refers to the destination root
                         {
-                            if (((CopyOptions)fileCopy.Options).CopyMode == CopyMode.ErrorIfDestinationNotEmpty && !destinationDirectory.IsEmpty)
+                            if (((CopyOptions)Options).CopyMode == CopyMode.ErrorIfDestinationNotEmpty && !destinationDirectory.IsEmpty())
                                 throw new DirectoryCrawlException("Directory already exists and is not empty: " + destinationDirectory);
-                            
-                            if ((((CopyOptions)fileCopy.Options).CopyMode & CopyMode.DeleteDestinationDirectoryBeforeCopy) == CopyMode.DeleteDestinationDirectoryBeforeCopy)
-                            { 
-                                new RecursiveDelete
+
+                            if ((((CopyOptions)Options).CopyMode & CopyMode.DeleteDestinationDirectoryBeforeCopy) == CopyMode.DeleteDestinationDirectoryBeforeCopy)
+                            {
+                                RecursiveDeleteDirectory
                                 (
                                     destinationDirectory,
-                                    deletingFile: deletingFile,
-                                    fileDeleted: fileDeleted,
-                                    deletingDirectory: deletingDirectory,
-                                    directoryDeleted: directoryDeleted,
-                                    precludeRootDirectory: true
-                                ).Go();
+                                    options: new CrawlOptions { DryRun = Options.DryRun, ReportErrorsAndContinue = Options.ReportErrorsAndContinue, StatisticsOn = Options.StatisticsOn },
+                                    statistics: Statistics
+                                );
                             }
                         }
                         else
                         {
-                            creatingDestinationRootDirectory?.Invoke(dir, metadata);
-                            if (!options.DryRun)
+                            destinationDirectoryCreating?.Invoke(dir, metadata);
+                            if (!Options.DryRun)
                             {
                                 destinationDirectory.Create();   // <- refers to the destination root
                             }
-                            destinationRootDirectoryCreated?.Invoke(dir, metadata);
+                            destinationDirectoryCreated?.Invoke(dir, metadata);
                         }
                         break;
 
                     case DirectoryCrawlEvent.DirectoryEntered:
                         if (destinationDirectory.Exists)
                         {
-                            if ((((CopyOptions)fileCopy.Options).CopyMode & CopyMode.RemoveDestinationFilesAndDirectoriesNotInSource) == CopyMode.RemoveDestinationFilesAndDirectoriesNotInSource)
+                            if ((((CopyOptions)Options).CopyMode & CopyMode.RemoveDestinationFilesAndDirectoriesNotInSource) == CopyMode.RemoveDestinationFilesAndDirectoriesNotInSource)
                             {
                                 var sourceFileNames = dir.GetFiles()
                                     .Select(f => f.Name)
@@ -198,43 +160,32 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
                                     .ToArray();
                                 var destFiles = destinationDirectory.GetFiles();
                                 var destSubdirs = destinationDirectory.GetDirectories();
+                                var fileMedatadaDel = new FileMetadata<DirectoryPath>(metadata.Level + 1, metadata.DirectoryCrawler, dryRun: metadata.DryRun, statistics: Statistics);
 
                                 // removing destination files that are not in the source
-                                foreach(var destFile in destFiles)
+                                foreach (var destFile in destFiles)
                                 {
                                     if (!destFile.Name.In(sourceFileNames))
                                     {
-                                        var fileArgsDel = new FileMetadata<DirectoryPath>(metadata.Level + 1, metadata.DirectoryCrawler, dryRun: metadata.DryRun);
-                                        deletingFile?.Invoke(destFile, fileArgsDel);
-                                        if (!metadata.DryRun)
-                                        {
-                                            destFile.Delete();
-                                        }
-                                        fileDeleted?.Invoke(destFile, fileArgsDel);
+                                        DoFileDelete(destFile, fileMedatadaDel);
                                     }
                                 }
 
                                 // removing destination directories that are not in the source
                                 foreach (var destSubdir in destSubdirs)
                                 {
-                                    if (!destSubdir.Name.In(sourceSubdirNames))
-                                    {
-                                        new RecursiveDelete
-                                        (
-                                            destSubdir,
-                                            deletingFile: deletingFile,
-                                            fileDeleted: fileDeleted,
-                                            deletingDirectory: deletingDirectory,
-                                            directoryDeleted: directoryDeleted,
-                                            options: new CrawlOptions { DryRun = metadata.DryRun }
-                                        ).Go();
-                                    }
+                                    RecursiveDeleteDirectory
+                                    (
+                                        destinationDirectory,
+                                        options: new CrawlOptions { DryRun = Options.DryRun, ReportErrorsAndContinue = Options.ReportErrorsAndContinue, StatisticsOn = Options.StatisticsOn },
+                                        statistics: Statistics
+                                    );
                                 }
                             }
                         }
                         else
                         {
-                            creatingDestinationDirectory?.Invoke(destinationDirectory, metadata);
+                            destinationDirectoryCreating?.Invoke(destinationDirectory, metadata);
                             if (!metadata.DryRun)
                             {
                                 destinationDirectory.Create();
@@ -243,59 +194,53 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
                         }
                         break;
                 }
-                directoryCrawled?.Invoke(@event, dir, metadata);  /* let client handle events too, if applicable */
-            },
-            fileCrawled: (@event, file, metadata) =>
+            };
+            FileCrawled = (@event, file, metadata) =>
             {
-                var fileCopy = (RecursiveCopy)metadata.DirectoryCrawler;
-                options = options ?? new CopyOptions();
-                FilePath destinationFile = Path.Combine(fileCopy.DestinationRoot.FullName, file.FullName.Substring(fileCopy.RootLength));
-                //DirectoryPath destinationDirectory = Path.Combine(fileCopy.DestinationRoot.FullName, dirArgs.Directory.FullName.Substring(fileCopy.RootLength));
+                fileCrawled?.Invoke(@event, file, metadata);  /* let client handle events first, if applicable */
+                
+                FilePath destinationFile = Path.Combine(DestinationRoot.FullName, file.FullName.Substring(Root.Length));
 
                 switch (@event)
                 {
-                    case FileCrawlEvent.FileFound:
+                    case FileCrawlEvent.FileProcessing:
                         if (destinationFile.Exists)
                         {
                             // check if overwriting is okay
-                            if ((((CopyOptions)fileCopy.Options).CopyMode & CopyMode.Overwrite) == CopyMode.Overwrite)
+                            if ((((CopyOptions)Options).CopyMode & CopyMode.Overwrite) == CopyMode.Overwrite)
                             {
-                                if (file.DateModified > destinationFile.DateModified)
-                                {
-                                    // exception 1 of 3 to the overwrite rule
-                                    if ((((CopyOptions)fileCopy.Options).CopyMode & CopyMode.DontOverwriteFileIfNewer) == CopyMode.DontOverwriteFileIfNewer)
-                                        metadata.SkipThisFile(SkipReason.AlreadyExists, "source file is newer");
-                                }
-                                else if (destinationFile.DateModified == file.DateModified)
-                                {
-                                    // exception 2 of 3 to the overwrite rule
-                                    if ((((CopyOptions)fileCopy.Options).CopyMode & CopyMode.DontOverwriteFileIfSameModifiedDate) == CopyMode.DontOverwriteFileIfSameModifiedDate)
-                                        metadata.SkipThisFile(SkipReason.AlreadyExists, "source file has same modified date");
+                                // exception 1 of 3 - source file is newer
+                                if (file.DateModified > destinationFile.DateModified && (((CopyOptions)Options).CopyMode & CopyMode.DoNotOverwriteFileIfNewer) == CopyMode.DoNotOverwriteFileIfNewer)
+                                { 
+                                    metadata.SkipThisFile(SkipReason.AlreadyExists);
+                                    return;
                                 }
 
-                                if ((((CopyOptions)fileCopy.Options).CopyMode & CopyMode.DontOverwriteFileIfMatchingHash) == CopyMode.DontOverwriteFileIfMatchingHash)
+                                // exception 2 of 3 - source file has same modified date
+                                if (destinationFile.DateModified == file.DateModified && (((CopyOptions)Options).CopyMode & CopyMode.DoNotOverwriteFileIfSameModifiedDate) == CopyMode.DoNotOverwriteFileIfSameModifiedDate)
+                                { 
+                                    metadata.SkipThisFile(SkipReason.AlreadyExists);
+                                    return;
+                                }
+
+                                // exception 3 of 3 - source file has same hash
+                                if ((((CopyOptions)Options).CopyMode & CopyMode.DoNotOverwriteFileIfMatchingHash) == CopyMode.DoNotOverwriteFileIfMatchingHash && Equals(Hash.String(file), Hash.String(destinationFile)))
                                 {
-                                    // exception 3 of 3 to the overwrite rule
-                                    if (Equals(Hash.String(file), Hash.String(destinationFile)))
-                                        metadata.SkipThisFile(SkipReason.AlreadyExists, "source file has same hash");
+                                    metadata.SkipThisFile(SkipReason.AlreadyExists);
+                                    return;
                                 }
                             }
                             else throw new DirectoryCrawlException("File already exists: " + destinationFile);
                         }
-                        copyingFile?.Invoke(file, destinationFile, metadata);
-                        if (!metadata.DryRun)
-                        {
-                            file.CopyTo(destinationFile.FullName);
-                        }
-                        fileCopied?.Invoke(file, destinationFile, metadata);
+
+                        FileProcess =  /* Note: honors "dry run" mode */
+                            (file0, metadata0) => 
+                            {
+                                file0.CopyTo(destinationFile);  // uses built-in tallying
+                            };
                         break;
                 }
-                fileCrawled?.Invoke(@event, file, metadata);  /* let client handle events too, if applicable */
-            },
-            options: options ?? new CopyOptions()
-        )
-        {
-            DestinationRoot = destinationRoot;
+            };
         }
     }
 }

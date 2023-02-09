@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Horseshoe.NET.Configuration;
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.OracleDb.Meta;
 using Oracle.ManagedDataAccess.Client;
@@ -153,8 +154,16 @@ namespace Horseshoe.NET.OracleDb
         {
             get
             {
+                var configUserName = Config.Get("Horseshoe.NET:OracleDb:UserID");
+                var configPassword = Config.Get("Horseshoe.NET:OracleDb:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:OracleDb:IsEncryptedPassword");
                 return _defaultCredentials
-                    ?? Credential.Build(Config.Get("Horseshoe.NET:OracleDb:UserID"), Config.Get("Horseshoe.NET:OracleDb:Password"), isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:OracleDb:IsEncryptedPassword"))
+                    ??
+                    (
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                        : new Credential(configUserName, configPassword)
+                    )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("OracleDb.Credentials");
             }
             set

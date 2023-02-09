@@ -1,6 +1,8 @@
-﻿using Horseshoe.NET.Text;
-using System;
+﻿using System;
 using System.Text;
+
+using Horseshoe.NET.Crypto;
+using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Ftp
 {
@@ -57,7 +59,8 @@ namespace Horseshoe.NET.Ftp
                     pos2 = connectionString.ToLower().IndexOf("?encryptedpassword=");
                     if (pos2 > pos)
                     {
-                        connectionInfo.Credentials = new Credential(connectionString.Substring(0, pos), new Password(connectionString.Substring(pos2 + 19), isEncrypted: true));
+                        var pwd = connectionString.Substring(pos2 + 19);
+                        connectionInfo.Credentials = Credential.Build(connectionString.Substring(0, pos), () => Decrypt.String(pwd));
                     }
                     else if (!string.Equals(connectionString.Substring(0, pos), "anonymous", StringComparison.OrdinalIgnoreCase))
                     {

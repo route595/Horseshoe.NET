@@ -1,4 +1,5 @@
 ﻿using Horseshoe.NET.Configuration;
+using Horseshoe.NET.Crypto;
 
 namespace Horseshoe.NET.SecureIO.Sftp
 {
@@ -51,8 +52,16 @@ namespace Horseshoe.NET.SecureIO.Sftp
         {
             get
             {
+                var configUserName = Config.Get("Horseshoe.NET:Sftp:UserName");
+                var configPassword = Config.Get("Horseshoe.NET:Sftp:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:Sftp:IsEncryptedPassword");
                 return _defaultCredentials
-                    ?? Credential.Build(Config.Get("Horseshoe.NET:Sftp:UserName"), Config.Get("Horseshoe.NET:Sftp:Password"), isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:Sftp:IsEncryptedPassword"))
+                    ??
+                    (
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                        : new Credential(configUserName, configPassword)
+                    )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Sftp.Credentials");
             }
             set

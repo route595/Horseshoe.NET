@@ -39,9 +39,7 @@ namespace TestConsole
                                     Console.WriteLine("  ~\\" + FileUtil.NormalizePath(dir.FullName).Substring(MyDirectory.FullName.Length));
                                     break;
                                 case DirectoryCrawlEvent.OnComplete:
-                                    Console.WriteLine();
-                                    Console.WriteLine("Statistics...");
-                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.Display().Select(s => "  " + s)));
+                                    Console.WriteLine(metadata.Statistics.DisplayCurated(indent: 2, padBefore: 1));
                                     break;
                             }
                         },
@@ -49,7 +47,7 @@ namespace TestConsole
                         {
                             switch (@event)
                             {
-                                case FileCrawlEvent.FileFound:
+                                case FileCrawlEvent.FileProcessing:
                                     Console.WriteLine("  ~\\" + file.FullName.Substring(MyDirectory.FullName.Length));
                                     break;
                             }
@@ -75,9 +73,7 @@ namespace TestConsole
                                     Console.WriteLine("  ~\\" + FileUtil.NormalizePath(dir.FullName).Substring(MyDirectory.FullName.Length));
                                     break;
                                 case DirectoryCrawlEvent.OnComplete:
-                                    Console.WriteLine();
-                                    Console.WriteLine("Statistics...");
-                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.Display().Select(s => "  " + s)));
+                                    Console.WriteLine(metadata.Statistics.DisplayCurated(indent: 2, padBefore: 1));
                                     break;
                             }
                         },
@@ -85,12 +81,12 @@ namespace TestConsole
                         {
                             switch (@event)
                             {
-                                case FileCrawlEvent.FileFound:
+                                case FileCrawlEvent.FileProcessing:
                                     Console.WriteLine("  ~\\" + file.FullName.Substring(MyDirectory.FullName.Length));
                                     break;
                             }
                         },
-                        options: new CrawlOptions { FileFilter = FileFilter.CreateFileExtensionFilter(".dll") }
+                        options: new CrawlOptions { /*FileFilter = FileFilter.CreateFileExtensionFilter(".dll")*/ }
                     ).Go();
                 }
             ),
@@ -112,9 +108,7 @@ namespace TestConsole
                                     Console.WriteLine("  ~\\" + FileUtil.NormalizePath(dir.FullName).Substring(MyDirectory.FullName.Length));
                                     break;
                                 case DirectoryCrawlEvent.OnComplete:
-                                    Console.WriteLine();
-                                    Console.WriteLine("Statistics...");
-                                    Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.Display().Select(s => "  " + s)));
+                                    Console.WriteLine(metadata.Statistics.DisplayCurated(indent: 2, padBefore: 1));
                                     break;
                             }
                         },
@@ -122,12 +116,12 @@ namespace TestConsole
                         {
                             switch (@event)
                             {
-                                case FileCrawlEvent.FileFound:
+                                case FileCrawlEvent.FileProcessing:
                                     Console.WriteLine("  ~\\" + file.FullName.Substring(MyDirectory.FullName.Length));
                                     break;
                             }
                         },
-                        options: new CrawlOptions { FileFilter = FileFilter.CreateFileExtensionFilter(".dll") }
+                        options: new CrawlOptions { /*FileFilter = FileFilter.CreateFileExtensionFilter(".dll")*/ }
                     ).Go();
                 }
             ),
@@ -146,7 +140,7 @@ namespace TestConsole
                     Directory.CreateDirectory(Path.Combine(RecursiveDeleteRoot, "subdir2"));
                     File.WriteAllText(Path.Combine(RecursiveDeleteRoot, "subdir2", "subdir2a.txt"), "This is me, bla bla bla.");
                     File.WriteAllText(Path.Combine(RecursiveDeleteRoot, "subdir2", "subdir2b.txt"), "This is me, bla bla bla.");
-                    var totalSize = new RecursiveSize(RecursiveDeleteRoot).Go();
+                    var totalSize = DirectoryCrawler.GetTotalSize(RecursiveDeleteRoot);
                     Console.WriteLine("done (" + FileUtil.GetDisplayFileSize(totalSize) + ")");
                 }
             ),
@@ -171,7 +165,7 @@ namespace TestConsole
                 "Recursive Hash",
                 () =>
                 {
-                    DirectoryCrawlStatistics stats = null;
+                    TraversalStatistics stats = null;
                     Console.WriteLine("Hashing all files: " + RecursiveDeleteRoot);
                     var finalHash = new Horseshoe.NET.Crypto.RecursiveHash
                     (
@@ -191,9 +185,7 @@ namespace TestConsole
                         }
                     ).Go();
                     Console.WriteLine("Final hash: " + finalHash);
-                    Console.WriteLine();
-                    Console.WriteLine("Statistics...");
-                    Console.WriteLine(string.Join(Environment.NewLine, stats.Display().Select(s => "  " + s)));
+                    Console.WriteLine(stats.DisplayCurated(indent: 2, padBefore: 1));
                 }
             ),
             BuildMenuRoutine
@@ -224,13 +216,13 @@ namespace TestConsole
         static void RecursiveDeleteBase(bool dryRun)
         {
             var root = "C:\\Users\\E029791\\Dev\\DirectoryCrawl\\";
-            var totalSize = new RecursiveSize
+            var totalSize = DirectoryCrawler.GetTotalSize
             (
                 root
-            ).Go();
+            );
             Console.WriteLine("Deleting " + FileUtil.GetDisplayFileSize(totalSize) + " from " + root + "...");
             long cumulativeDeletedBytes = 0L;
-            new RecursiveDelete
+            DirectoryCrawler.RecursiveDeleteDirectory
             (
                 root,
                 directoryCrawled: (@event, dir, metadata) =>
@@ -243,6 +235,9 @@ namespace TestConsole
                         case DirectoryCrawlEvent.DirectoryEntered:
                             Console.WriteLine(new string(' ', metadata.Level) + FileUtil.NormalizePath(dir.FullName).Substring(root.Length));
                             break;
+                        case DirectoryCrawlEvent.DirectoryDeleted:
+                            Console.WriteLine(new string(' ', metadata.Level) + FileUtil.NormalizePath(dir.FullName).Substring(root.Length) + " -- directory deleted");
+                            break;
                         case DirectoryCrawlEvent.DirectoryErrored:
                             Console.WriteLine(new string(' ', metadata.Level) + metadata.Exception.RenderMessage());
                             break;
@@ -250,22 +245,21 @@ namespace TestConsole
                             Console.WriteLine(new string(' ', metadata.Level) + (metadata.Exception != null ? metadata.Exception.RenderMessage() + " -- " : "") + "halted!");
                             break;
                         case DirectoryCrawlEvent.OnComplete:
-                            Console.WriteLine();
-                            Console.WriteLine("Statistics...");
-                            Console.WriteLine(string.Join(Environment.NewLine, metadata.Statistics.Display().Select(s => "  " + s)));
+                            Console.WriteLine(metadata.Statistics.DisplayCurated(indent: 2, padBefore: 1));
                             Console.WriteLine();
                             Console.WriteLine("Cumulative Deleted Bytes: " + FileUtil.GetDisplayFileSize(cumulativeDeletedBytes));
                             break;
                     }
                 },
-                deletingFile: (file, metadata) =>
+                fileCrawled: (@event, file, metadata) =>
                 {
-                    cumulativeDeletedBytes += file.Size;
-                    Console.WriteLine(new string(' ', metadata.Level) + file.FullName.Substring(root.Length) + " -- deleting file (" + file.GetDisplaySize() + ")");
-                },
-                directoryDeleted: (dir, metadata) =>
-                {
-                    Console.WriteLine(new string(' ', metadata.Level) + FileUtil.NormalizePath(dir.FullName).Substring(root.Length) + " -- directory deleted");
+                    switch (@event)
+                    {
+                        case FileCrawlEvent.FileDeleting:
+                            cumulativeDeletedBytes += file.Size;
+                            Console.WriteLine(new string(' ', metadata.Level) + file.FullName.Substring(root.Length) + " -- deleting file (" + file.GetDisplaySize() + ")");
+                            break;
+                    }
                 },
                 options: new CrawlOptions { DryRun = dryRun }
             ).Go();

@@ -1,18 +1,16 @@
 ﻿using System.Web;
 using System.Web.UI;
 
-using Horseshoe.NET.Bootstrap;
-
 namespace Horseshoe.NET.WebForms
 {
     public static class Extensions
     {
-        public static WebFormsBootstrap3Alert ToControl(this Bootstrap3.Alert alert)
+        public static WebFormsBootstrap3Alert ToControl(this Bootstrap.v3.Alert alert)
         {
             return new WebFormsBootstrap3Alert(alert);
         }
 
-        public static WebFormsBootstrap4Alert ToControl(this Bootstrap4.Alert alert)
+        public static WebFormsBootstrap4Alert ToControl(this Bootstrap.v4.Alert alert)
         {
             return new WebFormsBootstrap4Alert(alert);
         }

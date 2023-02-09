@@ -32,11 +32,11 @@ namespace Horseshoe.NET.Db
         {
             if (Filter is Filter filter)
             {
-                var columnExpression = filter.ColumnName.Render(platform: platform ?? Platform);
+                var columnExpression = filter.ColumnName.Render(platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 switch (filter.Mode)
                 {
                     case Compare.CompareMode.Equals:
-                        return columnExpression + " <> " + DbUtil.Sqlize(filter.Criteria[0], platform: platform ?? Platform);
+                        return columnExpression + " <> " + DbUtil.Sqlize(filter.Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                     case Compare.CompareMode.Contains:
                         return columnExpression + " NOT LIKE '%" + filter.Criteria[0] + "%'";
                     case Compare.CompareMode.StartsWith:
@@ -46,15 +46,15 @@ namespace Horseshoe.NET.Db
                     case Compare.CompareMode.In:
                         return filter.Criteria.Count == 0
                             ? "1 = 1"
-                            : columnExpression + " NOT IN ( " + string.Join(", ", filter.Criteria.Select(val => DbUtil.Sqlize(val, platform: platform ?? Platform))) + " )";
+                            : columnExpression + " NOT IN ( " + string.Join(", ", filter.Criteria.Select(val => DbUtil.Sqlize(val, platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default))) + " )";
                     case Compare.CompareMode.Between:
-                        return columnExpression + " NOT BETWEEN " + DbUtil.Sqlize(filter.Criteria[0], platform: platform ?? Platform) + " AND " + DbUtil.Sqlize(filter.Criteria[1], platform: platform ?? Platform);
+                        return columnExpression + " NOT BETWEEN " + DbUtil.Sqlize(filter.Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " AND " + DbUtil.Sqlize(filter.Criteria[1], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                     case Compare.CompareMode.IsNull:
                         return columnExpression + " IS NOT NULL";
                 }
             }
 
-            var rendered = Filter.Render(platform: platform ?? Platform);
+            var rendered = Filter.Render(platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
             return (rendered.StartsWith("(") && rendered.EndsWith(")"))
                 ? "NOT " + rendered
                 : "NOT ( " + rendered + " )";

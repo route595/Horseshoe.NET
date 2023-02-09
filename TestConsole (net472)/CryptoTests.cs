@@ -64,7 +64,7 @@ namespace TestConsole
                 {
                     var passwordToEncrypt = PromptX.Input("Enter password to encrypt");
                     var encryptedPassword = Encrypt.String(passwordToEncrypt);
-                    Console.WriteLine(encryptedPassword);
+                    Console.WriteLine("Encrypted password (len=" + encryptedPassword.Length + "): " + encryptedPassword);
                 }
             ),
             BuildMenuRoutine
@@ -72,9 +72,42 @@ namespace TestConsole
                 "Decrypt Password",
                 () =>
                 {
-                    var passwordToDecrypt = PromptX.Input("Enter password to decrypt");
-                    var decryptedPassword = Decrypt.String(passwordToDecrypt);
-                    Console.WriteLine(decryptedPassword);
+                    var stringToDecrypt = PromptX.Input("Enter password to decrypt");
+                    var decryptedPassword = Decrypt.String(stringToDecrypt);
+                    Console.WriteLine("Decrypted password: " + decryptedPassword);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Encrypt/Decrypt Password",
+                () =>
+                {
+                    var passwordToEncrypt = PromptX.Input("Enter password to encrypt/decrypt");
+                    var encryptedBytes = Encrypt.Bytes(passwordToEncrypt);
+                    var encryptedPassword = Encoding.UTF8.GetString(encryptedBytes);
+                    Console.WriteLine("Encrypted password (bytes=" + encryptedBytes.Length + "; len=" + encryptedPassword.Length + "): " + encryptedPassword);
+                    var decryptedPassword = Decrypt.String(encryptedBytes);
+                    Console.WriteLine("Decrypted password: " + decryptedPassword);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Encrypt Password (emits Base64)",
+                () =>
+                {
+                    var passwordToEncrypt = PromptX.Input("Enter password to encrypt");
+                    var encryptedPassword = Encrypt.Base64String(passwordToEncrypt);
+                    Console.WriteLine("Encrypted password (len=" + encryptedPassword.Length + "): " + encryptedPassword);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Decrypt Password (expects Base64)",
+                () =>
+                {
+                    var bytesToDecrypt = Decode.Base64.Bytes(PromptX.Input("Enter password to decrypt"));
+                    var decryptedPassword = Decrypt.String(bytesToDecrypt);
+                    Console.WriteLine("Decrypted password: " + decryptedPassword);
                 }
             ),
             BuildMenuRoutine

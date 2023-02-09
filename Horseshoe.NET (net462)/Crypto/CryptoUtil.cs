@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
-
+using System.Text;
 using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Crypto
@@ -139,6 +139,16 @@ namespace Horseshoe.NET.Crypto
                 .OrderBy(i => i)
                 .ToList();
             return list;
+        }
+
+        public static byte[] IvFromText(string iv, Encoding encoding = null)
+        {
+            return (encoding ?? CryptoSettings.DefaultEncoding).GetBytes(iv);
+        }
+
+        public static byte[] KeyFromText(string key, Encoding encoding = null)
+        {
+            return (encoding ?? CryptoSettings.DefaultEncoding).GetBytes(key);
         }
     }
 }

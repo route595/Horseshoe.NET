@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
 namespace Horseshoe.NET.IO.DirectoryCrawler
 {
@@ -85,146 +84,86 @@ namespace Horseshoe.NET.IO.DirectoryCrawler
         /// </para>
         /// </example>
         /// </param>
-        /// <param name="movingFile">
-        /// A an optional, pluggable action to perform when a file is about to be moved.
-        /// <example>
-        /// <para>
-        /// Here's an example that lists all files greater than 1 MB that were moved by the directory traversal engine.
-        /// <code>
-        /// using Horseshoe.NET.ConsoleX;
-        /// using Horseshoe.NET.IO;
-        /// using Horseshoe.NET.IO.DirectoryCrawler;
-        /// 
-        /// var largeFiles = new List&lt;string&gt;();
-        /// new RecursiveMove
-        /// (
-        ///     @"C:\myFilesAndFolders",
-        ///     @"D:\myFilesAndFolders",
-        ///     movingFile: (srcFile, destFile, metadata) =&gt;
-        ///     {
-        ///         if (file.Size >= 1024000)
-        ///         {
-        ///             largeFiles.Add(file + " (" + FileUtil.GetDisplayFileSize(file.Size) + ")");
-        ///         }
-        ///     },
-        /// ).Go();
-        /// largeFiles.Sort();
-        /// RenderX.List(largeFiles);
-        /// </code>
-        /// </para>
-        /// </example>
-        /// </param>
-        /// <param name="fileMoved">Optional action to perform after a file is processed</param>
-        /// <param name="creatingDestinationDirectory">Optional action to perform when a destination directory is about to be created</param>
+        /// <param name="destinationDirectoryCreating">Optional action to perform when a destination directory is about to be created</param>
         /// <param name="destinationDirectoryCreated">Optional action to perform after a destination directory is created </param>
-        /// <param name="creatingDestinationRootDirectory">Optional action to perform when <c>destinationRoot</c> is about to be created</param>
-        /// <param name="destinationRootDirectoryCreated">Optional action to perform after <c>destinationRoot</c> is created</param>
-        /// <param name="deletingSourceDirectory">Optional action to perform when a source directory is about to be deleted</param>
-        /// <param name="sourceDirectoryDeleted">Optional action to perform after a source directory is deleted</param>
-        /// <param name="deletingSourceRootDirectory">Optional action to perform when <c>sourceRoot</c> is about to be deleted</param>
-        /// <param name="sourceRootDirectoryDeleted">Optional action to perform after <c>sourceRoot</c> is deleted</param>
-        /// <param name="options">Crawl options</param>
+        /// <param name="options">Optional traversal engine options.</param>
+        /// <param name="statistics">Optional traversal engine statistics.</param>
         public RecursiveMove
         (
             DirectoryPath sourceRoot,
             DirectoryPath destinationRoot,
             Action<DirectoryCrawlEvent, DirectoryPath, DirectoryMetadata<DirectoryPath>> directoryCrawled = null,
             Action<FileCrawlEvent, FilePath, FileMetadata<DirectoryPath>> fileCrawled = null,
-            Action<FilePath, FilePath, FileMetadata<DirectoryPath>> movingFile = null,
-            Action<FilePath, FilePath, FileMetadata<DirectoryPath>> fileMoved = null,
-            Action<DirectoryPath, DirectoryPath, DirectoryMetadata<DirectoryPath>> creatingDestinationDirectory = null,
-            Action<DirectoryPath, DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationDirectoryCreated = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> creatingDestinationRootDirectory = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationRootDirectoryCreated = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> deletingSourceDirectory = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> sourceDirectoryDeleted = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> deletingSourceRootDirectory = null,
-            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> sourceRootDirectoryDeleted = null,
-            CrawlOptions options = null
+            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationDirectoryCreating = null,
+            Action<DirectoryPath, DirectoryMetadata<DirectoryPath>> destinationDirectoryCreated = null,
+            CrawlOptions options = null,
+            TraversalStatistics statistics = null
         ) : base
         (
             sourceRoot,
-            directoryCrawled: (@event, dir, metadata) =>
+            options: options,
+            statistics: statistics
+        )
+        {
+            DestinationRoot = destinationRoot;
+            DirectoryCrawled = (@event, dir, metadata) =>
             {
                 directoryCrawled?.Invoke(@event, dir, metadata);  /* let client handle events first, if applicable */
 
-                var fileMove = (RecursiveMove)metadata.DirectoryCrawler;
-                options = options ?? new CopyOptions();
-                DirectoryPath destinationDirectory = Path.Combine(fileMove.DestinationRoot.FullName, dir.FullName.Substring(fileMove.RootLength));
+                DirectoryPath destinationDirectory = Path.Combine(DestinationRoot.FullName, dir.FullName.Substring(Root.Length));
 
                 switch (@event)
                 {
                     case DirectoryCrawlEvent.OnInit:
                         if (destinationDirectory.Exists)  // <- refers to the destination root
                         {
-                            if (!destinationDirectory.IsEmpty)
+                            if (!destinationDirectory.IsEmpty())
                             {
                                 throw new DirectoryCrawlException("Directory already exists and is not empty: " + destinationDirectory);
                             }
                         }
                         else
                         {
-                            creatingDestinationRootDirectory?.Invoke(destinationDirectory, metadata);
+                            destinationDirectoryCreating?.Invoke(destinationDirectory, metadata);
                             if (!options.DryRun)
                             {
                                 destinationDirectory.Create();  // <- refers to the destination root
                             }
-                            destinationRootDirectoryCreated?.Invoke(destinationDirectory, metadata);
+                            destinationDirectoryCreated?.Invoke(destinationDirectory, metadata);
                         }
                         break;
 
                     case DirectoryCrawlEvent.DirectoryEntered:
-                        creatingDestinationDirectory?.Invoke(dir, destinationDirectory, metadata);
+                        destinationDirectoryCreating?.Invoke(destinationDirectory, metadata);
                         if (!metadata.DryRun)
                         {
                             destinationDirectory.Create();
                         }
-                        destinationDirectoryCreated?.Invoke(dir, destinationDirectory, metadata);
+                        destinationDirectoryCreated?.Invoke(destinationDirectory, metadata);
                         break;
 
                     case DirectoryCrawlEvent.DirectoryExited:
-                        deletingSourceDirectory?.Invoke(dir, metadata);
-                        if (!metadata.DryRun)
-                        {
-                            dir.Delete();
-                        }
-                        sourceDirectoryDeleted?.Invoke(dir, metadata);
-                        break;
-
-                    case DirectoryCrawlEvent.OnComplete:
-                        deletingSourceRootDirectory?.Invoke(dir, metadata);
-                        if (!metadata.DryRun)
-                        {
-                            dir.Delete();  // <- refers to the source root
-                        }
-                        sourceRootDirectoryDeleted?.Invoke(dir, metadata);
+                        DoDirectoryDelete(dir, metadata);
                         break;
                 }
-            },
-            fileCrawled: (@event, file, metadata) =>
+            };
+            FileCrawled = (@event, file, metadata) =>
             {
                 fileCrawled?.Invoke(@event, file, metadata);  /* let client handle events first, if applicable */
 
-                var fileMove = (RecursiveMove)metadata.DirectoryCrawler;
-                options = options ?? new CopyOptions();
-                FilePath destinationFile = Path.Combine(fileMove.DestinationRoot.FullName, file.FullName.Substring(fileMove.RootLength));
+                FilePath destinationFile = Path.Combine(DestinationRoot.FullName, file.FullName.Substring(Root.Length));
 
                 switch (@event)
                 {
-                    case FileCrawlEvent.FileFound:
-                        movingFile?.Invoke(file, destinationFile, metadata);
-                        if (!metadata.DryRun)
-                        {
-                            file.MoveTo(destinationFile.FullName);
-                        }
-                        fileMoved?.Invoke(file, destinationFile, metadata);
+                    case FileCrawlEvent.FileProcessing:
+                        FileProcess =  /* Note: honors "dry run" mode */
+                            (file0, metadata0) =>
+                            {
+                                file0.MoveTo(destinationFile);  // uses built-in tallying
+                            };
                         break;
                 }
-            },
-            options: options
-        )
-        {
-            DestinationRoot = destinationRoot;
+            };
         }
     }
 }

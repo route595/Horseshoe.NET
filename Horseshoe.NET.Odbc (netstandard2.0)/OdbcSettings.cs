@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Horseshoe.NET.Configuration;
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 
 namespace Horseshoe.NET.Odbc
@@ -86,12 +87,15 @@ namespace Horseshoe.NET.Odbc
         {
             get
             {
+                var configUserName = Config.Get("Horseshoe.NET:Odbc:UserID");
+                var configPassword = Config.Get("Horseshoe.NET:Odbc:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:Odbc:IsEncryptedPassword");
                 return _defaultCredentials
-                    ?? Credential.Build
+                    ??
                     (
-                        Config.Get("Horseshoe.NET:Odbc:UserID"),
-                        Config.Get("Horseshoe.NET:Odbc:Password"),
-                        isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:Odbc:IsEncryptedPassword")
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                        : new Credential(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Odbc.Credentials");
             }

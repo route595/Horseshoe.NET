@@ -11,13 +11,13 @@ namespace Horseshoe.NET.IO
     public static class Extensions
     {
         /// <summary>
-        /// Tests whether a directory is devoid of any subdirectories and files
+        /// Tests whether a directory is devoid of any subdirectories and files.
         /// </summary>
-        /// <param name="dir"></param>
-        /// <returns></returns>
+        /// <param name="dir">A directory.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsEmpty(this DirectoryInfo dir)
         {
-            return !(dir.GetDirectories().Any() || dir.GetFiles().Any());
+            return !dir.GetFileSystemInfos().Any();
         }
 
         /// <summary>

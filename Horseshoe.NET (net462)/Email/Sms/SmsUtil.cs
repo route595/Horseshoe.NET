@@ -56,7 +56,7 @@ namespace Horseshoe.NET.Email.Sms
                 case "T-Mobile":
                     return Carrier.TMobile;
                 default:
-                    return (Carrier)Enum.Parse(typeof(Carrier), TextClean.RemoveWhitespace(description));
+                    return Zap.Enum<Carrier>(description);
             }
         }
 

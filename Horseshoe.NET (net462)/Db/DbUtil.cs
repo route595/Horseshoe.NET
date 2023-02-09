@@ -14,7 +14,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET.Db
 {
     /// <summary>
-    /// A collection of common, platform agnostic factory methods for Horseshoe.NET DB operations
+    /// A collection of common, platform agnostic factory methods for Horseshoe.NET DB operations.
     /// </summary>
     public static class DbUtil
     {
@@ -95,17 +95,17 @@ namespace Horseshoe.NET.Db
 
             // next, check config
             var configPart = typeof(T).Name.Replace("ConnectionInfo", "");
+            var configUserName = _Config.Get("Horseshoe.NET:" + configPart + ":UserID");
+            var configPassword = _Config.Get("Horseshoe.NET:" + configPart + ":Password");
+            var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword");
 
             var connStr = _Config.Get("Horseshoe.NET:" + configPart + ":ConnectionString");
             if (connStr != null)
             {
                 connectionInfo.ConnectionString = connStr;
-                connectionInfo.Credentials = Credential.Build
-                (
-                    _Config.Get("Horseshoe.NET:" + configPart + ":UserID"),
-                    _Config.Get("Horseshoe.NET:" + configPart + ":Password"),
-                    _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword")
-                );
+                connectionInfo.Credentials = configIsEncryptedPassword
+                    ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                    : new Credential(configUserName, configPassword);
                 journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
                 journal.AddAndWriteEntry("connection.info.source", "config-connection-string");
                 journal.Level--;
@@ -118,19 +118,25 @@ namespace Horseshoe.NET.Db
                 journal.WriteEntry("connection string name = " + connStrName);
                 connectionInfo.ConnectionString = _Config.GetConnectionString(connStrName);
                 if (connectionInfo.ConnectionString == null)
+                {
                     journal.WriteEntryAndThrow
                     (
                         Assemblies.Find("Horseshoe.NET.Config") == null
                             ? new ValidationException("No connection string named \"" + connStrName + "\" could be found perhaps due to Horseshoe.NET.Config is not installed.")
                             : new ValidationException("No connection string named \"" + connStrName + "\" could be found.")
                     );
-
-                connectionInfo.Credentials = Credential.Build
-                (
-                    _Config.Get("Horseshoe.NET:" + configPart + ":UserID"),
-                    _Config.Get("Horseshoe.NET:" + configPart + ":Password"),
-                    _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword")
-                );
+                }
+                connectionInfo.Credentials = configIsEncryptedPassword
+                    ? Credential.Build
+                      (
+                        configUserName,
+                        () => Decrypt.String(configPassword)
+                      )
+                    : Credential.Build
+                      (
+                        configUserName,
+                        configPassword
+                      );
                 journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
                 journal.AddAndWriteEntry("connection.info.source", "config-connection-string-name");
                 journal.Level--;
@@ -143,12 +149,17 @@ namespace Horseshoe.NET.Db
                 if (connStr != null)
                 {
                     connectionInfo.ConnectionString = connStr;
-                    connectionInfo.Credentials = Credential.Build
-                    (
-                        _Config.Get("Horseshoe.NET:" + configPart + ":UserID"),
-                        _Config.Get("Horseshoe.NET:" + configPart + ":Password"),
-                        _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword")
-                    );
+                    connectionInfo.Credentials = configIsEncryptedPassword
+                        ? Credential.Build
+                          (
+                            configUserName,
+                            () => Decrypt.String(configPassword)
+                          )
+                        : Credential.Build
+                          (
+                            configUserName,
+                            configPassword
+                          );
                     journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
                     journal.AddAndWriteEntry("connection.info.source", "config-data-source");
                     journal.Level--;
@@ -259,7 +270,6 @@ namespace Horseshoe.NET.Db
         /* * * * * * * * * * * * * * * * * * * * 
          *         TABLES AND COLUMNS          *
          * * * * * * * * * * * * * * * * * * * */
-        static readonly Regex SimpleColumnNamePattern = new Regex("^[A-Z0-9_]+$", RegexOptions.IgnoreCase);
 
         /// <summary>
         /// When generating the SQL for parameters it may be 
@@ -270,7 +280,7 @@ namespace Horseshoe.NET.Db
         /// <param name="platform">An optional DB platform</param>
         /// <returns></returns>
         /// <exception cref="ValidationException"></exception>
-        public static string RenderColumnName(DbParameter parameter, DbPlatform? platform = null)
+        public static string RenderColumnName(DbParameter parameter, DbPlatform platform = default)
         {
             if (Zap.String(parameter.ParameterName) == null)
                 throw new ValidationException("column name cannot be null");
@@ -285,18 +295,9 @@ namespace Horseshoe.NET.Db
         /// <param name="columnName">a column name</param>
         /// <param name="platform">An optional DB platform</param>
         /// <returns></returns>
-        public static string RenderColumnName(string columnName, DbPlatform? platform = null)
+        public static string RenderColumnName(string columnName, DbPlatform platform = default)
         {
-            if (SimpleColumnNamePattern.IsMatch(columnName))
-                return columnName;
-            switch (platform ?? DbSettings.DefaultPlatform)
-            {
-                case DbPlatform.SqlServer:
-                    return "[" + columnName + "]";
-                case DbPlatform.Oracle:
-                default:
-                    return "\"" + columnName + "\"";
-            }
+            return DbUtilAbstractions.RenderColumnName(columnName, platform: platform);
         }
 
         /// <summary>
@@ -345,7 +346,7 @@ namespace Horseshoe.NET.Db
             {
                 if (reader.IsDBNull(i))
                     continue;
-                items[i] = NormalizeDbValue(reader[i]);
+                items[i] = Zap.Object(reader[i]);
                 if (items[i] is string stringValue)
                 {
                     if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
@@ -389,7 +390,7 @@ namespace Horseshoe.NET.Db
             {
                 if (await reader.IsDBNullAsync(i))
                     continue;
-                items[i] = NormalizeDbValue(reader[i]);
+                items[i] = Zap.Object(reader[i]);
                 if (items[i] is string stringValue)
                 {
                     if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
@@ -639,83 +640,14 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Prepare an object for insertion into a SQL statement
+        /// Prepare an object for insertion into a SQL statement.
         /// </summary>
-        /// <param name="obj">An object</param>
-        /// <param name="platform">An optional DB platform</param>
+        /// <param name="obj">An object.</param>
+        /// <param name="platform">An optional DB platform.</param>
         /// <returns></returns>
-        public static string Sqlize(object obj, DbPlatform? platform = null)
+        public static string Sqlize(object obj, DbPlatform platform = default)
         {
-            if (obj == null || obj is DBNull) return "NULL";
-            if (obj is bool boolValue) obj = boolValue ? 1 : 0;
-            if (obj is byte || obj is short || obj is int || obj is long || obj is float || obj is double || obj is decimal) return obj.ToString();
-            if (obj is DateTime dateTimeValue)
-            {
-                string dateTimeFormat;
-                switch (platform ?? DbSettings.DefaultPlatform)
-                {
-                    case DbPlatform.SqlServer:
-                        dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";  // format inspired by Microsoft Sql Server Managament Studio
-                        break;
-                    case DbPlatform.Oracle:
-                        dateTimeFormat = "MM/dd/yyyy hh:mm:ss tt";   // format inspired by dbForge for Oracle
-                        var oracleDateFormat = "mm/dd/yyyy hh:mi:ss am";
-                        return "TO_DATE('" + dateTimeValue.ToString(dateTimeFormat) + "', '" + oracleDateFormat + "')";  // example: TO_DATE('02/02/2014 3:35:57 PM', 'mm/dd/yyyy hh:mi:ss am')
-                    default:
-                        dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
-                        break;
-                }
-                return "'" + dateTimeValue.ToString(dateTimeFormat) + "'";
-            }
-            if (obj is SqlLiteral sqlLiteral)
-            {
-                return sqlLiteral.Render();
-            }
-            var returnValue = "'" + obj.ToString().Replace("'", "''") + "'";
-            if (platform == DbPlatform.SqlServer && !TextUtil.IsASCIIPrintable(returnValue, spacesAreConsideredPrintable: true, tabsAreConsideredPrintable: true, newLinesAreConsideredPrintable: true))
-            {
-                return "N" + returnValue;
-            }
-            return returnValue;
-        }
-
-        /// <summary>
-        /// Remove <c>DbNull</c> from data read in from a DB
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public static object NormalizeDbValue(object obj)
-        {
-            if (obj == null || obj is DBNull)
-                return null;
-            return obj;
-        }
-
-        /* * * * * * * * * * * * * * * * * * * * 
-         *           MISCELLANEOUS             *
-         * * * * * * * * * * * * * * * * * * * */
-        internal static object WrangleParameterValue(object value)
-        {
-            if (value == null)
-                return DBNull.Value;
-            if (value.GetType().IsEnum)
-                return value.ToString();
-            return value;
-        }
-
-        internal static DbType CalculateDbType(object value)
-        {
-            if (value is string) return DbType.String;
-            if (value is byte) return DbType.Byte;
-            if (value is short) return DbType.Int16;
-            if (value is int) return DbType.Int32;
-            if (value is long) return DbType.Int64;
-            if (value is decimal) return DbType.Decimal;
-            if (value is double) return DbType.Double;
-            if (value is bool) return DbType.Boolean;
-            if (value is DateTime) return DbType.DateTime;
-            if (value is Guid) return DbType.Guid;
-            return DbType.Object;
+            return DbUtilAbstractions.Sqlize(obj, platform: platform);
         }
 
         /// <summary>

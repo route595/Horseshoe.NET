@@ -70,11 +70,11 @@ namespace Horseshoe.NET.Db
         /// <exception cref="ThisShouldNeverHappenException"></exception>
         public virtual string Render(DbPlatform? platform = null)
         {
-            var columnExpression = ColumnName.Render(platform: platform ?? Platform);
+            var columnExpression = ColumnName.Render(platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
             switch (Mode)
             {
                 case CompareMode.Equals:
-                    return columnExpression + " = " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                    return columnExpression + " = " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 case CompareMode.Contains:
                     return columnExpression + " LIKE '%" + Criteria[0] + "%'";
                 case CompareMode.StartsWith:
@@ -82,21 +82,21 @@ namespace Horseshoe.NET.Db
                 case CompareMode.EndsWith:
                     return columnExpression + " LIKE '%" + Criteria[0] + "'";
                 case CompareMode.GreaterThan:
-                    return columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                    return columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 case CompareMode.GreaterThanOrEquals:
-                    return columnExpression + " >= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                    return columnExpression + " >= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 case CompareMode.LessThan:
-                    return columnExpression + " < " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                    return columnExpression + " < " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 case CompareMode.LessThanOrEquals:
-                    return columnExpression + " <= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform);
+                    return columnExpression + " <= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 case CompareMode.In:
                     return Criteria.Count == 0
                         ? "1 = 0"
-                        : columnExpression + " IN ( " + string.Join(", ", Criteria.Select(val => DbUtil.Sqlize(val, platform: platform ?? Platform))) + " )";
+                        : columnExpression + " IN ( " + string.Join(", ", Criteria.Select(val => DbUtil.Sqlize(val, platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default))) + " )";
                 case CompareMode.Between:
-                    return columnExpression + " BETWEEN " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform) + " AND " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform);
+                    return columnExpression + " BETWEEN " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " AND " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
                 case CompareMode.BetweenExclusive:
-                    return "( " + columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform) + " AND " + columnExpression + " < " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform) + " )";
+                    return "( " + columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " AND " + columnExpression + " < " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " )";
                 case CompareMode.IsNull:
                     return columnExpression + " IS NULL";
                 case CompareMode.IsNullOrWhitespace:

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Horseshoe.NET.Iterator;
+using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.Collections
@@ -353,47 +354,27 @@ namespace Horseshoe.NET.Collections
             return In(obj, collection, comparer: comparer);
         }
 
-        /// <summary>
-        /// Inspired by SQL, determines if an item is found in a collection
-        /// </summary>
-        /// <typeparam name="T">Type of collection</typeparam>
-        /// <param name="obj">The item to locate</param>
-        /// <param name="collection">The collection to search</param>
-        /// <param name="comparer">Optional, an equality comparer</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
+        /// <inheritdoc cref="CollectionUtilAbstractions.In"/>
         public static bool In<T>(this T obj, IEnumerable<T> collection, IEqualityComparer<T> comparer = null)
         {
-            if (collection == null) return false;
-            return comparer != null
-                ? collection.Contains(obj, comparer)
-                : collection.Contains(obj);
+            return CollectionUtilAbstractions.In(obj, collection, comparer);
         }
 
-        /// <summary>
-        /// Inspired by SQL, determines if a string is one of a supplied array of values (not case-sensitive)
-        /// </summary>
-        /// <param name="text">The string to locate</param>
-        /// <param name="collection">The string collection to search</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
+        /// <inheritdoc cref="TextUtilAbstractions.In(string, bool, string[])"/>
         public static bool InIgnoreCase(this string text, params string[] collection)
         {
-            return InIgnoreCase(text, collection as IEnumerable<string>);
+            return TextUtilAbstractions.In(text, true, collection);
         }
 
         /// <summary>
-        /// Inspired by SQL, determines if a string is found in a collection (not case-sensitive)
+        /// Inspired by SQL, determines if a string is found in a collection of strings (not case-sensitive).
         /// </summary>
-        /// <param name="text">The string to locate</param>
-        /// <param name="collection">The string collection to search</param>
+        /// <param name="text">The <c>string</c> to search match.</param>
+        /// <param name="collection">A <c>string</c> collection to search.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool InIgnoreCase(this string text, IEnumerable<string> collection)
         {
-            if (collection == null) return false;
-            foreach (var s in collection)
-            {
-                if (string.Equals(s, text, StringComparison.OrdinalIgnoreCase)) return true;
-            }
-            return false;
+            return InIgnoreCase(text, collection is string[] array ? array : collection.ToArray());
         }
 
         /// <summary>
@@ -882,23 +863,16 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
-        /// Adds a value to a dictionary, if the key already exist the previous value is replaced
+        /// Adds a value to a dictionary, if the key already exist the previous value is replaced.
         /// </summary>
-        /// <typeparam name="TKey">Type of key</typeparam>
-        /// <typeparam name="TValue">Type of value</typeparam>
-        /// <param name="dictionary">A dictionary</param>
-        /// <param name="key">A key</param>
-        /// <param name="value">A value</param>
+        /// <typeparam name="TKey">Type of key.</typeparam>
+        /// <typeparam name="TValue">Type of value.</typeparam>
+        /// <param name="dictionary">A dictionary.</param>
+        /// <param name="key">A key.</param>
+        /// <param name="value">A value.</param>
         public static void AddOrReplace<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
         {
-            if (dictionary.ContainsKey(key))
-            {
-                dictionary[key] = value;
-            }
-            else
-            {
-                dictionary.Add(key, value);
-            }
+            DictionaryUtilAbstractions.AddOrReplace(dictionary, key, value);
         }
 
         /// <summary>

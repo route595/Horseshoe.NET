@@ -28,12 +28,12 @@ namespace Horseshoe.NET.OracleDb
         (
             string tableName,
             Filter where,
-            OracleDbConnectionInfo connectionInfo = null,
+            OracleDbConnectionInfo? connectionInfo = null,
             bool drop = false,
             bool purge = false,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -75,8 +75,8 @@ namespace Horseshoe.NET.OracleDb
             bool drop = false,
             bool purge = false,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling

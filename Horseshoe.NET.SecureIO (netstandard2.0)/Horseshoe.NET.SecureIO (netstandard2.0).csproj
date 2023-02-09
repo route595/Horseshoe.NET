@@ -5,9 +5,9 @@
     <RootNamespace>Horseshoe.NET.SecureIO</RootNamespace>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595 Software Services</Company>
-    <Copyright>Copyright © 2022 Route 595 Software Services</Copyright>
-    <Version>2.0.5</Version>
-    <Description>Adds SFTP to the Horseshoe.NET suite (uses SSH.NET)</Description>
+    <Copyright>Copyright © Route 595 Software Services 2023</Copyright>
+    <Version>3.0.0</Version>
+    <Description>Adds SFTP to the Horseshoe.NET suite (uses SSH.NET).</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.SecureIO</AssemblyName>
@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
   </ItemGroup>
 

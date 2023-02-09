@@ -1,4 +1,6 @@
-﻿namespace Horseshoe.NET.Ftp
+﻿using Horseshoe.NET.Crypto;
+
+namespace Horseshoe.NET.Ftp
 {
     /// <summary>
     /// Configuration settings for Horseshoe.NET.Ftp
@@ -71,8 +73,17 @@
         {
             get
             {
+                var configUserName = _Config.Get("Horseshoe.NET:Ftp:UserName");
+                var configPassword = _Config.Get("Horseshoe.NET:Ftp:Password");
+                var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:Ftp:IsEncryptedPassword");
+                var configDomain = _Config.Get("Horseshoe.NET:Ftp:Domain");
                 return _defaultCredentials
-                    ?? Credential.Build(_Config.Get("Horseshoe.NET:Ftp:UserName"), _Config.Get("Horseshoe.NET:Ftp:Password"), isEncryptedPassword: _Config.Get<bool>("Horseshoe.NET:Ftp:IsEncryptedPassword"), domain: _Config.Get("Horseshoe.NET:Ftp:Domain"))
+                    ?? 
+                    (
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword), domain: configDomain)
+                        : new Credential(configUserName, configPassword, domain: configDomain)
+                    )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Ftp.Credentials");
             }
             set

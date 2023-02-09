@@ -24,14 +24,14 @@ namespace TestConsole
                     Console.WriteLine("phrase:");
                     Console.WriteLine(phrase1);
                     Console.WriteLine("revealed:");
-                    Console.WriteLine(TextUtil.Reveal(phrase1, new RevealOptions{ CharsToReveal = RevealCharCategory.All }));
+                    Console.WriteLine(TextUtil.Reveal(phrase1, new RevealOptions{ CharsToReveal = CharRevealPolicy.All }));
                     Console.WriteLine();
                     Console.WriteLine("phrase:");
                     Console.WriteLine(phrase2);
                     Console.WriteLine("revealed:");
-                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = RevealCharCategory.All }));
+                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = CharRevealPolicy.All }));
                     Console.WriteLine("revealed (newlines preserved):");
-                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = RevealCharCategory.All, PreserveNewLines = true}));
+                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = CharRevealPolicy.All, PreserveNewLines = true}));
                 }
             ),
             BuildMenuRoutine
@@ -41,10 +41,10 @@ namespace TestConsole
                 {
                     var phrase = "Å¢t Øñę\u0000";
                     Console.WriteLine("phrase: " + phrase);
-                    Console.WriteLine("to ASCII: " + TextClean.ToASCIIPrintable(phrase));
+                    Console.WriteLine("to ASCII: " + TextClean.ToAsciiPrintable(phrase));
                     Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
                     Console.WriteLine();
-                    Console.WriteLine("to xtd ASCII: " + TextClean.ToASCIIPrintable(phrase, extendedASCII: true));
+                    Console.WriteLine("to xtd ASCII: " + TextClean.ToAsciiPrintable(phrase));
                     Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
                 }
             ),

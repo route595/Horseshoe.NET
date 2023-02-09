@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -10,9 +9,9 @@ namespace Horseshoe.NET.WebForms
 {
     public class WebFormsBootstrap3Alert : WebControl
     {
-        public Bootstrap3.Alert Alert { get; }
+        public Bootstrap.v3.Alert Alert { get; }
 
-        public WebFormsBootstrap3Alert(Bootstrap3.Alert alert)
+        public WebFormsBootstrap3Alert(Bootstrap.v3.Alert alert)
         {
             Alert = alert;
         }

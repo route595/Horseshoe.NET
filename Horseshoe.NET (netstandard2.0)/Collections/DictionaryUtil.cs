@@ -5,7 +5,7 @@ using System.Linq;
 namespace Horseshoe.NET.Collections
 {
     /// <summary>
-    /// A collection of utility methods for <c>IDictionary</c>
+    /// A collection of utility methods for <c>IDictionary</c>.
     /// </summary>
     public static class DictionaryUtil
     {

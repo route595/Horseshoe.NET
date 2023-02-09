@@ -8,7 +8,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET.Collections
 {
     /// <summary>
-    /// A collection of utility methods for <c>IEnumerable</c>
+    /// A set of utility methods for collections.
     /// </summary>
     public static class CollectionUtil
     {

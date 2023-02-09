@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.ObjectsAndTypes;
@@ -14,7 +13,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET
 {
     /// <summary>
-    /// Factory methods for converting objects and strings.
+    /// Factory methods for converting objects and strings.  'Zap' means converting blank values to <c>null</c>.
     /// </summary>
     public static class Zap
     {
@@ -27,18 +26,7 @@ namespace Horseshoe.NET
         /// <seealso cref="String"/>
         public static object Object(object obj)
         {
-            if (obj == null || obj is DBNull) return null;
-            if (obj is string stringValue) return _String(stringValue);
-            if (obj is StringValues stringValuesValue)
-            {
-                switch (stringValuesValue.Count)
-                {
-                    case 0: return null;
-                    case 1: return _String(stringValuesValue.Single());
-                    default: return string.Join(", ", stringValuesValue.Select(s => _String(s)));
-                };
-            }
-            return obj;
+            return ZapAbstractions.Object(obj);
         }
 
         /// <summary>
@@ -48,23 +36,7 @@ namespace Horseshoe.NET
         /// <returns>The source <c>object</c> to a <c>string</c> or <c>null</c>.</returns>
         public static string String(object obj)
         {
-            if ((obj = Object(obj)) == null)
-                return null;
-
-            return _String
-            (
-                obj is string stringValue
-                    ? stringValue
-                    : obj.ToString() ?? ""
-            );
-        }
-
-        private static string _String(string stringValue)
-        {
-            var trimmed = stringValue.Trim();
-            if (trimmed.Length == 0)
-                return null;
-            return trimmed;
+            return ZapAbstractions.String(obj);
         }
 
         /// <summary>
@@ -758,7 +730,7 @@ namespace Horseshoe.NET
                 try
                 {
                     if (obj is string stringValue)
-                        return System.Enum.Parse(type, TextClean.RemoveWhitespace(stringValue), ignoreCase);
+                        return System.Enum.Parse(type, TextClean.RemoveAllWhitespace(stringValue), ignoreCase);
                     return System.Enum.ToObject(type, obj);
                 }
                 catch (Exception ex)
@@ -785,7 +757,7 @@ namespace Horseshoe.NET
                 try
                 {
                     if (obj is string stringValue)
-                        return System.Enum.Parse(type, TextClean.RemoveWhitespace(stringValue), ignoreCase);
+                        return System.Enum.Parse(type, TextClean.RemoveAllWhitespace(stringValue), ignoreCase);
                     return System.Enum.ToObject(type, obj);
                 }
                 catch (Exception ex)

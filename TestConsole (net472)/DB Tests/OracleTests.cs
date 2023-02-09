@@ -14,16 +14,10 @@ namespace TestConsole.DbTests
 {
     class OracleTests : RoutineX
     {
-        private static OracleDbConnectionInfo NetCoreConnectionInfo { get; } = new OracleDbConnectionInfo
+        private static OracleDbConnectionInfo MyConnectionInfo { get; } = new OracleDbConnectionInfo
         {
-            Server = new OraServer("ALIAS1", port: 1560, serviceName: "SVC1"),
+            Server = new OraServer("DBSRV729", port: 1761, serviceName: "OMSDAQA"),
             OracleCredentials = new Credential("USER1", "PWD1")
-        };
-
-        private static OracleDbConnectionInfo NetFmwkConnectionInfo { get; } = new OracleDbConnectionInfo
-        {
-            Server = new OraServer("ALIAS1", serviceName: "SVC1"),
-            //OracleCredentials = new Credential("USER1", "PWD1")
         };
 
         static OracleTests()
@@ -40,7 +34,7 @@ namespace TestConsole.DbTests
                 {
                     var sysdateStatement = "SELECT SYSDATE FROM DUAL";
                     var charStatement = "SELECT 'char statement' FROM DUAL";
-                    using (var conn = OracleDbUtil.LaunchConnection(NetCoreConnectionInfo))
+                    using (var conn = OracleDbUtil.LaunchConnection(MyConnectionInfo))
                     {
                         Console.Write("SYSDATE - DataTable (via adapter): ");
                         using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, sysdateStatement))
@@ -98,7 +92,7 @@ namespace TestConsole.DbTests
                 {
                     var inParamProc = "CARL_FETCHES.FETCH_LKUP_CODES";
                     var outParamProc = "CARL_FETCHES.FETCH_LKUP_TYPES2";
-                    using (var conn = OracleDbUtil.LaunchConnection(NetCoreConnectionInfo))
+                    using (var conn = OracleDbUtil.LaunchConnection(MyConnectionInfo))
                     {
                         Console.WriteLine(inParamProc + ":");
                         Console.Write("  DataTable (via adapter): ");
@@ -158,7 +152,7 @@ namespace TestConsole.DbTests
                         {
                             OracleDbUtil.BuildInParam(value: "MAINTYPE")
                         },
-                        connectionInfo: NetCoreConnectionInfo,
+                        connectionInfo: MyConnectionInfo,
                         dbCapture: dbCapture
                     );
                     Console.WriteLine("Test #1 Results:");
@@ -174,7 +168,7 @@ namespace TestConsole.DbTests
                         {
                             OracleDbUtil.BuildVarchar2OutParam(name: "message")
                         },
-                        connectionInfo: NetCoreConnectionInfo,
+                        connectionInfo: MyConnectionInfo,
                         dbCapture: dbCapture,
                         rowParser: RowParser.ScalarString
                     );

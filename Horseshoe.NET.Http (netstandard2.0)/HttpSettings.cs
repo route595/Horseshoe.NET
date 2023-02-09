@@ -1,4 +1,5 @@
 ﻿using Horseshoe.NET.Configuration;
+using Horseshoe.NET.Crypto;
 
 namespace Horseshoe.NET.Http
 {
@@ -32,8 +33,16 @@ namespace Horseshoe.NET.Http
         {
             get
             {
+                var configUserName = Config.Get("Horseshoe.NET:Http:UserName");
+                var configPassword = Config.Get("Horseshoe.NET:Http:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:Http:IsEncryptedPassword");
                 return _defaultWebServiceCredentials
-                    ?? Credential.Build(Config.Get("Horseshoe.NET:Http:UserName"), Config.Get("Horseshoe.NET:Http:Password"), isEncryptedPassword: Config.Get<bool>("Horseshoe.NET:Http:IsEncryptedPassword"), domain: DefaultDomain)
+                    ??
+                    (
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                        : new Credential(configUserName, configPassword)
+                    )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Http.Credentials");
             }
             set

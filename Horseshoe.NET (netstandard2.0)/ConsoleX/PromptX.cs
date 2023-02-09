@@ -581,7 +581,7 @@ namespace Horseshoe.NET.ConsoleX
 
             if (list != null && list.Any())
             {
-                var index = Value<int>(choicePrompt, required: required, validator: (i) => AssertIntInRange(i, 0 + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1), list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1)));
+                var index = Value<int>(choicePrompt, required: required, validator: (i) => Assert.InRange(i, 0 + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1), list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? -1 : 0)));
                 RenderX.Pad(padAfter);
 
                 choice = list[index + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : -1)];
@@ -987,21 +987,6 @@ namespace Horseshoe.NET.ConsoleX
                 }
             }
             return menuSelection;
-        }
-
-        /// <summary>
-        /// Throws an <c>AssertionFailedException</c> if <c>value</c> is not in the specified range.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <exception cref="AssertionFailedException"></exception>
-        public static void AssertIntInRange(int value, int? min = null, int? max = null)
-        {
-            if (min.HasValue && value < min)
-                throw new AssertionFailedException("The integer " + value + " is less than the minimum: " + min);
-            if (max.HasValue && value > max)
-                throw new AssertionFailedException("The integer " + value + " is greater than the maximum: " + max);
         }
     }
 }

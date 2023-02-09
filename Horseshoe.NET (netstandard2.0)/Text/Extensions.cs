@@ -206,18 +206,6 @@ namespace Horseshoe.NET.Text
             return TextUtil.ConvertToUnsecureString(secureString);
         }
 
-        /// <inheritdoc cref="TextUtil.IsASCIIPrintable(char, bool, bool, bool, bool)" />
-        public static bool IsASCIIPrintable(this char c, bool spacesAreConsideredPrintable = false, bool tabsAreConsideredPrintable = false, bool newLinesAreConsideredPrintable = false, bool extendedASCII = false)
-        {
-            return TextUtil.IsASCIIPrintable(c, spacesAreConsideredPrintable: spacesAreConsideredPrintable, tabsAreConsideredPrintable: tabsAreConsideredPrintable, newLinesAreConsideredPrintable: newLinesAreConsideredPrintable, extendedASCII: extendedASCII);
-        }
-
-        /// <inheritdoc cref="TextUtil.IsASCIIPrintable(string, bool, bool, bool, bool)" />
-        public static bool IsASCIIPrintable(this string text, bool spacesAreConsideredPrintable = false, bool tabsAreConsideredPrintable = false, bool newLinesAreConsideredPrintable = false, bool extendedASCII = false)
-        {
-            return TextUtil.IsASCIIPrintable(text, spacesAreConsideredPrintable: spacesAreConsideredPrintable, tabsAreConsideredPrintable: tabsAreConsideredPrintable, newLinesAreConsideredPrintable: newLinesAreConsideredPrintable, extendedASCII: extendedASCII);
-        }
-
         /// <summary>
         /// Tests to see if <c>text</c> contains at least one of a group of <c>string</c>s.
         /// </summary>

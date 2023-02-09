@@ -10,11 +10,11 @@
         /// </summary>
         /// <param name="alertType"></param>
         /// <returns></returns>
-        public static string ToCssClass(this Bootstrap3.AlertType alertType)
+        public static string ToCssClass(this v3.AlertType alertType)
         {
             switch (alertType)
             {
-                case Bootstrap3.AlertType.Error:
+                case v3.AlertType.Error:
                     return "alert-danger";
                 default:
                     return "alert-" + alertType.ToString().ToLower();
@@ -26,11 +26,11 @@
         /// </summary>
         /// <param name="alertType"></param>
         /// <returns></returns>
-        public static string ToCssClass(this Bootstrap4.AlertType alertType)
+        public static string ToCssClass(this v4.AlertType alertType)
         {
             switch (alertType)
             {
-                case Bootstrap4.AlertType.Error:
+                case v4.AlertType.Error:
                     return "alert-danger";
                 default:
                     return "alert-" + alertType.ToString().ToLower();

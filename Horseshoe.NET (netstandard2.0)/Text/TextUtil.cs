@@ -264,9 +264,6 @@ namespace Horseshoe.NET.Text
                 return options.ValueIfNull;
             if (text.Length == 0)
                 return options.ValueIfEmpty;
-            var whiteSpaces = CharLib.AllWhitespaces;
-            if (text.All(c => whiteSpaces.Contains(c)))
-                return options.ValueIfWhitespace;
 
             var sb = new StringBuilder();
             ReadOnlySpan<char> span = text.AsSpan();
@@ -278,7 +275,7 @@ namespace Horseshoe.NET.Text
             }
 
             // handle new-lines
-            if ((options.CharsToReveal & RevealCharCategory.Whitespaces) == RevealCharCategory.Whitespaces && (options.WhitespacesToReveal & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
+            if ((options.CharsToReveal & CharRevealPolicy.Newlines) == CharRevealPolicy.Newlines)
             {
                 sb.Replace(options.ValueIfCr + options.ValueIfLf, options.ValueIfCrLf);
                 if (options.PreserveNewLines)
@@ -301,197 +298,136 @@ namespace Horseshoe.NET.Text
         {
             int i = c;
             options = options ?? new RevealOptions();
-            var all = options.CharsToReveal == RevealCharCategory.All;
 
             // group 1 - whitespaces and newlines
-            if (IsWhitespace(c, extendedASCII: true))
+            if (char.IsWhiteSpace(c))
             {
-                if ((options.CharsToReveal & RevealCharCategory.Whitespaces) == RevealCharCategory.Whitespaces)
+                switch (c)
                 {
-                    switch (c)
-                    {
-                        case ' ':
-                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
-                                return options.ValueIfSpace;
-                            return " ";
-                        case '\u00A0':  // non-breaking space
-                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace)
-                                return options.ValueIfNbSpace;
-                            return "\u00A0";
-                        case '\t':
-                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
-                                return options.ValueIfTab;
-                            return "\t";
-                        case '\r':
-                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
-                                return options.ValueIfCr;
-                            return "\r";
-                        case '\n':
-                            if (all || (options.WhitespacesToReveal & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
-                                return options.ValueIfLf;
-                            return "\n";
-                    }
+                    case ' ': // 32
+                        if ((options.CharsToReveal & CharRevealPolicy.Spaces) == CharRevealPolicy.Spaces)
+                            return options.ValueIfSpace;
+                        break;
+                    case '\u00A0':  // 160 - non-breaking space
+                        if ((options.CharsToReveal & CharRevealPolicy.NonbreakingSpaces) == CharRevealPolicy.NonbreakingSpaces)
+                            return options.ValueIfNbSpace;
+                        break;
+                    case '\t': // 9
+                        if ((options.CharsToReveal & CharRevealPolicy.Tabs) == CharRevealPolicy.Tabs)
+                            return options.ValueIfTab;
+                        break;
+                    case '\r': // 13
+                        if ((options.CharsToReveal & CharRevealPolicy.Newlines) == CharRevealPolicy.Newlines)
+                            return options.ValueIfCr;
+                        break;
+                    case '\n': // 10
+                        if ((options.CharsToReveal & CharRevealPolicy.Newlines) == CharRevealPolicy.Newlines)
+                            return options.ValueIfLf;
+                        break;
                 }
                 return new string(c, 1);
             }
 
-            // group 2 - ASCII printables
-            if (IsASCIIPrintable(c))
+            // group 2 - nonprintable chars e.g. control chars (except 9, 10 and 13 whitespaces)
+            if (!TextUtilAbstractions.IsPrintable(c))
             {
-                if ((options.CharsToReveal & RevealCharCategory.ASCIIChars) == RevealCharCategory.ASCIIChars)
-                {
-                    // special case - apostrophe(')
-                    if (c == '\'')
-                        return "['\\\''-" + i + "]";
-
-                    return "['" + c + "'-" + i + "]";
-                }
-                return new string(c, 1);
-            }
-
-            // group 3 - control chars (except whitespaces)
-            if (char.IsControl(c) && !c.In(9, 10, 13))
-            {
-                if ((options.CharsToReveal & RevealCharCategory.ControlChars) == RevealCharCategory.ControlChars)
+                if ((options.CharsToReveal & CharRevealPolicy.AsciiNonprintables) == CharRevealPolicy.AsciiNonprintables)
                 {
                     switch (i)
                     {
-                        case 0:
-                            return "[NUL]";
-                        case 1:
-                            return "[SOH]";
-                        case 2:
-                            return "[STX]";
-                        case 3:
-                            return "[ETX]";
-                        case 4:
-                            return "[EOT]";
-                        case 5:
-                            return "[ENQ]";
-                        case 6:
-                            return "[ACK]";
-                        case 7:
-                            return "[BEL]";
-                        case 8:
-                            return "[BS]";
-                        case 11:
-                            return "[VT]";
-                        case 12:
-                            return "[FF]";
-                        case 14:
-                            return "[SO]";
-                        case 15:
-                            return "[SI]";
-                        case 16:
-                            return "[DLE]";
-                        case 17:
-                            return "[DC1]";
-                        case 18:
-                            return "[DC2]";
-                        case 19:
-                            return "[DC3]";
-                        case 20:
-                            return "[DC4]";
-                        case 21:
-                            return "[NAK]";
-                        case 22:
-                            return "[SYN]";
-                        case 23:
-                            return "[EDB]";
-                        case 24:
-                            return "[CAN]";
-                        case 25:
-                            return "[EM]";
-                        case 26:
-                            return "[SUB]";
-                        case 27:
-                            return "[ESC]";
-                        case 28:
-                            return "[FS]";
-                        case 29:
-                            return "[GS]";
-                        case 30:
-                            return "[RS]";
-                        case 31:
-                            return "[US]";
-                        case 127:
-                            return "[DEL]";
-                        case 128:
-                            return "[PAD]";
-                        case 129:
-                            return "[HOP]";
-                        case 130:
-                            return "[BPH]";
-                        case 131:
-                            return "[NBH]";
-                        case 132:
-                            return "[IND]";
-                        case 133:
-                            return "[NEL]";
-                        case 134:
-                            return "[SSA]";
-                        case 135:
-                            return "[ESA]";
-                        case 136:
-                            return "[HTS]";
-                        case 137:
-                            return "[HTJ]";
-                        case 138:
-                            return "[VTS]";
-                        case 139:
-                            return "[PLD]";
-                        case 140:
-                            return "[PLU]";
-                        case 141:
-                            return "[RI]";
-                        case 142:
-                            return "[SS2]";
-                        case 143:
-                            return "[SS3]";
-                        case 144:
-                            return "[DCS]";
-                        case 145:
-                            return "[PU1]";
-                        case 146:
-                            return "[PU2]";
-                        case 147:
-                            return "[STS]";
-                        case 148:
-                            return "[CCH]";
-                        case 149:
-                            return "[MW]";
-                        case 150:
-                            return "[SPA]";
-                        case 151:
-                            return "[EPA]";
-                        case 152:
-                            return "[SOS]";
-                        case 153:
-                            return "[SGCI]";
-                        case 154:
-                            return "[SCI]";
-                        case 155:
-                            return "[CSI]";
-                        case 156:
-                            return "[ST]";
-                        case 157:
-                            return "[OSC]";
-                        case 158:
-                            return "[PM]";
-                        case 159:
-                            return "[APC]";
-                        default:
-                            return "[ctrl-" + i + "]"; // this should never happen
+                        case 0: return "[NUL]";
+                        case 1: return "[SOH]";
+                        case 2: return "[STX]";
+                        case 3: return "[ETX]";
+                        case 4: return "[EOT]";
+                        case 5: return "[ENQ]";
+                        case 6: return "[ACK]";
+                        case 7: return "[BEL]";
+                        case 8: return "[BS]";
+                        case 11: return "[VT]";
+                        case 12: return "[FF]";
+                        case 14: return "[SO]";
+                        case 15: return "[SI]";
+                        case 16: return "[DLE]";
+                        case 17: return "[DC1]";
+                        case 18: return "[DC2]";
+                        case 19: return "[DC3]";
+                        case 20: return "[DC4]";
+                        case 21: return "[NAK]";
+                        case 22: return "[SYN]";
+                        case 23: return "[EDB]";
+                        case 24: return "[CAN]";
+                        case 25: return "[EM]";
+                        case 26: return "[SUB]";
+                        case 27: return "[ESC]";
+                        case 28: return "[FS]";
+                        case 29: return "[GS]";
+                        case 30: return "[RS]";
+                        case 31: return "[US]";
+                        case 127: return "[DEL]";
                     }
                 }
+
+                if ((options.CharsToReveal & CharRevealPolicy.UnicodeNonprintables) == CharRevealPolicy.UnicodeNonprintables)
+                {
+                    switch (i)
+                    {
+                        case 128: return "[PAD]";
+                        case 129: return "[HOP]";
+                        case 130: return "[BPH]";
+                        case 131: return "[NBH]";
+                        case 132: return "[IND]";
+                        case 133: return "[NEL]";
+                        case 134: return "[SSA]";
+                        case 135: return "[ESA]";
+                        case 136: return "[HTS]";
+                        case 137: return "[HTJ]";
+                        case 138: return "[VTS]";
+                        case 139: return "[PLD]";
+                        case 140: return "[PLU]";
+                        case 141: return "[RI]";
+                        case 142: return "[SS2]";
+                        case 143: return "[SS3]";
+                        case 144: return "[DCS]";
+                        case 145: return "[PU1]";
+                        case 146: return "[PU2]";
+                        case 147: return "[STS]";
+                        case 148: return "[CCH]";
+                        case 149: return "[MW]";
+                        case 150: return "[SPA]";
+                        case 151: return "[EPA]";
+                        case 152: return "[SOS]";
+                        case 153: return "[SGCI]";
+                        case 154: return "[SCI]";
+                        case 155: return "[CSI]";
+                        case 156: return "[ST]";
+                        case 157: return "[OSC]";
+                        case 158: return "[PM]";
+                        case 159: return "[APC]";
+                        default:
+                            return "[??-" + i + "]";
+                    }
+                }
+
                 return new string(c, 1);
             }
 
-            // group 4 - all other chars (e.g. extended ASCII, Unicode including nonprintables)
-            if ((options.CharsToReveal & RevealCharCategory.Others) == RevealCharCategory.Others)
+            // group 3a - printable ASCII chars
+            if (i <= 126 && (options.CharsToReveal & CharRevealPolicy.AsciiPrintables) == CharRevealPolicy.AsciiPrintables)
+            {
+                // special case - apostrophe(')
+                if (c == '\'')
+                    return "['\\\''-" + i + "]";
+
+                return "['" + c + "'-" + i + "]";
+            }
+
+            // group 3b - printable Unicode chars
+            if ((options.CharsToReveal & CharRevealPolicy.UnicodePrintables) == CharRevealPolicy.UnicodePrintables)
             {
                 return "['" + c + "'-" + i + "]";
             }
+
             return new string(c, 1);
         }
 
@@ -626,48 +562,16 @@ namespace Horseshoe.NET.Text
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Creates a <c>SecureString</c> instance from text.
-        /// </summary>
-        /// <param name="unsecureString">A text <c>string</c>.</param>
-        /// <returns>A <c>SecureString</c>.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <inheritdoc cref="TextUtilAbstractions.ConvertToSecureString"/>
         public static SecureString ConvertToSecureString(string unsecureString)
         {
-            if (unsecureString == null) throw new ArgumentNullException(nameof(unsecureString));
-
-            var secureString = new SecureString();
-            foreach (char c in unsecureString)
-            {
-                secureString.AppendChar(c);
-            }
-            secureString.MakeReadOnly();
-            return secureString;
+            return TextUtilAbstractions.ConvertToSecureString(unsecureString);
         }
 
-        /// <summary>
-        /// Restores a <c>string</c> from a <c>SecureString</c>.
-        /// </summary>
-        /// <param name="secureString">A <c>SecureString</c>.</param>
-        /// <returns>A <c>string</c>.</returns>
-        /// <remarks>
-        /// ref: https://blogs.msdn.microsoft.com/fpintos/2009/06/12/how-to-properly-convert-securestring-to-string/
-        /// </remarks>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <inheritdoc cref="TextUtilAbstractions.ConvertToUnsecureString"/>
         public static string ConvertToUnsecureString(SecureString secureString)
         {
-            if (secureString == null) throw new ArgumentNullException(nameof(secureString));
-
-            IntPtr unmanagedString = IntPtr.Zero;
-            try
-            {
-                unmanagedString = Marshal.SecureStringToGlobalAllocUnicode(secureString);
-                return Marshal.PtrToStringUni(unmanagedString);
-            }
-            finally
-            {
-                Marshal.ZeroFreeGlobalAllocUnicode(unmanagedString);
-            }
+            return TextUtilAbstractions.ConvertToUnsecureString(secureString);
         }
 
         /// <summary>
@@ -683,69 +587,44 @@ namespace Horseshoe.NET.Text
             return html;
         }
 
-        /// <summary>
-        /// Returns <c>true</c> if <c>text</c> contains only printable chars
-        /// </summary>
-        /// <param name="text">a text string</param>
-        /// <param name="spacesAreConsideredPrintable"><c>true</c> to consider spaces as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
-        /// <param name="tabsAreConsideredPrintable"><c>true</c> to consider tabs as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
-        /// <param name="newLinesAreConsideredPrintable"><c>true</c> to consider new lines as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
-        /// <param name="extendedASCII"><c>true</c> if spaces should include non-breaking spaces</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsASCIIPrintable(string text, bool spacesAreConsideredPrintable = false, bool tabsAreConsideredPrintable = false, bool newLinesAreConsideredPrintable = false, bool extendedASCII = false)
+        /// <inheritdoc cref="TextUtilAbstractions.IsAsciiPrintable(char, bool, bool, bool)"/>
+        public static bool IsAsciiPrintable(char c, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
         {
-            return text.All(c => IsASCIIPrintable(c, spacesAreConsideredPrintable: spacesAreConsideredPrintable, tabsAreConsideredPrintable: tabsAreConsideredPrintable, newLinesAreConsideredPrintable: newLinesAreConsideredPrintable, extendedASCII: extendedASCII));
+            return TextUtilAbstractions.IsAsciiPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+        }
+
+        /// <inheritdoc cref="TextUtilAbstractions.IsAsciiPrintable(string, bool, bool, bool)"/>
+        public static bool IsAsciiPrintable(string text, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
+        {
+            return TextUtilAbstractions.IsAsciiPrintable(text, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+        }
+
+        /// <inheritdoc cref="TextUtilAbstractions.IsPrintable(char, bool, bool, bool)"/>
+        public static bool IsPrintable(char c, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
+        {
+            return TextUtilAbstractions.IsPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+        }
+
+        /// <inheritdoc cref="TextUtilAbstractions.IsPrintable(string, bool, bool, bool)"/>
+        public static bool IsPrintable(string text, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
+        {
+            return TextUtilAbstractions.IsPrintable(text, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
         }
 
         /// <summary>
-        /// Returns <c>true</c> if <c>c</c> represents a printable char
+        /// Returns <c>true</c> if <c>c</c> represents a control.
         /// </summary>
         /// <param name="c">a char</param>
-        /// <param name="spacesAreConsideredPrintable"><c>true</c> to consider spaces as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
-        /// <param name="tabsAreConsideredPrintable"><c>true</c> to consider tabs as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
-        /// <param name="newLinesAreConsideredPrintable"><c>true</c> to consider new lines as printable, <c>false</c> is the default indicating that Horseshoe.NET sees whitespaces as a separate category</param>
-        /// <param name="extendedASCII"><c>true</c> if spaces should include non-breaking spaces</param>
+        /// <param name="excludeTabs">If <c>true</c>, tabs do not count as controls. Default is <c>false</c>.</param>
+        /// <param name="excludeNewlines">If <c>true</c>, newlines do not count as controls. Default is <c>false</c>.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsASCIIPrintable(char c, bool spacesAreConsideredPrintable = false, bool tabsAreConsideredPrintable = false, bool newLinesAreConsideredPrintable = false, bool extendedASCII = false)
+        public static bool IsAsciiControl(char c, bool excludeTabs = false, bool excludeNewlines = false)
         {
-            if (c == 9)
-                return tabsAreConsideredPrintable;
-            if (c.In(10, 13))
-                return newLinesAreConsideredPrintable;
-            if (c == 32 || (extendedASCII && c == 160))
-                return spacesAreConsideredPrintable;
-            return (c >= 33 && c <= 126) || (extendedASCII && c >= 161 && c <= 255);
-        }
-
-        /// <summary>
-        /// Returns <c>true</c> if <c>c</c> represents a control
-        /// </summary>
-        /// <param name="c">a char</param>
-        /// <param name="spacesAreConsideredControls"><c>true</c> matches <c>char.IsControl()</c> behavior, <c>false</c> is the default Horseshoe.NET behavior</param>
-        /// <param name="tabsAreConsideredControls"><c>true</c> matches <c>char.IsControl()</c> behavior, <c>false</c> is the default Horseshoe.NET behavior</param>
-        /// <param name="newLinesAreConsideredControls"><c>true</c> matches <c>char.IsControl()</c> behavior, <c>false</c> is the default Horseshoe.NET behavior</param>
-        /// <param name="extendedASCII"><c>true</c> if extended ASCII controls should be included</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsASCIIControl(char c, bool spacesAreConsideredControls = false, bool tabsAreConsideredControls = false, bool newLinesAreConsideredControls = false, bool extendedASCII = false)
-        {
-            if (c == 9)
-                return tabsAreConsideredControls;
-            if (c.In(10, 13))
-                return newLinesAreConsideredControls;
-            if (c == 32)
-                return spacesAreConsideredControls;
-            return (c >= 0 && c <= 31) || c == 127 || (extendedASCII && c >= 128 && c <= 159);
-        }
-
-        /// <summary>
-        /// Returns <c>true</c> if <c>c</c> represents a space, new line or tab (non-breaking space included if <c>extendedASCII == true</c>)
-        /// </summary>
-        /// <param name="c">a char</param>
-        /// <param name="extendedASCII"><c>true</c> if non-breaking space should be included</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsWhitespace(char c, bool extendedASCII = false)
-        {
-            return c.In(9, 10, 13, 32) || (extendedASCII && c == 160);
+            if (excludeTabs && c == 9)
+                return false;
+            if (excludeNewlines && (c == 10 || c == 13))
+                return false;
+            return (c >= 0 && c <= 31) || c == 127;
         }
 
         internal static IFormatProvider GetProvider(IFormatProvider provider, string locale)

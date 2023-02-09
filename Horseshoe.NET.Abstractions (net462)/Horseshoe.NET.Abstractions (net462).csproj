@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AD82CBAA-FD68-40B0-AB19-57F255505EFB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Horseshoe.NET</RootNamespace>
+    <AssemblyName>Horseshoe.NET.Abstractions</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Xml\Horseshoe.NET.Abstractions.xml</DocumentationFile>
+    <NoWarn>
+    </NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>portable</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.7.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyException.cs" />
+    <Compile Include="AssertAbstractions.cs" />
+    <Compile Include="AssertionFailedException.cs" />
+    <Compile Include="AuthenticationException.cs" />
+    <Compile Include="BenignException.cs" />
+    <Compile Include="Bootstrap\AlertMessageDetailsRenderingPolicy.cs" />
+    <Compile Include="Bootstrap\ExceptionRenderingPolicy.cs" />
+    <Compile Include="Bootstrap\v3\AlertType.cs" />
+    <Compile Include="Bootstrap\v4\AlertType.cs" />
+    <Compile Include="Collections\CollectionBoundary.cs" />
+    <Compile Include="Collections\CollectionUtilAbstractions.cs" />
+    <Compile Include="Collections\CollectionUtilMessage.cs" />
+    <Compile Include="Collections\DictionaryUtilAbstractions.cs" />
+    <Compile Include="Collections\ImmutableDictionary.cs" />
+    <Compile Include="Compare\Comparator.cs" />
+    <Compile Include="Compare\CompareException.cs" />
+    <Compile Include="Compare\CompareMode.cs" />
+    <Compile Include="Compare\IComparator.cs" />
+    <Compile Include="Compare\RegexComparator.cs" />
+    <Compile Include="Compare\ValidationFlaggedAction.cs" />
+    <Compile Include="ConsoleX\ConsoleNavigation.cs" />
+    <Compile Include="ConsoleX\ExceptionRendering.cs" />
+    <Compile Include="ConsoleX\ListIndexPolicy.cs" />
+    <Compile Include="ConsoleX\LoopMode.cs" />
+    <Compile Include="ConsoleX\MenuAndListRealtimeConfigurator.cs" />
+    <Compile Include="ConsoleX\Title.cs" />
+    <Compile Include="ConversionException.cs" />
+    <Compile Include="Credential.cs" />
+    <Compile Include="Crypto\CryptoOptions.cs" />
+    <Compile Include="Crypto\HashOptions.cs" />
+    <Compile Include="DataImport\BlankRowPolicy.cs" />
+    <Compile Include="DataImport\DataError.cs" />
+    <Compile Include="DataImport\DataErrorHandlingPolicy.cs" />
+    <Compile Include="DataImport\DataImportException.cs" />
+    <Compile Include="DataImport\ImportConstants.cs" />
+    <Compile Include="DataImport\InvalidDatumException.cs" />
+    <Compile Include="DataImport\StopImportingDataException.cs" />
+    <Compile Include="DateAndTime\DisplayOptions.cs" />
+    <Compile Include="DateAndTime\RangeOptions.cs" />
+    <Compile Include="DateAndTime\SetOptions.cs" />
+    <Compile Include="DateAndTime\TimePartDisplay.cs" />
+    <Compile Include="Db\AndGroupFilter.cs" />
+    <Compile Include="Db\AutoSort.cs" />
+    <Compile Include="Db\ColumnExpression.cs" />
+    <Compile Include="Db\ConnectionInfo.cs" />
+    <Compile Include="Db\ConnectionStringPart.cs" />
+    <Compile Include="Db\DbCapture.cs" />
+    <Compile Include="Db\DbPlatform.cs" />
+    <Compile Include="Db\DbUtilAbstractions.cs" />
+    <Compile Include="Db\IFilter.cs" />
+    <Compile Include="Db\IFilterFactory.cs" />
+    <Compile Include="Db\IGroupFilter.cs" />
+    <Compile Include="Db\OrGroupFilter.cs" />
+    <Compile Include="Db\Parameter.cs" />
+    <Compile Include="Db\SqlLiteral.cs" />
+    <Compile Include="Email\Sms\Carrier.cs" />
+    <Compile Include="Email\SmtpConnectionInfo.cs" />
+    <Compile Include="EnvironmentVariableNotFoundException.cs" />
+    <Compile Include="ExceptionInfo.cs" />
+    <Compile Include="ExceptionTypeRenderingPolicy.cs" />
+    <Compile Include="Ftp\FtpFileMasks.cs" />
+    <Compile Include="Ftp\FtpOperationException.cs" />
+    <Compile Include="IO\DirectoryCrawler\CopyMode.cs" />
+    <Compile Include="IO\DirectoryCrawler\CopyOptions.cs" />
+    <Compile Include="IO\DirectoryCrawler\CrawlMode.cs" />
+    <Compile Include="IO\DirectoryCrawler\CrawlOptions.cs" />
+    <Compile Include="IO\DirectoryCrawler\DirectoryCrawlEvent.cs" />
+    <Compile Include="IO\DirectoryCrawler\DirectoryCrawlException.cs" />
+    <Compile Include="IO\DirectoryCrawler\DirectoryCrawlHaltedException.cs" />
+    <Compile Include="IO\DirectoryCrawler\FileCrawlEvent.cs" />
+    <Compile Include="IO\DirectoryCrawler\SkipReason.cs" />
+    <Compile Include="IO\DirectoryCrawler\TraversalStatistics.cs" />
+    <Compile Include="IO\DirectoryPath[net4x].cs" />
+    <Compile Include="IO\FileFilter\DirectoryFilter.cs" />
+    <Compile Include="IO\FileFilter\DirectoryFilterGroup.cs" />
+    <Compile Include="IO\FileFilter\DirectoryNameFilter.cs" />
+    <Compile Include="IO\FileFilter\FileDateModifiedFilter.cs" />
+    <Compile Include="IO\FileFilter\FileFilter.cs" />
+    <Compile Include="IO\FileFilter\FileFilterGroup.cs" />
+    <Compile Include="IO\FileFilter\FileNameFilter.cs" />
+    <Compile Include="IO\FileFilter\FileSizeFilter.cs" />
+    <Compile Include="IO\FileFilter\FilterMode.cs" />
+    <Compile Include="IO\FileFilter\GroupFilterMode.cs" />
+    <Compile Include="IO\FilePath.cs" />
+    <Compile Include="IO\FileSize.cs" />
+    <Compile Include="IO\FileSizeUnit.cs" />
+    <Compile Include="IO\FileType.cs" />
+    <Compile Include="IO\FileUtilAbstractions.cs" />
+    <Compile Include="IO\NamedMemoryStream.cs" />
+    <Compile Include="Iterator\ContinueNextException.cs" />
+    <Compile Include="Iterator\ExitIterationException.cs" />
+    <Compile Include="Iterator\IteratorMetadata.cs" />
+    <Compile Include="ObjectsAndTypes\ObjectMappingException.cs" />
+    <Compile Include="ObjectsAndTypes\ObjectMemberException.cs" />
+    <Compile Include="ObjectsAndTypes\ObjectUtilAbstractions.cs" />
+    <Compile Include="ObjectsAndTypes\PropertyValue.cs" />
+    <Compile Include="ObjectsAndTypes\TypeNotFoundException.cs" />
+    <Compile Include="Password.cs" />
+    <Compile Include="Primitives\ObjectValues.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PrunePolicy.cs" />
+    <Compile Include="ReconstitutedException.cs" />
+    <Compile Include="StrictSensitiveException.cs" />
+    <Compile Include="Text\AutoTruncate.cs" />
+    <Compile Include="Text\CharRevealPolicy.cs" />
+    <Compile Include="Text\HorizontalPosition.cs" />
+    <Compile Include="Text\RevealOptions.cs" />
+    <Compile Include="Text\TextClean\NonprintablesPolicy.cs" />
+    <Compile Include="Text\TextConstants.cs" />
+    <Compile Include="Text\TextGrid\BorderPolicy.cs" />
+    <Compile Include="Text\TextGrid\IColumn.cs" />
+    <Compile Include="Text\TextUtilAbstractions.cs" />
+    <Compile Include="Text\TruncateMarker.cs" />
+    <Compile Include="ThisShouldNeverHappenException.cs" />
+    <Compile Include="TraceJournal.cs" />
+    <Compile Include="UtilityException.cs" />
+    <Compile Include="ValidationException.cs" />
+    <Compile Include="XmlDoc\Assembly.cs" />
+    <Compile Include="XmlDoc\Class.cs" />
+    <Compile Include="XmlDoc\DocElement.cs" />
+    <Compile Include="XmlDoc\Enum.cs" />
+    <Compile Include="XmlDoc\EnumValue.cs" />
+    <Compile Include="XmlDoc\Exception.cs" />
+    <Compile Include="XmlDoc\Interface.cs" />
+    <Compile Include="XmlDoc\Member.cs" />
+    <Compile Include="XmlDoc\Method.cs" />
+    <Compile Include="XmlDoc\NestedDocElement.cs" />
+    <Compile Include="XmlDoc\Param.cs" />
+    <Compile Include="XmlDoc\Property.cs" />
+    <Compile Include="XmlDoc\Struct.cs" />
+    <Compile Include="XmlDoc\Type.cs" />
+    <Compile Include="XmlDoc\XmlDocParseException.cs" />
+    <Compile Include="ZapAbstractions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="assembly-signing-key.snk" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

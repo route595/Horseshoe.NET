@@ -1,4 +1,6 @@
-﻿namespace Horseshoe.NET.Email
+﻿using Horseshoe.NET.Crypto;
+
+namespace Horseshoe.NET.Email
 {
     /// <summary>
     /// Configuration settings for Horseshoe.NET.Email
@@ -71,8 +73,17 @@
         {
             get
             {
+                var configUserName = _Config.Get("Horseshoe.NET:Email:UserName");
+                var configPassword = _Config.Get("Horseshoe.NET:Email:Password");
+                var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:Email:IsEncryptedPassword");
+                var configDomain = _Config.Get("Horseshoe.NET:Email:Domain");
                 return _defaultCredentials
-                    ?? Credential.Build(_Config.Get("Horseshoe.NET:Email:UserName"), _Config.Get("Horseshoe.NET:Email:Password"), isEncryptedPassword: _Config.Get<bool>("Horseshoe.NET:Email:IsEncryptedPassword"), domain: _Config.Get("Horseshoe.NET:Email:Domain"))
+                    ??
+                    (
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword), domain: configDomain)
+                        : new Credential(configUserName, configPassword, domain: configDomain)
+                    )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Email.Credentials");
             }
             set

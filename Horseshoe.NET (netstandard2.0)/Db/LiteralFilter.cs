@@ -67,7 +67,7 @@
         /// <returns>A SQL expression.</returns>
         public string Render(DbPlatform? platform = null)
         {
-            return (ColumnName.HasValue ? ColumnName.Value.Render(platform: platform ?? Platform) + " " : "") 
+            return (ColumnName.HasValue ? ColumnName.Value.Render(platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " " : "") 
                 + SqlLiteral.Render();
         }
     }

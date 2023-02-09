@@ -29,12 +29,12 @@ namespace Horseshoe.NET.OracleDb
         public static int Procedure
         (
             string procedureName,
-            IEnumerable<DbParameter> parameters = null,
-            OracleDbConnectionInfo connectionInfo = null,
-            DbCapture dbCapture = null,
+            IEnumerable<DbParameter>? parameters = null,
+            OracleDbConnectionInfo? connectionInfo = null,
+            DbCapture? dbCapture = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -71,11 +71,11 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string procedureName,
-            IEnumerable<DbParameter> parameters = null,
-            DbCapture dbCapture = null,
+            IEnumerable<DbParameter>? parameters = null,
+            DbCapture? dbCapture = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -118,11 +118,11 @@ namespace Horseshoe.NET.OracleDb
         public static int SQL
         (
             string statement,
-            IEnumerable<DbParameter> parameters = null,
-            OracleDbConnectionInfo connectionInfo = null,
+            IEnumerable<DbParameter>? parameters = null,
+            OracleDbConnectionInfo? connectionInfo = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling
@@ -158,10 +158,10 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string statement,
-            IEnumerable<DbParameter> parameters = null,
+            IEnumerable<DbParameter>? parameters = null,
             int? commandTimeout = null,
-            Action<OracleCommand> alterCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand>? alterCommand = null,
+            TraceJournal? journal = null
         )
         {
             // trace journaling

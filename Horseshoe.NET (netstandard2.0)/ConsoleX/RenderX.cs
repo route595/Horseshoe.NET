@@ -116,7 +116,6 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="columns">the number of columns in which to render the collection</param>
         /// <param name="padBefore">the number of new lines to render before the collection</param>
         /// <param name="padAfter">the number of new lines to render after the collection</param>
-        /// <param name="requiredIndicator">if the collection belonging to this title is a required selection, mark with this or the default '*'</param>
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
         public static void List<T>
         (
@@ -128,11 +127,10 @@ namespace Horseshoe.NET.ConsoleX
             int columns = 1,
             int padBefore = 0,
             int padAfter = 0,
-            string requiredIndicator = "*",
             Action<TextGrid> configureTextGrid = null
         )
         {
-            List(list?.ToList(), title: title, indexPolicy: indexPolicy, listConfigurator: listConfigurator, renderer: renderer, columns: columns, padBefore: padBefore, padAfter: padAfter, requiredIndicator: requiredIndicator, configureTextGrid: configureTextGrid);
+            List(list?.ToList(), title: title, indexPolicy: indexPolicy, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: padAfter, configureTextGrid: configureTextGrid);
         }
 
         /// <summary>

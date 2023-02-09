@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 
 namespace Horseshoe.NET.OleDb
@@ -88,12 +89,15 @@ namespace Horseshoe.NET.OleDb
         {
             get
             {
+                var configUserName = _Config.Get("Horseshoe.NET:OleDb:UserID");
+                var configPassword = _Config.Get("Horseshoe.NET:OleDb:Password");
+                var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:OleDb:IsEncryptedPassword");
                 return _defaultCredentials
-                    ?? Credential.Build
+                    ??
                     (
-                        _Config.Get("Horseshoe.NET:OleDb:UserID"),
-                        _Config.Get("Horseshoe.NET:OleDb:Password"),
-                        isEncryptedPassword: _Config.Get<bool>("Horseshoe.NET:OleDb:IsEncryptedPassword")
+                        configIsEncryptedPassword
+                        ? Credential.Build(configUserName,() => Decrypt.String(configPassword))
+                        : new Credential(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("OleDb.Credentials");
             }

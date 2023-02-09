@@ -118,8 +118,9 @@ namespace Horseshoe.NET.Crypto
         /// </para>
         /// </example>
         /// </param>
-        /// <param name="hashOptions">hash options</param>
-        /// <param name="crawlOptions">crawl options</param>
+        /// <param name="hashOptions">Hash options.</param>
+        /// <param name="crawlOptions">Optional traversal engine options.</param>
+        /// <param name="statistics">Optional traversal engine statistics.</param>
         public RecursiveHash
         (
             DirectoryPath root,
@@ -127,38 +128,38 @@ namespace Horseshoe.NET.Crypto
             Action<FileCrawlEvent, FilePath, FileMetadata<string>> fileCrawled = null,
             Action<FilePath, string, FileMetadata<string>> fileHashed = null,
             HashOptions hashOptions = null,
-            CrawlOptions crawlOptions = null
+            CrawlOptions crawlOptions = null,
+            TraversalStatistics statistics = null
         ) : base
         (
             root,
-            directoryCrawled: (@event, dir, metadata) =>
+            options: crawlOptions,
+            statistics: statistics
+        )
+        {
+            HashOptions = hashOptions;
+            DirectoryCrawled = (@event, dir, metadata) =>
             {
+                directoryCrawled?.Invoke(@event, dir, metadata);  /* let client handle events first, if applicable */
                 switch (@event)
                 {
                     case DirectoryCrawlEvent.OnInit:
-                        var hashes = ((RecursiveHash)metadata.DirectoryCrawler).hashes;  // long way to get a reference to local field "hashes"
                         hashes.Clear();
                         break;
                 }
-                directoryCrawled?.Invoke(@event, dir, metadata);  /* let client handle events too, if applicable */
-            },
-            fileCrawled: (@event, file, metadata) =>
+            };
+            FileCrawled = (@event, file, metadata) =>
             {
+                fileCrawled?.Invoke(@event, file, metadata);  /* let client handle events first, if applicable */
                 switch (@event)
                 {
-                    case FileCrawlEvent.FileFound:
-                        var hashes = ((RecursiveHash)metadata.DirectoryCrawler).hashes;  // long way to get a reference to local field "hashes"
-                        var hash = Hash.String(file, options: hashOptions);
+                    case FileCrawlEvent.FileProcessing:
+                        var hash = Hash.String(file, options: HashOptions);
                         hashes.Add(hash);
                         fileHashed?.Invoke(file, hash, metadata);
                         break;
                 }
-                fileCrawled?.Invoke(@event, file, metadata);  /* let client handle events too, if applicable */
-            },
-            options: crawlOptions
-        )
-        {
-            HashOptions = hashOptions;
+            };
         }
 
         /// <summary>
