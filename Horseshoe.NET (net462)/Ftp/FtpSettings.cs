@@ -82,7 +82,7 @@ namespace Horseshoe.NET.Ftp
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword), domain: configDomain)
-                        : new Credential(configUserName, configPassword, domain: configDomain)
+                        : Credential.Build(configUserName, configPassword, domain: configDomain)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Ftp.Credentials");
             }

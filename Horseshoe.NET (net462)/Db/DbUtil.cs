@@ -105,7 +105,7 @@ namespace Horseshoe.NET.Db
                 connectionInfo.ConnectionString = connStr;
                 connectionInfo.Credentials = configIsEncryptedPassword
                     ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                    : new Credential(configUserName, configPassword);
+                    : Credential.Build(configUserName, configPassword);
                 journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
                 journal.AddAndWriteEntry("connection.info.source", "config-connection-string");
                 journal.Level--;

@@ -139,7 +139,7 @@ namespace Horseshoe.NET.SqlDb
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                        : new Credential(configUserName, configPassword)
+                        : Credential.Build(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("SqlDb.Credentials");
             }

@@ -47,6 +47,8 @@ namespace Horseshoe.NET
         /// <seealso cref="Credential.Build(string, string, string)" />
         public Password(string password)
         {
+            if (string.IsNullOrEmpty(password))
+                SecurePassword = null;
             SecurePassword = TextUtilAbstractions.ConvertToSecureString(password);
         }
 

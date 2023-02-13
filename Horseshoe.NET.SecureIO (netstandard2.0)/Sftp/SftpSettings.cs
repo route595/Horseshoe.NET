@@ -60,7 +60,7 @@ namespace Horseshoe.NET.SecureIO.Sftp
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                        : new Credential(configUserName, configPassword)
+                        : Credential.Build(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Sftp.Credentials");
             }

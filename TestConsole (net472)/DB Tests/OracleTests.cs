@@ -16,8 +16,14 @@ namespace TestConsole.DbTests
     {
         private static OracleDbConnectionInfo MyConnectionInfo { get; } = new OracleDbConnectionInfo
         {
+            Server = new OraServer("SERVER", port: 1761, serviceName: "SERVICE"),
+            OracleCredentials = new Credential("USER", "PASSWORD")
+        };
+
+        private static OracleDbConnectionInfo MyOmsConnectionInfo { get; } = new OracleDbConnectionInfo
+        {
             Server = new OraServer("DBSRV729", port: 1761, serviceName: "OMSDAQA"),
-            OracleCredentials = new Credential("USER1", "PWD1")
+            OracleCredentials = new Credential("DAU00056", "Cq4SPh0G0hqZbp")
         };
 
         static OracleTests()
@@ -178,6 +184,29 @@ namespace TestConsole.DbTests
                     Console.WriteLine("  " + list.First());
                     Console.WriteLine("  " + "... +" + (list.Count() - 1) + " more");
                     Console.WriteLine("Output message: " + dbCapture.GetString("message"));
+                    Console.WriteLine();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "OMS OracleDb Tests",
+                () =>
+                {
+                    var dbCapture = new OracleDbCapture();
+                    var objsArrays = Query.SQL.AsObjects
+                    (
+                        @"SELECT user_name, full_name 
+                        FROM lgenms.CES_USER
+                        WHERE FULL_NAME LIKE '%DCC%'
+                        AND ACTIVE = 'Y'",
+                        connectionInfo: MyOmsConnectionInfo,
+                        dbCapture: dbCapture
+                    );
+                    Console.WriteLine("Columns:");
+                    Console.WriteLine(string.Join(Environment.NewLine, dbCapture.DataColumns.Select(s => "  " + s)));
+                    Console.WriteLine();
+                    Console.WriteLine("Data:");
+                    Console.WriteLine(string.Join(Environment.NewLine, objsArrays.Select(objs => "  " + string.Join(", ", objs))));
                     Console.WriteLine();
                 }
             )

@@ -5,7 +5,7 @@
     <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>3.0.0</Version>
+    <Version>3.0.0.1</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A set of common methods and classes for generating and handling JWTs and a subset of basic OAuth operations.</Description>

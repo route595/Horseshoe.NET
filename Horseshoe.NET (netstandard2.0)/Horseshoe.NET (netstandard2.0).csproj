@@ -5,7 +5,7 @@
     <RootNamespace>Horseshoe.NET</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Version>3.0.0</Version>
+    <Version>3.0.0.1</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A suite of .NET utilities with a dual purpose: simplify coding tasks and offer a variety of new and unique features.</Description>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions (net462)\Horseshoe.NET.Abstractions (net462).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
   </ItemGroup>
 
 </Project>

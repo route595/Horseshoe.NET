@@ -162,7 +162,7 @@ namespace Horseshoe.NET.OracleDb
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                        : new Credential(configUserName, configPassword)
+                        : Credential.Build(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("OracleDb.Credentials");
             }

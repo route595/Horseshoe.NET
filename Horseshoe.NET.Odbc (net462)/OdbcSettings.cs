@@ -95,7 +95,7 @@ namespace Horseshoe.NET.Odbc
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                        : new Credential(configUserName, configPassword)
+                        : Credential.Build(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Odbc.Credentials");
             }
