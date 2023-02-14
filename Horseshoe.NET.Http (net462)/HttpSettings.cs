@@ -40,8 +40,8 @@ namespace Horseshoe.NET.Http
                     ??
                     (
                         configIsEncryptedPassword
-                        ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                        : Credential.Build(configUserName, configPassword)
+                            ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+                            : Credential.Build(configUserName, configPassword)
                     )
                     ?? OrganizationalDefaultSettings.Get<Credential?>("Http.Credentials");
             }

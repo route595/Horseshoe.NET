@@ -46,7 +46,9 @@ namespace Horseshoe.NET
         /// <returns>A <c>Credential</c> or <c>null</c> if <c>userName == null</c>.</returns>
         public static Credential? Build(string userName, string password, string domain = null)
         {
-            return Build(userName, new Password(password), domain: domain);
+            if (userName == null)
+                return null;
+            return new Credential(userName, password, domain: domain);
         }
 
         /// <summary>
@@ -58,31 +60,22 @@ namespace Horseshoe.NET
         /// <returns>A <c>Credential</c> or <c>null</c> if <c>userName == null</c>.</returns>
         public static Credential? Build(string userName, Func<string> getPassword, string domain = null)
         {
-            return Build(userName, new Password(getPassword), domain: domain);
-        }
-
-        /// <summary>
-        /// Builds a <c>Credential</c> from its constituent parts.
-        /// </summary>
-        /// <param name="userName">A user name or ID.</param>
-        /// <param name="password">A <c>Password</c> (can substitute with a password <c>string</c> or <c>SecureString</c>).</param>
-        /// <param name="domain">Optional, the network domain.</param>
-        /// <returns>A <c>Credential</c> or <c>null</c> if <c>userName == null</c>.</returns>
-        public static Credential? Build(string userName, Password password, string domain = null)
-        {
             if (userName == null)
                 return null;
-            return new Credential(userName, password, domain: domain);
+            return new Credential(userName, getPassword.Invoke(), domain: domain);
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            string pwdMsg = Password.HasSecurePassword
-                ? "has-password"
-                : "no-password";
-
-            return UserName + " [" + pwdMsg + "]" + (Domain != null ? " @" + Domain : "");
+            return string.Concat
+            (
+                UserName,
+                " [",
+                Password.HasSecurePassword ? "has-password" : "no-password",
+                "]",
+                Domain != null ? " @" + Domain : ""
+            );
         }
 
         /// <summary>

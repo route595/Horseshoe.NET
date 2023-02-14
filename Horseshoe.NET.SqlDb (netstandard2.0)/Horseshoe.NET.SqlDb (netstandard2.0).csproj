@@ -6,7 +6,7 @@
     <Description>A typesafe, object-oriented ADO.NET-based SQL Server data access utility.</Description>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
-    <Version>3.0.0.1</Version>
+    <Version>3.0.0.2</Version>
     <Copyright>Copyright © 2020-2023 Route 595</Copyright>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>

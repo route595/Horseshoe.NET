@@ -63,9 +63,8 @@ namespace Horseshoe.NET
         /// </summary>
         /// <param name="getPassword">A no-arg function for getting a password <c>string</c>.</param>
         /// <seealso cref="Credential.Build(string, string, string)" />
-        public Password(Func<string> getPassword)
+        public Password(Func<string> getPassword) : this(getPassword.Invoke())
         {
-            SecurePassword = TextUtilAbstractions.ConvertToSecureString(getPassword.Invoke());
         }
 
         /// <summary>
