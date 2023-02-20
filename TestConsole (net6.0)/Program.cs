@@ -54,7 +54,7 @@ class Program : ConsoleXApp
     private IList<MenuObject> GetGroupedRoutines()
     {
         var menuObjects = new List<MenuObject>();
-        var routineGroups = FindMainMenuRoutines()
+        var routineGroups = FindRoutines()
             .GroupBy(r => r.GetType().Namespace);
         foreach (var grp in routineGroups)
         {

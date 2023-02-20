@@ -6,12 +6,13 @@ using System.Data.SqlClient;
 using System.Text;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.SqlDb.Meta;
 
 namespace Horseshoe.NET.SqlDb
 {
     public static class SqlDbUtil
     {
-        public static string BuildConnectionString(string dataSource, string initialCatalog, bool hasCredentials, IDictionary<string,string> additionalConnectionAttributes, int? connectionTimeout)
+        public static string BuildConnectionString(DbServer dataSource = null, string initialCatalog = null, bool hasCredentials = false, IDictionary<string,string> additionalConnectionAttributes = null, int? connectionTimeout = null)
         {
             if (dataSource == null)
             {
@@ -19,7 +20,7 @@ namespace Horseshoe.NET.SqlDb
             }
 
             // data source
-            var sb = new StringBuilder("Data Source=" + dataSource.Replace(":", ","));  // DBSVR02:9999 -> Data Source=DBSVR02,9999;...
+            var sb = new StringBuilder("Data Source=" + dataSource.DataSource.Replace(":", ","));  // DBSVR02:9999 -> Data Source=DBSVR02,9999;
 
             // initial catalog
             if (initialCatalog != null)
@@ -53,7 +54,7 @@ namespace Horseshoe.NET.SqlDb
 
         public static string BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(SqlDbSettings.DefaultDataSource, SqlDbSettings.DefaultInitialCatalog, SqlDbSettings.DefaultCredentials.HasValue, SqlDbSettings.DefaultAdditionalConnectionAttributes, SqlDbSettings.DefaultConnectionTimeout);
+            return BuildConnectionString(SqlDbSettings.DefaultDataSource, initialCatalog: SqlDbSettings.DefaultInitialCatalog, hasCredentials: SqlDbSettings.DefaultCredentials.HasValue, additionalConnectionAttributes: SqlDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: SqlDbSettings.DefaultConnectionTimeout);
         }
 
         public static SqlConnection LaunchConnection

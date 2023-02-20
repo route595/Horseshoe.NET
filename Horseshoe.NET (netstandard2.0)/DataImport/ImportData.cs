@@ -29,15 +29,12 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
             public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedText.AsStrings()");
                 journal.Level++;
 
@@ -65,10 +62,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedText.AsStrings()");
                 journal.Level++;
 
@@ -95,10 +89,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<object[]> AsObjects(string rawData, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedText.AsObjects()");
                 journal.Level++;
 
@@ -124,10 +115,7 @@ namespace Horseshoe.NET.DataImport
             public static DataImport AsDataImport(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedText.AsDataImport()");
                 journal.Level++;
 
@@ -208,10 +196,7 @@ namespace Horseshoe.NET.DataImport
             public static DataImport AsDataImport(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedText.AsDataImport()");
                 journal.Level++;
 
@@ -379,10 +364,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsStrings()");
                 journal.Level++;
 
@@ -408,10 +390,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsStringsAsync()");
                 journal.Level++;
 
@@ -439,10 +418,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsStrings()");
                 journal.Level++;
 
@@ -470,10 +446,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsStringsAsync()");
                 journal.Level++;
 
@@ -500,10 +473,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<object[]> AsObjects(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsObjects()");
                 journal.Level++;
 
@@ -530,10 +500,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsObjectsAsync()");
                 journal.Level++;
 
@@ -559,10 +526,7 @@ namespace Horseshoe.NET.DataImport
             public static DataImport AsDataImport(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImport()");
                 journal.Level++;
 
@@ -634,10 +598,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImportAsync()");
                 journal.Level++;
 
@@ -711,10 +672,7 @@ namespace Horseshoe.NET.DataImport
             public static DataImport AsDataImport(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImport()");
                 journal.Level++;
 
@@ -788,10 +746,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImportAsync()");
                 journal.Level++;
 
@@ -869,10 +824,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<string[]> AsStrings(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthText.AsStrings()");
                 journal.Level++;
 
@@ -898,10 +850,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<object[]> AsObjects(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthText.AsObjects()");
                 journal.Level++;
 
@@ -927,10 +876,7 @@ namespace Horseshoe.NET.DataImport
             public static DataImport AsDataImport(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthText.AsDataImport()");
                 journal.Level++;
 
@@ -1064,10 +1010,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthTextFile.AsStrings()");
                 journal.Level++;
 
@@ -1093,10 +1036,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthTextFile.AsStringsAsync()");
                 journal.Level++;
 
@@ -1122,10 +1062,7 @@ namespace Horseshoe.NET.DataImport
             public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthTextFile.AsObjects()");
                 journal.Level++;
 
@@ -1151,10 +1088,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthTextFile.AsObjectsAsync()");
                 journal.Level++;
 
@@ -1180,10 +1114,7 @@ namespace Horseshoe.NET.DataImport
             public static DataImport AsDataImport(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthTextFile.AsDataImport()");
                 journal.Level++;
 
@@ -1255,10 +1186,7 @@ namespace Horseshoe.NET.DataImport
             public static async Task<DataImport> AsDataImportAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportData.FixedWidthTextFile.AsDataImportAsync()");
                 journal.Level++;
 

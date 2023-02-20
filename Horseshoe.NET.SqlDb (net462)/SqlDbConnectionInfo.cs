@@ -11,21 +11,21 @@ namespace Horseshoe.NET.SqlDb
          * public string ConnectionString { get; set; }
          * public string ConnectionStringName { get; set; }
          * public bool IsEncryptedPassword { get; set; }
-         * public string DataSource { get; set; }
+         * public string DataSource { get; set; }  --  HIDDEN!
          * public Credential? Credentials { get; set; }
          * public IDictionary<string, string> AdditionalConnectionAttributes  { get; set; }
          * public DbPlatform? Platform  { get; set; }  // overridden here
          */
 
-        private DbServer _server;
+        private DbServer _dataSource;
 
-        public DbServer Server
+        public new DbServer DataSource
         {
-            get { return _server; }
+            get { return _dataSource; }
             set
             {
-                _server = value;
-                DataSource = _server?.DataSource;
+                _dataSource = value;
+                base.DataSource = _dataSource?.DataSource;
             }
         }
 
@@ -47,14 +47,14 @@ namespace Horseshoe.NET.SqlDb
             ObjectUtil.MapProperties(connectionInfo, this);
         }
 
-        public SqlDbConnectionInfo(DbServer server, SqlDbConnectionInfo connectionInfo) : this(connectionInfo)
+        public SqlDbConnectionInfo(DbServer dataSource, SqlDbConnectionInfo connectionInfo) : this(connectionInfo)
         {
-            Server = server;
+            DataSource = dataSource;
         }
 
         public override string BuildConnectionString()
         {
-            return SqlDbUtil.BuildConnectionString(DataSource, InitialCatalog, Credentials != null, AdditionalConnectionAttributes, ConnectionTimeout);
+            return SqlDbUtil.BuildConnectionString(DataSource, initialCatalog: InitialCatalog, hasCredentials: Credentials != null, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }
     }
 }

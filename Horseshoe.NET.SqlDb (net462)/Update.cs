@@ -37,11 +37,8 @@ namespace Horseshoe.NET.SqlDb
             TraceJournal journal = null
         )
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
             journal.Level++;
 
@@ -78,11 +75,8 @@ namespace Horseshoe.NET.SqlDb
             TraceJournal journal = null
         )
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
             journal.Level++;
 

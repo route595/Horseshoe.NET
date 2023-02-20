@@ -6,7 +6,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <Authors>Carl Thomas</Authors>
-    <Version>3.0.0.2</Version>
+    <Version>3.0.1</Version>
     <Description>Configuration utility for .NET.</Description>
     <Copyright>Copyright © 2020-2023 Route 595</Copyright>
     <Company>Route 595</Company>

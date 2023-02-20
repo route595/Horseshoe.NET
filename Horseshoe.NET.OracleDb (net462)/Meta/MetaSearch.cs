@@ -17,43 +17,43 @@ namespace Horseshoe.NET.OracleDb.Meta
         {
             public static IEnumerable<OraSchema> List(Predicate<OraSchema> filter = null, int? commandTimeout = null)
             {
-                var server = OracleDbSettings.DefaultServer ?? new OraServer(OracleDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server, Credentials = OracleDbSettings.DefaultCredentials }))
+                var dataSource = OracleDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings");
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource, Credentials = OracleDbSettings.DefaultCredentials }))
                 {
-                    return List(conn, server, filter: filter, commandTimeout: commandTimeout);
+                    return List(conn, dataSource, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
             public static IEnumerable<OraSchema> List(OracleConnection conn, Predicate<OraSchema> filter = null, int? commandTimeout = null)
             {
-                var server = new OraServer(conn.DataSource, serviceName: conn.ServiceName, instanceName: conn.InstanceName);
-                return List(conn, server, filter: filter, commandTimeout: commandTimeout);
+                var dataSource = new OraServer(conn.DataSource, serviceName: conn.ServiceName, instanceName: conn.InstanceName);
+                return List(conn, dataSource, filter: filter, commandTimeout: commandTimeout);
             }
 
             public static IEnumerable<OraSchema> List(OracleDbConnectionInfo connectionInfo, Predicate<OraSchema> filter = null, int? commandTimeout = null)
             {
-                var server = connectionInfo.Server ?? new OraServer(connectionInfo.DataSource ?? throw new UtilityException("Server and DataSource cannot both be null"));
+                var dataSource = connectionInfo.DataSource ?? throw new UtilityException("DataSource cannot be null");
                 using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: connectionInfo))
                 {
-                    return List(conn, server, filter: filter, commandTimeout: commandTimeout);
+                    return List(conn, dataSource, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<OraSchema> List(OraServer server, Credential? credentials = null, Predicate<OraSchema> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraSchema> List(OraServer dataSource, Credential? credentials = null, Predicate<OraSchema> filter = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("DataSource cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, filter: filter, commandTimeout: commandTimeout);
+                    return List(conn, dataSource, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            internal static IEnumerable<OraSchema> List(out OracleConnection conn, OraServer server, Credential? credentials = null, Predicate<OraSchema> filter = null, int? commandTimeout = null)
+            internal static IEnumerable<OraSchema> List(out OracleConnection conn, OraServer dataSource, Credential? credentials = null, Predicate<OraSchema> filter = null, int? commandTimeout = null)
             {
-                conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials });
-                return List(conn, server, filter: filter, commandTimeout: commandTimeout);
+                conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("Server cannot be null"), Credentials = credentials });
+                return List(conn, dataSource, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<OraSchema> List(OracleConnection conn, OraServer server, Predicate<OraSchema> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraSchema> List(OracleConnection conn, OraServer dataSource, Predicate<OraSchema> filter = null, int? commandTimeout = null)
             {
                 string statement = @"
                     SELECT USERNAME AS ""schema""
@@ -63,7 +63,7 @@ namespace Horseshoe.NET.OracleDb.Meta
                 (
                     conn,
                     statement,
-                    rowParser: RowParser.From((reader) => new OraSchema(reader["schema"] as string) { Parent = server }),
+                    rowParser: RowParser.From((reader) => new OraSchema(reader["schema"] as string) { Parent = dataSource }),
                     autoSort: new AutoSort<OraSchema>(s => s.Name),
                     commandTimeout: commandTimeout
                 );
@@ -78,7 +78,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static OraSchema Lookup(string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var filteredList = List    /* uses default server, credentials */
+                var filteredList = List    /* uses default dataSource, credentials */
                 (
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
                     commandTimeout: commandTimeout
@@ -96,11 +96,11 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             internal static OraSchema Lookup(out OracleConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = OracleDbSettings.DefaultServer ?? new OraServer(OracleDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
+                var dataSource = OracleDbSettings.DefaultDataSource ?? throw new UtilityException("The default DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings");
                 var filteredList = List
                 (
                     out conn,
-                    server,
+                    dataSource,
                     credentials: OracleDbSettings.DefaultCredentials,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
                     commandTimeout: commandTimeout
@@ -137,10 +137,10 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static OraSchema Lookup(OracleDbConnectionInfo connectionInfo, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = connectionInfo.Server ?? new OraServer(connectionInfo.DataSource ?? throw new UtilityException("Server and DataSource cannot both be null"));
+                var dataSource = connectionInfo.DataSource ?? throw new UtilityException("DataSource cannot be null");
                 return Lookup
                 (
-                    server,
+                    dataSource,
                     name,
                     credentials: connectionInfo.Credentials,
                     ignoreCase: ignoreCase,
@@ -148,14 +148,14 @@ namespace Horseshoe.NET.OracleDb.Meta
                 );
             }
 
-            public static OraSchema Lookup(OraServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraSchema Lookup(OraServer dataSource, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
                     return Lookup
                     (
                         conn,
-                        server,
+                        dataSource,
                         name,
                         ignoreCase: ignoreCase,
                         commandTimeout: commandTimeout
@@ -163,12 +163,12 @@ namespace Horseshoe.NET.OracleDb.Meta
                 }
             }
 
-            internal static OraSchema Lookup(out OracleConnection conn, OraServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
+            internal static OraSchema Lookup(out OracleConnection conn, OraServer dataSource, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
                     out conn,
-                    server,
+                    dataSource,
                     credentials: credentials ?? OracleDbSettings.DefaultCredentials,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
                     commandTimeout: commandTimeout
@@ -184,12 +184,12 @@ namespace Horseshoe.NET.OracleDb.Meta
                 }
             }
 
-            public static OraSchema Lookup(OracleConnection conn, OraServer server, string name, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraSchema Lookup(OracleConnection conn, OraServer dataSource, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                 (
                     conn, 
-                    server, 
+                    dataSource, 
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
                     commandTimeout: commandTimeout
                 );
@@ -209,7 +209,7 @@ namespace Horseshoe.NET.OracleDb.Meta
         {
             public static IEnumerable<OraObject> List(string schemaName, OraObjectType? objectType = null, Predicate<OraObject> filter = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var schema = Schemas.Lookup(out OracleConnection conn, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);    /* uses default server, credentials */
+                var schema = Schemas.Lookup(out OracleConnection conn, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);    /* uses default dataSource, credentials */
                 using (conn)
                 {
                     return List(conn, schema, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
@@ -222,36 +222,36 @@ namespace Horseshoe.NET.OracleDb.Meta
                 return List(conn, schema, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<OraObject> List(OraServer server, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraObject> List(OraServer dataSource, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
+                    return List(conn, dataSource, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<OraObject> List(OracleConnection conn, OraServer server, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraObject> List(OracleConnection conn, OraServer dataSource, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
             {
-                return List(conn, server, null, objectType, filter, commandTimeout);
+                return List(conn, dataSource, null, objectType, filter, commandTimeout);
             }
 
-            public static IEnumerable<OraObject> List(OraServer server, string schemaName, Credential? credentials = null, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraObject> List(OraServer dataSource, string schemaName, Credential? credentials = null, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, schemaName, ignoreCase: ignoreCase, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
+                    return List(conn, dataSource, schemaName, ignoreCase: ignoreCase, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<OraObject> List(OracleConnection conn, OraServer server, string schemaName, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraObject> List(OracleConnection conn, OraServer dataSource, string schemaName, bool ignoreCase = false, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
             {
-                var schema = Schemas.Lookup(conn, server, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                var schema = Schemas.Lookup(conn, dataSource, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 return List(conn, schema, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
             }
 
             public static IEnumerable<OraObject> List(OraSchema schema, Credential? credentials = null, OraObjectType? objectType = null, Predicate<OraObject> filter = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = (schema ?? throw new UtilityException("Schema cannot be null")).Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = (schema ?? throw new UtilityException("Schema cannot be null")).Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
                 {
                     return List(conn, schema, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -262,9 +262,9 @@ namespace Horseshoe.NET.OracleDb.Meta
                 return List(conn, null, schema, objectType, filter, commandTimeout);
             }
 
-            private static IEnumerable<OraObject> List(OracleConnection conn, OraServer server, OraSchema schema, OraObjectType? objectType, Predicate<OraObject> filter, int? commandTimeout)
+            private static IEnumerable<OraObject> List(OracleConnection conn, OraServer dataSource, OraSchema schema, OraObjectType? objectType, Predicate<OraObject> filter, int? commandTimeout)
             {
-                if (server == null)
+                if (dataSource == null)
                 {
                     if (schema == null) throw new UtilityException("Server and Schema cannot both be null");
                 }
@@ -296,7 +296,7 @@ namespace Horseshoe.NET.OracleDb.Meta
                             OracleTypes.LookupObjectType(reader["type"] as string)
                         )
                         {
-                            Parent = schema ?? new OraSchema(reader["schema"] as string) { Parent = server }
+                            Parent = schema ?? new OraSchema(reader["schema"] as string) { Parent = dataSource }
                         }),
                     autoSort: new AutoSort<OraObject>(o => o.Schema.Name + o.Name),
                     commandTimeout: commandTimeout
@@ -312,17 +312,17 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static OraObject Lookup(string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return Lookup(out _, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);   /* uses default server, credentials */
+                return Lookup(out _, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);   /* uses default dataSource, credentials */
             }
 
             internal static OraObject Lookup(out OracleConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = OracleDbSettings.DefaultServer ?? new OraServer(OracleDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
-                conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server, Credentials = OracleDbSettings.DefaultCredentials });
-                var filteredList = List    /* uses default server, credentials */
+                var dataSource = OracleDbSettings.DefaultDataSource ?? throw new UtilityException("The default DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings");
+                conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource, Credentials = OracleDbSettings.DefaultCredentials });
+                var filteredList = List    /* uses default dataSource, credentials */
                 (
                     conn,
-                    server,
+                    dataSource,
                     filter: (s) => s.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
                     commandTimeout: commandTimeout
                 );
@@ -339,13 +339,13 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static OraObject Lookup(OracleConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = new OraServer(conn.DataSource, serviceName: conn.ServiceName, instanceName: conn.InstanceName);
-                return Lookup(conn, server, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                var dataSource = new OraServer(conn.DataSource, serviceName: conn.ServiceName, instanceName: conn.InstanceName);
+                return Lookup(conn, dataSource, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
             public static OraObject Lookup(string schemaName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var schema = Schemas.Lookup(out OracleConnection conn, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
+                var schema = Schemas.Lookup(out OracleConnection conn, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default dataSource, credentials */
                 using (conn)
                 {
                     return Lookup(conn, schema, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
@@ -354,7 +354,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             internal static OraObject Lookup(out OracleConnection conn, string schemaName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var schema = Schemas.Lookup(out conn, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
+                var schema = Schemas.Lookup(out conn, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default dataSource, credentials */
                 return Lookup(conn, schema, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
@@ -364,17 +364,17 @@ namespace Horseshoe.NET.OracleDb.Meta
                 return Lookup(conn, schema, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static OraObject Lookup(OraServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraObject Lookup(OraServer dataSource, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return Lookup(server, name, credentials: credentials, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                return Lookup(dataSource, name, credentials: credentials, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static OraObject Lookup(OracleConnection conn, OraServer server, string name, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraObject Lookup(OracleConnection conn, OraServer dataSource, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
                 var filteredList = List
                     (
                     conn,
-                    server,
+                    dataSource,
                     filter: (o) => o.Name.Equals(name, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal),
                     commandTimeout: commandTimeout
                 );
@@ -389,21 +389,21 @@ namespace Horseshoe.NET.OracleDb.Meta
                 }
             }
 
-            public static OraObject Lookup(OraServer server, string schemaName, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraObject Lookup(OraServer dataSource, string schemaName, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var schema = Schemas.Lookup(out OracleConnection conn, server, schemaName, credentials: credentials, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                var schema = Schemas.Lookup(out OracleConnection conn, dataSource, schemaName, credentials: credentials, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 return Lookup(conn, schema, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static OraObject Lookup(OracleConnection conn, OraServer server, string schemaName, string name, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraObject Lookup(OracleConnection conn, OraServer dataSource, string schemaName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var schema = Schemas.Lookup(conn, server, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                var schema = Schemas.Lookup(conn, dataSource, schemaName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 return Lookup(conn, schema, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
             public static OraObject Lookup(OraSchema schema, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
                 {
                     return Lookup(conn, schema, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -431,7 +431,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraObject> SearchByName(OraSchema schema, IComparator<string> comparator, OraObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
                 {
                     return SearchByName(conn, schema, comparator, objectType: objectType, commandTimeout: commandTimeout);
                 }
@@ -448,7 +448,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraObject> SearchByName(OraSchema schema, string partialName, bool ignoreCase = false, OraObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
                 {
                     return SearchByName(conn, schema, partialName, ignoreCase: ignoreCase, objectType: objectType, commandTimeout: commandTimeout);
                 }
@@ -469,7 +469,7 @@ namespace Horseshoe.NET.OracleDb.Meta
         {
             public static IEnumerable<OraColumn> List(string tableOrViewName, bool ignoreCase = false, Predicate<OraColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(out OracleConnection conn, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
+                var tableOrView = Objects.Lookup(out OracleConnection conn, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default dataSource, credentials */
                 using (conn)
                 {
                     return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
@@ -484,7 +484,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraColumn> List(string schemaName, string tableOrViewName, bool ignoreCase = false, Predicate<OraColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(out OracleConnection conn, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default server, credentials */
+                var tableOrView = Objects.Lookup(out OracleConnection conn, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);     /* uses default dataSource, credentials */
                 using (conn)
                 {
                     return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
@@ -497,23 +497,23 @@ namespace Horseshoe.NET.OracleDb.Meta
                 return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<OraColumn> List(OraServer server, string schemaName, string tableOrViewName, Credential? credentials = null, bool ignoreCase = false, Predicate<OraColumn> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraColumn> List(OraServer dataSource, string schemaName, string tableOrViewName, Credential? credentials = null, bool ignoreCase = false, Predicate<OraColumn> filter = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return List(conn, server, schemaName, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
+                    return List(conn, dataSource, schemaName, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
                 }
             }
 
-            public static IEnumerable<OraColumn> List(OracleConnection conn, OraServer server, string schemaName, string tableOrViewName, bool ignoreCase = false, Predicate<OraColumn> filter = null, int? commandTimeout = null)
+            public static IEnumerable<OraColumn> List(OracleConnection conn, OraServer dataSource, string schemaName, string tableOrViewName, bool ignoreCase = false, Predicate<OraColumn> filter = null, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, server, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                var tableOrView = Objects.Lookup(conn, dataSource, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 return List(conn, tableOrView, filter: filter, commandTimeout: commandTimeout);
             }
 
             public static IEnumerable<OraColumn> List(OraSchema schema, string tableOrViewName, bool ignoreCase = false, Predicate<OraColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
                 {
                     return List(conn, schema, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -527,7 +527,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraColumn> List(OraObject tableOrView, Predicate<OraColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return List(conn, tableOrView, filter, commandTimeout: commandTimeout);
                 }
@@ -593,7 +593,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static OraColumn Lookup(string schemaName, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(out OracleConnection conn, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);      /* uses default server, credentials */
+                var tableOrView = Objects.Lookup(out OracleConnection conn, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);      /* uses default dataSource, credentials */
                 using (conn)
                 {
                     return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
@@ -606,23 +606,23 @@ namespace Horseshoe.NET.OracleDb.Meta
                 return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
-            public static OraColumn Lookup(OraServer server, string schemaName, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
+            public static OraColumn Lookup(OraServer dataSource, string schemaName, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = dataSource ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
-                    return Lookup(conn, server, schemaName, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                    return Lookup(conn, dataSource, schemaName, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
             }
 
-            public static OraColumn Lookup(OracleConnection conn, OraServer server, string schemaName, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
+            public static OraColumn Lookup(OracleConnection conn, OraServer dataSource, string schemaName, string tableOrViewName, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var tableOrView = Objects.Lookup(conn, server, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
+                var tableOrView = Objects.Lookup(conn, dataSource, schemaName, tableOrViewName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
             }
 
             public static OraColumn Lookup(OraSchema schema, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = schema.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Schema"), Credentials = credentials }))
                 {
                     return Lookup(conn, schema, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -636,7 +636,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static OraColumn Lookup(OraObject tableOrView, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -664,7 +664,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraColumn> SearchByName(OraObject tableOrView, IComparator<string> comparator, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchByName(conn, tableOrView, comparator, commandTimeout: commandTimeout);
                 }
@@ -681,7 +681,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraColumn> SearchByName(OraObject tableOrView, string partialName, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchByName(conn, tableOrView, partialName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -701,7 +701,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraColumn> SearchByValue(OraObject tableOrView, object value, Predicate<OraColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchByValue(conn, tableOrView, value, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -789,7 +789,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<OraColumn> SearchTextColumnsByHasNonprintableCharacters(OraObject tableOrView, bool distinct = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchTextColumnsByHasNonprintableCharacters(conn, tableOrView, distinct: distinct, commandTimeout: commandTimeout);
                 }
@@ -813,7 +813,7 @@ namespace Horseshoe.NET.OracleDb.Meta
 
             public static IEnumerable<string> GetValuesWithNonprintableCharacters(OraColumn column, bool distinct = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { Server = column.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Column"), Credentials = credentials }))
+                using (var conn = OracleDbUtil.LaunchConnection(connectionInfo: new OracleDbConnectionInfo { DataSource = column.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Column"), Credentials = credentials }))
                 {
                     conn.Open();
                     return GetValuesWithNonprintableCharacters(conn, column, distinct: distinct, commandTimeout: commandTimeout);

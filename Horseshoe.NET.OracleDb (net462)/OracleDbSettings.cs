@@ -82,48 +82,48 @@ namespace Horseshoe.NET.OracleDb
             _isEncryptedPassword = isEncryptedPassword;
         }
 
-        private static OraServer _defaultServer;
+        private static OraServer _defaultDataSource;
 
         /// <summary>
         /// Gets or sets the default Oracle server used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:Server and OrganizationalDefaultSettings: key = OracleDb.Server)
         /// </summary>
-        public static OraServer DefaultServer
+        public static OraServer DefaultDataSource
         {
             get
             {
-                if (_defaultServer == null)
+                if (_defaultDataSource == null)
                 {
-                    _defaultServer =      // e.g. ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1
-                        Config.Get("Horseshoe.NET:OracleDb:Server", parseFunc: (raw) => OracleDbUtil.ParseServer(raw)) ??
-                        OracleDbUtil.ParseServer(OrganizationalDefaultSettings.Get<string>("OracleDb.Server")); 
+                    _defaultDataSource =      // e.g. ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1
+                        Config.Get("Horseshoe.NET:OracleDb:DataSource", parseFunc: (raw) => OraServer.Parse(raw)) ??
+                        OrganizationalDefaultSettings.Get<OraServer>("OracleDb.DataSource"); 
                 }
-                return _defaultServer;
-            }
-            set
-            {
-                _defaultServer = value;
-            }
-        }
-
-        private static string _defaultDataSource;
-
-        /// <summary>
-        /// Gets or sets the default Oracle datasource used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:DataSource and OrganizationalDefaultSettings: key = OracleDb.DataSource)
-        /// </summary>
-        public static string DefaultDataSource
-        {
-            get
-            {
-                return _defaultDataSource     // e.g. ORADBSVR01
-                    ?? Config.Get("Horseshoe.NET:OracleDb:DataSource")
-                    ?? OrganizationalDefaultSettings.Get<string>("OracleDb.DataSource")
-                    ?? DefaultServer?.DataSource;
+                return _defaultDataSource;
             }
             set
             {
                 _defaultDataSource = value;
             }
         }
+
+        //private static string _defaultDataSource;
+
+        ///// <summary>
+        ///// Gets or sets the default Oracle datasource used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:DataSource and OrganizationalDefaultSettings: key = OracleDb.DataSource)
+        ///// </summary>
+        //public static string DefaultDataSource
+        //{
+        //    get
+        //    {
+        //        return _defaultDataSource     // e.g. ORADBSVR01
+        //            ?? Config.Get("Horseshoe.NET:OracleDb:DataSource")
+        //            ?? OrganizationalDefaultSettings.Get<string>("OracleDb.DataSource")
+        //            ?? DefaultServer?.DataSource;
+        //    }
+        //    set
+        //    {
+        //        _defaultDataSource = value;
+        //    }
+        //}
 
         private static string _defaultServiceName;
 
@@ -137,7 +137,7 @@ namespace Horseshoe.NET.OracleDb
                 return _defaultServiceName     // e.g. MYDATABASE
                     ?? Config.Get("Horseshoe.NET:OracleDb:ServiceName")
                     ?? OrganizationalDefaultSettings.Get<string>("OracleDb.ServiceName")
-                    ?? DefaultServer?.DataSource;
+                    ?? DefaultDataSource?.DataSource;
             }
             set
             {
@@ -263,8 +263,8 @@ namespace Horseshoe.NET.OracleDb
                 if (_serverList == null)
                 {
                     _serverList =      // e.g. ORADBSVR01|'NAME'11.22.33.44:9999;SERVICE1|ORADBSVR02:9999;SERVICE1;INSTANCE1
-                        Config.Get("Horseshoe.NET:OracleDb:ServerList", parseFunc: (raw) => OracleDbUtil.ParseServerList(raw)) ??
-                        OracleDbUtil.ParseServerList(OrganizationalDefaultSettings.Get<string>("OracleDb.ServerList"));
+                        Config.Get("Horseshoe.NET:OracleDb:ServerList", parseFunc: (raw) => OraServer.ParseList(raw)) ??
+                        OraServer.ParseList(OrganizationalDefaultSettings.Get<string>("OracleDb.ServerList"));
                 }
                 return _serverList;
             }

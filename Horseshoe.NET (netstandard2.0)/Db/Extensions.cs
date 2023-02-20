@@ -81,7 +81,7 @@ namespace Horseshoe.NET.Db
         /// <returns>A connection string.</returns>
         public static string GetConnectionString(this TraceJournal journal)
         {
-            if (journal.TryGetValue("connection.string", out object value))
+            if (journal.Data.TryGetValue("connection.string", out object value))
                 return value as string;
             return null;
         }
@@ -93,7 +93,7 @@ namespace Horseshoe.NET.Db
         /// <returns>A connection string.</returns>
         public static string GetConnectionStringSource(this TraceJournal journal)
         {
-            if (journal.TryGetValue("connection.string", out object value))
+            if (journal.Data.TryGetValue("connection.string", out object value))
                 return value as string;
             return null;
         }
@@ -105,7 +105,7 @@ namespace Horseshoe.NET.Db
         /// <returns>A <c>string</c> indicating the connection info source.</returns>
         public static string GetConnectionInfoSource(this TraceJournal journal)
         {
-            if (journal.TryGetValue("connection.info.source", out object value))
+            if (journal.Data.TryGetValue("connection.info.source", out object value))
                 return value as string;
             return null;
         }
@@ -117,7 +117,7 @@ namespace Horseshoe.NET.Db
         /// <returns>A SQL statement.</returns>
         public static string GetSqlStatement(this TraceJournal journal)
         {
-            if (journal.TryGetValue("sql.statement", out object value))
+            if (journal.Data.TryGetValue("sql.statement", out object value))
                 return value as string;
             return null;
         }

@@ -35,10 +35,7 @@ namespace Horseshoe.NET.Db
         public static T LoadConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, TraceJournal journal = null) where T : ConnectionInfo, new()
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.LoadConnectionInfo()  =>  T = " + typeof(T).FullName);
             journal.Level++;
 
@@ -59,12 +56,11 @@ namespace Horseshoe.NET.Db
                     journal.WriteEntry("connection string name = " + connectionInfo.ConnectionStringName);
                     connectionInfo.ConnectionString = _Config.GetConnectionString(connectionInfo.ConnectionStringName);
                     if (connectionInfo.ConnectionString == null)
-                        journal.WriteEntryAndThrow
-                        ( 
-                            Assemblies.Find("Horseshoe.NET.Config") == null
-                                ? new ValidationException("No connection string named \"" + connectionInfo.ConnectionStringName + "\" could be found perhaps due to Horseshoe.NET.Config is not installed.")
-                                : new ValidationException("No connection string named \"" + connectionInfo.ConnectionStringName + "\" could be found.")
-                        );
+                    {
+                        var msg = string.Concat("No connection string named \"", connectionInfo.ConnectionStringName, "\" could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
+                        journal.WriteEntry("ValidationException: " + msg);
+                        throw new ValidationException(msg);
+                    }
                     journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
                     journal.AddAndWriteEntry("connection.info.source", "user-supplied-connection-string-name");
                     journal.Level--;
@@ -76,12 +72,11 @@ namespace Horseshoe.NET.Db
                     journal.WriteEntry("data source = " + connectionInfo.DataSource);
                     connectionInfo.ConnectionString = connectionInfo.BuildConnectionString();
                     if (connectionInfo.ConnectionString == null)
-                        journal.WriteEntryAndThrow
-                        (
-                            Assemblies.Find("Horseshoe.NET.Config") == null
-                                ? new ValidationException("Cannot build connection string from data source: \"" + connectionInfo.DataSource + "\".  This is perhaps due to Horseshoe.NET.Config is not installed.")
-                                : new ValidationException("Cannot build connection string from data source: \"" + connectionInfo.DataSource + "\".")
-                        );
+                    {
+                        var msg = string.Concat("Cannot build connection string from data source: \"", connectionInfo.DataSource, "\".", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " This is perhaps due to Horseshoe.NET.Configuration is not installed." : "");
+                        journal.WriteEntry("ValidationException: " + msg);
+                        throw new ValidationException(msg);
+                    }
                     journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
                     journal.AddAndWriteEntry("connection.info.source", "user-supplied-data-source");
                     journal.Level--;
@@ -119,12 +114,9 @@ namespace Horseshoe.NET.Db
                 connectionInfo.ConnectionString = _Config.GetConnectionString(connStrName);
                 if (connectionInfo.ConnectionString == null)
                 {
-                    journal.WriteEntryAndThrow
-                    (
-                        Assemblies.Find("Horseshoe.NET.Config") == null
-                            ? new ValidationException("No connection string named \"" + connStrName + "\" could be found perhaps due to Horseshoe.NET.Config is not installed.")
-                            : new ValidationException("No connection string named \"" + connStrName + "\" could be found.")
-                    );
+                    var msg = string.Concat("No connection string named \"", connStrName, "\" could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
+                    journal.WriteEntry("ValidationException: " + msg);
+                    throw new ValidationException(msg);
                 }
                 connectionInfo.Credentials = configIsEncryptedPassword
                     ? Credential.Build
@@ -167,13 +159,9 @@ namespace Horseshoe.NET.Db
                 }
             }
 
-            journal.WriteEntryAndThrow
-            (
-                Assemblies.Find("Horseshoe.NET.Config") == null
-                    ? new ValidationException("No connection info could be found perhaps due to Horseshoe.NET.Config is not installed.")
-                    : new ValidationException("No connection info could be found.")
-            );
-            throw new ThisShouldNeverHappenException();
+            var dfltMsg = string.Concat("No connection info could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
+            journal.WriteEntry("ValidationException: " + dfltMsg);
+            throw new ValidationException(dfltMsg);
         }
 
         /// <summary>
@@ -430,10 +418,7 @@ namespace Horseshoe.NET.Db
         public static IEnumerable<object[]> ReadAsObjects(DbDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ReadAsObjects(reader)");
             journal.Level++;
 
@@ -464,10 +449,7 @@ namespace Horseshoe.NET.Db
         public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(DbDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ReadAsObjectsAsync(reader)");
             journal.Level++;
 
@@ -498,10 +480,7 @@ namespace Horseshoe.NET.Db
         public static IEnumerable<object[]> ReadAsObjects(DbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ReadAsObjects(command)");
             journal.Level++;
 
@@ -532,10 +511,7 @@ namespace Horseshoe.NET.Db
         public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(DbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ReadAsObjectsAsync(command)");
             journal.Level++;
 
@@ -567,10 +543,7 @@ namespace Horseshoe.NET.Db
         public static IEnumerable<T> ParseRows<T>(DbCommand command, Func<IDataReader, T> readerParser, DbCapture dbCapture = null, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ParseRows(command)");
             journal.Level++;
 
@@ -609,10 +582,7 @@ namespace Horseshoe.NET.Db
         public static async Task<IEnumerable<T>> ParseRowsAsync<T>(DbCommand command, Func<IDataReader, T> readerParser, DbCapture dbCapture = null, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ParseRowsAsync(command)");
             journal.Level++;
 
@@ -729,11 +699,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildDeleteStatement(string tableName, IFilter where, bool drop = false, bool purge = false, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildDeleteStatement(\"" + tableName + "\")");
             journal.Level++;
 
@@ -761,11 +728,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildDeleteStatement(DbPlatform platform, string tableName, IFilter where, bool drop = false, bool purge = false, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildDeleteStatement(" + platform + ", \"" + tableName + "\")");
             journal.Level++;
 
@@ -822,11 +786,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildInsertStatement(string tableName, IEnumerable<DbParameter> columns, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildInsertStatement(\"" + tableName + "\")");
             journal.Level++;
 
@@ -852,11 +813,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildInsertStatement(DbPlatform platform, string tableName, IEnumerable<DbParameter> columns, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildInsertStatement(" + platform + ", \"" + tableName + "\")");
             journal.Level++;
 
@@ -895,11 +853,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildInsertAndGetIdentityStatements(string tableName, IEnumerable<DbParameter> columns, string getIdentitySql = null, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildInsertAndGetIdentityStatements(\"" + tableName + "\")");
             journal.Level++;
 
@@ -926,11 +881,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildInsertAndGetIdentityStatements(DbPlatform platform, string tableName, IEnumerable<DbParameter> columns, string getIdentitySql = null, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildInsertAndGetIdentityStatements(" + platform + ", \"" + tableName + "\")");
             journal.Level++;
 
@@ -973,11 +925,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildUpdateStatement(string tableName, IEnumerable<DbParameter> columns, IFilter where, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildUpdateStatement(\"" + tableName + "\")");
             journal.Level++;
 
@@ -1004,11 +953,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildUpdateStatement(DbPlatform platform, string tableName, IEnumerable<DbParameter> columns, IFilter where, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildUpdateStatement(" + platform + ", \"" + tableName + "\")");
             journal.Level++;
 
@@ -1049,11 +995,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildFunctionStatement(string functionName, IEnumerable<DbParameter> parameters = null, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildFunctionStatement(\"" + functionName + "\")");
             journal.Level++;
 
@@ -1078,11 +1021,8 @@ namespace Horseshoe.NET.Db
         /// <returns>The SQL statement.</returns>
         public static string BuildFunctionStatement(DbPlatform platform, string functionName, IEnumerable<DbParameter> parameters = null, TraceJournal journal = null)
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("DbUtil.BuildFunctionStatement(" + platform + ", \"" + functionName + "\")");
             journal.Level++;
 

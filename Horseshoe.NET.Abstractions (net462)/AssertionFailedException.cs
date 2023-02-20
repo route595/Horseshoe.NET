@@ -8,18 +8,23 @@ namespace Horseshoe.NET
     public class AssertionFailedException : Exception
     {
         /// <summary>
-        /// Creates a new <c>AssertionFailedException</c>.
+        /// 'Assertion failed'
         /// </summary>
-        public AssertionFailedException() : base("Assertion failed") { }
+        public const string MESSAGE_PREFIX = "Assertion failed";
 
         /// <summary>
         /// Creates a new <c>AssertionFailedException</c>.
         /// </summary>
-        public AssertionFailedException(string message) : base("Assertion failed: " + message) { }
+        public AssertionFailedException() : base(MESSAGE_PREFIX) { }
 
         /// <summary>
         /// Creates a new <c>AssertionFailedException</c>.
         /// </summary>
-        public AssertionFailedException(string message, Exception innerException) : base("Assertion failed: " + message, innerException) { }
+        public AssertionFailedException(string message) : base(MESSAGE_PREFIX + ": " + message) { }
+
+        /// <summary>
+        /// Creates a new <c>AssertionFailedException</c>.
+        /// </summary>
+        public AssertionFailedException(string message, Exception innerException) : base(MESSAGE_PREFIX + ": " + message, innerException) { }
     }
 }

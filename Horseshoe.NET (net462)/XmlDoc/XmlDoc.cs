@@ -77,10 +77,7 @@ namespace Horseshoe.NET.XmlDoc
             Member member;
 
             // init journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("[XmlDoc.Fill()]");
             journal.Level++;
 
@@ -265,12 +262,9 @@ namespace Horseshoe.NET.XmlDoc
             var match = _nameAndParamsPattern.Match(parts[1]);
             if (!match.Success)
                 throw new ValidationException("Cannot parse member name: " + parts[1]);
-           
+
             // init journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
 
             var name = match.Value;
             var prename = parts[1].Length == match.Value.Length
@@ -320,10 +314,7 @@ namespace Horseshoe.NET.XmlDoc
         public Type ParseType(string rawType, TraceJournal journal = null)
         {
             // init journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
 
             // try to reuse already parsed XmlDoc Type
             Type xdType = Members.FirstOrDefault(m => m is Type t && t.ToOriginalString() == rawType) as Type;
@@ -378,10 +369,7 @@ namespace Horseshoe.NET.XmlDoc
         public System.Type ParseSystemType(string rawType, TraceJournal journal = null)
         {
             // init journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
 
             // try to reuse already verified type
             if (VerifiedTypes.ContainsKey(rawType))

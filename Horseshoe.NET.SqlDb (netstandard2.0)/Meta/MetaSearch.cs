@@ -16,8 +16,8 @@ namespace Horseshoe.NET.SqlDb.Meta
         {
             public static IEnumerable<Db> List(Predicate<Db> filter = null, int? commandTimeout = null)
             {
-                var server = SqlDbSettings.DefaultServer ?? new DbServer(SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server, Credentials = SqlDbSettings.DefaultCredentials }))
+                var server = SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings");
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server, Credentials = SqlDbSettings.DefaultCredentials }))
                 {
                     return List(conn, server, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -31,7 +31,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<Db> List(SqlDbConnectionInfo connectionInfo, Predicate<Db> filter = null, int? commandTimeout = null)
             {
-                var server = connectionInfo.Server ?? new DbServer(connectionInfo.DataSource ?? throw new UtilityException("Server and DataSource cannot both be null"));
+                var server = connectionInfo.DataSource ?? throw new UtilityException("DataSource cannot be null");
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: connectionInfo))
                 {
                     return List(conn, server, filter: filter, commandTimeout: commandTimeout);
@@ -40,7 +40,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<Db> List(DbServer server, Credential? credentials = null, Predicate<Db> filter = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("DataSource cannot be null"), Credentials = credentials }))
                 {
                     return List(conn, server, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -48,7 +48,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             internal static IEnumerable<Db> List(out SqlConnection conn, DbServer server, Credential? credentials = null, Predicate<Db> filter = null, int? commandTimeout = null)
             {
-                conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials });
+                conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("DataSource cannot be null"), Credentials = credentials });
                 return List(conn, server, filter: filter, commandTimeout: commandTimeout);
             }
 
@@ -96,7 +96,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             internal static Db Lookup(out SqlConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = SqlDbSettings.DefaultServer ?? new DbServer(SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
+                var server = SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings");
                 var filteredList = List
                 (
                     out conn,
@@ -137,7 +137,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static Db Lookup(SqlDbConnectionInfo connectionInfo, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = connectionInfo.Server ?? new DbServer(connectionInfo.DataSource ?? throw new UtilityException("Server and DataSource cannot both be null"));
+                var server = connectionInfo.DataSource ?? throw new UtilityException("DataSource cannot be null");
                 return Lookup
                 (
                     server,
@@ -150,7 +150,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static Db Lookup(DbServer server, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
                     return Lookup
                     (
@@ -224,7 +224,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbObject> List(DbServer server, Credential? credentials = null, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
                     return List(conn, server, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -237,7 +237,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbObject> List(DbServer server, string dbName, Credential? credentials = null, bool ignoreCase = false, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
                     return List(conn, server, dbName, ignoreCase: ignoreCase, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -251,7 +251,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbObject> List(Db database, Credential? credentials = null, SqlObjectType? objectType = null, Predicate<DbObject> filter = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = (database ?? throw new UtilityException("Database cannot be null")).Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = (database ?? throw new UtilityException("Database cannot be null")).Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
                     return List(conn, database, objectType: objectType, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -320,8 +320,8 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             internal static DbObject Lookup(out SqlConnection conn, string name, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var server = SqlDbSettings.DefaultServer ?? new DbServer(SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings"));
-                conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server, Credentials = SqlDbSettings.DefaultCredentials });
+                var server = SqlDbSettings.DefaultDataSource ?? throw new UtilityException("A default Server or DataSource must be defined to use this method - see Settings or OrganizationDefaultSettings");
+                conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server, Credentials = SqlDbSettings.DefaultCredentials });
                 var filteredList = List    /* uses default server, credentials */
                 (
                     conn,
@@ -406,7 +406,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static DbObject Lookup(Db database, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
                     return Lookup(conn, database, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -434,7 +434,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbObject> SearchByName(Db database, IComparator<string> comparator, SqlObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
                     return SearchByName(conn, database, comparator, objectType: objectType, commandTimeout: commandTimeout);
                 }
@@ -451,7 +451,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbObject> SearchByName(Db database, string partialName, bool ignoreCase = false, SqlObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
                     return SearchByName(conn, database, partialName, ignoreCase: ignoreCase, objectType: objectType, commandTimeout: commandTimeout);
                 }
@@ -498,7 +498,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> List(DbServer server, string dbName, string tableOrViewName, Credential? credentials = null, bool ignoreCase = false, Predicate<DbColumn> filter = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
                     return List(conn, server, dbName, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -512,7 +512,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> List(Db database, string tableOrViewName, bool ignoreCase = false, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
                     return List(conn, database, tableOrViewName, ignoreCase: ignoreCase, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -526,7 +526,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> List(DbObject tableOrView, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return List(conn, tableOrView, filter, commandTimeout: commandTimeout);
                 }
@@ -629,7 +629,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static DbColumn Lookup(DbServer server, string dbName, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = server ?? throw new UtilityException("Server cannot be null"), Credentials = credentials }))
                 {
                     return Lookup(conn, server, dbName, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -643,7 +643,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static DbColumn Lookup(Db database, string tableOrViewName, string name, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
                     return Lookup(conn, database, tableOrViewName, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -657,7 +657,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static DbColumn Lookup(DbObject tableOrView, string name, Credential? credentials = null, bool ignoreCase = false, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = tableOrView.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (tableOrView?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return Lookup(conn, tableOrView, name, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -685,7 +685,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> SearchByName(DbObject obj, IComparator<string> comparator, Credential? credentials = null, int ? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchByName(conn, obj, comparator, commandTimeout: commandTimeout);
                 }
@@ -702,7 +702,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> SearchByName(DbObject obj, string partialName, bool ignoreCase = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchByName(conn, obj, partialName, ignoreCase: ignoreCase, commandTimeout: commandTimeout);
                 }
@@ -720,7 +720,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> SearchByValue(DbObject obj, object value, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchByValue(conn, obj, value, filter: filter, commandTimeout: commandTimeout);
                 }
@@ -863,7 +863,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> SearchTextColumnsByHasNonprintableCharacters(DbObject obj, bool distinct = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
                     return SearchTextColumnsByHasNonprintableCharacters(conn, obj, distinct: distinct, commandTimeout: commandTimeout);
                 }
@@ -887,7 +887,7 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<string> GetValuesWithNonprintableCharacters(DbColumn column, bool distinct = false, Credential? credentials = null, int? commandTimeout = null)
             {
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { Server = column.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Column"), Credentials = credentials }))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = column.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Column"), Credentials = credentials }))
                 {
                     conn.Open();
                     return GetValuesWithNonprintableCharacters(conn, column, distinct: distinct, commandTimeout: commandTimeout);

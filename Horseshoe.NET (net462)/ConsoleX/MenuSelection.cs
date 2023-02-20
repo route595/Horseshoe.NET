@@ -7,21 +7,11 @@ using Horseshoe.NET.Text.TextClean;
 namespace Horseshoe.NET.ConsoleX
 {
     /// <summary>
-    /// <c>PromptX.Menu()</c> returns instances of this class when a menu item is selected
+    /// A container class for returning selected menu item info from <c>PromptX.Menu()</c>.
     /// </summary>
     /// <typeparam name="T">a menu item type</typeparam>
-    public class MenuSelection<T>
+    public class MenuSelection<T> : ListSelection<T>
     {
-        /// <summary>
-        /// The selected menu item (the actual object), otherwise null if arbitary input was allowed and has been input by the user.
-        /// </summary>
-        public T SelectedItem { get; set; }
-
-        /// <summary>
-        /// The 1-based index of the selected menu item, if 0 then arbitrary text was entered or multiple indexes were selected 
-        /// </summary>
-        public int SelectedIndex { get; set; }
-
         /// <summary>
         /// The storage container for multiple results
         /// </summary>

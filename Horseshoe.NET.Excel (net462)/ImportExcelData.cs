@@ -30,10 +30,7 @@ namespace Horseshoe.NET.Excel
             public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportExcelData.Xls.AsStrings()");
                 journal.Level++;
 
@@ -61,10 +58,7 @@ namespace Horseshoe.NET.Excel
             public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportExcelData.Xls.AsObjects()");
                 journal.Level++;
 
@@ -92,10 +86,7 @@ namespace Horseshoe.NET.Excel
             public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportExcelData.Xls.AsDataImport()");
                 journal.Level++;
 
@@ -170,10 +161,7 @@ namespace Horseshoe.NET.Excel
             public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportExcelData.Xlsx.AsStrings()");
                 journal.Level++;
 
@@ -201,10 +189,7 @@ namespace Horseshoe.NET.Excel
             public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportExcelData.Xlsx.AsObjects()");
                 journal.Level++;
 
@@ -232,10 +217,7 @@ namespace Horseshoe.NET.Excel
             public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
             {
                 // journaling
-                if (journal == null)
-                {
-                    journal = TraceJournal.ResetDefault();
-                }
+                journal = journal ?? new TraceJournal();
                 journal.WriteEntry("ImportExcelData.Xlsx.AsDataImport()");
                 journal.Level++;
 
@@ -308,10 +290,7 @@ namespace Horseshoe.NET.Excel
         public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ImportExcelData.AsStrings()");
             journal.Level++;
 
@@ -339,10 +318,7 @@ namespace Horseshoe.NET.Excel
         public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ImportExcelData.AsObjects()");
             journal.Level++;
 
@@ -370,10 +346,7 @@ namespace Horseshoe.NET.Excel
         public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ImportExcelData.AsDataImport()");
             journal.Level++;
 

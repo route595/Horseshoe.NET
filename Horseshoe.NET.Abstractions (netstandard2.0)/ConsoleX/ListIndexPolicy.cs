@@ -1,22 +1,22 @@
 ﻿namespace Horseshoe.NET.ConsoleX
 {
     /// <summary>
-    /// Determines if lists are rendered with selection indexes and whether such indexes are 0-based
+    /// Dictates whether lists are rendered with indexes and whether indexes are 0 or 1-based.
     /// </summary>
     public enum ListIndexPolicy
     {
         /// <summary>
-        /// Display lists with no indexes
+        /// Displays list with no indexes.
         /// </summary>
         None,
 
         /// <summary>
-        /// Display lists with zero based indexes
+        /// Displays list with zero-based indexes.
         /// </summary>
         DisplayZeroBased,
 
         /// <summary>
-        /// Display lists with one-based indexes
+        /// Displays list with one-based indexes.
         /// </summary>
         DisplayOneBased
     }

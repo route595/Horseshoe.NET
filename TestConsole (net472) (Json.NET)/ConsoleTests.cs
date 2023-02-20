@@ -18,18 +18,18 @@ namespace TestConsole
                 () =>
                 {
                     Console.WriteLine("testing 'required'...");
-                    var input = PromptX.Input("input", required: true);
+                    var input = PromptX.RawInput("input", required: true);
                     Console.WriteLine(input);
-                    Console.WriteLine("testing not required with 'requiredIndicator' = \"$\"...");
+                    Console.WriteLine("testing 'displayAsRequired' with 'requiredIndicator' = \"$\"...");
                     RenderX.RequiredIndicator = "$";
-                    input = PromptX.Input("input", displayAsRequired: true);
-                    RenderX.RequiredIndicator = "*";
+                    input = PromptX.RawInput("input", displayAsRequired: true);
+                    RenderX.RequiredIndicator = null;
                     Console.WriteLine(input);
                     Console.WriteLine("testing null 'prompt'...");
-                    input = PromptX.Input(null);
+                    input = PromptX.RawInput();
                     Console.WriteLine(input);
                     Console.WriteLine("testing null 'prompt' with 'required'...");
-                    input = PromptX.Input(null, required: true);
+                    input = PromptX.RawInput(required: true);
                     Console.WriteLine(input);
                 }
             ),
@@ -75,8 +75,8 @@ namespace TestConsole
                 () =>
                 {
                     var list = new[] { "ValueA", "ValueB", "ValueC", "ValueD" };
-                    var choice = PromptX.List(list, title: "hi", indexPolicy: ListIndexPolicy.DisplayZeroBased);
-                    Console.WriteLine("choice: " + (choice ?? "[null]"));
+                    var selection = PromptX.List(list, title: "hi", indexPolicy: ListIndexPolicy.DisplayZeroBased);
+                    Console.WriteLine("choice: " + (selection.SelectedItem ?? "[null]"));
                 }
             ),
             BuildMenuRoutine
@@ -85,8 +85,8 @@ namespace TestConsole
                 () =>
                 {
                     var list = new[] { "ValueA", "ValueB", "ValueC", "ValueD" };
-                    var choice = PromptX.List(list, title: "hi", indexPolicy: ListIndexPolicy.DisplayOneBased, required: true);
-                    Console.WriteLine("choice: " + (choice ?? "[null]"));
+                    var selection = PromptX.List(list, title: "hi", indexPolicy: ListIndexPolicy.DisplayOneBased, required: true);
+                    Console.WriteLine("choice: " + (selection.SelectedItem ?? "[null]"));
                 }
             ),
             BuildMenuRoutine
@@ -102,7 +102,7 @@ namespace TestConsole
                         {
                             Console.WriteLine("int=" + PromptX.Value<int>(validator: (i) => Assert.InRange(i, 1, 3)));
                         }
-                        catch(ConsoleNavigation.PromptCanceledException)
+                        catch(ConsoleNavigation.CancelInputPromptException)
                         {
                             Console.WriteLine("[prompt canceled]");
                             looping = false;

@@ -21,10 +21,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("Delete.AsString()");
             journal.Level++;
 
@@ -64,10 +61,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("Delete.AsStringAsync()");
             journal.Level++;
 
@@ -109,10 +103,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("Delete.AsValue()");
             journal.Level++;
 
@@ -156,10 +147,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("Delete.AsValueAsync()");
             journal.Level++;
 
@@ -204,10 +192,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("Delete.AsJson()");
             journal.Level++;
 
@@ -253,10 +238,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("Delete.AsJsonAsync()");
             journal.Level++;
 

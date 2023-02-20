@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 using Horseshoe.NET.Db;
 using Horseshoe.NET.OracleDb.Meta;
+using Horseshoe.NET.Text;
 using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
 
@@ -15,7 +14,10 @@ namespace Horseshoe.NET.OracleDb
 {
     public static class OracleDbUtil
     {
-        public static string? BuildConnectionString(string dataSource, OraServer? server = null, IDictionary<string, string>? additionalConnectionAttributes = null, int? connectionTimeout = null)
+        //private static Regex dbServerPattern = new Regex("^[a-z0-9-_]+(\\.[a-z0-9-_]+)*$", RegexOptions.IgnoreCase);
+        //private static Regex dbServerPortPattern = new Regex("^[a-z0-9-_]+(\\.[a-z0-9-_]+)*[:][0-9]+$", RegexOptions.IgnoreCase);
+
+        public static string? BuildConnectionString(OraServer? dataSource = null, bool hasCredentials = false, IDictionary<string, string>? additionalConnectionAttributes = null, int? connectionTimeout = null)
         {
             if (dataSource == null)
             {
@@ -23,23 +25,32 @@ namespace Horseshoe.NET.OracleDb
             }
 
             // data source
-            var sb = new StringBuilder("Data Source=//" + dataSource);  // e.g. Server.DataSource (includes port)
-
-            // server attributes
-            if (server != null)
+            var sb = new StringBuilder("Data Source=");  // e.g. Server.DataSource (includes port)
+            if (dataSource.ServiceName == null && dataSource.InstanceName == null)
             {
-                if (server.ServiceName != null || server.InstanceName != null)
+                // basic style                                    // e.g. Data Source=MY_ORA_SERVER[:1234];
+                sb.Append(dataSource.DataSource).Append(';');     //      Data Source=MY_TNS_ALIAS;
+            }
+            else 
+            {
+                // data source continued - EZ connect style       // e.g. Data Source=//MY_ORA_SERVER[:1234]//MY_INSTANCE
+                sb.Append("//").Append(dataSource.DataSource);    //      Data Source=//MY_ORA_SERVER[:1234]/MY_SERVICE/MY_INSTANCE
+
+                // service name
+                sb.Append('/');
+                sb.AppendIf(dataSource.ServiceName != null, dataSource.ServiceName);
+
+                // instance name
+                if (dataSource.InstanceName != null)
                 {
-                    sb.Append("/");
-                    if (server.ServiceName != null)
-                    {
-                        sb.Append(server.ServiceName);
-                    }
-                    if (server.InstanceName != null)
-                    {
-                        sb.Append("/" + server.InstanceName);
-                    }
+                    sb.Append('/').Append(dataSource.InstanceName);
                 }
+            }
+
+            // integrated security
+            if (!hasCredentials)
+            {
+                sb.Append(";Integrated Security=SSPI");
             }
 
             // additional attributes
@@ -63,7 +74,7 @@ namespace Horseshoe.NET.OracleDb
 
         public static string? BuildConnectionStringFromConfig()
         {
-            return BuildConnectionString(OracleDbSettings.DefaultDataSource, server: OracleDbSettings.DefaultServer, additionalConnectionAttributes: OracleDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OracleDbSettings.DefaultConnectionTimeout);
+            return BuildConnectionString(OracleDbSettings.DefaultDataSource, hasCredentials: OracleDbSettings.DefaultCredentials.HasValue, additionalConnectionAttributes: OracleDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OracleDbSettings.DefaultConnectionTimeout);
         }
 
         public static OracleConnection LaunchConnection
@@ -107,9 +118,9 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string commandText,
-            IEnumerable<DbParameter>? parameters,
+            IEnumerable<DbParameter> parameters,
             int? commandTimeout,
-            Action<OracleCommand>? alterCommand
+            Action<OracleCommand> alterCommand
         )
         {
             return BuildCommand
@@ -127,9 +138,9 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string commandText,
-            IEnumerable<DbParameter>? parameters,
+            IEnumerable<DbParameter> parameters,
             int? commandTimeout,
-            Action<OracleCommand>? alterCommand
+            Action<OracleCommand> alterCommand
         )
         {
             return BuildCommand
@@ -265,75 +276,6 @@ namespace Horseshoe.NET.OracleDb
             if (obj is OracleBFile oracleBFile)
                 return oracleBFile.Value;
             return obj;
-        }
-
-        public static IEnumerable<OraServer>? ParseServerList(string rawList)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(rawList)) 
-                    return null;
-                string[] rawServers = Zap.Strings(rawList.Split('|'), prunePolicy: PrunePolicy.All);
-                var servers = rawServers
-                    .Select(raw => ParseServer(raw))
-                    .ToList();
-                return servers;
-            }
-            catch (UtilityException ex)
-            {
-                throw new UtilityException("Malformed server list.  Must resemble: ORADBSVR01|'NAME'11.22.33.44:9999;SERVICE1|ORADBSVR02:9999;SERVICE1;INSTANCE1", ex);
-            }
-        }
-
-        private static readonly Regex ServerNamePattern = new Regex("(?<=')[^']+(?='.+)");
-
-        public static OraServer ParseServer(string raw)
-        {
-            if (string.IsNullOrEmpty(raw))
-                throw new ValidationException("Invalid raw server string");
-            string? name = null;
-            var nameMatch = ServerNamePattern.Match(raw);
-
-            if (nameMatch.Success)
-            {
-                name = nameMatch.Value;
-                raw = raw.Replace("'" + name + "'", "");
-            }
-
-            string[] parts = Zap.Strings(raw.Split(';'), prunePolicy: PrunePolicy.Trailing);
-
-            if (parts.Length > 0 && parts.Length <= 3)
-            {
-                string dataSource = parts[0]?.Trim() ?? throw new ValidationException("datasource not parsed");
-                string? serviceName = null;
-                string? instanceName = null;
-
-                if (parts.Length == 1 && name == null)
-                {
-                    var serverFromList = OraServer.Lookup(dataSource, suppressErrors: true);
-                    if (serverFromList != null) 
-                        return serverFromList;
-                }
-
-                if (parts.Length > 1)
-                {
-                    serviceName = Zap.String(parts[1]);
-                    if (parts.Length > 2)
-                    {
-                        instanceName = Zap.String(parts[2]);
-                    }
-                }
-                return new OraServer(dataSource, serviceName: serviceName, instanceName: instanceName, name: name ?? dataSource);
-            }
-            throw new UtilityException("Malformed server.  Must resemble { ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1 }.");
-        }
-
-        public static string? BuildServerListString(IEnumerable<OraServer> list)
-        {
-            if (list == null || !list.Any()) 
-                return null;
-            var listString = string.Join("|", list.Select(svr => svr.DataSource + (svr.ServiceName != null ? ";" + svr.ServiceName : "") + (svr.InstanceName != null ? (svr.ServiceName == null ? ";" : "") + ";" + svr.InstanceName : "")));
-            return listString;
         }
     }
 }

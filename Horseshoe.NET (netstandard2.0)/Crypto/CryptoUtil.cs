@@ -2,13 +2,22 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+
 using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Crypto
 {
-    internal static class CryptoUtil
+    /// <summary>
+    /// A collection of utility methods for cryptographic operations in Horseshoe.NET
+    /// </summary>
+    public static class CryptoUtil
     {
-        internal static SymmetricAlgorithm BuildSymmetricAlgorithmForEncryptionEmbeddedKIV(CryptoOptions options)
+        /// <summary>
+        /// Builds a symmetric encryption algorithm for a KIV that is embedded in the final result.
+        /// </summary>
+        /// <param name="options">A <c>CryptoOptions</c> instance.</param>
+        /// <returns></returns>
+        public static SymmetricAlgorithm BuildSymmetricAlgorithmForEncryptionEmbeddedKIV(CryptoOptions options)
         {
             var algorithm = BuildSymmetricAlgorithm(options);
 
@@ -18,7 +27,13 @@ namespace Horseshoe.NET.Crypto
             return algorithm;
         }
 
-        internal static SymmetricAlgorithm BuildSymmetricAlgorithmForDecryptionEmbeddedKIV(CryptoOptions options, ref byte[] cipherBytes)
+        /// <summary>
+        /// Builds a symmetric decryption algorithm for a KIV that is embedded in the final result.
+        /// </summary>
+        /// <param name="options">A <c>CryptoOptions</c> instance.</param>
+        /// <param name="cipherBytes">The data from which to extract the KIV decrypt the rest.</param>
+        /// <returns></returns>
+        public static SymmetricAlgorithm BuildSymmetricAlgorithmForDecryptionEmbeddedKIV(CryptoOptions options, ref byte[] cipherBytes)
         {
             var algorithm = BuildSymmetricAlgorithm(options);
 
@@ -31,7 +46,12 @@ namespace Horseshoe.NET.Crypto
             return algorithm;
         }
 
-        internal static SymmetricAlgorithm BuildSymmetricAlgorithm(CryptoOptions options)
+        /// <summary>
+        /// Builds a symmetric algorithm.
+        /// </summary>
+        /// <param name="options">A <c>CryptoOptions</c> instance.</param>
+        /// <returns></returns>
+        public static SymmetricAlgorithm BuildSymmetricAlgorithm(CryptoOptions options)
         {
             options = options ?? new CryptoOptions();
 
@@ -57,8 +77,23 @@ namespace Horseshoe.NET.Crypto
             return algorithm;
         }
 
+        /// <summary>
+        /// Builds a symmectric algorithm from its constituent parts.
+        /// </summary>
+        /// <param name="algorithm">An instance of a symmetric algorithm.</param>
+        /// <param name="key">The symmetric key <c>bytes</c>.</param>
+        /// <param name="autoPadKey">Automatically grow the key to a valid size by prepending null bytes, if applicable.</param>
+        /// <param name="iv">The symmetric initialization vector (defaults to <c>key</c> if not suppplied).</param>
+        /// <param name="autoPopulateIVFromKey"></param>
+        /// <param name="blockSize"></param>
+        /// <param name="mode"></param>
+        /// <param name="padding"></param>
+        /// <returns></returns>
+        /// <exception cref="ValidationException"></exception>
         public static SymmetricAlgorithm BuildSymmetricAlgorithm(SymmetricAlgorithm algorithm, byte[] key, bool autoPadKey, byte[] iv, bool autoPopulateIVFromKey, int? blockSize, CipherMode? mode, PaddingMode? padding)
         {
+            if (algorithm == null)
+                return null;
             var validKeySizes = algorithm.GetValidKeySizes();
             var validBlockSizes = algorithm.GetValidBlockSizes();
             if (key != null)
@@ -70,8 +105,8 @@ namespace Horseshoe.NET.Crypto
                     {
                         throw new ValidationException("Key exceeds max allowable size.  Detected: " + keySize + " bits.  Valid sizes: " + string.Join(", ", validKeySizes));
                     }
-                    var targetSize = validKeySizes.First(ln => ln >= keySize);
-                    key = key.Pad(targetSize, boundary: CollectionBoundary.Start);
+                    var targetLength = validKeySizes.First(ln => ln >= keySize) / 8;
+                    key = key.Pad(targetLength, boundary: CollectionBoundary.Start);
                 }
                 else if (!keySize.In(validKeySizes))
                 {
@@ -105,13 +140,21 @@ namespace Horseshoe.NET.Crypto
             return algorithm;
         }
 
-        public static SymmetricAlgorithm BuildNSymmetricAlgorithm(SymmetricAlgorithm algorithm, byte[] key, bool autoPadKey, byte[] iv, bool autoPopulateIVFromKey, int? blockSize, CipherMode? mode, PaddingMode? padding)
+        /// <summary>
+        /// Lists an algorithm's valid key sizes in bits.
+        /// </summary>
+        /// <param name="symmetricAlgorithm">A <c>SymmetricAlgorithm</c>.</param>
+        /// <returns></returns>
+        public static IEnumerable<int> GetValidKeySizes(SymmetricAlgorithm symmetricAlgorithm)
         {
-            if (algorithm == null)
-                return null;
-            return BuildSymmetricAlgorithm(algorithm, key, autoPadKey, iv, autoPopulateIVFromKey, blockSize, mode, padding);
+            return GetValidKeySizes(symmetricAlgorithm.LegalKeySizes);
         }
 
+        /// <summary>
+        /// Lists an algorithm's valid key sizes in bits.
+        /// </summary>
+        /// <param name="keySizes">The valid <c>KeySizes</c> corresponding to a <c>SymmetricAlgorithm</c>.</param>
+        /// <returns></returns>
         public static IEnumerable<int> GetValidKeySizes(KeySizes[] keySizes)
         {
             var list = new List<int>();
@@ -141,11 +184,12 @@ namespace Horseshoe.NET.Crypto
             return list;
         }
 
-        public static byte[] IvFromText(string iv, Encoding encoding = null)
-        {
-            return (encoding ?? CryptoSettings.DefaultEncoding).GetBytes(iv);
-        }
-
+        /// <summary>
+        /// Utility method for getting bytes from a text key or iv. 
+        /// </summary>
+        /// <param name="key">A text key or iv.</param>
+        /// <param name="encoding">An optional text encoding.</param>
+        /// <returns></returns>
         public static byte[] KeyFromText(string key, Encoding encoding = null)
         {
             return (encoding ?? CryptoSettings.DefaultEncoding).GetBytes(key);

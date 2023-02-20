@@ -191,10 +191,19 @@ namespace Horseshoe.NET.ConsoleX
                 OnRoutineRestarting?.Invoke(this);
                 IsRestarted = true;
             }
+            catch (ConsoleNavigation.CancelInputPromptException)
+            {
+                RenderX.Alert("RoutineX: Input prompt cancelled.", padBefore: 1);
+#if DEBUG
+                RenderX.Alert("Developer debug note: Please catch ConsoleNavigation.CancelInputPromptException.");
+#endif
+                OnRoutineExiting?.Invoke(this);
+                IsExited = true;  // exits routine if not handled by the implementation
+            }
             catch (ConsoleNavigation.ExitRoutineException)
             {
                 OnRoutineExiting?.Invoke(this);
-                IsExited = true; 
+                IsExited = true;
             }
             catch (Exception ex)
             {

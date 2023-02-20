@@ -105,11 +105,8 @@ namespace Horseshoe.NET.Text.TextClean
         /// <returns>An ASCII <c>string</c>.</returns>
         public static string ToAsciiPrintable(string text, TraceJournal journal = null, NonprintablesPolicy nonprintablesPolicy = default, string substitute = "?")
         {
-            // trace journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            // journaling
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("ToASCIIPrintable()");
             journal.Level++;
 

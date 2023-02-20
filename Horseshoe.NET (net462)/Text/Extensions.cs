@@ -272,49 +272,49 @@ namespace Horseshoe.NET.Text
 
         internal static void IncrementCleanedWhitespaces(this TraceJournal journal)
         {
-            if (journal.ContainsKey("text.clean.whitespaces.count"))
+            if (journal.Data.ContainsKey("text.clean.whitespaces.count"))
             {
-                journal["text.clean.whitespaces.count"] = (int)journal["text.clean.whitespaces.count"] + 1;
+                journal.Data["text.clean.whitespaces.count"] = (int)journal.Data["text.clean.whitespaces.count"] + 1;
             }
             else
             {
-                journal.Add("text.clean.whitespaces.count", 1);
+                journal.Data.Add("text.clean.whitespaces.count", 1);
             }
         }
 
         internal static void IncrementCleanedNonprintables(this TraceJournal journal)
         {
-            if (journal.ContainsKey("text.clean.nonprintables.count"))
+            if (journal.Data.ContainsKey("text.clean.nonprintables.count"))
             {
-                journal["text.clean.nonprintables.count"] = (int)journal["text.clean.nonprintables.count"] + 1;
+                journal.Data["text.clean.nonprintables.count"] = (int)journal.Data["text.clean.nonprintables.count"] + 1;
             }
             else
             {
-                journal.Add("text.clean.nonprintables.count", 1);
+                journal.Data.Add("text.clean.nonprintables.count", 1);
             }
         }
 
         internal static void IncrementCleanedUnicode(this TraceJournal journal)
         {
-            if (journal.ContainsKey("text.clean.unicode.count"))
+            if (journal.Data.ContainsKey("text.clean.unicode.count"))
             {
-                journal["text.clean.unicode.count"] = (int)journal["text.clean.unicode.count"] + 1;
+                journal.Data["text.clean.unicode.count"] = (int)journal.Data["text.clean.unicode.count"] + 1;
             }
             else
             {
-                journal.Add("text.clean.unicode.count", 1);
+                journal.Data.Add("text.clean.unicode.count", 1);
             }
         }
 
         internal static void IncrementCleanedOther(this TraceJournal journal)
         {
-            if (journal.ContainsKey("text.clean.other.count"))
+            if (journal.Data.ContainsKey("text.clean.other.count"))
             {
-                journal["text.clean.other.count"] = (int)journal["text.clean.other.count"] + 1;
+                journal.Data["text.clean.other.count"] = (int)journal.Data["text.clean.other.count"] + 1;
             }
             else
             {
-                journal.Add("text.clean.other.count", 1);
+                journal.Data.Add("text.clean.other.count", 1);
             }
         }
 
@@ -325,7 +325,7 @@ namespace Horseshoe.NET.Text
         /// <returns>Affected whitespace <c>char</c> count</returns>
         public static int GetCleanedWhitespaceCharacters(this TraceJournal journal)
         {
-            if (journal.TryGetValue("text.clean.whitespaces.count", out object count))
+            if (journal.Data.TryGetValue("text.clean.whitespaces.count", out object count))
                 return (int)count;
             return 0;
         }
@@ -337,7 +337,7 @@ namespace Horseshoe.NET.Text
         /// <returns>Affected nonprintable <c>char</c> count</returns>
         public static int GetCleanedNonprintableCharacters(this TraceJournal journal)
         {
-            if (journal.TryGetValue("text.clean.nonprintables.count", out object count))
+            if (journal.Data.TryGetValue("text.clean.nonprintables.count", out object count))
                 return (int)count;
             return 0;
         }
@@ -349,7 +349,7 @@ namespace Horseshoe.NET.Text
         /// <returns>Affected Unicode <c>char</c> count</returns>
         public static int GetCleanedUnicodeCharacters(this TraceJournal journal)
         {
-            if (journal.TryGetValue("text.clean.unicode.count", out object count))
+            if (journal.Data.TryGetValue("text.clean.unicode.count", out object count))
                 return (int)count;
             return 0;
         }
@@ -361,7 +361,7 @@ namespace Horseshoe.NET.Text
         /// <returns>Other affected <c>char</c> count</returns>
         public static int GetCleanedOtherCharacters(this TraceJournal journal)
         {
-            if (journal.TryGetValue("text.clean.other.count", out object count))
+            if (journal.Data.TryGetValue("text.clean.other.count", out object count))
                 return (int)count;
             return 0;
         }
@@ -374,13 +374,13 @@ namespace Horseshoe.NET.Text
         public static int GetTotalCleanedCharacters(this TraceJournal journal)
         {
             var total = 0;
-            if (journal.TryGetValue("text.clean.whitespaces.count", out object whitespacesCount))
+            if (journal.Data.TryGetValue("text.clean.whitespaces.count", out object whitespacesCount))
                 total += (int)whitespacesCount;
-            if (journal.TryGetValue("text.clean.nonprintables.count", out object nonprintablesCount))
+            if (journal.Data.TryGetValue("text.clean.nonprintables.count", out object nonprintablesCount))
                 total += (int)nonprintablesCount;
-            if (journal.TryGetValue("text.clean.unicode.count", out object unicodeCount))
+            if (journal.Data.TryGetValue("text.clean.unicode.count", out object unicodeCount))
                 total += (int)unicodeCount;
-            if (journal.TryGetValue("text.clean.other.count", out object otherCount))
+            if (journal.Data.TryGetValue("text.clean.other.count", out object otherCount))
                 total += (int)otherCount;
             return total;
         }

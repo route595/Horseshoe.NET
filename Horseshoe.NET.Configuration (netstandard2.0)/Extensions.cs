@@ -96,6 +96,8 @@ namespace Horseshoe.NET.Configuration
         )
         {
             var value = Get(config, key, required: required);
+            if (value == null)
+                return default;
             if (parseFunc != null)
                 return parseFunc.Invoke(value);
             return Zap.To<T>(value, dateTimeStyle: dateTimeStyle, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);

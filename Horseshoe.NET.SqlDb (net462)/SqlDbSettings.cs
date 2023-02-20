@@ -60,42 +60,18 @@ namespace Horseshoe.NET.SqlDb
             _isEncryptedPassword = isEncryptedPassword;
         }
 
-        private static DbServer _defaultServer;
-
-        /// <summary>
-        /// Gets or sets the default SQL Server instance used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:Server and OrganizationalDefaultSettings: key = SqlDb.Server)
-        /// </summary>
-        public static DbServer DefaultServer
-        {
-            get
-            {
-                if (_defaultServer == null)
-                {
-                    _defaultServer =      // DBSVR01 (lookup / versionless) or 'NAME'11.22.33.44:9999;2012 or DBSVR02;2008R2
-                        Config.Get("Horseshoe.NET:SqlDb:Server", parseFunc: (raw) => DbServer.Parse(raw)) ??
-                        DbServer.Parse(OrganizationalDefaultSettings.Get<string>("SqlDb.Server"));
-                }
-                return _defaultServer;
-            }
-            set
-            {
-                _defaultServer = value;
-            }
-        }
-
-        private static string _defaultDataSource;
+        private static DbServer _defaultDataSource;
 
         /// <summary>
         /// Gets or sets the default SQL Server data source used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:SqlDb:DataSource and OrganizationalDefaultSettings: key = SqlDb.DataSource)
         /// </summary>
-        public static string DefaultDataSource
+        public static DbServer DefaultDataSource
         {
             get
             {
                 return _defaultDataSource         // e.g. DBSVR01
-                    ?? Config.Get("Horseshoe.NET:SqlDb:DataSource")
-                    ?? OrganizationalDefaultSettings.Get<string>("SqlDb.DataSource")
-                    ?? DefaultServer?.DataSource;
+                    ?? DbServer.Parse(Config.Get("Horseshoe.NET:SqlDb:DataSource"))
+                    ?? OrganizationalDefaultSettings.Get<DbServer>("SqlDb.DataSource");
             }
             set
             {

@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Horseshoe.NET.Compare;
-using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.Primitives;
 
 namespace Horseshoe.NET
@@ -33,13 +32,11 @@ namespace Horseshoe.NET
         /// <exception cref="AssertionFailedException"></exception>
         public static void InRange<T>(T value, T? min, T? max) where T : struct, IComparable<T>
         {
-            bool isNumeric = typeof(T).IsNumeric();
-
             if (min != null && value.CompareTo(min.Value) < 0)
-                throw new AssertionFailedException("The value '" + value + "' is outside the allowed range: " + min + " to " + (max.HasValue ? max.ToString() : "[no max]"));
+                throw new AssertionFailedException(value + " is outside the allowed range: " + min + " to " + (max.HasValue ? max.ToString() : "[no max]"));
 
             if (max != null && value.CompareTo(max.Value) > 0)
-                throw new AssertionFailedException("The value '" + value + "' is outside the allowed range: " + (min.HasValue ? min.ToString() : "[no min]") + " to " + max);
+                throw new AssertionFailedException(value + " is outside the allowed range: " + (min.HasValue ? min.ToString() : "[no min]") + " to " + max);
         }
 
         /// <summary>
@@ -48,17 +45,28 @@ namespace Horseshoe.NET
         /// <param name="value">The value to evaluate.</param>
         /// <param name="min">The lower end of the allowed range, <c>null</c> signifies open ended.</param>
         /// <param name="max">The upper end of the allowed range, <c>null</c> signifies open ended.</param>
+        /// <param name="ignoreCase">Whether to ignore case in the string min/max comparison, default is <c>false</c>.</param>
         /// <exception cref="AssertionFailedException"></exception>
-        public static void InRange(string value, string min, string max)
+        public static void InRange(string value, string min, string max, bool ignoreCase = false)
         {
             if (value == null)
                 return;
 
-            if (min != null && value.CompareTo(min) < 0)
-                throw new AssertionFailedException("The value '" + value + "' is outside the allowed range: " + min + " to " + (max ?? "[no max]"));
+            // handle 'zipper' is in range 'X' to 'Z' by elongating range 'X' to 'ZZZ'
+            if (value.Length > 1 && min != null && min.Length == 1 && max != null && max.Length == 1)
+            {
+                max += char.IsUpper(max[0]) ? "ZZ" : "zz";
+            }
 
-            if (max != null && value.CompareTo(max) > 0)
-                throw new AssertionFailedException("The value '" + value + "' is outside the allowed range: " + (min ?? "[no min]") + " to " + max);
+            var _value = ignoreCase ? value.ToUpper() : value;
+            var _min = ignoreCase ? min?.ToUpper() : min;
+            var _max = ignoreCase ? max?.ToUpper() : max;
+
+            if (_min != null && _value.CompareTo(_min) < 0)
+                throw new AssertionFailedException("'" + value + "' is outside the allowed range" + (ignoreCase ? " (case-insensitive)" : "") + ": '" + min + "' to " + (max != null ? "'" + max + "'" : "[no max]"));
+
+            if (_max != null && _value.CompareTo(_max) > 0)
+                throw new AssertionFailedException("'" + value + "' is outside the allowed range" + (ignoreCase ? " (case-insensitive)" : "") + ": " + (min != null ? "'" + min + "'" : "[no min]") + " to '" + max + "'");
         }
     }
 }

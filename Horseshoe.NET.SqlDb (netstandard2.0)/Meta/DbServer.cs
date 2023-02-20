@@ -9,14 +9,11 @@ namespace Horseshoe.NET.SqlDb.Meta
     {
         public string DataSource { get; }
 
-        public int? Port { get; }
-
         public DbVersion Version { get; }
 
-        public DbServer(string dataSource, int? port = null, DbVersion version = null, string name = null) : base(name ?? dataSource, SqlObjectType.Server)
+        public DbServer(string dataSource, int port = 0, DbVersion version = null, string name = null) : base(name ?? dataSource, SqlObjectType.Server)
         {
-            DataSource = Zap.String(dataSource) ?? throw new UtilityException("Data source cannot be null or blank");
-            Port = port;
+            DataSource = (Zap.String(dataSource) ?? throw new UtilityException("Data source cannot be null or blank")) + (port > 0 ? ":" + port : ""); ;
             Version = version;
         }
 
@@ -112,5 +109,7 @@ namespace Horseshoe.NET.SqlDb.Meta
             var listString = string.Join("|", list.Select(s => s.DataSource + (s.Version != null ? ";" + s.Version.Name : "")));
             return listString;
         }
+
+        public static implicit operator DbServer(string raw) => Parse(raw);
     }
 }

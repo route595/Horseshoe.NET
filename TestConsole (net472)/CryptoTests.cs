@@ -18,7 +18,7 @@ namespace TestConsole
                 "Hash (Default)",
                 () =>
                 {
-                    var input = PromptX.Input("Enter text to hash");
+                    var input = PromptX.Value<string>("Enter text to hash");
                     var hash = Hash.String(input);
                     Console.WriteLine(hash);
                 }
@@ -28,7 +28,7 @@ namespace TestConsole
                 "Hash (SHA256 + salt)",
                 () =>
                 {
-                    var input2 = PromptX.Input("Enter text to hash");
+                    var input2 = PromptX.Value<string>("Enter text to hash");
                     var hash2 = Hash.String(input2, new HashOptions { Algorithm = new System.Security.Cryptography.SHA256CryptoServiceProvider(), Salt = 112 });
                     Console.WriteLine(hash2);
                 }
@@ -40,7 +40,7 @@ namespace TestConsole
                 {
                     CryptoSettings.DefaultHashAlgorithm = new System.Security.Cryptography.SHA256CryptoServiceProvider();
                     CryptoSettings.DefaultHashSalt = 112;
-                    var input3 = PromptX.Input("Enter text to hash");
+                    var input3 = PromptX.Value<string>("Enter text to hash");
                     var hash3 = Hash.String(input3);
                     Console.WriteLine(hash3);
                     CryptoSettings.DefaultHashAlgorithm = null;
@@ -52,7 +52,7 @@ namespace TestConsole
                 "Hash File (MD5)",
                 () =>
                 {
-                    var fileToHashPath = PromptX.Input("Input file (or drag and drop)").Replace("\"", "");
+                    var fileToHashPath = PromptX.Value<string>("Input file (or drag and drop)").Replace("\"", "");
                     var fileHash = Hash.String(fileToHashPath, new HashOptions { Algorithm = new System.Security.Cryptography.MD5CryptoServiceProvider() });
                     Console.WriteLine("Hash: " + fileHash);
                 }
@@ -62,7 +62,7 @@ namespace TestConsole
                 "Encrypt Password",
                 () =>
                 {
-                    var passwordToEncrypt = PromptX.Input("Enter password to encrypt");
+                    var passwordToEncrypt = PromptX.Value<string>("Enter password to encrypt");
                     var encryptedPassword = Encrypt.String(passwordToEncrypt);
                     Console.WriteLine("Encrypted password (len=" + encryptedPassword.Length + "): " + encryptedPassword);
                 }
@@ -72,7 +72,7 @@ namespace TestConsole
                 "Decrypt Password",
                 () =>
                 {
-                    var stringToDecrypt = PromptX.Input("Enter password to decrypt");
+                    var stringToDecrypt = PromptX.Value<string>("Enter password to decrypt");
                     var decryptedPassword = Decrypt.String(stringToDecrypt);
                     Console.WriteLine("Decrypted password: " + decryptedPassword);
                 }
@@ -82,7 +82,7 @@ namespace TestConsole
                 "Encrypt/Decrypt Password",
                 () =>
                 {
-                    var passwordToEncrypt = PromptX.Input("Enter password to encrypt/decrypt");
+                    var passwordToEncrypt = PromptX.Value<string>("Enter password to encrypt/decrypt");
                     var encryptedBytes = Encrypt.Bytes(passwordToEncrypt);
                     var encryptedPassword = Encoding.UTF8.GetString(encryptedBytes);
                     Console.WriteLine("Encrypted password (bytes=" + encryptedBytes.Length + "; len=" + encryptedPassword.Length + "): " + encryptedPassword);
@@ -95,7 +95,7 @@ namespace TestConsole
                 "Encrypt Password (emits Base64)",
                 () =>
                 {
-                    var passwordToEncrypt = PromptX.Input("Enter password to encrypt");
+                    var passwordToEncrypt = PromptX.Value<string>("Enter password to encrypt");
                     var encryptedPassword = Encrypt.Base64String(passwordToEncrypt);
                     Console.WriteLine("Encrypted password (len=" + encryptedPassword.Length + "): " + encryptedPassword);
                 }
@@ -105,7 +105,7 @@ namespace TestConsole
                 "Decrypt Password (expects Base64)",
                 () =>
                 {
-                    var bytesToDecrypt = Decode.Base64.Bytes(PromptX.Input("Enter password to decrypt"));
+                    var bytesToDecrypt = Decode.Base64.Bytes(PromptX.Value<string>("Enter password to decrypt"));
                     var decryptedPassword = Decrypt.String(bytesToDecrypt);
                     Console.WriteLine("Decrypted password: " + decryptedPassword);
                 }
@@ -154,7 +154,7 @@ namespace TestConsole
                 "Base64 Encode",
                 () =>
                 {
-                    var plaintext = PromptX.Input("Plaintext");
+                    var plaintext = PromptX.Value<string>("Plaintext");
                     var base64 = Encode.Base64.String(plaintext);
                     Console.WriteLine("Encoded: " + base64);
                 }
@@ -164,7 +164,7 @@ namespace TestConsole
                 "Base64 Decode",
                 () =>
                 {
-                    var base64 = PromptX.Input("Encoded");
+                    var base64 = PromptX.Value<string>("Encoded");
                     var plaintext = Decode.Base64.String(base64);
                     Console.WriteLine("Plaintext: " + plaintext);
                 }

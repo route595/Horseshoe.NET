@@ -61,7 +61,7 @@ namespace TestConsole
                 {
                     if (CachedCredentials == null)
                     {
-                        var userName = PromptX.Input("User name");
+                        var userName = PromptX.Value<string>("User name");
                         var password = PromptX.Password("Password");
                         CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
@@ -79,7 +79,7 @@ namespace TestConsole
                 {
                     if (CachedCredentials == null)
                     {
-                        var userName = PromptX.Input("User name");
+                        var userName = PromptX.Value<string>("User name");
                         var password = PromptX.Password("Password");
                         CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                         CachedPerson = LdapExec.Login_AD(CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain);
@@ -105,7 +105,7 @@ namespace TestConsole
                 {
                     if (CachedCredentials == null)
                     {
-                        var userName = PromptX.Input("User name");
+                        var userName = PromptX.Value<string>("User name");
                         var password = PromptX.Password("Password");
                         CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
@@ -129,7 +129,7 @@ namespace TestConsole
                 {
                     if (CachedCredentials == null)
                     {
-                        var userName = PromptX.Input("User name");
+                        var userName = PromptX.Value<string>("User name");
                         var password = PromptX.Password("Password");
                         CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
@@ -153,11 +153,11 @@ namespace TestConsole
                 {
                     if (CachedCredentials == null)
                     {
-                        var userName = PromptX.Input("User name");
+                        var userName = PromptX.Value<string>("User name");
                         var password = PromptX.Password("Password");
                         CachedCredentials = new Credential(userName, password, domain: "lgeenergy.int");
                     }
-                    var searchText = PromptX.Input("Search text");
+                    var searchText = PromptX.Value<string>("Search text");
                     var people = LdapExec.SearchPeople_AD(searchText, CachedCredentials.Value.UserName, CachedCredentials.Value.Password.ToUnsecurePassword(), domain: CachedCredentials.Value.Domain, recursive: true);
                     int counter = 10;
                     foreach (var person in people)

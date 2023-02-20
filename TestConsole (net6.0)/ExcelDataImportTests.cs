@@ -33,7 +33,7 @@ namespace TestConsole
                     Console.WriteLine();
                     Console.WriteLine("Journal");
                     Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -62,7 +62,7 @@ namespace TestConsole
                     Console.WriteLine();
                     Console.WriteLine("Journal");
                     Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -85,7 +85,7 @@ namespace TestConsole
                     Console.WriteLine();
                     Console.WriteLine("Journal");
                     Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -115,7 +115,7 @@ namespace TestConsole
                     Console.WriteLine();
                     Console.WriteLine("Journal");
                     Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.DefaultEntries));
+                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             )
         };

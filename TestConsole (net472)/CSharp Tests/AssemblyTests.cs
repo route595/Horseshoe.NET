@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 using Horseshoe.NET.ConsoleX;
 
@@ -18,7 +16,7 @@ namespace TestConsole.CSharpTests
                "Load assembly by name",
                () =>
                {
-                   var name = PromptX.Input("assembly name");
+                   var name = PromptX.Value<string>("assembly name");
                    Assembly assembly = Assembly.Load(name);
                    Console.WriteLine(assembly?.FullName ?? "[null]");
                }

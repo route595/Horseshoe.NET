@@ -26,7 +26,7 @@ namespace TestConsole
                 "Enumerate directory contents",
                 () =>
                 {
-                    MyDirectory = FileUtil.NormalizePath(PromptX.Input("Directory", quickText: MyDirectory));
+                    MyDirectory = FileUtil.NormalizePath(PromptX.Value<string>("Directory", quickValue: MyDirectory.FullName));
                     Console.WriteLine("Crawling " + MyDirectory + "...");
                     new DirectoryCrawler
                     (
@@ -60,7 +60,7 @@ namespace TestConsole
                 "Enumerate directory contents (dll's only)",
                 () =>
                 {
-                    MyDirectory = FileUtil.NormalizePath(PromptX.Input("Directory", quickText: MyDirectory));
+                    MyDirectory = FileUtil.NormalizePath(PromptX.Value<string>("Directory", quickValue: MyDirectory.FullName));
                     Console.WriteLine("Crawling " + MyDirectory + "...");
                     new DirectoryCrawler
                     (
@@ -95,7 +95,7 @@ namespace TestConsole
                 "Enumerate directory contents (except dll's)",
                 () =>
                 {
-                    MyDirectory = FileUtil.NormalizePath(PromptX.Input("Directory", quickText: MyDirectory));
+                    MyDirectory = FileUtil.NormalizePath(PromptX.Value<string>("Directory", quickValue: MyDirectory.FullName));
                     Console.WriteLine("Crawling " + MyDirectory + "...");
                     new DirectoryCrawler
                     (

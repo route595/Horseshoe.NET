@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Text;
 
@@ -21,43 +22,69 @@ namespace Horseshoe.NET
     /// Write trace journaling into your code starting today with easy, out-of-the-box functionality.
     /// </para>
     /// </summary>
-    public class TraceJournal : Dictionary<string, object>
+    public class TraceJournal : List<TraceJournal._Entry>
     {
         /// <summary>
-        /// Used to indicate depth of nested calls
+        /// Used to define a hierarchical postion in the journal where zero (0) is the main entry and 1 - n are subentries (e.g. level of nested method call).
         /// </summary>
         public int Level { get; set; }
 
         /// <summary>
-        /// Write the journal entry to a file, REST service, memory, etc.
+        /// Adds ability to forward journal entries to a file, REST service, etc.
         /// </summary>
-        private readonly Action<int, string> writeEntryAction;
+        public readonly Action<_Entry> WriteEntryAction;
 
         /// <summary>
-        /// Creates a new <c>TraceJournal</c> instance with the supplied write action
+        /// Optional subclass of <c>TraceJournal._Entry</c> from which to build journal entries.
         /// </summary>
-        /// <param name="writeEntryAction">write the journal entry to a file, REST service, memory, etc. (if <c>null</c>, the default action is to add to <c>DefaultEntries</c>)</param>
-        public TraceJournal(Action<int, string> writeEntryAction)
+        public Type EntryType { get; }
+
+        /// <summary>
+        /// An additional storage module for desired data capture.
+        /// </summary>
+        public Dictionary<string, object> Data { get; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// Creates a new <c>TraceJournal</c> instance with optional <c>writeEntryAction</c> and <c>entryType</c>.
+        /// </summary>
+        /// <param name="writeEntryAction">Adds ability to forward journal entries to a file, REST service, etc.</param>
+        /// <param name="entryType">Optional subclass of <c>TraceJournal._Entry</c> from which to build journal entries.</param>
+        public TraceJournal(Action<_Entry> writeEntryAction = null, Type entryType = null)
         {
-            this.writeEntryAction = writeEntryAction ?? DefaultWriteEntry;
+            WriteEntryAction = writeEntryAction;
+            if (entryType != null)
+            {
+                if (typeof(_Entry).IsAssignableFrom(entryType))
+                {
+                    EntryType = entryType;
+                }
+                else throw new ValidationException(entryType.FullName + " does not derive from " + typeof(_Entry).FullName);
+            }
+            LastJournal = this;
         }
 
         /// <summary>
-        /// Invokes the 'write' action on <c>message</c>, the default action adds indented messages to the entry list.
+        /// Adds an entry to the journal and invokes <c></c>writeEntryAction' (if applicable).
         /// </summary>
-        /// <param name="message">A journal entry</param>
+        /// <param name="message">A journal entry.</param>
         public void WriteEntry(string message)
         {
-            writeEntryAction.Invoke(Level, message ?? TextConstants.Null);
+            var entry = EntryType != null
+                ? Activator.CreateInstance(EntryType) as _Entry
+                : new _Entry();
+            entry.Level = Level;
+            entry.Entry = message ?? TextConstants.Null;
+            Add(entry);
+            WriteEntryAction?.Invoke(entry);
         }
 
         /// <summary>
-        /// Invokes the 'write' action on <c>obj</c>, the default action converts objects to indented messages and adds them to the entry list.
+        /// Adds an entry to the journal and invokes 'writeEntryAction' (if applicable).
         /// </summary>
-        /// <param name="obj">An object or message</param>
+        /// <param name="obj">An object or message.</param>
         public void Write(object obj)
         {
-            writeEntryAction.Invoke(Level, obj?.ToString() ?? TextConstants.Null);
+            WriteEntry(obj?.ToString());
         }
 
         /// <summary>
@@ -67,53 +94,101 @@ namespace Horseshoe.NET
         /// <param name="value"></param>
         public void AddAndWriteEntry(string key, object value) 
         {
-            DictionaryUtilAbstractions.AddOrReplace(this, key, value);
+            DictionaryUtilAbstractions.AddOrReplace(Data, key, value);
             WriteEntry(key + " = " + value);
         }
 
         /// <summary>
-        /// Throws an exception but not before invoking the 'write' action on it.
+        /// Tags <c>partialEntry</c> onto the end of the last entry.  If this journal contains no entries a new one is created.
+        /// </summary>
+        /// <param name="partialEntry">Some text.</param>
+        public void AppendLastEntry(string partialEntry)
+        {
+            if (Count == 0)
+            {
+                WriteEntry(partialEntry);
+            }
+            else
+            {
+                this[Count - 1].Entry += partialEntry;
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception but not before adding an entry to the journal.
         /// </summary>
         /// <param name="ex">An exception.</param>
-        /// <param name="levelDown">Whether to decrement the level by one.</param>
-        public void WriteEntryAndThrow(Exception ex, bool levelDown = false)
+        public void LogException(Exception ex)
         {
             WriteEntry(ex.GetType().FullName + ": " + ex.Message);
-            if (levelDown)
-                Level--;
-            throw ex;
-        }
-
-        private static void DefaultWriteEntry(int level, string entry) => 
-            DefaultEntries.Add((level >= 0 ? new string(' ', level * 2) : new string('<', Math.Abs(level))) + entry);
-
-        /// <summary>
-        /// The default functionality is to write journal entries here for later retrieval. Caution: <c>ResetDefault()</c> clears this list.
-        /// </summary>
-        public static List<string> DefaultEntries { get; }
-
-        /// <summary>
-        /// Use this for easy journaling with zero setup using the default functionality
-        /// </summary>
-        /// <remarks><see cref="ResetDefault"/></remarks>
-        public static TraceJournal Default;
-
-        static TraceJournal()
-        {
-            DefaultEntries = new List<string>();
-            Default = new TraceJournal(null);  // init with default action
         }
 
         /// <summary>
-        /// Easily set up a journaling session with the default functionaliy
+        /// Creates a <c>string</c> rendering of the current journal.
         /// </summary>
         /// <returns></returns>
-        public static TraceJournal ResetDefault()
+        public string Render()
         {
-            DefaultEntries.Clear();
-            Default.Level = 0;
-            Default.Clear();
-            return Default;
+            return string.Join(Environment.NewLine, RenderLines());
         }
+
+        /// <summary>
+        /// Creates a line-by-line <c>string</c> rendering of the current journal.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> RenderLines()
+        {
+            var list = this
+                .Select(e => e.ToString())
+                .ToList();
+            if (list.Any())
+            {
+                list.Insert(0, "Journal Entries");
+                list.Insert(1, "---------------");
+            }
+
+            if (Data.Any())
+            {
+                var targetWidth = Data.Keys.Max(s => s.Length);
+                list.Insert(0, "");
+                foreach (var key in Data.Keys.OrderByDescending(s => s)) 
+                {
+                    list.Insert(0, Data[key]?.ToString() ?? TextConstants.Empty);
+                }
+                list.Insert(0, "Data");
+                list.Insert(1, "----");
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// The base class for entries written to <c>TraceJournal</c> (features 2-space indentation).
+        /// </summary>
+        public class _Entry
+        {
+            /// <summary>
+            /// Used to define a hierarchical postion in the journal where zero (0) is the main entry and 1 - n are subentries (e.g. level of nested method call).
+            /// </summary>
+            public int Level { get; set; }
+
+            /// <summary>
+            /// The journal entry text.
+            /// </summary>
+            public string Entry { get; set; }
+
+            /// <summary>
+            /// Renders a journal entry to a <c>string</c> taking level into account.
+            /// </summary>
+            /// <returns></returns>
+            public override string ToString()
+            {
+                return (Level >= 0 ? new string(' ', Level * 2) : "<") + Entry;
+            }
+        }
+
+        /// <summary>
+        /// Recalls the last created journal for easy instant rendering.
+        /// </summary>
+        public static TraceJournal LastJournal { get; set; }
     }
 }

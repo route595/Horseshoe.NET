@@ -27,7 +27,7 @@ namespace TestConsole
                     (
                         "Horseshoe.NET.xml",
                         fillInMissingTypes: true,
-                        journal: new TraceJournal((level, entry) => Console.WriteLine((level >= 0 ? new string(' ', level * 2) : "<") + entry))
+                        journal: new TraceJournal((entry) => Console.WriteLine((entry.Level >= 0 ? new string(' ', entry.Level * 2) : "<") + entry))
                     );
                     Console.WriteLine();
                     Console.WriteLine("Namespaces");

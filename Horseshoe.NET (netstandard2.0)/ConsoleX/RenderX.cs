@@ -21,10 +21,12 @@ namespace Horseshoe.NET.ConsoleX
         /// </summary>
         public static int ConsoleWidth => Console.WindowWidth - 2;
 
+        private static string requiredIndicator;
+
         /// <summary>
         /// Gets or sets what marks required fields, default is <c>"*"</c>.
         /// </summary>
-        public static string RequiredIndicator { get; set; } = "*";
+        public static string RequiredIndicator { get => requiredIndicator ?? "*"; set => requiredIndicator = value; }
 
         /// <summary>
         /// Global exception rendering preferences
@@ -347,16 +349,15 @@ namespace Horseshoe.NET.ConsoleX
         /// </summary>
         /// <param name="prompt">An input prompt.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="requiredIndicator">The optional <c>string</c> value that marks required fields, default is <c>"*"</c>.</param>
-        public static void Prompt(string prompt, bool required = false, string requiredIndicator = null)
+        public static void Prompt(string prompt, bool required = false)
         {
             if (prompt == null)
             {
-                Console.Write(">" + (required ? (requiredIndicator ?? RequiredIndicator) : "") + " ");
+                Console.Write(">" + (required ? RequiredIndicator : "") + " ");
             }
             else if (WordOrPhrasePattern.IsMatch(prompt))
             {
-                Console.Write(prompt + (required ? (requiredIndicator ?? RequiredIndicator) : "") + ": ");
+                Console.Write(prompt + (required ? RequiredIndicator : "") + ": ");
             }
             else
             {
@@ -366,11 +367,11 @@ namespace Horseshoe.NET.ConsoleX
                 switch (promptParts.Length)
                 {
                     case 1:
-                        Console.Write(promptParts[0] + (required ? (requiredIndicator ?? RequiredIndicator) : " "));
+                        Console.Write(promptParts[0] + (required ? RequiredIndicator : " "));
                         break;
 
                     default:
-                        promptParts[0] = promptParts[0] + (required ? (requiredIndicator ?? RequiredIndicator) : "");
+                        promptParts[0] = promptParts[0] + (required ? RequiredIndicator : "");
                         Console.Write(string.Join(Environment.NewLine, promptParts));
                         break;
                 }

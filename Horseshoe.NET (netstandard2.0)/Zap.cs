@@ -792,9 +792,8 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// Converts <c>obj</c> to the supplied type.  
-        /// If <c>obj</c> is already assignable from the supplied type it is returned without conversion and will need to be cast.
-        /// Note, built-in converters only exist for basic types (such as int, double, etc.) and enums.
+        /// Converts <c>obj</c> to the supplied type.  Methods include type compatibility checking and string parsing.  
+        /// Note, built-in converters only exist for basic types (such as int, double, date/time, etc.) and enums.
         /// </summary>
         /// <typeparam name="T">A runtime type.</typeparam>
         /// <param name="obj">An object to convert.</param>
@@ -826,9 +825,9 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
-        /// Converts <c>obj</c> to the supplied type.  
+        /// Converts <c>obj</c> to the supplied type.  Methods include type compatibility checking and string parsing.  
         /// If <c>obj</c> is already assignable from the supplied type it is returned without conversion and will need to be cast.
-        /// Note, built-in converters only exist for basic types (such as int, double, etc.) and enums.
+        /// Note, built-in converters only exist for basic types (such as int, double, date/time etc.) and enums.
         /// </summary>
         /// <param name="type">The type to convert <c>obj</c> to.</param>
         /// <param name="obj">An object to convert.</param>

@@ -12,12 +12,12 @@ using Horseshoe.NET.Text.TextGrid;
 namespace Horseshoe.NET.ConsoleX
 {
     /// <summary>
-    /// The heart of <c>ConsoleX</c> console applications including app launching logic 
+    /// The heart of <c>ConsoleX</c> applications including app launching logic.
     /// </summary>
     public abstract class ConsoleXApp
     {
         /// <summary>
-        /// Sample welcome banner text
+        /// Sample welcome banner text.
         /// </summary>
         public static StringValues DefaultWelcomeValues => new[]
         {
@@ -27,7 +27,7 @@ namespace Horseshoe.NET.ConsoleX
         };
 
         /// <summary>
-        /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation
+        /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation.
         /// </summary>
         /// <param name="app">A <c>ConsoleXApp</c> instance</param>
         public static void StartConsoleApp(ConsoleXApp app)
@@ -36,7 +36,7 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation
+        /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation.
         /// </summary>
         /// <typeparam name="T">Subclass of <c>ConsoleXApp</c> (typically Program.cs)</typeparam>
         public static void StartConsoleApp<T>() where T : ConsoleXApp
@@ -45,64 +45,59 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Set the loop mode (i.e. 'Continuous', 'ClearScreen'), default is 'Continuous'
+        /// Gets the loop mode (i.e. 'Continuous', 'ClearScreen'), default is 'Continuous'. Overridable in implementing classes.
         /// </summary>
         public virtual LoopMode LoopMode { get; } = LoopMode.Continuous;
 
         /// <summary>
-        /// Displays whether looping is on (i.e. LoopMode = 'Continuous' or 'ClearScreen')
-        /// </summary>
-        public bool Looping => LoopMode.In(LoopMode.Continuous, LoopMode.ClearScreen);
-
-        /// <summary>
-        /// String or array of strings to display at app startup
+        /// String or array of strings to display at app startup.
         /// </summary>
         public virtual StringValues WelcomeMessage { get; }
 
         /// <summary>
-        /// The title to display above the main menu, if applicable
+        /// The title to display above the main menu, if applicable.
         /// </summary>
         public virtual Title MainMenuTitle => "Main Menu";
 
         /// <summary>
-        /// Collection of initial routines to choose from at app startup
+        /// Collection of initial routines to choose from at app startup.
         /// </summary>
         public virtual IList<MenuObject> MainMenu { get; }
 
         /// <summary>
-        /// The number of columns in which to render the main menu
+        /// The number of columns in which to render the main menu.
         /// </summary>
         public virtual int MainMenuColumns => 1;
 
         /// <summary>
-        /// A mechanism for configuring the menu's rendering <c>TextGrid</c>
+        /// A mechanism for configuring the menu's rendering <c>TextGrid</c>.
         /// </summary>
         public virtual Action<TextGrid> ConfigureTextGrid { get; }
 
         private bool ApplicationExiting { get; set; }
 
         /// <summary>
-        /// Creates a configuration for main menu routines
+        /// Creates a configuration for main menu routines.
         /// </summary>
         public virtual Action<RoutineX> ConfigureMainMenuRoutines { get; }
 
         /// <summary>
-        /// Action to perform when user selects a menu item from <c>MainMenu</c>
+        /// Action to perform when user selects a menu item from the main menu.
         /// </summary>
         public virtual Action<string> OnMainMenuSelecting { get; }
 
         /// <summary>
-        /// Action to perform when a <c>MainMenu</c> routine completes
+        /// Action to perform when a <c>MainMenu</c> routine completes.
         /// </summary>
         public virtual Action<RoutineX> OnMainMenuRoutineAutoRunComplete { get; }
 
         /// <summary>
-        /// Action to perform when a <c>MainMenu</c> routine throws an exception
+        /// Action to perform when a <c>MainMenu</c> routine throws an exception.
         /// </summary>
         public virtual Action<Exception> OnMainMenuRoutineError { get; }
 
         /// <summary>
-        /// Override this for a non-interactive console app expereience
+        /// Override this for a non-interactive console app experience.
         /// </summary>
         public virtual void Run()
         {
@@ -110,27 +105,19 @@ namespace Horseshoe.NET.ConsoleX
             {
                 throw new UtilityException("ConsoleApp requires one of the following overrides: MainMenu or Run()");
             }
-            bool firstRun = true;
-            while ((firstRun || Looping) && !ApplicationExiting)
+            if (WelcomeMessage.Count > 0)
             {
-                if (!firstRun)
-                {
-                    switch (LoopMode)
-                    {
-                        case LoopMode.Continuous:
-                            RenderX.Pad(1);
-                            break;
-                            //case LoopMode.ClearScreen:
-                            //    Console.Clear();
-                            //    break;
-                    }
-                }
-                else if (WelcomeMessage.Count > 0)
-                {
-                    RenderX.Welcome(WelcomeMessage);
-                }
+                RenderX.Welcome(WelcomeMessage);
+            }
+            while (!ApplicationExiting)
+            {
                 _RunImpl();
-                firstRun = false;
+                switch (LoopMode)
+                {
+                    case LoopMode.Continuous:
+                        RenderX.Pad(1);
+                        break;
+                }
             }
         }
 
@@ -168,6 +155,14 @@ namespace Horseshoe.NET.ConsoleX
             {
                 ApplicationExiting = true;
             }
+            catch (ConsoleNavigation.CancelInputPromptException)   // if reached this far, handle gracefully
+            {
+                RenderX.Alert("ConsoleXApp: Input prompt cancelled.", padBefore: 1);
+#if DEBUG
+                RenderX.Alert("Developer debug note: Please catch ConsoleNavigation.CancelInputPromptException.");
+#endif
+                PromptX.Continue();
+            }
             catch (Exception ex)
             {
                 RenderX.Exception(ex, padBefore: 1);
@@ -176,14 +171,14 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Build a non-interactive <c>Routine</c> as an item for the main menu
+        /// Build a non-interactive <c>RoutineX</c> as an item for the main menu.
         /// </summary>
-        /// <param name="text">A title</param>
-        /// <param name="action">The action to execute when this routine is run</param>
-        /// <param name="configure">An action to custom configure the this routine</param>
-        /// <param name="onError">An action to custom handle uncaught exceptions</param>
-        /// <returns>A <c>Routine</c> instance</returns>
-        public RoutineX BuildMainMenuRoutine(string text, Action action, Action<RoutineX> configure = null, Action<Exception> onError = null)
+        /// <param name="text">A title.</param>
+        /// <param name="action">The action to execute when this routine is run.</param>
+        /// <param name="configure">An action to custom configure the this routine.</param>
+        /// <param name="onError">An action to custom handle uncaught exceptions.</param>
+        /// <returns>A <c>RoutineX</c> instance.</returns>
+        public RoutineX BuildMenuRoutine(string text, Action action, Action<RoutineX> configure = null, Action<Exception> onError = null)
         {
             return RoutineX.BuildMenuRoutine
             (
@@ -216,11 +211,11 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Search the calling assembly for subclasses of RoutineX and instantiate them into a menu list in alpha order
+        /// Searches the calling assembly for subclasses of <c>RoutineX</c> and instantiates them into a menu list in alpha order.
         /// </summary>
-        /// <param name="namespacesToMatch">Select routines only in this namespace, if provided</param>
+        /// <param name="namespacesToMatch">Select routines only in one of these namespace, if provided.</param>
         /// <returns></returns>
-        protected IList<MenuObject> FindMainMenuRoutines(params string[] namespacesToMatch)
+        protected IList<MenuObject> FindRoutines(params string[] namespacesToMatch)
         {
             if (namespacesToMatch == null)
                 namespacesToMatch = new string[0];

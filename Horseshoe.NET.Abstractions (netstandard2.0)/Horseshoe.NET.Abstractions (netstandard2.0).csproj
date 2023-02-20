@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET</RootNamespace>
     <AssemblyName>Horseshoe.NET.Abstractions</AssemblyName>
-    <Version>3.0.0.2</Version>
+    <Version>3.0.1</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>Datatypes for the base Horseshoe.NET package.</Description>

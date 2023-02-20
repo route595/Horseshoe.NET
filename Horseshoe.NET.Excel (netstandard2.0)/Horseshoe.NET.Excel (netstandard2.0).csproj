@@ -7,7 +7,7 @@
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Copyright>Copyright © 2020-2023 Route 595</Copyright>
-    <Version>3.0.0.2</Version>
+    <Version>3.0.1</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.Excel</AssemblyName>

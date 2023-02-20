@@ -21,7 +21,7 @@ namespace Horseshoe.NET.Crypto
             {
                 if (_defaultSymmetricAlgorithm == null)
                 {
-                    _defaultSymmetricAlgorithm = CryptoUtil.BuildNSymmetricAlgorithm
+                    _defaultSymmetricAlgorithm = CryptoUtil.BuildSymmetricAlgorithm
                     (
                         _Config.GetInstance<SymmetricAlgorithm>("Horseshoe.NET:Crypto:SymmetricAlgorithm"),   // e.g. "System.Security.Cryptography.AesCryptoServiceProvider"
                         _Config.Get<byte[]>("Horseshoe.NET:Crypto:SymmetricKey", encoding: DefaultEncoding),
@@ -35,7 +35,7 @@ namespace Horseshoe.NET.Crypto
                 }
                 return _defaultSymmetricAlgorithm 
                     ?? OrganizationalDefaultSettings.GetInstance<SymmetricAlgorithm>("Crypto.SymmetricAlgorithm")
-                    ?? CryptoUtil.BuildSymmetricAlgorithm(new RijndaelManaged(), DefaultEncoding.GetBytes("k+ (&tw!tBv~$6u7"), false, null, true, null, null, null);
+                    ?? CryptoUtil.BuildSymmetricAlgorithm(new AesManaged(), DefaultEncoding.GetBytes("k+ (&tw!tBv~$6u7"), false, null, true, null, null, null);
             }
             set
             {

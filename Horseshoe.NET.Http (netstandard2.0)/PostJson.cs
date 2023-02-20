@@ -30,10 +30,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("PostJson.AsString()");
             journal.Level++;
 
@@ -80,10 +77,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("PostJson.AsStringAsync()");
             journal.Level++;
 
@@ -132,10 +126,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("PostJson.AsValue()");
             journal.Level++;
 
@@ -199,10 +190,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("PostJson.AsValueAsync()");
             journal.Level++;
 
@@ -267,10 +255,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("PostJson.AsJson()");
             journal.Level++;
 
@@ -322,10 +307,7 @@ namespace Horseshoe.NET.Http
         )
         {
             // journaling
-            if (journal == null)
-            {
-                journal = TraceJournal.ResetDefault();
-            }
+            journal = journal ?? new TraceJournal();
             journal.WriteEntry("PostJson.AsJsonAsync()");
             journal.Level++;
 

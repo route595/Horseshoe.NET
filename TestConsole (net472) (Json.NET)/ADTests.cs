@@ -30,7 +30,7 @@ namespace TestConsole
                 "Change user",
                 () =>
                 {
-                    UserName = Zap.String(PromptX.Input("New user name (leave blank for current user)")) ?? Environment.UserName;
+                    UserName = Zap.String(PromptX.Value<string>("New user name (leave blank for current user)")) ?? Environment.UserName;
                 }
             ),
             BuildMenuRoutine
