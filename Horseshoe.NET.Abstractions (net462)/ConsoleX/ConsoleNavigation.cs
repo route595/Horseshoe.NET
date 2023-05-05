@@ -1,7 +1,7 @@
 ﻿namespace Horseshoe.NET.ConsoleX
 {
     /// <summary>
-    /// A suite of benign exceptions (expected to be caught immediately) for performing basic app navigation
+    /// A suite of benign exceptions (expected to be caught immediately) for performing basic app navigation.
     /// </summary>
     public class ConsoleNavigation : BenignException
     {
@@ -33,24 +33,6 @@
         }
 
         /// <summary>
-        /// Exits password prompts promptly.
-        /// </summary>
-        /// <exception cref="CancelPasswordException"></exception>
-        public static void xCancelPassword()
-        {
-            throw new xCancelPasswordException();
-        }
-
-        /// <summary>
-        /// Cancels input prompt.
-        /// </summary>
-        /// <exception cref="PromptCanceledException"></exception>
-        public static void xCancelPrompt()
-        {
-            throw new xPromptCanceledException();
-        }
-
-        /// <summary>
         /// Exits input prompt.
         /// </summary>
         /// <exception cref="CancelInputPromptException"></exception>
@@ -62,40 +44,30 @@
         /// <summary>
         /// Exits routine or application due to Ctrl+C has been pressed.
         /// </summary>
-        /// <exception cref="ControlCException"></exception>
-        public static void ControlCHasBeenPressed()
+        /// <exception cref="CtrlCException"></exception>
+        public static void CtrlCHasBeenPressed()
         {
-            throw new ControlCException();
+            throw new CtrlCException();
         }
 
         /// <summary>
-        /// Exits prompts
-        /// </summary>
-        /// <param name="message"></param>
-        /// <exception cref="PromptCanceledException"></exception>
-        public static void xCancelPrompt(string message)
-        {
-            throw new xPromptCanceledException(message);
-        }
-
-        /// <summary>
-        /// Create a new <c>ConsoleNavigation</c> instance
+        /// Create a new <c>ConsoleNavigation</c> instance.
         /// </summary>
         public ConsoleNavigation() : base() { }
 
         /// <summary>
-        /// Create a new <c>ConsoleNavigation</c> instance
+        /// Create a new <c>ConsoleNavigation</c> instance.
         /// </summary>
         /// <param name="message">a message to carry through the exception</param>
         public ConsoleNavigation(string message) : base(message) { }
 
         /// <summary>
-        /// This subclass of <c>ConsoleNavigation</c> is listened for in routines which then skips to the end then naturally loops back to the beginning
+        /// This subclass of <c>ConsoleNavigation</c> is listened for in routines which then skips to the end then naturally loops back to the beginning.
         /// </summary>
         public class RestartRoutineException : ConsoleNavigation
         {
             /// <summary>
-            /// Create a new <c>RestartRoutineException</c>
+            /// Creates a new <c>RestartRoutineException</c>.
             /// </summary>
             public RestartRoutineException() : base("Restarting routine...") { }
         }
@@ -106,7 +78,7 @@
         public class ExitRoutineException : ConsoleNavigation
         {
             /// <summary>
-            /// Create a new <c>ExitRoutineException</c>
+            /// Creates a new <c>ExitRoutineException</c>.
             /// </summary>
             public ExitRoutineException() : base("Exiting routine...") { }
         }
@@ -117,20 +89,20 @@
         public class ExitAppException : ConsoleNavigation
         {
             /// <summary>
-            /// Create a new <c>ExitAppException</c>
+            /// Creates a new <c>ExitAppException</c>.
             /// </summary>
             public ExitAppException() : base("Exiting application...") { }
         }
 
         /// <summary>
-        /// This subclass of <c>ConsoleNavigation</c> is listened for in <c>ConsoleXApp</c>s which then exits the application
+        /// This subclass of <c>ConsoleNavigation</c> is listened for in <c>RoutineX</c> which exits the routine and in <c>ConsoleXApp</c>s which then exits the application.
         /// </summary>
-        public class ControlCException : ConsoleNavigation
+        public class CtrlCException : ConsoleNavigation
         {
             /// <summary>
             /// Creates a new <c>ControlCException</c>.
             /// </summary>
-            public ControlCException() : base("Ctrl+C has been pressed...") { }
+            public CtrlCException() : base("Ctrl+C has been pressed...") { }
         }
 
         /// <summary>
@@ -142,34 +114,6 @@
             /// Creates a new <c>CancelInputPromptException</c>.
             /// </summary>
             public CancelInputPromptException() : base("Cancelling input prompt...") { }
-        }
-
-        /// <summary>
-        /// This subclass of <c>ConsoleNavigation</c> must be listened for in client code when <c>cancelable == true</c> in <c>PromptX.Password[Secure]()</c>
-        /// </summary>
-        public class xCancelPasswordException : ConsoleNavigation
-        {
-            /// <summary>
-            /// Create a new <c>CancelPasswordException</c>
-            /// </summary>
-            public xCancelPasswordException() : base("Cancelling password input...") { }
-        }
-
-        /// <summary>
-        /// This subclass of <c>ConsoleNavigation</c> is listened for in <c>PromptX.List()</c>s which then exits the prompt for a list value
-        /// </summary>
-        public class xPromptCanceledException : ConsoleNavigation
-        {
-            /// <summary>
-            /// Create a new <c>PromptCanceledException</c>
-            /// </summary>
-            public xPromptCanceledException() { }
-
-            /// <summary>
-            /// Create a new <c>PromptCanceledException</c>
-            /// </summary>
-            /// <param name="message">a message</param>
-            public xPromptCanceledException(string message) : base(message) { }
         }
     }
 }

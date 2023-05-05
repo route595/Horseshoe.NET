@@ -68,7 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyException.cs" />
-    <Compile Include="AssertAbstractions.cs" />
     <Compile Include="AssertionFailedException.cs" />
     <Compile Include="AuthenticationException.cs" />
     <Compile Include="BenignException.cs" />
@@ -81,9 +80,11 @@
     <Compile Include="Collections\CollectionUtilMessage.cs" />
     <Compile Include="Collections\DictionaryUtilAbstractions.cs" />
     <Compile Include="Collections\ImmutableDictionary.cs" />
+    <Compile Include="Compare\Criterinator.cs" />
     <Compile Include="Compare\Comparator.cs" />
     <Compile Include="Compare\CompareException.cs" />
     <Compile Include="Compare\CompareMode.cs" />
+    <Compile Include="Compare\ICriterinator.cs" />
     <Compile Include="Compare\IComparator.cs" />
     <Compile Include="Compare\RegexComparator.cs" />
     <Compile Include="Compare\ValidationFlaggedAction.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Db\DbCapture.cs" />
     <Compile Include="Db\DbPlatform.cs" />
     <Compile Include="Db\DbUtilAbstractions.cs" />
+    <Compile Include="Db\Extensions.cs" />
     <Compile Include="Db\IFilter.cs" />
     <Compile Include="Db\IFilterFactory.cs" />
     <Compile Include="Db\IGroupFilter.cs" />
@@ -129,18 +131,9 @@
     <Compile Include="EnvironmentVariableNotFoundException.cs" />
     <Compile Include="ExceptionInfo.cs" />
     <Compile Include="ExceptionTypeRenderingPolicy.cs" />
+    <Compile Include="ExtensionAbstractions.cs" />
     <Compile Include="Ftp\FtpFileMasks.cs" />
     <Compile Include="Ftp\FtpOperationException.cs" />
-    <Compile Include="IO\DirectoryCrawler\CopyMode.cs" />
-    <Compile Include="IO\DirectoryCrawler\CopyOptions.cs" />
-    <Compile Include="IO\DirectoryCrawler\CrawlMode.cs" />
-    <Compile Include="IO\DirectoryCrawler\CrawlOptions.cs" />
-    <Compile Include="IO\DirectoryCrawler\DirectoryCrawlEvent.cs" />
-    <Compile Include="IO\DirectoryCrawler\DirectoryCrawlException.cs" />
-    <Compile Include="IO\DirectoryCrawler\DirectoryCrawlHaltedException.cs" />
-    <Compile Include="IO\DirectoryCrawler\FileCrawlEvent.cs" />
-    <Compile Include="IO\DirectoryCrawler\SkipReason.cs" />
-    <Compile Include="IO\DirectoryCrawler\TraversalStatistics.cs" />
     <Compile Include="IO\DirectoryPath[net4x].cs" />
     <Compile Include="IO\FileFilter\DirectoryFilter.cs" />
     <Compile Include="IO\FileFilter\DirectoryFilterGroup.cs" />
@@ -155,16 +148,26 @@
     <Compile Include="IO\FilePath.cs" />
     <Compile Include="IO\FileSize.cs" />
     <Compile Include="IO\FileSizeUnit.cs" />
+    <Compile Include="IO\FileTraversal\ClientAction.cs" />
+    <Compile Include="IO\FileTraversal\DirectoryTraversalMetadata.cs" />
+    <Compile Include="IO\FileTraversal\RecursiveAction.cs" />
+    <Compile Include="IO\FileTraversal\TraversalActions.cs" />
+    <Compile Include="IO\FileTraversal\FileTraversalMetadata.cs" />
+    <Compile Include="IO\FileTraversal\TraversalError.cs" />
+    <Compile Include="IO\FileTraversal\TraversalOptimization.cs" />
     <Compile Include="IO\FileType.cs" />
     <Compile Include="IO\FileUtilAbstractions.cs" />
     <Compile Include="IO\NamedMemoryStream.cs" />
     <Compile Include="Iterator\ContinueNextException.cs" />
     <Compile Include="Iterator\ExitIterationException.cs" />
     <Compile Include="Iterator\IteratorMetadata.cs" />
+    <Compile Include="NumberUtil.cs" />
+    <Compile Include="ObjectsAndTypes\ExtensionsAbstractions.cs" />
     <Compile Include="ObjectsAndTypes\ObjectMappingException.cs" />
     <Compile Include="ObjectsAndTypes\ObjectMemberException.cs" />
     <Compile Include="ObjectsAndTypes\ObjectUtilAbstractions.cs" />
     <Compile Include="ObjectsAndTypes\PropertyValue.cs" />
+    <Compile Include="ObjectsAndTypes\TypeUtilAbstractions.cs" />
     <Compile Include="ObjectsAndTypes\TypeNotFoundException.cs" />
     <Compile Include="Password.cs" />
     <Compile Include="Primitives\ObjectValues.cs" />
@@ -176,6 +179,7 @@
     <Compile Include="Text\CharRevealPolicy.cs" />
     <Compile Include="Text\HorizontalPosition.cs" />
     <Compile Include="Text\RevealOptions.cs" />
+    <Compile Include="Text\TextClean\TextCleanAbstractions.cs" />
     <Compile Include="Text\TextClean\NonprintablesPolicy.cs" />
     <Compile Include="Text\TextConstants.cs" />
     <Compile Include="Text\TextGrid\BorderPolicy.cs" />
@@ -201,7 +205,7 @@
     <Compile Include="XmlDoc\Struct.cs" />
     <Compile Include="XmlDoc\Type.cs" />
     <Compile Include="XmlDoc\XmlDocParseException.cs" />
-    <Compile Include="ZapAbstractions.cs" />
+    <Compile Include="Zap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

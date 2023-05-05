@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Text;
+using System.Threading;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.ObjectsAndTypes;
@@ -17,17 +18,17 @@ namespace Horseshoe.NET.ConsoleX
     /// </summary>
     public static class PromptX
     {
-        private static string _Input(char? mask, string quickText, TraceJournal journal)
+        private static string _Keystrokes(char? mask, string quickText, TraceJournal journal)
         {
-            return string.Join("", _BufferedInput(mask, quickText, journal));
+            return string.Join("", _BufferedKeystrokes(mask, quickText, journal));
         }
 
         // <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
         // <exception cref="ConsoleNavigation.ControlCException"></exception>
-        private static IList<char> _BufferedInput(char? mask, string quickText, TraceJournal journal)
+        private static IList<char> _BufferedKeystrokes(char? mask, string quickText, TraceJournal journal)
         {
             // journaling
-            journal.WriteEntry("PromptX._BufferedInput()");
+            journal.WriteEntry("PromptX._BufferedKeyStrokes()");
             journal.Level++;
 
             // do stuff
@@ -41,7 +42,21 @@ namespace Horseshoe.NET.ConsoleX
             while (inputting)
             {
                 Console.TreatControlCAsInput = true;
+
+                // check if Ctrl+C was pressed 
+                if (ConsoleXApp.WasCtrlCPressed())
+                {
+                    ConsoleNavigation.CtrlCHasBeenPressed();
+                }
+
                 info = Console.ReadKey(true);
+
+                // check if Ctrl+C was pressed 
+                if (ConsoleXApp.WasCtrlCPressed())
+                {
+                    ConsoleNavigation.CtrlCHasBeenPressed();
+                }
+ 
                 alt = (info.Modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt;
                 ctrl = (info.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control;
                 shift = (info.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
@@ -122,125 +137,49 @@ namespace Horseshoe.NET.ConsoleX
             return buf;
         }
 
-        ///// <summary>
-        ///// Prompts for input, accepts free text as well as certain commands i.e. 'cancel', 'exit' by default
-        ///// </summary>
-        ///// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        ///// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
-        ///// <param name="quickText">an optional common or predictive input that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        ///// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        ///// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        ///// <param name="autoTrim">Whether to trim leading and trailing whitespaces, default is <c>false</c>.</param>
-        ///// <param name="canCancel">Whether typing 'cancel' at the prompt can cancel the routine, default is <c>true</c>.</param>
-        ///// <param name="canExitApp">Whether typing 'exit' at the prompt can exit the application, default is <c>true</c>.</param>
-        ///// <returns>The text entered by the user</returns>
-        //public static string Input
-        //(
-        //    bool required = false,
-        //    bool displayAsRequired = false,
-        //    string quickText = null, 
-        //    int padBefore = 0, 
-        //    int padAfter = 0, 
-        //    bool autoTrim = false,
-        //    bool canCancel = true,
-        //    bool canExitApp = true
-        //)
-        //{
-        //    return Input
-        //    (
-        //        null,
-        //        required: required,
-        //        displayAsRequired: displayAsRequired,
-        //        quickText: quickText, 
-        //        autoTrim: autoTrim,
-        //        padBefore: padBefore, 
-        //        padAfter: padAfter, 
-        //        canCancel: canCancel, 
-        //        canExitApp: canExitApp
-        //    );
-        //}
+        private static string _ConsoleLine(string quickText, TraceJournal journal)
+        {
+            // journaling
+            journal.WriteEntry("PromptX._ConsoleLine()");
+            journal.Level++;
 
-        ///// <summary>
-        ///// Prompts for input, accepts free text as well as certain commands i.e. 'cancel', 'exit' by default
-        ///// </summary>
-        ///// <param name="prompt">The text to render at the prompt.</param>
-        ///// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        ///// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
-        ///// <param name="quickText">an optional common or predictive input that may be entered by the user simply pressing 'Enter' or 'Return'</param>
-        ///// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        ///// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        ///// <param name="autoTrim">Whether to trim leading and trailing whitespaces, default is <c>false</c>.</param>
-        ///// <param name="canCancel">Whether typing 'cancel' at the prompt can cancel the routine, default is <c>true</c>.</param>
-        ///// <param name="canExitApp">Whether typing 'exit' at the prompt can exit the application, default is <c>true</c>.</param>
-        ///// <returns>The text entered by the user</returns>
-        //public static string Input
-        //(
-        //    string prompt, 
-        //    bool required = false,
-        //    bool displayAsRequired = false,
-        //    string quickText = null,
-        //    int padBefore = 0, 
-        //    int padAfter = 0, 
-        //    bool autoTrim = false,
-        //    bool canCancel = true, 
-        //    bool canExitApp = true
-        //)
-        //{
-        //    RenderX.Pad(padBefore);
-        //    if (!string.IsNullOrWhiteSpace(quickText))
-        //    {
-        //        Console.WriteLine("(Press 'Enter' to use \"" + quickText + "\")");
-        //    }
+            // do stuff
 
-        //    string input;
-        //    while (true)
-        //    {
-        //        RenderX.Prompt(prompt, required: required || displayAsRequired);
-        //        input = autoTrim 
-        //            ? Console.ReadLine().Trim()
-        //            : Console.ReadLine();
-        //        if (input.Equals(""))
-        //        {
-        //            if (quickText != null)
-        //            {
-        //                input = quickText;
-        //                RenderX.Prompt(prompt, required: required || displayAsRequired);
-        //                Console.WriteLine(input);
-        //            }
-        //            else if (required)
-        //            {
-        //                RenderX.Alert("An input is required.");
-        //                continue;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            switch (input.ToLower())
-        //            {
-        //                case "exit":
-        //                    if (canExitApp)
-        //                    {
-        //                        Environment.Exit(0);
-        //                    }
-        //                    break;
-        //                case "cancel":
-        //                    if (canCancel)
-        //                    {
-        //                        ConsoleNavigation.CancelInput();
-        //                    }
-        //                    break;
-        //            }
-        //        }
-        //        break;
-        //    }
-        //    RenderX.Pad(padAfter);
-        //    return input;
-        //}
+            // check if Ctrl+C was pressed 
+            if (ConsoleXApp.WasCtrlCPressed())
+            {
+                ConsoleNavigation.CtrlCHasBeenPressed();
+            }
+
+            var line = Console.ReadLine();
+
+            if (line == null)
+            {
+                Thread.Sleep(400);  // allow Console.CancelKeyPress to catch up (whether STAThread or not)
+            }
+
+            // check if Ctrl+C was pressed 
+            if (ConsoleXApp.WasCtrlCPressed())
+            {
+                ConsoleNavigation.CtrlCHasBeenPressed();
+            }
+
+            if (quickText != null && string.IsNullOrWhiteSpace(line))
+            {
+                line = quickText;
+                Console.WriteLine(quickText);
+            }
+            else
+                Console.WriteLine();
+
+            // finalize
+            journal.Level--;
+            return line;
+        }
 
         /// <summary>
-        /// Prompts for input, accepts free text with no string trimming and no command recognition
+        /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
         /// </summary>
-        /// <param name="mask">Optional <c>char</c> to display on screen.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
         /// <param name="quickText">Text to apply by pressing 'Enter', suggested before the prompt.</param>
@@ -248,40 +187,37 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         /// <returns>The exact text entered by the user</returns>
-        public static string RawInput
+        public static string RawConsoleInput
         (
-            char? mask = null,
             bool required = false,
             bool displayAsRequired = false,
             string quickText = null,
             string requiredMessage = "Input is required.",
-            int padBefore = 0, 
+            int padBefore = 0,
             int padAfter = 0,
             TraceJournal journal = null
         )
         {
-            return RawInput
+            return RawConsoleInput
             (
                 null,
-                mask: mask,
+                //mask: mask,
                 required: required,
                 displayAsRequired: displayAsRequired,
                 quickText: quickText,
                 requiredMessage: requiredMessage,
-                padBefore: padBefore, 
+                padBefore: padBefore,
                 padAfter: padAfter,
                 journal: journal
             );
         }
 
         /// <summary>
-        /// Prompts for input, accepts free text with no string trimming and no command recognition.
+        /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="mask">Optional <c>char</c> to display on screen.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
         /// <param name="requiredMessage">The alert to display if a required input is not supplied.</param>
@@ -290,17 +226,16 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The exact text entered by the user.</returns>
-        /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
-        public static string RawInput
+        /// <exception cref="ConsoleNavigation.ExitAppException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
+        public static string RawConsoleInput
         (
             string prompt,
-            char? mask = null,
             bool required = false,
             bool displayAsRequired = false,
             string quickText = null,
             string requiredMessage = "Input is required.",
-            int padBefore = 0, 
+            int padBefore = 0,
             int padAfter = 0,
             TraceJournal journal = null
         )
@@ -322,28 +257,18 @@ namespace Horseshoe.NET.ConsoleX
 
             try
             {
-                RenderX.Prompt(prompt, required: required || displayAsRequired);
-                input = _Input(mask, quickText, journal);
+                RenderX.Prompt(prompt, displayAsRequired: required || displayAsRequired);
+                //input = _KeyStrokes(mask, quickText, journal);
+                input = _ConsoleLine(quickText, journal);
                 while (string.IsNullOrWhiteSpace(input) && required)
                 {
                     RenderX.Alert(TextUtil.Reveal(requiredMessage));
-                    RenderX.Prompt(prompt, required: required || displayAsRequired);
-                    input = _Input(mask, quickText, journal);
+                    RenderX.Prompt(prompt, displayAsRequired: required || displayAsRequired);
+                    //input = _KeyStrokes(mask, quickText, journal);
+                    input = _ConsoleLine(quickText, journal);
                 }
-
-                //// apply the quick text  -->>  _InputBuffered()
-                //if (string.IsNullOrWhiteSpace(input) && quickText != null)
-                //{
-                //    input = quickText;
-                //    RenderX.Prompt(prompt, required: required || displayAsRequired);
-                //    Console.WriteLine(input);
-                //}
             }
-            catch (ConsoleNavigation.CancelInputPromptException)
-            {
-                throw;
-            }
-            catch (ConsoleNavigation.ControlCException)
+            catch (ConsoleNavigation.CtrlCException)
             {
                 throw;
             }
@@ -353,6 +278,117 @@ namespace Horseshoe.NET.ConsoleX
                 journal.Level--;
                 RenderX.Pad(padAfter);
             }
+
+            if (input.Trim().ToLower().Equals("exit"))
+                ConsoleNavigation.ExitApp();
+
+            return input;
+        }
+
+        /// <summary>
+        /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
+        /// </summary>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
+        /// <param name="quickText">Text to apply by pressing 'Enter', suggested before the prompt.</param>
+        /// <param name="requiredMessage">The alert to display if a required input is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
+        /// <returns>The exact text entered by the user</returns>
+        public static string RawKeystrokeInput
+        (
+            bool required = false,
+            bool displayAsRequired = false,
+            string quickText = null,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0,
+            TraceJournal journal = null
+        )
+        {
+            return RawKeystrokeInput
+            (
+                null,
+                //mask: mask,
+                required: required,
+                displayAsRequired: displayAsRequired,
+                quickText: quickText,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter,
+                journal: journal
+            );
+        }
+
+        /// <summary>
+        /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
+        /// <param name="requiredMessage">The alert to display if a required input is not supplied.</param>
+        /// <param name="quickText">Text to apply by pressing 'Enter', suggested before the prompt.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <returns>The exact text entered by the user.</returns>
+        /// <exception cref="ConsoleNavigation.ExitAppException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
+        public static string RawKeystrokeInput
+        (
+            string prompt,
+            bool required = false,
+            bool displayAsRequired = false,
+            string quickText = null,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0,
+            TraceJournal journal = null
+        )
+        {
+            // journaling
+            journal = journal ?? new TraceJournal();
+            journal.WriteEntry("PromptX.RawInput()");
+            journal.Level++;
+
+            // do work
+            string input;
+
+            RenderX.Pad(padBefore);
+
+            if (quickText != null)
+            {
+                Console.WriteLine("(Press 'Enter' to input \"" + quickText + "\")");
+            }
+
+            try
+            {
+                RenderX.Prompt(prompt, displayAsRequired: required || displayAsRequired);
+                //input = _KeyStrokes(mask, quickText, journal);
+                input = _ConsoleLine(quickText, journal);
+                while (string.IsNullOrWhiteSpace(input) && required)
+                {
+                    RenderX.Alert(TextUtil.Reveal(requiredMessage));
+                    RenderX.Prompt(prompt, displayAsRequired: required || displayAsRequired);
+                    //input = _KeyStrokes(mask, quickText, journal);
+                    input = _ConsoleLine(quickText, journal);
+                }
+            }
+            catch (ConsoleNavigation.CtrlCException)
+            {
+                throw;
+            }
+            finally
+            {
+                // finalize
+                journal.Level--;
+                RenderX.Pad(padAfter);
+            }
+
+            if (input.Trim().ToLower().Equals("exit"))
+                ConsoleNavigation.ExitApp();
 
             return input;
         }
@@ -381,7 +417,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static T Value<T>
         (
             Func<string, object> parser = null,
@@ -449,7 +485,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static T Value<T>
         (
             string prompt,
@@ -494,31 +530,23 @@ namespace Horseshoe.NET.ConsoleX
 
                 while (true)
                 {
-                    string input = Zap.String
+                    string input = RawConsoleInput
                     (
-                        RawInput
-                        (
-                            prompt,
-                            required: required && quickValue == null,
-                            displayAsRequired: required,
-                            quickText: quickValue?.ToString(),
-                            requiredMessage: requiredMessage,
-                            padBefore: padBefore,
-                            padAfter: padAfter,
-                            journal: journal
-                        )
-                    );
+                        prompt,
+                        required: required && quickValue == null,
+                        displayAsRequired: required,
+                        quickText: quickValue?.ToString(),
+                        requiredMessage: requiredMessage,
+                        padBefore: padBefore,
+                        padAfter: padAfter,
+                        journal: journal
+                    ).Trim();
 
-                    // scenario 2 of 4 - null input
-                    if (input == null)
+                    // scenario 2 of 4 - empty input
+                    if (input.Length == 0)
                     {
                         // finalize
                         journal.Level--;
-
-                        if (quickValue != null)
-                        {
-                            return quickValue.Value;
-                        }
                         return default;
                     }
 
@@ -566,7 +594,7 @@ namespace Horseshoe.NET.ConsoleX
             {
                 throw;
             }
-            catch (ConsoleNavigation.ControlCException)
+            catch (ConsoleNavigation.CtrlCException)
             {
                 throw;
             }
@@ -584,7 +612,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user.</returns>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static T Enum<T>
         (
             Title? title = null, 
@@ -678,33 +706,37 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to securely enter a password.
         /// </summary>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static string Password
         (
+            bool displayAsRequired = false,
             int padBefore = 0,
             int padAfter = 0,
             TraceJournal journal = null
         )
         {
-            return Password(null, padBefore: padBefore, padAfter: padAfter, journal: journal);
+            return Password(null, displayAsRequired: displayAsRequired, padBefore: padBefore, padAfter: padAfter, journal: journal);
         }
 
         /// <summary>
         /// Prompts a user to securely enter a password.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="displayAsRequired">If <c>true</c>, suggests to the renderer to mark this input as required.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static string Password
         (
             string prompt,
+            bool displayAsRequired = false,
             int padBefore = 0,
             int padAfter = 0,
             TraceJournal journal = null
@@ -716,14 +748,13 @@ namespace Horseshoe.NET.ConsoleX
             journal.Level++;
 
             // do stuff
-            var password = RawInput
-            (
-                prompt,
-                mask: '*',
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
+
+            RenderX.Pad(padBefore);
+
+            RenderX.Prompt(prompt, displayAsRequired: displayAsRequired);
+            var password = _Keystrokes('*', null, journal);
+
+            RenderX.Pad(padAfter);
 
             // finalize
             journal.Level--;
@@ -737,7 +768,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static SecureString SecurePassword
         (
             int padBefore = 0,
@@ -756,7 +787,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static SecureString SecurePassword
         (
             string prompt,
@@ -772,17 +803,19 @@ namespace Horseshoe.NET.ConsoleX
 
             // do stuff
             var secureString = new SecureString();
+
             RenderX.Pad(padBefore);
 
             RenderX.Prompt(prompt);
-            var buf = _BufferedInput('*', null, journal);
-            foreach (var c in buf)
+            var buf = _BufferedKeystrokes('*', null, journal);
+            for (int i = 0; i < buf.Count; i++)
             {
-                secureString.AppendChar(c);
+                secureString.AppendChar(buf[i]);
+                buf[i] = '\0';
             }
             secureString.MakeReadOnly();
 
-            RenderX.Pad(padAfter + 1);
+            RenderX.Pad(padAfter);
 
             // finalize
             journal.Level--;
@@ -798,12 +831,13 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="indexPolicy">Whether to display an index and whether it is 0-based.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="renderer">An alternative to <c>object.ToString()</c> for displaying collection items.</param>
+        /// <param name="columns">The number of columns with which to render the list.</param>
         /// <param name="padBefore">The number of new lines to render before the collection.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user</returns>
         /// <remarks><seealso cref="Enum"/></remarks>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static ListSelection<T> List<T>
         (
             IEnumerable<T> collection,
@@ -811,6 +845,7 @@ namespace Horseshoe.NET.ConsoleX
             ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
             bool required = false,
             Func<T, string> renderer = null,
+            int columns = 1,
             int padBefore = 0,
             int padAfter = 0
         )
@@ -822,6 +857,7 @@ namespace Horseshoe.NET.ConsoleX
                 indexPolicy: indexPolicy,
                 required: required,
                 renderer: renderer,
+                columns: columns,
                 padBefore: padBefore,
                 padAfter: padAfter
             );
@@ -836,12 +872,13 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
+        /// <param name="columns">The number of columns with which to render the list.</param>
         /// <param name="padBefore">The number of new lines to render before the list</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user</returns>
         /// <remarks><seealso cref="Enum"/></remarks>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static ListSelection<T> List<T>
         (
             IList<T> list,
@@ -849,6 +886,7 @@ namespace Horseshoe.NET.ConsoleX
             ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
             bool required = false,
             Func<T, string> renderer = null,
+            int columns = 1,
             int padBefore = 0,
             int padAfter = 0
         )
@@ -861,6 +899,7 @@ namespace Horseshoe.NET.ConsoleX
                 indexPolicy: indexPolicy,
                 required: required,
                 renderer: renderer,
+                columns: columns,
                 padBefore: padBefore,
                 padAfter: padAfter
             );
@@ -876,13 +915,14 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
+        /// <param name="columns">The number of columns with which to render the list.</param>
         /// <param name="padBefore">The number of new lines to render before the list</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value selected by the user</returns>
         /// <remarks><seealso cref="Enum"/></remarks>
         /// <exception cref="ValidationException"></exception>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static ListSelection<T> List<T>
         (
             IList<T> list,
@@ -891,6 +931,7 @@ namespace Horseshoe.NET.ConsoleX
             ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
             bool required = false,
             Func<T, string> renderer = null,
+            int columns = 1,
             int padBefore = 0,
             int padAfter = 0
         )
@@ -902,26 +943,27 @@ namespace Horseshoe.NET.ConsoleX
 
             T choice;
 
-            RenderX.List(list, title: title, indexPolicy: indexPolicy, renderer: renderer, padBefore: padBefore, padAfter: 0);
+            var listConfigurator = new MenuAndListRealtimeConfigurator();
+            RenderX.List(list, title: title, indexPolicy: indexPolicy, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: 0);
 
-            if (list != null && list.Any())
+            if (listConfigurator.IsNotSelectable)
             {
-                var index = Value<int>
-                (
-                    required: required,
-                    requiredMessage: "A selection is required.",
-                    validator: (i) => Assert.InRange(i, 0 + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1), list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? -1 : 0))
-                );
-                RenderX.Pad(padAfter);
-
-                choice = list[index + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : -1)];
-                selectedIndex = index;
-            }
-            else
-            {
-                choice = default;
                 selectedIndex = -1;
+                RenderX.Alert("Selection canceled (list not selectable).");
+                Continue();
+                return new ListSelection<T> { SelectedIndex = -1 };
             }
+
+            var index = Value<int>
+            (
+                required: required,
+                requiredMessage: "A selection is required.",
+                validator: (i) => Assert.InRange(i, 0 + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1), list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? -1 : 0))
+            );
+            RenderX.Pad(padAfter);
+
+            choice = list[index + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : -1)];
+            selectedIndex = index;
 
             return new ListSelection<T> { SelectedItem = choice, SelectedIndex = selectedIndex };
         }
@@ -947,7 +989,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="onRoutineAutoRunError">an action to perform after an autorun routine throws an exception</param>
         /// <returns>The selected menu selection(s)</returns>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.ControlCException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static MenuSelection<T> Menu<T>
         (
             IEnumerable<T> menuItems,
@@ -981,11 +1023,18 @@ namespace Horseshoe.NET.ConsoleX
                 title: title            
             );
 
+            if (listConfigurator.IsNotSelectable)
+            {
+                RenderX.Alert("Selection canceled (menu not selectable).");
+                Continue();
+                return new MenuSelection<T> { SelectedIndex = -1 };
+            }
+
             MenuSelection<T> menuSelection = null;
 
-            while (!listConfigurator.IsNotSelectable)
+            while (true)
             {
-                var rawInput = RawInput(padAfter: padAfter);
+                var rawInput = RawConsoleInput(padAfter: padAfter);
                 onMenuSelecting?.Invoke(rawInput);
                 var input = rawInput.Trim();
 

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
@@ -26,13 +27,38 @@ namespace Horseshoe.NET.ConsoleX
             Assembly.GetEntryAssembly()?.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName
         };
 
+        private static bool CtrlCWasPressed { get; set; }
+
+        /// <summary>
+        /// Asks if the user has pressed Ctrl+C.  Routines and PromptX.Input() check this value to see if they should terminate.
+        /// </summary>
+        public static bool WasCtrlCPressed()
+        {
+            var wasPressed = CtrlCWasPressed;
+            CtrlCWasPressed = false;
+            return wasPressed;
+        }
+
         /// <summary>
         /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation.
         /// </summary>
         /// <param name="app">A <c>ConsoleXApp</c> instance</param>
         public static void StartConsoleApp(ConsoleXApp app)
         {
-            app.Run();
+            //try
+            //{
+                app.Run();
+            //}
+            //catch (ConsoleNavigation.ControlCException)
+            //{
+            //    var t = "T";
+            //}
+            //catch (Exception ex)
+            //{
+            //    RenderX.Alert("Uncaught exception");
+            //    Console.WriteLine(ex.Render(recursive: true));
+            //    PromptX.Continue(prompt: "Press any key to exit...");
+            //}
         }
 
         /// <summary>
@@ -41,7 +67,22 @@ namespace Horseshoe.NET.ConsoleX
         /// <typeparam name="T">Subclass of <c>ConsoleXApp</c> (typically Program.cs)</typeparam>
         public static void StartConsoleApp<T>() where T : ConsoleXApp
         {
-            TypeUtil.GetDefaultInstance<T>().Run();
+            StartConsoleApp(TypeUtil.GetDefaultInstance<T>());
+        }
+
+        // handles Ctrl+C
+        static ConsoleXApp()
+        {
+            Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
+            {
+                // Prevent Ctrl+C from terminating the app
+                if (e.SpecialKey == ConsoleSpecialKey.ControlC)
+                {
+                    Console.WriteLine("!! Ctrl+C !!");
+                    CtrlCWasPressed = true;
+                    e.Cancel = true;
+                }
+            };
         }
 
         /// <summary>
@@ -151,9 +192,15 @@ namespace Horseshoe.NET.ConsoleX
                         : OnMainMenuRoutineAutoRunComplete
                 );
             }
-            catch (ConsoleNavigation.ExitAppException)   // exit gracefully
+            catch (ConsoleNavigation.ExitAppException)
             {
-                ApplicationExiting = true;
+                ApplicationExiting = true;   // exit gracefully
+            }
+            catch (ConsoleNavigation.CtrlCException)
+            {
+                ApplicationExiting = true;   // exit gracefully
+                RenderX.Alert("ConsoleXApp: Ctrl+C was pressed.", padBefore: 1);
+                PromptX.Continue(prompt: "Press any key to exit...");
             }
             catch (ConsoleNavigation.CancelInputPromptException)   // if reached this far, handle gracefully
             {

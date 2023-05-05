@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.Http</RootNamespace>
     <AssemblyName>Horseshoe.NET.Http</AssemblyName>
-    <Version>3.0.1</Version>
+    <Version>3.0.2</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>Web service and web API boilerplate code.</Description>

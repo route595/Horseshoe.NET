@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.AccessControl;
 
 using Horseshoe.NET.Text;
@@ -97,28 +98,28 @@ namespace Horseshoe.NET.IO
         }
 
         /// <inheritdoc cref="DirectoryInfo.GetFiles()"/>
-        public FileInfo[] GetFiles() =>
-            Directory.GetFiles();
+        public FilePath[] GetFiles() =>
+            Directory.GetFiles().Select(f => new FilePath(f)).ToArray();
 
         /// <inheritdoc cref="DirectoryInfo.GetFiles(string)"/>
-        public FileInfo[] GetFiles(string searchPattern) =>
-            Directory.GetFiles(searchPattern);
+        public FilePath[] GetFiles(string searchPattern) =>
+            Directory.GetFiles(searchPattern).Select(f => new FilePath(f)).ToArray();
 
         /// <inheritdoc cref="DirectoryInfo.GetFiles(string, SearchOption)"/>
-        public FileInfo[] GetFiles(string searchPattern, SearchOption searchOption) =>
-            Directory.GetFiles(searchPattern, searchOption);
+        public FilePath[] GetFiles(string searchPattern, SearchOption searchOption) =>
+            Directory.GetFiles(searchPattern, searchOption).Select(f => new FilePath(f)).ToArray();
 
         /// <inheritdoc cref="DirectoryInfo.GetDirectories()"/>
-        public DirectoryInfo[] GetDirectories() =>
-            Directory.GetDirectories();
+        public DirectoryPath[] GetDirectories() =>
+            Directory.GetDirectories().Select(d => new DirectoryPath(d)).ToArray();
 
         /// <inheritdoc cref="DirectoryInfo.GetDirectories(string)"/>
-        public DirectoryInfo[] GetDirectories(string searchPattern) =>
-            Directory.GetDirectories(searchPattern);
+        public DirectoryPath[] GetDirectories(string searchPattern) =>
+            Directory.GetDirectories(searchPattern).Select(d => new DirectoryPath(d)).ToArray();
 
         /// <inheritdoc cref="DirectoryInfo.GetDirectories(string, SearchOption)"/>
-        public DirectoryInfo[] GetDirectories(string searchPattern, SearchOption searchOption) =>
-            Directory.GetDirectories(searchPattern, searchOption);
+        public DirectoryPath[] GetDirectories(string searchPattern, SearchOption searchOption) =>
+            Directory.GetDirectories(searchPattern, searchOption).Select(d => new DirectoryPath(d)).ToArray();
 
         /// <summary>
         /// Returns the full directory path

@@ -59,7 +59,7 @@ namespace Horseshoe.NET.Db
                 case CompareMode.Regex:
                     throw new AssertionFailedException("This compare mode is invalid in DB filters: " + CompareMode.Regex);
             }
-            Assert.CriteriaIsValid(mode, criteria, out vAction);
+            Comparator.AssertCriteriaIsValid(mode, criteria, out vAction);
         }
 
         /// <summary>

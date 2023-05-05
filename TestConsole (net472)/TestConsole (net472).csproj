@@ -116,10 +116,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO Tests\FileTraversalTests.cs" />
     <Compile Include="XmlDocTests.cs" />
     <Compile Include="ExcelDataImportTests.cs" />
     <Compile Include="DataImportTests.cs" />
-    <Compile Include="DirectoryCrawlerTests.cs" />
     <Compile Include="LDAPTests.cs" />
     <Compile Include="AppCacheTests.cs" />
     <Compile Include="TextTests.cs" />
@@ -132,7 +132,7 @@
     <Compile Include="EmailTests.cs" />
     <Compile Include="FTPTests.cs" />
     <Compile Include="HTTP Tests\HTTPTests.cs" />
-    <Compile Include="IOTests.cs" />
+    <Compile Include="IO Tests\IOTests.cs" />
     <Compile Include="HTTP Tests\SSRSTests.cs" />
     <Compile Include="CollectionTests.cs" />
     <Compile Include="ConsoleTests.cs" />

@@ -106,13 +106,13 @@
     <Compile Include="DB Tests\DBTests.cs" />
     <Compile Include="DB Tests\OracleTests.cs" />
     <Compile Include="DB Tests\SqlTests.cs" />
-    <Compile Include="DirectoryCrawlerTests.cs" />
     <Compile Include="EmailTests.cs" />
     <Compile Include="ExcelDataImportTests.cs" />
     <Compile Include="FTPTests.cs" />
     <Compile Include="HTTP Tests\HTTPTests.cs" />
     <Compile Include="HTTP Tests\SSRSTests.cs" />
-    <Compile Include="IOTests.cs" />
+    <Compile Include="IO Tests\FileTraversalTests.cs" />
+    <Compile Include="IO Tests\IOTests.cs" />
     <Compile Include="LDAPTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

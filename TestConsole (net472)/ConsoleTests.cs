@@ -14,22 +14,22 @@ namespace TestConsole
         {
             BuildMenuRoutine
             (
-                "Prompt Input*",
+                "Prompt Raw Input*",
                 () =>
                 {
                     Console.WriteLine("testing 'required'...");
-                    var input = PromptX.RawInput("input", required: true);
+                    var input = PromptX.RawConsoleInput("input", required: true);
                     Console.WriteLine(input);
                     Console.WriteLine("testing 'displayAsRequired' with 'requiredIndicator' = \"$\"...");
                     RenderX.RequiredIndicator = "$";
-                    input = PromptX.RawInput("input", displayAsRequired: true);
+                    input = PromptX.RawConsoleInput("input", displayAsRequired: true);
                     RenderX.RequiredIndicator = null;
                     Console.WriteLine(input);
                     Console.WriteLine("testing null 'prompt'...");
-                    input = PromptX.RawInput();
+                    input = PromptX.RawConsoleInput();
                     Console.WriteLine(input);
                     Console.WriteLine("testing null 'prompt' with 'required'...");
-                    input = PromptX.RawInput(required: true);
+                    input = PromptX.RawConsoleInput(required: true);
                     Console.WriteLine(input);
                 }
             ),

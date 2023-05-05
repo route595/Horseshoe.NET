@@ -188,7 +188,7 @@ namespace Horseshoe.NET.DataImport
         /// <param name="name">column name</param>
         /// <param name="fixedWidth">optional column width</param>
         /// <returns></returns>
-        public static Column Bool(string name, int fixedWidth = 0) => new Column(name) { DataType = typeof(bool), FixedWidth = fixedWidth, Parser = (str) => Zap.Boolean(str) };
+        public static Column Bool(string name, int fixedWidth = 0) => new Column(name) { DataType = typeof(bool), FixedWidth = fixedWidth, Parser = (str) => Zap.Bool(str) };
 
         /// <summary>
         /// Creates a basic <c>DateTime</c> <c>Column</c> for dates

@@ -437,7 +437,7 @@ namespace Horseshoe.NET.OracleDb.Meta
                 }
             }
 
-            public static IEnumerable<OraObject> SearchByName(OracleConnection conn, OraSchema schema, IComparator<string> comparator, OraObjectType? objectType = null, int? commandTimeout = null)
+            public static IEnumerable<OraObject> SearchByName(OracleConnection conn, OraSchema schema, ICriterinator<string> comparator, OraObjectType? objectType = null, int? commandTimeout = null)
             {
                 var objects = List(conn, schema, objectType: objectType, commandTimeout: commandTimeout);
                 objects = objects
@@ -751,12 +751,12 @@ namespace Horseshoe.NET.OracleDb.Meta
                 return SearchTextColumnsByCriteria(conn, tableOrView, Comparator.Equals(value, ignoreCase: ignoreCase), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<OraColumn> SearchTextColumnsByCriteria(OraObject tableOrView, IComparator<string> comparator, int? commandTimeout = null)
+            public static IEnumerable<OraColumn> SearchTextColumnsByCriteria(OraObject tableOrView, ICriterinator<string> comparator, int? commandTimeout = null)
             {
                 return SearchByValue(tableOrView, comparator, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<OraColumn> SearchTextColumnsByCriteria(OracleConnection conn, OraObject tableOrView, IComparator<string> comparator, int? commandTimeout = null)
+            public static IEnumerable<OraColumn> SearchTextColumnsByCriteria(OracleConnection conn, OraObject tableOrView, ICriterinator<string> comparator, int? commandTimeout = null)
             {
                 return SearchByValue(conn, tableOrView, comparator, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
             }

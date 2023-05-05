@@ -144,7 +144,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
         /// <param name="renderer">alternative to <c>ToString()</c></param>
         /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
-        /// <param name="columns">the number of columns in which to render the list</param>
+        /// <param name="columns">The number of columns with which to render the list.</param>
         /// <param name="padBefore">the number of new lines to render before the list</param>
         /// <param name="padAfter">the number of new lines to render after the list</param>
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
@@ -348,16 +348,16 @@ namespace Horseshoe.NET.ConsoleX
         /// Renders a prompt for user input e.g. free text, menu selection, etc.
         /// </summary>
         /// <param name="prompt">An input prompt.</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        public static void Prompt(string prompt, bool required = false)
+        /// <param name="displayAsRequired">If <c>true</c>, adds an indicator to the prompt to suggest an input is required, default is <c>false</c>.</param>
+        public static void Prompt(string prompt, bool displayAsRequired = false)
         {
             if (prompt == null)
             {
-                Console.Write(">" + (required ? RequiredIndicator : "") + " ");
+                Console.Write(">" + (displayAsRequired ? RequiredIndicator : "") + " ");
             }
             else if (WordOrPhrasePattern.IsMatch(prompt))
             {
-                Console.Write(prompt + (required ? RequiredIndicator : "") + ": ");
+                Console.Write(prompt + (displayAsRequired ? RequiredIndicator : "") + ": ");
             }
             else
             {
@@ -367,11 +367,11 @@ namespace Horseshoe.NET.ConsoleX
                 switch (promptParts.Length)
                 {
                     case 1:
-                        Console.Write(promptParts[0] + (required ? RequiredIndicator : " "));
+                        Console.Write(promptParts[0] + (displayAsRequired ? RequiredIndicator : " "));
                         break;
 
                     default:
-                        promptParts[0] = promptParts[0] + (required ? RequiredIndicator : "");
+                        promptParts[0] = promptParts[0] + (displayAsRequired ? RequiredIndicator : "");
                         Console.Write(string.Join(Environment.NewLine, promptParts));
                         break;
                 }

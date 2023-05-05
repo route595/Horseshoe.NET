@@ -1,8 +1,5 @@
 ﻿using System;
 
-using Horseshoe.NET.Compare;
-using Horseshoe.NET.Primitives;
-
 namespace Horseshoe.NET
 {
     /// <summary>
@@ -10,18 +7,6 @@ namespace Horseshoe.NET
     /// </summary>
     public static class Assert
     {
-        /// <inheritdoc cref="AssertAbstractions.CriteriaIsValid(CompareMode, ObjectValues, Type)"/>
-        public static void CriteriaIsValid(CompareMode mode, ObjectValues criteria, Type typeOfInputItem = null)
-        {
-            AssertAbstractions.CriteriaIsValid(mode, criteria, typeOfInputItem);
-        }
-
-        /// <inheritdoc cref="AssertAbstractions.CriteriaIsValid(CompareMode, ObjectValues, out ValidationFlaggedAction, Type)"/>
-        public static void CriteriaIsValid(CompareMode mode, ObjectValues criteria, out ValidationFlaggedAction vAction, Type typeOfInputItem = null)
-        {
-            AssertAbstractions.CriteriaIsValid(mode, criteria, out vAction, typeOfInputItem);
-        }
-
         /// <summary>
         /// Ensures that <c>value</c> falls within the specified range which can be open ended by supplying <c>null</c> to <c>min</c> or <c>max</c>.
         /// </summary>

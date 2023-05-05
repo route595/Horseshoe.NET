@@ -257,7 +257,7 @@ namespace Horseshoe.NET.Text
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool In(this char chr, params int[] charCodes)
         {
-            return Collections.Extensions.In(chr, charCodes?.Select(i => (char)i));
+            return ExtensionAbstractions.In(chr, charCodes?.Select(i => (char)i));
         }
 
         /// <summary>

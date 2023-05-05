@@ -49,7 +49,7 @@
       <HintPath>..\packages\Microsoft.Extensions.Primitives.7.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -97,7 +97,7 @@
     <Compile Include="Collections\DictionaryUtil.cs" />
     <Compile Include="Collections\Extensions.cs" />
     <Compile Include="Collections\ListUtil.cs" />
-    <Compile Include="Compare\Comparator.cs" />
+    <Compile Include="Compare\Criterinator.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConsoleX\ConsoleXApp.cs" />
     <Compile Include="ConsoleX\Extensions.cs" />
@@ -138,9 +138,7 @@
     <Compile Include="Email\Sms\TextMessage.cs" />
     <Compile Include="EnvVar.cs" />
     <Compile Include="Ftp\FtpConnectionInfo.cs" />
-    <Compile Include="IO\DirectoryCrawler\DirectoryMetadata.cs" />
-    <Compile Include="IO\DirectoryCrawler\FileMetadata.cs" />
-    <Compile Include="IO\DirectoryCrawler\RecursiveCopy.cs" />
+    <Compile Include="IO\FileTraversal\TraversalEngine.cs" />
     <Compile Include="Iterator\Memory\Extensions.cs" />
     <Compile Include="Iterator\Extensions.cs" />
     <Compile Include="ObjectsAndTypes\TypeUtil.cs" />
@@ -153,17 +151,13 @@
     <Compile Include="Email\SmtpUtil.cs" />
     <Compile Include="DataImport\Extensions.cs" />
     <Compile Include="DataImport\ImportUtil.cs" />
-    <Compile Include="IO\DirectoryCrawler\Extensions.cs" />
-    <Compile Include="IO\DirectoryCrawler\DirectoryCrawler.cs" />
     <Compile Include="IO\Extensions.cs" />
-    <Compile Include="IO\DirectoryCrawler\RecursiveMove.cs" />
     <Compile Include="IO\FileUtil.cs" />
     <Compile Include="Ftp\Ftp.cs" />
     <Compile Include="Ftp\FtpSettings.cs" />
     <Compile Include="Ftp\FtpUtil.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Machine.cs" />
-    <Compile Include="NumberUtil.cs" />
     <Compile Include="ObjectsAndTypes\Extensions.cs" />
     <Compile Include="ObjectsAndTypes\ObjectUtil.cs" />
     <Compile Include="OleDb\Delete.cs" />
@@ -195,7 +189,6 @@
     <Compile Include="Text\TextUtil.cs" />
     <Compile Include="XmlDoc\XmlDoc.cs" />
     <Compile Include="XmlDoc\XmlDocBuilder.cs" />
-    <Compile Include="Zap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

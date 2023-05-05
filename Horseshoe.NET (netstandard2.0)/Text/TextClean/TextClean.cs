@@ -3,63 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Horseshoe.NET.Collections;
-
 namespace Horseshoe.NET.Text.TextClean
 {
     /// <summary>
-    /// A set of factory methods for removing or replaceing non-ASCII characters in string.
+    /// A set of factory methods for removing or replacing non-ASCII characters in string.
     /// </summary>
     public static class TextClean
     {
-        /// <summary>
-        /// Searches a <c>string</c> for certain <c>char</c>s and returns a copy of the original <c>string</c> without them.
-        /// </summary>
-        /// <param name="text">A <c>string</c> to search.</param>
-        /// <param name="chars">A set of <c>char</c>s to remove from <c>text</c>.</param>
-        /// <returns>A copy of <c>text</c> without the specified <c>char</c>s.</returns>
+        /// <inheritdoc cref="TextCleanAbstractions.Remove(string, char[])"/>
         public static string Remove(string text, params char[] chars)
         {
-            if (text == null)
-                return string.Empty;
-            if (chars == null || !chars.Any())
-                return text;
-            var strb = new StringBuilder(text.Length);
-            var dirty = false;
-            foreach (var c in text.AsSpan())
-            {
-                if (c.In(chars))
-                {
-                    dirty = true;
-                }
-                else
-                {
-                    strb.Append(c);
-                }
-            }
-            if (dirty)
-                return strb.ToString();
-            return text;
+            return TextCleanAbstractions.Remove(text, chars);
         }
 
-        /// <summary>
-        /// Searches a <c>string</c> for whitespace <c>char</c>s and returns a copy of the original <c>string</c> without them.
-        /// </summary>
-        /// <param name="text">A <c>string</c> whose whitespaces to remove.</param>
-        /// <returns>A copy of <c>text</c> without whitespaces.</returns>
+        /// <inheritdoc cref="TextCleanAbstractions.RemoveAllWhitespace(string)"/>
         public static string RemoveAllWhitespace(string text)
         {
-            return Remove(text, ' ', '\t', '\r', '\n', '\u00A0');
+            return TextCleanAbstractions.RemoveAllWhitespace(text);
         }
 
-        /// <summary>
-        /// Searches a <c>string</c> for newline <c>char</c>s and returns a copy of the original <c>string</c> without them.
-        /// </summary>
-        /// <param name="text">A <c>string</c> whose newlines to remove.</param>
-        /// <returns>A copy of <c>text</c> without newlines.</returns>
+        /// <inheritdoc cref="TextCleanAbstractions.RemoveNewlines(string)"/>
         public static string RemoveNewlines(string text)
         {
-            return Remove(text, '\r', '\n');
+            return TextCleanAbstractions.RemoveNewlines(text);
         }
 
         /// <summary>

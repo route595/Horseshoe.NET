@@ -30,7 +30,7 @@ namespace Horseshoe.NET.Db
         {
             try
             {
-                return ZapAbstractions.Object
+                return Zap.Object
                 (
                     OutputParameters
                         .Single(p => string.Equals(name, p.ParameterName, StringComparison.OrdinalIgnoreCase))?

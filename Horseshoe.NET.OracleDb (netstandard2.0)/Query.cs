@@ -326,7 +326,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -365,7 +365,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1211,7 +1211,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1258,7 +1258,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2214,7 +2214,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2255,7 +2255,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;

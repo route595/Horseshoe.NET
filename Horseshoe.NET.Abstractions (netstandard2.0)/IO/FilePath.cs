@@ -45,9 +45,13 @@ namespace Horseshoe.NET.IO
         public string FullName =>
             File.FullName;
 
-        /// <inheritdoc cref="Path.GetDirectoryName(string)"/>
-        public DirectoryPath Parent =>
-            Path.GetDirectoryName(FullName);
+        /// <inheritdoc cref="FileInfo.Directory"/>
+        public DirectoryPath Directory =>
+            File.Directory;
+
+        /// <inheritdoc cref="FileInfo.DirectoryName"/>
+        public string DirectoryName =>
+            File.DirectoryName;
 
         /// <inheritdoc cref="FileSystemInfo.Extension"/>
         public string Extension =>

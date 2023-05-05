@@ -440,7 +440,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, IComparator<string> comparator, SqlObjectType? objectType = null, int? commandTimeout = null)
+            public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, ICriterinator<string> comparator, SqlObjectType? objectType = null, int? commandTimeout = null)
             {
                 var objects = List(conn, database, objectType: objectType, commandTimeout: commandTimeout);
                 objects = objects
@@ -683,7 +683,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchByName(DbObject obj, IComparator<string> comparator, Credential? credentials = null, int ? commandTimeout = null)
+            public static IEnumerable<DbColumn> SearchByName(DbObject obj, ICriterinator<string> comparator, Credential? credentials = null, int ? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = obj.Server ?? throw new UtilityException("No Server ancestor exists for the supplied " + (obj?.ObjectType.ToString() ?? "Object")), Credentials = credentials }))
                 {
@@ -691,7 +691,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, IComparator<string> comparator, int? commandTimeout = null)
+            public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, ICriterinator<string> comparator, int? commandTimeout = null)
             {
                 var columns = List(conn, obj, commandTimeout: commandTimeout);
                 columns = columns
@@ -775,12 +775,12 @@ namespace Horseshoe.NET.SqlDb.Meta
                 return SearchTextColumnsByCriteria(conn, obj, Comparator.Equals(value, ignoreCase: ignoreCase), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(DbObject obj, IComparator<string> comparator, int? commandTimeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(DbObject obj, ICriterinator<string> comparator, int? commandTimeout = null)
             {
                 return SearchByValue(obj, comparator, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
             }
 
-            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(SqlConnection conn, DbObject obj, IComparator<string> comparator, int? commandTimeout = null)
+            public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(SqlConnection conn, DbObject obj, ICriterinator<string> comparator, int? commandTimeout = null)
             {
                 return SearchByValue(conn, obj, comparator, filter: (column) => column.IsText(), commandTimeout: commandTimeout);
             }

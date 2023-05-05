@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -161,6 +161,21 @@ namespace Horseshoe.NET.Text
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Used internally for determining which <c>IFormatProvider</c> to use in certain conversion operations.
+        /// </summary>
+        /// <param name="provider">An optional format provider.</param>
+        /// <param name="locale">An optional locale from which to derive a format provider if one has was not specified.</param>
+        /// <returns>A format provider, or <c>null</c>.</returns>
+        public static IFormatProvider GetProvider(IFormatProvider provider, string locale)
+        {
+            if (provider != null)
+                return provider;
+            if (locale == null)
+                return null;
+            return CultureInfo.GetCultureInfo(locale);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 
@@ -627,13 +626,10 @@ namespace Horseshoe.NET.Text
             return (c >= 0 && c <= 31) || c == 127;
         }
 
-        internal static IFormatProvider GetProvider(IFormatProvider provider, string locale)
+        /// <inheritdoc cref="TextUtilAbstractions.GetProvider(IFormatProvider, string)"/>
+        public static IFormatProvider GetProvider(IFormatProvider provider, string locale)
         {
-            if (provider != null)
-                return provider;
-            if (locale == null)
-                return null;
-            return CultureInfo.GetCultureInfo(locale);
+            return TextUtilAbstractions.GetProvider(provider, locale);
         }
 
         internal static string DumpDatum(object o)

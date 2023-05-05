@@ -1,62 +1,27 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Compare;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.ObjectsAndTypes
 {
     /// <summary>
-    /// A suite of utility methods for types
+    /// A suite of utility methods for types.
     /// </summary>
     public static class TypeUtil
     {
-        /// <summary>
-        /// Gets a text description of the kind of the supplied type (e.g. "[interface]", "[enum]", etc.)
-        /// </summary>
-        /// <param name="type">A type</param>
-        /// <returns>The description of the type</returns>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetKindOfType(Type)"/>
         public static string GetKindOfType(Type type)
         {
-            if (type == null)
-                return TextConstants.Null;
-            if (type.IsInterface)
-                return "[interface]";
-            if (type.IsEnum)
-                return "[enum]";
-            if (type.IsValueType)
-                return "[value-type]";
-            if (!type.IsClass)
-                return "[non-class]";
-            if (type.IsArray)
-                return "[array]";
-            if (type.IsSealed && type.IsAbstract)
-                return "[static-class]";
-            var strb = new StringBuilder("class");
-            if (type.IsSealed)
-                strb.Insert(0, "sealed-");
-            if (type.IsAbstract)
-                strb.Insert(0, "abstract-");
-            if (type.IsGenericType)
-                strb.Insert(0, "generic-");
-            if (type.IsImport)
-                strb.Insert(0, "COM-");
-            return "[" + strb + "]";
+            return TypeUtilAbstractions.GetKindOfType(type);
         }
 
-        /// <summary>
-        /// Asserts that the supplied type is a reference type
-        /// </summary>
-        /// <param name="type">A type</param>
-        /// <param name="errorMessage">An optional error message</param>
-        /// <exception cref="AssertionFailedException"></exception>
+        /// <inheritdoc cref="TypeUtilAbstractions.AssertIsReferenceType(Type, string)"/>
         public static void AssertIsReferenceType(Type type, string errorMessage = null)
         {
-            if (type == null || !type.IsClass)
-                throw new AssertionFailedException(errorMessage ?? (type.FullName + " is not a reference type: " + GetKindOfType(type)));
+            TypeUtilAbstractions.AssertIsReferenceType(type, errorMessage: errorMessage);
         }
 
         /// <summary>
@@ -93,78 +58,20 @@ namespace Horseshoe.NET.ObjectsAndTypes
             AssertIsValueType(typeof(T), errorMessage: errorMessage);
         }
 
-        /// <summary>
-        /// Finds the runtime type respresented by the fully qualified class name
-        /// </summary>
-        /// <param name="className">The class name</param>
-        /// <param name="assemblyName">The assembly name</param>
-        /// <param name="ignoreCase">If <c>true</c>, allows searching assemblies/types that are identically named if not for the letter case, default is <c>false</c>.</param>
-        /// <exception cref="TypeNotFoundException"/>
-        /// <returns></returns>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetType(string, string, bool)"/>
         public static Type GetType(string className, string assemblyName = null, bool ignoreCase = false)
         {
-            if (className == null)
-                throw new ArgumentNullException(nameof(className));
-
-            Exception lastException = null;
-
-            // step 1 - direct type loading (seldom works)
-            Type type = Type.GetType(className, throwOnError: false, ignoreCase: ignoreCase);
-            if (type != null)
-                return type;
-
-            // step 2 - load type from loaded assemblies (e.g. System.Core, Horseshoe.NET, etc.)
-            try
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    type = assembly.GetType(className);
-                    if (type != null)
-                        return type;
-                }
-            }
-            catch(Exception ex)
-            {
-                lastException = ex;
-            }
-
-            // step 3 - load assembly and type
-            try
-            { 
-                if (assemblyName != null)
-                {
-                    var assembly = Assembly.Load(assemblyName);
-                    if (assembly != null)
-                    {
-                        type = assembly.GetType(className);
-                        if (type != null)
-                            return type;
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-            }
-
-            throw new TypeNotFoundException("Type \"" + className + "\" could not be loaded" + (lastException != null ? ": " + lastException.Message : "") + ".  Please ensure you are using the fully qualified class name and that the proper assembly is accessible, if applicable (e.g. is present in the executable's path or installed in the GAC)", lastException) { IsStrictSensitive = true };
+            return TypeUtilAbstractions.GetType(className, assemblyName: assemblyName, ignoreCase: ignoreCase);
         }
 
         /* * * * * * * * * * * * * * * * * * * * * * * * 
          *                 GET PROPERTIES
          * * * * * * * * * * * * * * * * * * * * * * * */
 
-        /// <summary>
-        /// Gets the public instance properties of <c>type</c>
-        /// </summary>
-        /// <param name="type">A reference type</param>
-        /// <returns>A property array</returns>
-        /// <exception cref="AssertionFailedException">If <c>type</c> is not a reference type</exception>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetInstanceProperties(Type)"/>
         public static PropertyInfo[] GetInstanceProperties(Type type)
         {
-            AssertIsReferenceType(type);
-            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            return TypeUtilAbstractions.GetInstanceProperties(type);
         }
 
         /// <summary>
@@ -233,26 +140,16 @@ namespace Horseshoe.NET.ObjectsAndTypes
             }
         }
 
-        /// <summary>
-        /// Gets the public static properties of <c>type</c>
-        /// </summary>
-        /// <param name="type">A reference type</param>
-        /// <returns>A property array</returns>
-        /// <exception cref="AssertionFailedException">If <c>type</c> is not a reference type</exception>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetStaticProperties(Type)"/>
         public static PropertyInfo[] GetStaticProperties(Type type)
         {
-            AssertIsReferenceType(type);
-            return type.GetProperties(BindingFlags.Static | BindingFlags.Public);
+            return TypeUtilAbstractions.GetStaticProperties(type);
         }
 
-        /// <summary>
-        /// Gets the public static properties of <c>T</c>
-        /// </summary>
-        /// <typeparam name="T">A reference type</typeparam>
-        /// <returns>A property array</returns>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetStaticProperties{T}"/>
         public static PropertyInfo[] GetStaticProperties<T>() where T : class
         {
-            return typeof(T).GetProperties(BindingFlags.Static | BindingFlags.Public);
+            return TypeUtilAbstractions.GetStaticProperties<T>();
         }
 
         /// <summary>
@@ -309,64 +206,16 @@ namespace Horseshoe.NET.ObjectsAndTypes
          *         GET / SET PROPERTY VALUES
          * * * * * * * * * * * * * * * * * * * * * * * */
 
-        /// <summary>
-        /// Gets the public static properties of <c>type</c>, values included
-        /// </summary>
-        /// <param name="type">A reference type</param>
-        /// <param name="propertyTypeFilter">Optional. A C# type to compare against property types, this includes subtypes if <c>strictPropertyTypeFilter == false</c>.  All other properties are filtered out.</param>
-        /// <param name="strictPropertyTypeFilter">Optional. If <c>propertyTypeFilter</c> is supplied, this parameter indicates whether to exclude subtypes, default is <c>false</c>.</param>
-        /// <param name="propertyNameCompareMode">The compare mode, e.g. Equals, Contains, Between, etc.</param>
-        /// <param name="propertyNameCriteria">Optional. The property name criteria search value(s) if filtering on property name.</param>
-        /// <param name="propertyNameIgnoreCase">
-        /// <para>
-        /// Set to <c>true</c> (recommended) to ignore the letter case of the property names being compared by this filter, default is <c>false</c>.
-        /// </para>
-        /// <para>
-        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
-        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
-        /// </para>
-        /// </param>
-        /// <param name="propertyFilter"></param>
-        /// <returns>A property value array</returns>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetStaticPropertyValues(Type, Type, bool, CompareMode, string, bool, Func{PropertyInfo, bool})"/>
         public static PropertyValue[] GetStaticPropertyValues(Type type, Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, CompareMode propertyNameCompareMode = default, string propertyNameCriteria = null, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null)
         {
-            if (type == null)
-                return null;
-            return GetStaticProperties(type)
-                .OfPropertyType(propertyTypeFilter, strictType: strictPropertyTypeFilter)
-                .NamedLike(propertyNameCompareMode, propertyNameCriteria, ignoreCase: propertyNameIgnoreCase)
-                .Where(p => propertyFilter?.Invoke(p) ?? true)
-                .Select(prop => new PropertyValue(prop, prop.GetValue(null)))
-                .ToArray();
+            return TypeUtilAbstractions.GetStaticPropertyValues(type, propertyTypeFilter: propertyTypeFilter, strictPropertyTypeFilter: strictPropertyTypeFilter, propertyNameCompareMode: propertyNameCompareMode, propertyNameCriteria: propertyNameCriteria, propertyNameIgnoreCase: propertyNameIgnoreCase, propertyFilter: propertyFilter);
         }
 
-        /// <summary>
-        /// Gets the public static properties of <c>type</c>, values included
-        /// </summary>
-        /// <typeparam name="T">A referemce type</typeparam>
-        /// <param name="propertyTypeFilter">Optional. A C# type to compare against property types, this includes subtypes if <c>strictPropertyTypeFilter == false</c>.  All other properties are filtered out.</param>
-        /// <param name="strictPropertyTypeFilter">Optional. If <c>propertyTypeFilter</c> is supplied, this parameter indicates whether to exclude subtypes, default is <c>false</c>.</param>
-        /// <param name="propertyNameCompareMode">The compare mode, e.g. Equals, Contains, Between, etc.</param>
-        /// <param name="propertyNameCriteria">Optional. The property name criteria search value(s) if filtering on property name.</param>
-        /// <param name="propertyNameIgnoreCase">
-        /// <para>
-        /// Set to <c>true</c> (recommended) to ignore the letter case of the property names being compared by this filter, default is <c>false</c>.
-        /// </para>
-        /// <para>
-        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
-        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
-        /// </para>
-        /// </param>
-        /// <param name="propertyFilter"></param>
-        /// <returns>A property value array</returns>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetStaticPropertyValues{T}(Type, bool, CompareMode, StringValues, bool, Func{PropertyInfo, bool})"/>
         public static PropertyValue[] GetStaticPropertyValues<T>(Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, CompareMode propertyNameCompareMode = default, StringValues propertyNameCriteria = default, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null) where T : class
         {
-            return GetStaticProperties<T>()
-                .OfPropertyType(propertyTypeFilter, strictType: strictPropertyTypeFilter)
-                .NamedLike(propertyNameCompareMode, propertyNameCriteria, ignoreCase: propertyNameIgnoreCase)
-                .Where(p => propertyFilter?.Invoke(p) ?? true)
-                .Select(prop => new PropertyValue(prop, prop.GetValue(null)))
-                .ToArray();
+            return TypeUtilAbstractions.GetStaticPropertyValues<T>(propertyTypeFilter: propertyTypeFilter, strictPropertyTypeFilter: strictPropertyTypeFilter, propertyNameCompareMode: propertyNameCompareMode, propertyNameCriteria: propertyNameCriteria, propertyNameIgnoreCase: propertyNameIgnoreCase, propertyFilter: propertyFilter);
         }
 
         /// <summary>
@@ -487,22 +336,10 @@ namespace Horseshoe.NET.ObjectsAndTypes
             return (T)GetDefaultValue(typeof(T), nonPublic: nonPublic);
         }
 
-        /// <summary>
-        /// Gets the default value of the supplied type, e.g. <c>null</c> for reference and nullable types.  
-        /// <para>
-        /// Similar to <c>default(T)</c>.
-        /// </para>
-        /// </summary>
-        /// <param name="type">A runtime type.</param>
-        /// <param name="nonPublic">If <c>true</c>, a public or nonpublic default constructor can be used, default is <c>false</c> (public default constructor only).</param>
-        /// <returns>A default value such as <c>null</c>.</returns>
+        /// <inheritdoc cref="TypeUtilAbstractions.GetDefaultValue(Type, bool)"/>
         public static object GetDefaultValue(Type type, bool nonPublic = false)
         {
-            if (type.IsValueType && !type.IsNullable())
-            {
-                return Activator.CreateInstance(type, nonPublic: nonPublic);
-            }
-            return null;
+            return TypeUtilAbstractions.GetDefaultValue(type, nonPublic: nonPublic);
         }
     }
 }

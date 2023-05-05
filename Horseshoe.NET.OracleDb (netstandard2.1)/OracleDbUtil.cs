@@ -118,9 +118,9 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string commandText,
-            IEnumerable<DbParameter> parameters,
+            IEnumerable<DbParameter>? parameters,
             int? commandTimeout,
-            Action<OracleCommand> alterCommand
+            Action<OracleCommand>? alterCommand
         )
         {
             return BuildCommand
@@ -138,9 +138,9 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string commandText,
-            IEnumerable<DbParameter> parameters,
+            IEnumerable<DbParameter>? parameters,
             int? commandTimeout,
-            Action<OracleCommand> alterCommand
+            Action<OracleCommand>? alterCommand
         )
         {
             return BuildCommand

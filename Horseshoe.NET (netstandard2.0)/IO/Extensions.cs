@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Horseshoe.NET.IO
@@ -102,6 +104,207 @@ namespace Horseshoe.NET.IO
                 case FileSizeUnit.EiB: return FileSize.EiB;
                 default: return 1D; // byte
             }
+        }
+
+        /// <summary>
+        /// Tests whether this directory is in the directory tree of the supplied directory.
+        /// </summary>
+        /// <param name="dir">The current directory.</param>
+        /// <param name="otherDir">Another directory.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <returns></returns>
+        public static bool IsChildOf(this DirectoryPath dir, DirectoryPath otherDir, bool ignoreCase = false)
+        {
+            return ignoreCase
+                ? dir.FullName.IndexOf(otherDir.FullName, StringComparison.OrdinalIgnoreCase) == 0
+                : dir.FullName.IndexOf(otherDir.FullName, StringComparison.Ordinal) == 0;
+        }
+
+        /// <summary>
+        /// Tests whether this file is in the directory tree of the supplied directory.
+        /// </summary>
+        /// <param name="file">The current file.</param>
+        /// <param name="path">A directory.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <returns></returns>
+        public static bool IsChildOf(this FilePath file, DirectoryPath path, bool ignoreCase = false)
+        {
+            return ignoreCase
+                ? file.DirectoryName.IndexOf(path.FullName, StringComparison.OrdinalIgnoreCase) == 0
+                : file.DirectoryName.IndexOf(path.FullName, StringComparison.Ordinal) == 0;
+        }
+
+        /// <summary>
+        /// Tests whether this directory is in the directory tree of a directory named <c>directoryName</c>.
+        /// </summary>
+        /// <param name="directoryPath">The current directory.</param>
+        /// <param name="directoryName">The name of a directory.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <returns></returns>
+        public static bool ContainsParent(this DirectoryPath directoryPath, string directoryName, bool ignoreCase = false)
+        {
+            var parent = directoryPath.Directory.Parent;
+            while (parent != null)
+            {
+                if (ignoreCase
+                        ? string.Equals(parent.Name, directoryName, StringComparison.OrdinalIgnoreCase)
+                        : string.Equals(parent.Name, directoryName))
+                    return true;
+                parent = parent.Parent;
+            }
+
+            return false;
+        }
+
+        private readonly static StringBuilder strb_Optimized = new StringBuilder();
+
+        /// <summary>
+        /// Displays a directory as a virtual path based on the supplied root which is represented by a tilde (~).
+        /// </summary>
+        /// <remarks>
+        /// For example...
+        /// <code>
+        /// DirectoryPath root = @"C:\dirA\dirB";
+        /// DirectoryPath dir = @"C:\dirA\dirB\subdir1\subdir2";
+        /// var result = dir.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~\subdir1\subdir2"
+        /// 
+        /// root = "/etc/dirA/dirB";
+        /// dir = "/etc/dirA/dirB/subdir1/subdir2";
+        /// var result = dir.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~/subdir1/subdir2"
+        /// </code>
+        /// </remarks>
+        /// <param name="dir">The current directory.</param>
+        /// <param name="root">The root directory upon which to base the virtual path.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <param name="strict">Whether to ensure that <c>dir</c> is a child directory of <c>root</c>, default is <c>true</c>.</param>
+        /// <returns>A virtual path e.g. "~\subdir1\subdir2" or "~/subdir1/subdir2"</returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string DisplayAsVirtualPathFromRoot(this DirectoryPath dir, DirectoryPath root, bool ignoreCase = false, bool strict = true)
+        {
+            var strb = new StringBuilder();
+            DisplayAsVirtualPathFromRoot(strb, dir, root, ignoreCase, strict);
+            return strb.ToString();
+        }
+
+        /// <summary>
+        /// Displays a directory as a virtual path based on the supplied root which is represented by a tilde (~).
+        /// </summary>
+        /// <remarks>
+        /// For example...
+        /// <code>
+        /// DirectoryPath root = @"C:\dirA\dirB";
+        /// DirectoryPath dir = @"C:\dirA\dirB\subdir1\subdir2";
+        /// var result = dir.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~\subdir1\subdir2"
+        /// 
+        /// root = "/etc/dirA/dirB";
+        /// dir = "/etc/dirA/dirB/subdir1/subdir2";
+        /// var result = dir.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~/subdir1/subdir2"
+        /// </code>
+        /// </remarks>
+        /// <param name="dir">The current directory.</param>
+        /// <param name="root">The root directory upon which to base the virtual path.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <param name="strict">Whether to ensure that <c>dir</c> is a child directory of <c>root</c>, default is <c>true</c>.</param>
+        /// <returns>A virtual path e.g. "~\subdir1\subdir2" or "~/subdir1/subdir2"</returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string DisplayAsVirtualPathFromRoot_Optimized(this DirectoryPath dir, DirectoryPath root, bool ignoreCase = false, bool strict = true)
+        {
+            strb_Optimized.Clear();
+            DisplayAsVirtualPathFromRoot(strb_Optimized, dir, root, ignoreCase, strict);
+            return strb_Optimized.ToString();
+        }
+
+        private static void DisplayAsVirtualPathFromRoot(StringBuilder strb, DirectoryPath dir, DirectoryPath root, bool ignoreCase, bool strict)
+        {
+            if (strict && !dir.IsChildOf(root, ignoreCase: ignoreCase))
+                throw new ValidationException(dir.Name + " is not a child of " + root.FullName);
+
+            strb.Append('~');
+            if (dir == root)
+                strb.Append(Path.DirectorySeparatorChar);
+            else
+                strb.Append(dir.FullName.Substring(root.FullName.Length + (root.FullName.Last() == Path.DirectorySeparatorChar ? -1 : 0)));
+
+            // Root      C : \ r o o t     (len = 7)*
+            // AltRoot   C : \ r o o t \   (len = 8)
+            // Dir       C : \ r o o t \ s u b d i r 1 \ s u b d i r 2
+            // Cutoff                 └───────... (cutoff = index = len = 7)
+            // Index     0 1 2 3 4 5 6 7
+            // Virtual               ~ \ s u b d i r 1 \ s u b d i r 2
+            // Prepend Indicator ────┘
+        }
+
+        /// <summary>
+        /// Displays a file as a virtual path based on the supplied root which is represented by a tilde (~).
+        /// </summary>
+        /// <remarks>
+        /// For example...
+        /// <code>
+        /// DirectoryPath root = @"C:\dirA\dirB";
+        /// FilePath file = @"C:\dirA\dirB\subdir1\subdir2\file.txt";
+        /// var result = file.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~\subdir1\subdir2\file.txt"
+        /// 
+        /// root = "/etc/dirA/dirB";
+        /// file = "/etc/dirA/dirB/subdir1/subdir2/file.txt";
+        /// var result = file.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~/subdir1/subdir2/file.txt"
+        /// </code>
+        /// </remarks>
+        /// <param name="file">The current file.</param>
+        /// <param name="root">The root directory upon which to base the virtual path.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <param name="strict">Whether to ensure that <c>file</c> is a child file of <c>root</c>, default is <c>true</c>.</param>
+        /// <returns>A virtual path e.g. "~\subdir1\subdir2\file.txt" or "~/subdir1/subdir2/file.txt"</returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string DisplayAsVirtualPathFromRoot(this FilePath file, DirectoryPath root, bool ignoreCase = false, bool strict = true)
+        {
+            var strb = new StringBuilder();
+            DisplayAsVirtualPathFromRoot(strb, file, root, ignoreCase, strict);
+            return strb.ToString();
+        }
+
+        /// <summary>
+        /// Displays a file as a virtual path based on the supplied root which is represented by a tilde (~).
+        /// </summary>
+        /// <remarks>
+        /// For example...
+        /// <code>
+        /// DirectoryPath root = @"C:\dirA\dirB";
+        /// FilePath file = @"C:\dirA\dirB\subdir1\subdir2\file.txt";
+        /// var result = file.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~\subdir1\subdir2\file.txt"
+        /// 
+        /// root = "/etc/dirA/dirB";
+        /// file = "/etc/dirA/dirB/subdir1/subdir2/file.txt";
+        /// var result = file.DisplayAsVirtualPathFromRoot(root);  // -&gt; "~/subdir1/subdir2/file.txt"
+        /// </code>
+        /// </remarks>
+        /// <param name="file">The current file.</param>
+        /// <param name="root">The root directory upon which to base the virtual path.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <param name="strict">Whether to ensure that <c>file</c> is a child file of <c>root</c>, default is <c>true</c>.</param>
+        /// <returns>A virtual path e.g. "~\subdir1\subdir2\file.txt" or "~/subdir1/subdir2/file.txt"</returns>
+        /// <exception cref="ValidationException"></exception>
+        public static string DisplayAsVirtualPathFromRoot_Optimized(this FilePath file, DirectoryPath root, bool ignoreCase = false, bool strict = true)
+        {
+            strb_Optimized.Clear();
+            DisplayAsVirtualPathFromRoot(strb_Optimized, file, root, ignoreCase, strict);
+            return strb_Optimized.ToString();
+        }
+
+        private static void DisplayAsVirtualPathFromRoot(StringBuilder strb, FilePath file, DirectoryPath root, bool ignoreCase, bool strict)
+        {
+            if (strict && !file.IsChildOf(root, ignoreCase: ignoreCase))
+                throw new ValidationException(file.Name + " is not a child of " + root.FullName);
+
+            strb.Append('~')
+                .Append(file.FullName.Substring(root.FullName.Length + (root.FullName.Last() == Path.DirectorySeparatorChar ? -1 : 0)));
+
+            // Root      C : \ r o o t     (len = 7)*
+            // AltRoot   C : \ r o o t \   (len = 8)
+            // File      C : \ r o o t \ s u b d i r 1 \ s u b d i r 2 \ f i l e . t x t
+            // Cutoff                 └───────... (cutoff = index = len = 7)
+            // Index     0 1 2 3 4 5 6 7
+            // Virtual               ~ \ s u b d i r 1 \ s u b d i r 2 \ f i l e . t x t
+            // Prepend Indicator ────┘
         }
     }
 }

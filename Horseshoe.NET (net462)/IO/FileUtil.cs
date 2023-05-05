@@ -1,7 +1,9 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Horseshoe.NET.IO.FileTraversal;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.IO
@@ -134,6 +136,124 @@ namespace Horseshoe.NET.IO
                 path += Path.DirectorySeparatorChar;
             }
             return path;
+        }
+
+        /// <summary>
+        /// Public method (also used by <c>TraversalEngine</c>) to recursively delete a directory.
+        /// </summary>
+        /// <param name="dir">A directory path.</param>
+        /// <param name="preserveDir">If <c>true</c>, recursively empties the directory without deleting it.  Default is <c>false</c>.</param>
+        public static void RecursiveDelete(DirectoryPath dir, bool preserveDir = false)
+        {
+            _RecursiveDelete(dir, preserveDir);
+        }
+
+        internal static void RecursiveDelete(TraversalEngine traversalEngine, DirectoryPath dir, bool preserveDir = false)
+        {
+            //traversalEngine.RecursiveDeletingDirectory?.Invoke(dir, traversalEngine);
+            //_RecursiveDelete(traversalEngine, dir, preserveDir, true);
+        }
+
+        private static void _RecursiveDelete(DirectoryPath dir, bool preserveDir)
+        {
+            foreach (var file in dir.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (var subDir in dir.GetDirectories())
+            {
+                _RecursiveDelete(subDir, false);
+            }
+            if (!preserveDir)
+            {
+                dir.Delete();
+            }
+        }
+
+        private static void _RecursiveDelete(TraversalEngine traversalEngine, DirectoryPath dir, bool preserveDir, bool silent)
+        {
+            //foreach (var file in dir.GetFiles())
+            //{
+            //    traversalEngine.FileMetadata.Reset(file.Length);
+            //    DeleteFile(traversalEngine, file, silent);
+            //}
+            //foreach (var subDir in dir.GetDirectories())
+            //{
+            //    _RecursiveDelete(traversalEngine, subDir, false, silent);
+            //}
+            //if (!preserveDir)
+            //{
+            //    DeleteDir(traversalEngine, dir, silent);
+            //}
+            //traversalEngine.DirectoryDeleted?.Invoke(dir, traversalEngine);
+        }
+
+        internal static void DeleteDir(TraversalEngine traversalEngine, DirectoryPath dir, bool silent)
+        {
+            //if (!silent)
+            //{
+            //    traversalEngine.DeletingDirectory?.Invoke(dir, traversalEngine);
+            //}
+            //if (!traversalEngine.DryRun)
+            //{
+            //    try
+            //    {
+            //        dir.Delete();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        if (traversalEngine.AccumulateErrors)
+            //        {
+            //            traversalEngine.DirectoriesUnableToBeDeleted++;
+            //            traversalEngine.TraversalErrors.Add(new TraversalError { Path = dir.FullName, Message = ex.Render() });
+            //            traversalEngine.DirectoryErrored?.Invoke(dir, traversalEngine);
+            //        }
+            //        else
+            //        {
+            //            throw;
+            //        }
+            //    }
+            //}
+            //traversalEngine.DirectoriesDeleted++;
+            //if (!silent)
+            //{
+            //    traversalEngine.DirectoryDeleted?.Invoke(dir, traversalEngine);
+            //}
+        }
+
+        internal static void DeleteFile(TraversalEngine traversalEngine, FilePath file, bool silent)
+        {
+            //traversalEngine.FileMetadata.FileSize = file.Length;
+            //if (!silent)
+            //{
+            //    traversalEngine.DeletingFile?.Invoke(file, traversalEngine);
+            //}
+            //if (!traversalEngine.DryRun)
+            //{
+            //    try
+            //    {
+            //        file.Delete();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        if (traversalEngine.AccumulateErrors)
+            //        {
+            //            traversalEngine.TraversalErrors.Add(new TraversalError { Path = file.FullName, Message = ex.Render() });
+            //            traversalEngine.FilesUnableToBeDeleted++;
+            //            traversalEngine.FileErrored?.Invoke(file, traversalEngine);
+            //        }
+            //        else
+            //        {
+            //            throw;
+            //        }
+            //    }
+            //}
+            //traversalEngine.FilesDeleted++;
+            //traversalEngine.SizeOfFilesDeleted += traversalEngine.FileMetadata.FileSize;
+            //if (!silent)
+            //{
+            //    traversalEngine.FileDeleted?.Invoke(file, traversalEngine);
+            //}
         }
     }
 }

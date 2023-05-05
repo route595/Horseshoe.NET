@@ -47,35 +47,10 @@ namespace Horseshoe.NET.ObjectsAndTypes
          *         GET / SET PROPERTY VALUES
          * * * * * * * * * * * * * * * * * * * * * * * */
 
-        /// <summary>
-        /// Gets the public instance properties of <c>instance</c>, values included
-        /// </summary>
-        /// <param name="instance">An <c>object</c></param>
-        /// <param name="propertyTypeFilter">Optional. A C# type to compare against property types, this includes subtypes if <c>strictPropertyTypeFilter == false</c>.  All other properties are filtered out.</param>
-        /// <param name="strictPropertyTypeFilter">Optional. If <c>propertyTypeFilter</c> is supplied, this parameter indicates whether to exclude subtypes, default is <c>false</c>.</param>
-        /// <param name="propertyNameCompareMode">The compare mode, e.g. Equals, Contains, Between, etc.</param>
-        /// <param name="propertyNameCriteria">Optional. The property name criteria search value(s) if filtering on property name.</param>
-        /// <param name="propertyNameIgnoreCase">
-        /// <para>
-        /// Set to <c>true</c> (recommended) to ignore the letter case of the property names being compared by this filter, default is <c>false</c>.
-        /// </para>
-        /// <para>
-        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
-        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
-        /// </para>
-        /// </param>
-        /// <param name="propertyFilter"></param>
-        /// <returns>A property value array</returns>
+        /// <inheritdoc cref="ObjectUtilAbstractions.GetInstancePropertyValues(object, Type, bool, CompareMode, StringValues, bool, Func{PropertyInfo, bool})"/>
         public static PropertyValue[] GetInstancePropertyValues(object instance, Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, CompareMode propertyNameCompareMode = default, StringValues propertyNameCriteria = default, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null)
         {
-            if (instance == null)
-                return null;
-            return TypeUtil.GetInstanceProperties(instance.GetType())
-                .OfPropertyType(propertyTypeFilter, strictType: strictPropertyTypeFilter)
-                .NamedLike(propertyNameCompareMode, propertyNameCriteria, ignoreCase: propertyNameIgnoreCase)
-                .Where(p => propertyFilter?.Invoke(p) ?? true)
-                .Select(prop => new PropertyValue(prop, prop.GetValue(instance)))
-                .ToArray();
+            return ObjectUtilAbstractions.GetInstancePropertyValues(instance, propertyTypeFilter: propertyTypeFilter, strictPropertyTypeFilter: strictPropertyTypeFilter, propertyNameCompareMode: propertyNameCompareMode, propertyNameCriteria: propertyNameCriteria, propertyNameIgnoreCase: propertyNameIgnoreCase, propertyFilter: propertyFilter);
         }
 
         /// <summary>
