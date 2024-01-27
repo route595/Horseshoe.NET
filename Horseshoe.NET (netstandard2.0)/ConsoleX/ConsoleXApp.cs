@@ -5,9 +5,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.Collections;
 using Horseshoe.NET.ObjectsAndTypes;
-using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
@@ -26,18 +24,6 @@ namespace Horseshoe.NET.ConsoleX
             typeof(ConsoleXApp).Namespace + " v" + typeof(ConsoleXApp).Assembly.GetDisplayVersion(),
             Assembly.GetEntryAssembly()?.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName
         };
-
-        private static bool CtrlCWasPressed { get; set; }
-
-        /// <summary>
-        /// Asks if the user has pressed Ctrl+C.  Routines and PromptX.Input() check this value to see if they should terminate.
-        /// </summary>
-        public static bool WasCtrlCPressed()
-        {
-            var wasPressed = CtrlCWasPressed;
-            CtrlCWasPressed = false;
-            return wasPressed;
-        }
 
         /// <summary>
         /// Launches the app and, if <c>MainMenu</c> is implemented, starts menu automation.
@@ -70,20 +56,28 @@ namespace Horseshoe.NET.ConsoleX
             StartConsoleApp(TypeUtil.GetDefaultInstance<T>());
         }
 
-        // handles Ctrl+C
-        static ConsoleXApp()
-        {
-            Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
-            {
-                // Prevent Ctrl+C from terminating the app
-                if (e.SpecialKey == ConsoleSpecialKey.ControlC)
-                {
-                    Console.WriteLine("!! Ctrl+C !!");
-                    CtrlCWasPressed = true;
-                    e.Cancel = true;
-                }
-            };
-        }
+        //static ConsoleXApp()
+        //{
+        //    // handles Ctrl+C
+        //    Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
+        //    {
+        //        if (e.SpecialKey == ConsoleSpecialKey.ControlC)
+        //        {
+        //            // Redirect Ctrl+C to exit the routing rather than terminating the app
+        //            if (CtrlC.CurrentCancelableRoutine != null)
+        //            {
+        //                e.Cancel = true;
+        //                CtrlC.Log("Hello from CancelKeyPress");
+        //                CtrlC.CurrentCancelableRoutine.RequestExit();
+        //                return;
+        //            }
+        //        }
+        //        Console.WriteLine();
+        //        Console.WriteLine();
+        //        Console.WriteLine("Exiting the application...");
+        //        Environment.Exit(0);
+        //    };
+        //}
 
         /// <summary>
         /// Gets the loop mode (i.e. 'Continuous', 'ClearScreen'), default is 'Continuous'. Overridable in implementing classes.
@@ -196,12 +190,12 @@ namespace Horseshoe.NET.ConsoleX
             {
                 ApplicationExiting = true;   // exit gracefully
             }
-            catch (ConsoleNavigation.CtrlCException)
-            {
-                ApplicationExiting = true;   // exit gracefully
-                RenderX.Alert("ConsoleXApp: Ctrl+C was pressed.", padBefore: 1);
-                PromptX.Continue(prompt: "Press any key to exit...");
-            }
+            //catch (ConsoleNavigation.CtrlCException)
+            //{
+            //    ApplicationExiting = true;   // exit gracefully
+            //    RenderX.Alert("ConsoleXApp: Ctrl+C was pressed.", padBefore: 1);
+            //    PromptX.Continue(prompt: "Press any key to exit...");
+            //}
             catch (ConsoleNavigation.CancelInputPromptException)   // if reached this far, handle gracefully
             {
                 RenderX.Alert("ConsoleXApp: Input prompt cancelled.", padBefore: 1);
@@ -231,7 +225,11 @@ namespace Horseshoe.NET.ConsoleX
             (
                 text,
                 action,
-                configure: CombineConfigureAction(configure, ConfigureMainMenuRoutines),
+                configure: (routine) =>
+                {
+                    configure?.Invoke(routine);
+                    ConfigureMainMenuRoutines?.Invoke(routine);
+                },
                 onError: onError
             );
         }
@@ -242,18 +240,18 @@ namespace Horseshoe.NET.ConsoleX
             {
                 action1?.Invoke(routine);
                 action2?.Invoke(routine);
-                if (LoopMode == LoopMode.ClearScreen)
-                {
-                    var onRoutineEnded = routine.OnRoutineEnded;
-                    routine.OnRoutineEnded = (_routine) =>
-                    {
-                        onRoutineEnded?.Invoke(_routine);
-                        if (!_routine.IsExited)
-                        {
-                            PromptX.Continue();
-                        }
-                    };
-                }
+                //if (LoopMode == LoopMode.ClearScreen)
+                //{
+                //    var onRoutineEnded = routine.OnRoutineEnded;
+                //    routine.OnRoutineEnded = (_routine) =>
+                //    {
+                //        onRoutineEnded?.Invoke(_routine);
+                //        if (!_routine.IsExited)
+                //        {
+                //            PromptX.Continue();
+                //        }
+                //    };
+                //}
             };
         }
 

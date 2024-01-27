@@ -229,7 +229,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 string statement,
                 OracleDbConnectionInfo? connectionInfo = null,
@@ -268,7 +268,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 string statement,
                 OracleDbConnectionInfo? connectionInfo = null,
@@ -307,7 +307,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 OracleConnection conn,
                 string statement,
@@ -326,7 +326,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = OracleDbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -346,7 +346,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 OracleConnection conn,
                 string statement,
@@ -365,7 +365,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = await OracleDbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1094,7 +1094,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 string tableName,
                 OracleDbConnectionInfo? connectionInfo = null,
@@ -1141,7 +1141,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 string tableName,
                 OracleDbConnectionInfo? connectionInfo = null,
@@ -1188,7 +1188,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 OracleConnection conn,
                 string tableName,
@@ -1211,7 +1211,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = OracleDbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1235,7 +1235,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 OracleConnection conn,
                 string tableName,
@@ -1258,7 +1258,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = await OracleDbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2112,7 +2112,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 string procedureName,
                 IEnumerable<DbParameter>? parameters = null,
@@ -2153,7 +2153,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 string procedureName,
                 IEnumerable<DbParameter>? parameters = null,
@@ -2194,7 +2194,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static IEnumerable<object[]> AsObjects
+            public static IEnumerable<object?[]> AsObjects
             (
                 OracleConnection conn,
                 string procedureName,
@@ -2214,7 +2214,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = OracleDbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2235,7 +2235,7 @@ namespace Horseshoe.NET.OracleDb
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync
+            public static async Task<IEnumerable<object?[]>> AsObjectsAsync
             (
                 OracleConnection conn,
                 string procedureName,
@@ -2255,7 +2255,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = await OracleDbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3064,7 +3064,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = AsDataReader(conn, functionName, parameters: parameters, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = OracleDbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3105,7 +3105,7 @@ namespace Horseshoe.NET.OracleDb
                 // data stuff
                 using (var reader = await AsDataReaderAsync(conn, functionName, parameters: parameters, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                 {
-                    var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                    var result = await OracleDbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3620,7 +3620,7 @@ namespace Horseshoe.NET.OracleDb
                 {
                     using (var command = OracleDbUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
                     {
-                        var objectArrays = DbUtil.ReadAsObjects(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        var objectArrays = OracleDbUtil.ReadAsObjects(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
@@ -3628,7 +3628,7 @@ namespace Horseshoe.NET.OracleDb
                 {
                     using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                     {
-                        var objectArrays = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        var objectArrays = OracleDbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
@@ -3701,7 +3701,7 @@ namespace Horseshoe.NET.OracleDb
                 {
                     using (var command = OracleDbUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
                     {
-                        var objectArrays = await DbUtil.ReadAsObjectsAsync(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        var objectArrays = await OracleDbUtil.ReadAsObjectsAsync(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
@@ -3709,7 +3709,7 @@ namespace Horseshoe.NET.OracleDb
                 {
                     using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
                     {
-                        var objectArrays = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                        var objectArrays = await OracleDbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }

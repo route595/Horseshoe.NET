@@ -43,19 +43,19 @@ namespace Horseshoe.NET.ConsoleX
             {
                 Console.TreatControlCAsInput = true;
 
-                // check if Ctrl+C was pressed 
-                if (ConsoleXApp.WasCtrlCPressed())
-                {
-                    ConsoleNavigation.CtrlCHasBeenPressed();
-                }
+                //// check if Ctrl+C was pressed 
+                //if (ConsoleXApp.WasCtrlCPressed())
+                //{
+                //    ConsoleNavigation.CtrlCHasBeenPressed();
+                //}
 
                 info = Console.ReadKey(true);
 
-                // check if Ctrl+C was pressed 
-                if (ConsoleXApp.WasCtrlCPressed())
-                {
-                    ConsoleNavigation.CtrlCHasBeenPressed();
-                }
+                //// check if Ctrl+C was pressed 
+                //if (ConsoleXApp.WasCtrlCPressed())
+                //{
+                //    ConsoleNavigation.CtrlCHasBeenPressed();
+                //}
  
                 alt = (info.Modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt;
                 ctrl = (info.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control;
@@ -96,19 +96,19 @@ namespace Horseshoe.NET.ConsoleX
                         else if (ctrl)
                         {
                             // Handle ctrl+C (exits routine)
-                            if (info.Key == ConsoleKey.C)
-                            {
-                                Console.WriteLine();
-                                journal.WriteEntry("ctrl+C was pressed");
+                            //if (info.Key == ConsoleKey.C)
+                            //{
+                            //    Console.WriteLine();
+                            //    journal.WriteEntry("ctrl+C was pressed");
 
-                                // finalize
-                                journal.Level--;
-                                ConsoleNavigation.ExitRoutine();
-                            }
-                            else
-                            {
+                            //    // finalize
+                            //    journal.Level--;
+                            //    ConsoleNavigation.ExitRoutine();
+                            //}
+                            //else
+                            //{
                                 Console.Beep();
-                            }
+                            //}
                         }
                         else if (alt)
                         {
@@ -145,11 +145,11 @@ namespace Horseshoe.NET.ConsoleX
 
             // do stuff
 
-            // check if Ctrl+C was pressed 
-            if (ConsoleXApp.WasCtrlCPressed())
-            {
-                ConsoleNavigation.CtrlCHasBeenPressed();
-            }
+            //// check if Ctrl+C was pressed 
+            //if (ConsoleXApp.WasCtrlCPressed())
+            //{
+            //    ConsoleNavigation.CtrlCHasBeenPressed();
+            //}
 
             var line = Console.ReadLine();
 
@@ -158,11 +158,11 @@ namespace Horseshoe.NET.ConsoleX
                 Thread.Sleep(400);  // allow Console.CancelKeyPress to catch up (whether STAThread or not)
             }
 
-            // check if Ctrl+C was pressed 
-            if (ConsoleXApp.WasCtrlCPressed())
-            {
-                ConsoleNavigation.CtrlCHasBeenPressed();
-            }
+            //// check if Ctrl+C was pressed 
+            //if (ConsoleXApp.WasCtrlCPressed())
+            //{
+            //    ConsoleNavigation.CtrlCHasBeenPressed();
+            //}
 
             if (quickText != null && string.IsNullOrWhiteSpace(line))
             {
@@ -268,10 +268,10 @@ namespace Horseshoe.NET.ConsoleX
                     input = _ConsoleLine(quickText, journal);
                 }
             }
-            catch (ConsoleNavigation.CtrlCException)
-            {
-                throw;
-            }
+            //catch (ConsoleNavigation.CtrlCException)
+            //{
+            //    throw;
+            //}
             finally
             {
                 // finalize
@@ -279,7 +279,7 @@ namespace Horseshoe.NET.ConsoleX
                 RenderX.Pad(padAfter);
             }
 
-            if (input.Trim().ToLower().Equals("exit"))
+            if (input != null && input.Trim().ToLower().Equals("exit"))
                 ConsoleNavigation.ExitApp();
 
             return input;
@@ -376,10 +376,10 @@ namespace Horseshoe.NET.ConsoleX
                     input = _ConsoleLine(quickText, journal);
                 }
             }
-            catch (ConsoleNavigation.CtrlCException)
-            {
-                throw;
-            }
+            //catch (ConsoleNavigation.CtrlCException)
+            //{
+            //    throw;
+            //}
             finally
             {
                 // finalize
@@ -594,10 +594,10 @@ namespace Horseshoe.NET.ConsoleX
             {
                 throw;
             }
-            catch (ConsoleNavigation.CtrlCException)
-            {
-                throw;
-            }
+            //catch (ConsoleNavigation.CtrlCException)
+            //{
+            //    throw;
+            //}
         }
 
         /// <summary>

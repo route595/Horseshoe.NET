@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Text;
@@ -62,6 +63,11 @@ namespace Horseshoe.NET.ConsoleX
         /// If <c>true</c>, adds a menu item for exiting the routine to the built-in menu, defaults to <c>AutoAppendExitRoutineMenuItemByDefault</c> which defaults to <c>false</c>
         /// </summary>
         public virtual bool AutoAppendExitRoutineMenuItem { get; set; }
+
+        /// <summary>
+        /// Dictates whether this routine will capture ctrl-c to exit
+        /// </summary>
+        public bool IsCancelable { get; set; }
 
         /// <summary>
         /// An event to hook into
@@ -147,6 +153,10 @@ namespace Horseshoe.NET.ConsoleX
             IsRestarted = false;
             IsExited = false;
             bool firstRun = true;
+            //if (IsCancelable)
+            //{
+            //    CtrlC.CurrentCancelableRoutine = this;
+            //}
             RenderX.RoutineTitle(AltBannerText ?? Text);
             while ((looping || IsRestarted || firstRun) && !IsExited)
             {
@@ -159,6 +169,7 @@ namespace Horseshoe.NET.ConsoleX
                 _RunImpl();
                 firstRun = false;
             }
+            //CtrlC.CurrentCancelableRoutine = null;
             OnRoutineEnded?.Invoke(this);
         }
 
@@ -235,6 +246,14 @@ namespace Horseshoe.NET.ConsoleX
         public virtual void Configure(Action<RoutineX> configure)
         {
             configure?.Invoke(this);
+        }
+
+        public void RequestExit()
+        {
+            new Thread(new ThreadStart(() => { 
+                Thread.Sleep(500);
+                Exit();
+            })).Start();
         }
 
         /// <summary>

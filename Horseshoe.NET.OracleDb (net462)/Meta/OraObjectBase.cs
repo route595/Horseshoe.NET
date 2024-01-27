@@ -120,6 +120,10 @@ namespace Horseshoe.NET.OracleDb.Meta
 
         public static bool operator ==(OraObjectBase left, OraObjectBase right)
         {
+            if (left == null)
+                return right == null;
+            if (right == null)
+                return false;
             return EqualityComparer<OraObjectBase>.Default.Equals(left, right);
         }
 

@@ -110,6 +110,61 @@ namespace TestConsole
                     }
                 }
             ),
+            BuildMenuRoutine
+            (
+                "Non-cancellable routine - Console.ReadKey()",
+                () =>
+                {
+                    RenderX.Prompt("Type ctrl-C here");
+                    Console.ReadKey();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Non-cancellable routine - Console.ReadLine()",
+                () =>
+                {
+                    RenderX.Prompt("Type ctrl-C here");
+                    Console.ReadLine();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Non-cancellable routine - PromptX.Value<string>()",
+                () =>
+                {
+                    PromptX.Value<string>("Type ctrl-C here");
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Cancellable routine - Console.ReadKey()",
+                () =>
+                {
+                    RenderX.Prompt("Type ctrl-C here");
+                    Console.ReadKey();
+                },
+                configure: (routine) => routine.IsCancelable = true
+            ),
+            BuildMenuRoutine
+            (
+                "Cancellable routine - Console.ReadLine()",
+                () =>
+                {
+                    RenderX.Prompt("Type ctrl-C here");
+                    Console.ReadLine();
+                },
+                configure: (routine) => routine.IsCancelable = true
+            ),
+            BuildMenuRoutine
+            (
+                "Cancellable routine - PromptX.Value<string>()",
+                () =>
+                {
+                    PromptX.Value<string>("Type ctrl-C here");
+                },
+                configure: (routine) => routine.IsCancelable = true
+            ),
             new FileSystemNavigator
             (
                 text: "File Search", 

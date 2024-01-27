@@ -320,13 +320,13 @@ namespace Horseshoe.NET.Db
          * * * * * * * * * * * * * * * * * * * */
 
         /// <summary>
-        /// Gets all field values from the current row of an open <c>DbDataReader</c> as an <c>object[]</c>.
+        /// Gets all field values from the current row of an open <c>IDataReader</c> as an <c>object[]</c>.
         /// </summary>
         /// <param name="reader">a data reader</param>
         /// <param name="columnCount">the number of columns</param>
         /// <param name="autoTrunc">how to handle strings</param>
         /// <returns></returns>
-        public static object[] GetAllRowValues(DbDataReader reader, int columnCount, AutoTruncate autoTrunc = default)
+        public static object[] GetAllRowValues(IDataReader reader, int columnCount, AutoTruncate autoTrunc = default)
         {
             var items = new object[columnCount];
 
@@ -364,19 +364,19 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Gets all field values from the current row of an open <c>DbDataReader</c> as an <c>object[]</c>.
+        /// Gets all field values from the current row of an open <c>IDataReader</c> as an <c>object[]</c>.
         /// </summary>
         /// <param name="reader">a data reader</param>
         /// <param name="columnCount">the number of columns</param>
         /// <param name="autoTrunc">how to handle strings</param>
         /// <returns></returns>
-        public static async Task<object[]> GetAllRowValuesAsync(DbDataReader reader, int columnCount, AutoTruncate autoTrunc = default)
+        public static async Task<object[]> GetAllRowValuesAsync(IDataReader reader, int columnCount, AutoTruncate autoTrunc = default)
         {
             var items = new object[columnCount];
 
             for (int i = 0; i < columnCount; i++)
             {
-                if (await reader.IsDBNullAsync(i))
+                if (reader is DbDataReader dbDataReader && await dbDataReader.IsDBNullAsync(i))
                     continue;
                 items[i] = Zap.Object(reader[i]);
                 if (items[i] is string stringValue)
@@ -419,7 +419,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjects(reader)");
+            journal.WriteEntry("DbUtil.ReadAsObjects(reader)");
             journal.Level++;
 
             // data stuff
@@ -450,7 +450,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjectsAsync(reader)");
+            journal.WriteEntry("DbUtil.ReadAsObjectsAsync(reader)");
             journal.Level++;
 
             // data stuff
@@ -481,7 +481,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjects(command)");
+            journal.WriteEntry("DbUtil.ReadAsObjects(command)");
             journal.Level++;
 
             // data stuff
@@ -512,7 +512,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjectsAsync(command)");
+            journal.WriteEntry("DbUtil.ReadAsObjectsAsync(command)");
             journal.Level++;
 
             // data stuff
@@ -544,7 +544,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ParseRows(command)");
+            journal.WriteEntry("DbUtil.ParseRows(command)");
             journal.Level++;
 
             // data stuff
@@ -583,7 +583,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ParseRowsAsync(command)");
+            journal.WriteEntry("DbUtil.ParseRowsAsync(command)");
             journal.Level++;
 
             // data stuff

@@ -41,14 +41,14 @@
             throw new CancelInputPromptException();
         }
 
-        /// <summary>
-        /// Exits routine or application due to Ctrl+C has been pressed.
-        /// </summary>
-        /// <exception cref="CtrlCException"></exception>
-        public static void CtrlCHasBeenPressed()
-        {
-            throw new CtrlCException();
-        }
+        ///// <summary>
+        ///// Exits routine or application due to Ctrl+C has been pressed.
+        ///// </summary>
+        ///// <exception cref="CtrlCException"></exception>
+        //public static void CtrlCHasBeenPressed()
+        //{
+        //    throw new CtrlCException();
+        //}
 
         /// <summary>
         /// Create a new <c>ConsoleNavigation</c> instance.
@@ -94,16 +94,16 @@
             public ExitAppException() : base("Exiting application...") { }
         }
 
-        /// <summary>
-        /// This subclass of <c>ConsoleNavigation</c> is listened for in <c>RoutineX</c> which exits the routine and in <c>ConsoleXApp</c>s which then exits the application.
-        /// </summary>
-        public class CtrlCException : ConsoleNavigation
-        {
-            /// <summary>
-            /// Creates a new <c>ControlCException</c>.
-            /// </summary>
-            public CtrlCException() : base("Ctrl+C has been pressed...") { }
-        }
+        ///// <summary>
+        ///// This subclass of <c>ConsoleNavigation</c> is listened for in <c>RoutineX</c> which exits the routine and in <c>ConsoleXApp</c>s which then exits the application.
+        ///// </summary>
+        //public class CtrlCException : ConsoleNavigation
+        //{
+        //    /// <summary>
+        //    /// Creates a new <c>ControlCException</c>.
+        //    /// </summary>
+        //    public CtrlCException() : base("Ctrl+C has been pressed...") { }
+        //}
 
         /// <summary>
         /// This subclass of <c>ConsoleNavigation</c> is triggered during console input when Escape has been pressed.

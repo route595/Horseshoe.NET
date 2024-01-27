@@ -419,7 +419,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjects(reader)");
+            journal.WriteEntry("DbUtil.ReadAsObjects(reader)");
             journal.Level++;
 
             // data stuff
@@ -450,7 +450,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjectsAsync(reader)");
+            journal.WriteEntry("DbUtil.ReadAsObjectsAsync(reader)");
             journal.Level++;
 
             // data stuff
@@ -481,7 +481,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjects(command)");
+            journal.WriteEntry("DbUtil.ReadAsObjects(command)");
             journal.Level++;
 
             // data stuff
@@ -512,7 +512,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ReadAsObjectsAsync(command)");
+            journal.WriteEntry("DbUtil.ReadAsObjectsAsync(command)");
             journal.Level++;
 
             // data stuff
@@ -544,7 +544,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ParseRows(command)");
+            journal.WriteEntry("DbUtil.ParseRows(command)");
             journal.Level++;
 
             // data stuff
@@ -583,7 +583,7 @@ namespace Horseshoe.NET.Db
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ParseRowsAsync(command)");
+            journal.WriteEntry("DbUtil.ParseRowsAsync(command)");
             journal.Level++;
 
             // data stuff

@@ -6,10 +6,10 @@
     <AssemblyName>Horseshoe.NET.Caching.Abstractions</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Description>Common, shared types for Horseshoe.NET.Caching.</Description>
-    <Version>3.0.2</Version>
+    <Description>Common, shared types for Horseshoe.NET.Caching</Description>
+    <Version>3.1.0</Version>
     <Authors>Carl Thomas</Authors>
-    <Copyright>Copyright © 2020-2023 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2024 Route 595</Copyright>
     <Company>Route 595</Company>
     <PackageId>$(AssemblyName)</PackageId>
   </PropertyGroup>
