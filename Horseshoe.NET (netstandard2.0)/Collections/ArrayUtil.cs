@@ -10,6 +10,14 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     public static class ArrayUtil
     {
+        /// <inheritdoc cref="CollectionUtil.AsArray{T}(IEnumerable{T})"/>
+        public static T[] AsArray<T>(IEnumerable<T> collection) =>
+            CollectionUtil.AsArray(collection);
+
+        /// <inheritdoc cref="CollectionUtil.ToArray{T}(IEnumerable{T})"/>
+        public static T[] ToArray<T>(IEnumerable<T> collection) =>
+            CollectionUtil.ToArray(collection);
+
         /// <summary>
         /// Inflates an array to the desired target size by padding items at the indicated boundary
         /// </summary>

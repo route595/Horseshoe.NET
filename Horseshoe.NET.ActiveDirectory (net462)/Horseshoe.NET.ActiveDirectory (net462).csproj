@@ -66,16 +66,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ADConstants.cs" />
+    <Compile Include="ADEngine.cs" />
     <Compile Include="ADException.cs" />
-    <Compile Include="ADSettings.cs" />
+    <Compile Include="ADGroup.cs" />
+    <Compile Include="ADLoginException.cs" />
+    <Compile Include="ADMember.cs" />
+    <Compile Include="ADObject.cs" />
+    <Compile Include="ADSearchException.cs" />
+    <Compile Include="ADUser.cs" />
     <Compile Include="ADUtil.cs" />
+    <Compile Include="DCOption.cs" />
     <Compile Include="DomainController.cs" />
+    <Compile Include="DomainInfo.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="FilterFactory.cs" />
+    <Compile Include="ILdapFilter.cs" />
+    <Compile Include="LdapFilter.cs" />
+    <Compile Include="LdapFilterDescriptionBuilder.cs" />
     <Compile Include="ObjectCategory.cs" />
     <Compile Include="ObjectClass.cs" />
     <Compile Include="OUInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UserInfo.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="UserProperty.cs" />
   </ItemGroup>
   <ItemGroup>

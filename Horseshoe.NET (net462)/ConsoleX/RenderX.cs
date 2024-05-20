@@ -342,38 +342,56 @@ namespace Horseshoe.NET.ConsoleX
             Console.Write(textGrid.Render());
         }
 
-        private static Regex WordOrPhrasePattern { get; } = new Regex("[a-z0-9 ]", RegexOptions.IgnoreCase);
+        //private static Regex WordOrPhrasePattern { get; } = new Regex("[a-z0-9 ]", RegexOptions.IgnoreCase);
+        //private static Regex AlphaNumericPattern { get; } = new Regex("[a-z0-9]", RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Renders a prompt for user input e.g. free text, menu selection, etc.
         /// </summary>
         /// <param name="prompt">An input prompt.</param>
-        /// <param name="displayAsRequired">If <c>true</c>, adds an indicator to the prompt to suggest an input is required, default is <c>false</c>.</param>
-        public static void Prompt(string prompt, bool displayAsRequired = false)
+        /// <param name="required">If <c>true</c>, adds an indicator to the prompt to suggest an input is required, default is <c>false</c>.</param>
+        /// <param name="quickValue">A value to suggest to the user who then can press 'Enter' to input it.</param>
+        public static void Prompt(string prompt, bool required = false, object quickValue = null)
         {
             if (prompt == null)
             {
-                Console.Write(">" + (displayAsRequired ? RequiredIndicator : "") + " ");
+                prompt = "> ";
             }
-            else if (WordOrPhrasePattern.IsMatch(prompt))
+
+            if (prompt.Length == 0)
             {
-                Console.Write(prompt + (displayAsRequired ? RequiredIndicator : "") + ": ");
+                if (required)
+                {
+                    Console.Write("(required)");                 // e.g. "(required)"
+                }
+                if (quickValue != null)
+                {
+                    Console.Write("[" + quickValue + "]");       // e.g. "[Jackie]"
+                }
+            }
+            else if (char.IsLetterOrDigit(prompt[prompt.Length - 1]))
+            {
+                Console.Write(prompt);
+                if (required)
+                {
+                    Console.Write(" (required)");                // e.g. "Enter your name (required): "
+                }
+                Console.Write(": ");                             // e.g. "Enter your name: "
+                if (quickValue != null)
+                {
+                    Console.Write("[" + quickValue + "] ");      // e.g. "Enter your name: [Jackie] "
+                }
             }
             else
             {
-                prompt = prompt.Replace("\r", "");
-                var promptParts = prompt.Split('\n');
-
-                switch (promptParts.Length)
+                if (required)
                 {
-                    case 1:
-                        Console.Write(promptParts[0] + (displayAsRequired ? RequiredIndicator : " "));
-                        break;
-
-                    default:
-                        promptParts[0] = promptParts[0] + (displayAsRequired ? RequiredIndicator : "");
-                        Console.Write(string.Join(Environment.NewLine, promptParts));
-                        break;
+                    Console.Write("(required) ");                // e.g. "(required) > "
+                }
+                Console.Write(prompt);                           // e.g. "> "
+                if (quickValue != null)
+                {
+                    Console.Write("[" + quickValue + "] ");      // e.g. "> [Jackie] "
                 }
             }
         }

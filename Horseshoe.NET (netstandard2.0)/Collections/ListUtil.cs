@@ -8,8 +8,13 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     public static class ListUtil
     {
-        private static List<T> AsList<T>(IEnumerable<T> array) =>
-            CollectionUtil.AsList(array);
+        /// <inheritdoc cref="CollectionUtil.AsList{T}(IEnumerable{T})"/>
+        public static List<T> AsList<T>(IEnumerable<T> collection) =>
+            CollectionUtil.AsList(collection);
+
+        /// <inheritdoc cref="CollectionUtil.ToList{T}(IEnumerable{T})"/>
+        public static List<T> ToList<T>(IEnumerable<T> collection) =>
+            CollectionUtil.ToList(collection);
 
         /// <summary>
         /// Inflates a list to the desired target size by padding items at the indicated boundary
@@ -318,6 +323,20 @@ namespace Horseshoe.NET.Collections
         {
             var collection = CollectionUtil.ReplaceAll(list, item, replacement, comparer, keepOriginalListDataSource: keepOriginalListDataSource);
             return AsList(collection);
+        }
+
+        /// <summary>
+        /// Gets and removes an item from a list
+        /// </summary>
+        /// <typeparam name="T">Type of list</typeparam>
+        /// <param name="list">A list</param>
+        /// <param name="index">The index to get and remove</param>
+        /// <returns>The removed item</returns>
+        public static T PopAt<T>(List<T> list, int index)
+        {
+            T t = list[index];
+            list.RemoveAt(index);
+            return t;
         }
     }
 }

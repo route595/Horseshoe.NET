@@ -35,11 +35,11 @@ namespace TestConsole
             ),
             BuildMenuRoutine
             (
-                "Who am I?",
+                "Who am I? (+department, +extensionattribute1)",
                 () =>
                 {
-                    var info = ADUtil.LookupUser(UserName);
-                    Console.WriteLine(info.DisplayName + " -- " + info.EmailAddress + " -- Dept. = " + info.Department + " -- Extn 1 = " + info.ExtensionAttribute1);
+                    var info = ADUtil.GetUser(UserName, propertiesToLoad: ADConstants.UserProperties.Default + "|department|extensionattribute1");
+                    Console.WriteLine(info.DisplayName + " -- " + info.Email + " -- Dept. = " + info.GetStringProperty("department") + " -- Extn 1 = " + info.GetStringProperty("extensionattribute1"));
                 }
             ),
             BuildMenuRoutine
@@ -47,9 +47,9 @@ namespace TestConsole
                 "What is my OU?",
                 () =>
                 {
-                    var info = ADUtil.LookupUser(UserName);
+                    var info = ADUtil.GetUser(UserName);
                     Console.WriteLine("OU = " + info.OU);
-                    Console.WriteLine("Path = " + info.OU.Path);
+                    Console.WriteLine("OU Path = " + info.RawOU);
                 }
             ),
             BuildMenuRoutine
@@ -57,12 +57,12 @@ namespace TestConsole
                 "Who are the users in my OU?",
                 () =>
                 {
-                    var info = ADUtil.LookupUser(UserName);
-                    Console.WriteLine(info.OU);
-                    Console.WriteLine(info.OU.Path);
+                    var info = ADUtil.GetUser(UserName);
+                    Console.WriteLine("OU = " + info.OU);
+                    Console.WriteLine("OU Path = " + info.RawOU);
                     Console.WriteLine();
                     Console.WriteLine("Listing users in OU...");
-                    RenderX.List(ADUtil.ListUsersByOU(info.OU));
+                    //RenderX.List(ADUtil.ListUsersByOU(info.OU));
                 }
             ),
             BuildMenuRoutine
@@ -71,11 +71,11 @@ namespace TestConsole
                 () =>
                 {
                     var passWord = PromptX.Password("Enter the password for " + UserName);
-                    UserInfo userInfo;
+                    ADUser user;
                     try
                     {
-                        userInfo = ADUtil.Authenticate(UserName, passWord);
-                        if (userInfo != null)
+                        user = ADUtil.Authenticate(UserName, passWord);
+                        if (user != null)
                         {
                             Console.WriteLine("Authenticated.");
                         }
@@ -95,12 +95,12 @@ namespace TestConsole
                 "Display Group Membership",
                 () =>
                 {
-                    var user = ADUtil.LookupUser(UserName);
+                    var user = ADUtil.GetUser(UserName, propertiesToLoad: ADConstants.UserProperties.DefaultIncludingGroups);
                     if (user != null)
                     {
                         Console.WriteLine("Listing...");
                         Console.WriteLine();
-                        RenderX.List(user.GroupNames, title: new Title("Group Membership", " (for " + UserName + ")"));
+                        RenderX.List(user.GetGroups(orderByAdsPath: true), title: new Title("Group Membership", " (for " + UserName + ")"));
                     }
                     else
                     {
@@ -114,9 +114,8 @@ namespace TestConsole
                 "What is my domain controller?",
                 () =>
                 {
-                    var dc = ADUtil.DetectDomainController();
-                    Console.WriteLine(dc.Name);
-                    Console.WriteLine(dc.LdapUrl);
+                    var dc = ADEngine.GetDomainContext().ConnectedServer;
+                    Console.WriteLine(dc);
                 }
             ),
             BuildMenuRoutine
@@ -127,14 +126,14 @@ namespace TestConsole
                     RenderX.List(ADUtil.ListOUs());
                 }
             ),
-            BuildMenuRoutine
-            (
-                "List OUs (recursively)",
-                () =>
-                {
-                    RenderX.List(ADUtil.ListOUs(recursive: true));
-                }
-            )
+            //BuildMenuRoutine
+            //(
+            //    "List OUs (recursively)",
+            //    () =>
+            //    {
+            //        RenderX.List(ADUtil.ListOUs(recursive: true));
+            //    }
+            //)
         };
     }
 }

@@ -49,7 +49,6 @@
     <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Jwt (net6.0)\Horseshoe.NET.Jwt (net6.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj" />
-    <ProjectReference Include="..\Horseshoe.NET.Ldap (netstandard2.0)\Horseshoe.NET.Ldap (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Odbc (netstandard2.0)\Horseshoe.NET.Odbc (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.OracleDb (netstandard2.1)\Horseshoe.NET.OracleDb (netstandard2.1).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.SecureIO (netstandard2.0)\Horseshoe.NET.SecureIO (netstandard2.0).csproj" />

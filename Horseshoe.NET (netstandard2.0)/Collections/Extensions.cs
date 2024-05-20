@@ -17,11 +17,20 @@ namespace Horseshoe.NET.Collections
         /// <summary>
         /// Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The collection type</typeparam>
         /// <param name="collection"></param>
         /// <returns>A collection as a <c>List&lt;T&gt;</c></returns>
         public static List<T> AsList<T>(this IEnumerable<T> collection) =>
             CollectionUtil.AsList(collection);
+
+        /// <summary>
+        /// Casts a collection as <c>T[]</c> if such a cast is available, otherwise creates a new <c>T[]</c> from the collection.
+        /// </summary>
+        /// <typeparam name="T">The collection type</typeparam>
+        /// <param name="collection"></param>
+        /// <returns>A <c>T[]</c></returns>
+        public static T[] AsArray<T>(this IEnumerable<T> collection) =>
+            CollectionUtil.AsArray(collection);
 
         #region IEnumerable methods
 
@@ -500,6 +509,16 @@ namespace Horseshoe.NET.Collections
         public static List<T> ReplaceAll<T>(this List<T> list, T item, T replacement, IEqualityComparer<T> comparer, bool keepOriginalListDataSource = false) where T : IEquatable<T> =>
             ListUtil.ReplaceAll(list, item, replacement, comparer, keepOriginalListDataSource: keepOriginalListDataSource);
 
+        /// <summary>
+        /// Gets and removes an item from a list
+        /// </summary>
+        /// <typeparam name="T">Type of list</typeparam>
+        /// <param name="list">A list</param>
+        /// <param name="index">The index to get and remove</param>
+        /// <returns>The removed item</returns>
+        public static T PopAt<T>(this List<T> list, int index) =>
+            ListUtil.PopAt(list, index);
+
         #endregion
 
         #region Array methods
@@ -815,7 +834,19 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
-        /// Adds a value to a dictionary, if the key already exist the previous value is replaced.
+        /// Gets the value of a dictionary entry if it exists, otherwise <c>default</c> (e.g. <c>null</c>).
+        /// </summary>
+        /// <typeparam name="TKey">Type of key.</typeparam>
+        /// <typeparam name="TValue">Type of value.</typeparam>
+        /// <param name="dictionary">A dictionary.</param>
+        /// <param name="key">A key.</param>
+        public static TValue ValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            return DictionaryUtilAbstractions.ValueOrDefault(dictionary, key);
+        }
+
+        /// <summary>
+        /// Adds or updates a value in a dictionary.
         /// </summary>
         /// <typeparam name="TKey">Type of key.</typeparam>
         /// <typeparam name="TValue">Type of value.</typeparam>
@@ -825,6 +856,19 @@ namespace Horseshoe.NET.Collections
         public static void AddOrReplace<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
         {
             DictionaryUtilAbstractions.AddOrReplace(dictionary, key, value);
+        }
+
+        /// <summary>
+        /// Adds or updates a value in a dictionary or removes the entry if it exists and the new value is <c>null</c>.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key.</typeparam>
+        /// <typeparam name="TValue">Type of value.</typeparam>
+        /// <param name="dictionary">A dictionary.</param>
+        /// <param name="key">A key.</param>
+        /// <param name="value">A value.</param>
+        public static void AddRemoveOrReplace<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            DictionaryUtilAbstractions.AddRemoveOrReplace(dictionary, key, value);
         }
 
         /// <summary>

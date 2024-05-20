@@ -4,13 +4,13 @@ using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.OracleDb.Meta
 {
-    public abstract class OraObjectBase : IEquatable<OraObjectBase>
+    public abstract class OraObjectBase //: IEquatable<OraObjectBase>
     {
-        public OraObjectBase? Parent { get; set; }
+        public OraObjectBase Parent { get; set; }
         public string Name { get; }
         public OraObjectType ObjectType { get; }
-        public OraSchema? Schema => _GetSchema();
-        public OraServer? Server => _GetServer();
+        //public OraSchema Schema => _GetSchema();
+        public OraServer Server => _GetServer();
 
         public OraObjectBase(string name, OraObjectType objectType)
         {
@@ -18,42 +18,42 @@ namespace Horseshoe.NET.OracleDb.Meta
             ObjectType = objectType;
         }
 
-        public override string ToString()
-        {
-            return _PrepareName(Name);
-        }
+        //public override string ToString()
+        //{
+        //    return _PrepareName(Name);
+        //}
 
-        public string ToFullyQualifiedString(OraObjectType? startingWith = null)
-        {
-            if (Parent == null || ObjectType == startingWith) return ToString();
-            return Parent.ToFullyQualifiedString(startingWith: startingWith) + "." + ToString();
-        }
+        //public string ToFullyQualifiedString(OraObjectType? startingWith = null)
+        //{
+        //    if (Parent == null || ObjectType == startingWith) return ToString();
+        //    return Parent.ToFullyQualifiedString(startingWith: startingWith) + "." + ToString();
+        //}
 
-        private OraSchema? _GetSchema()
-        {
-            OraObjectBase? obj = this;
-            while (obj != null)
-            {
-                if (obj is OraSchema schema) return schema;
-                obj = obj.Parent;
-            }
-            return null;
-        }
+        //private OraSchema _GetSchema()
+        //{
+        //    OraObjectBase obj = this;
+        //    while (obj != null)
+        //    {
+        //        if (obj is OraSchema schema) return schema;
+        //        obj = obj.Parent;
+        //    }
+        //    return null;
+        //}
 
-        public OraObjectBase SetSchemaByName(string name)
-        {
-            var obj = this;
-            while (obj.Parent != null)
-            {
-                obj = obj.Parent;
-            }
-            obj.Parent = new OraSchema(name);
-            return this;
-        }
+        //public OraObjectBase SetSchemaByName(string name)
+        //{
+        //    var obj = this;
+        //    while (obj.Parent != null)
+        //    {
+        //        obj = obj.Parent;
+        //    }
+        //    obj.Parent = new OraSchema(name);
+        //    return this;
+        //}
 
-        private OraServer? _GetServer()
+        private OraServer _GetServer()
         {
-            OraObjectBase? obj = this;
+            OraObjectBase obj = this;
             while (obj != null)
             {
                 if (obj is OraServer server) return server;
@@ -84,52 +84,54 @@ namespace Horseshoe.NET.OracleDb.Meta
             return Zap.String(_name);
         }
 
-        static Regex NoQuotePattern { get; } = new Regex(@"^[A-Z0-9_]+$", RegexOptions.IgnoreCase);
+        //static Regex NoQuotePattern { get; } = new Regex(@"^[A-Z0-9_]+$", RegexOptions.IgnoreCase);
 
-        static string _PrepareName(string name)
-        {
-            if (NoQuotePattern.IsMatch(name)) return name;
-            return "\"" + name + "\"";
-        }
+        //static string _PrepareName(string name)
+        //{
+        //    if (NoQuotePattern.IsMatch(name)) return name;
+        //    return "\"" + name + "\"";
+        //}
 
-        public override bool Equals(object other)
-        {
-            if (other is OraObject dbObject)
-            {
-                return Equals(dbObject);
-            }
-            return false;
-        }
+        //public override bool Equals(object other)
+        //{
+        //    if (other is OraObject dbObject)
+        //    {
+        //        return Equals(dbObject);
+        //    }
+        //    return false;
+        //}
 
-        public bool Equals(OraObjectBase other)
-        {
-            return other != null &&
-                   EqualityComparer<OraObjectBase>.Default.Equals(Parent, other.Parent) &&
-                   Name == other.Name &&
-                   ObjectType == other.ObjectType;
-        }
+        //public bool Equals(OraObjectBase other)
+        //{
+        //    return other != null &&
+        //           EqualityComparer<OraObjectBase>.Default.Equals(Parent, other.Parent) &&
+        //           Name == other.Name &&
+        //           ObjectType == other.ObjectType;
+        //}
 
-        public override int GetHashCode()
-        {
-            var hashCode = 2054261886;
-            hashCode = hashCode * -1521134295 + EqualityComparer<OraObjectBase>.Default.GetHashCode(Parent);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            hashCode = hashCode * -1521134295 + ObjectType.GetHashCode();
-            return hashCode;
-        }
+        //public override int GetHashCode()
+        //{
+        //    var hashCode = 2054261886;
+        //    hashCode = hashCode * -1521134295 + EqualityComparer<OraObjectBase>.Default.GetHashCode(Parent);
+        //    hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+        //    hashCode = hashCode * -1521134295 + ObjectType.GetHashCode();
+        //    return hashCode;
+        //}
 
-        public static bool operator ==(OraObjectBase? left, OraObjectBase? right)
-        {
-            if (left == null) 
-                return right == null;
-            if (right == null)
-                return false;
-            return EqualityComparer<OraObjectBase>.Default.Equals(left, right);
-        }
+        //public static bool operator ==(OraObjectBase left, OraObjectBase right)
+        //{
+        //    if (left == null)
+        //        return right == null;
+        //    if (right == null)
+        //        return false;
+        //    return
+        //        left.ObjectType == right.ObjectType &&
+        //        string.Equals(left.Name, right.Name);
+        //}
 
-        public static bool operator !=(OraObjectBase left, OraObjectBase right)
-        {
-            return !(left == right);
-        }
+        //public static bool operator !=(OraObjectBase left, OraObjectBase right)
+        //{
+        //    return !(left == right);
+        //}
     }
 }

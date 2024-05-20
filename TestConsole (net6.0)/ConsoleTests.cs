@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.ConsoleX.Plugins;
@@ -14,7 +14,28 @@ namespace TestConsole
         {
             BuildMenuRoutine
             (
-                "Prompt Raw Input*",
+                "Prompt String",
+                () =>
+                {
+                    Console.WriteLine("testing 'required'...");
+                    var input = PromptX.String("input1", required: true);
+                    Console.WriteLine(input);
+                    Console.WriteLine("testing 'displayAsRequired' with 'requiredIndicator' = \"$\"...");
+                    RenderX.RequiredIndicator = "$";
+                    input = PromptX.String("input2", required: true);
+                    RenderX.RequiredIndicator = null;
+                    Console.WriteLine(input);
+                    Console.WriteLine("testing null 'prompt'...");
+                    input = PromptX.String(null);
+                    Console.WriteLine(input);
+                    Console.WriteLine("testing null 'prompt' with 'required'...");
+                    input = PromptX.String(null, required: true);
+                    Console.WriteLine(input);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Prompt Raw Input",
                 () =>
                 {
                     Console.WriteLine("testing 'required'...");
@@ -22,15 +43,65 @@ namespace TestConsole
                     Console.WriteLine(input);
                     Console.WriteLine("testing 'displayAsRequired' with 'requiredIndicator' = \"$\"...");
                     RenderX.RequiredIndicator = "$";
-                    input = PromptX.RawConsoleInput("input", displayAsRequired: true);
+                    input = PromptX.RawConsoleInput("input", required: true);
                     RenderX.RequiredIndicator = null;
                     Console.WriteLine(input);
                     Console.WriteLine("testing null 'prompt'...");
-                    input = PromptX.RawConsoleInput();
+                    input = PromptX.RawConsoleInput(null);
                     Console.WriteLine(input);
                     Console.WriteLine("testing null 'prompt' with 'required'...");
-                    input = PromptX.RawConsoleInput(required: true);
+                    input = PromptX.RawConsoleInput(null, required: true);
                     Console.WriteLine(input);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Test multi-selection",
+                () =>
+                {
+                    var inputs = new []
+                    {
+                        "1,2,3",
+                        "0,1,2,3",
+                        "all",
+                        "rafael",
+                        "1-13,15-17",
+                        "16-18,20-22",
+                        "18-16,20-22",
+                        "none",
+                        "",
+                        null,
+                        "14-17-20",
+                        "1-3a,8-19"
+                    };
+                    Console.WriteLine("Zero-based tests, 22 count...");
+                    foreach (var input in inputs)
+                    {
+                        Console.Write("  " + TextUtil.Reveal(input) + " -> ");
+                        try
+                        {
+                            var indices = MenuSelection.ParseMultipleSelectionIndices(input, 22, false);
+                            Console.WriteLine(indices.Any() ? string.Join(",", indices) : "<zero-results>");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                    Console.WriteLine("One-based tests, 22 count...");
+                    foreach (var input in inputs)
+                    {
+                        Console.Write("  " + TextUtil.Reveal(input) + " -> ");
+                        try
+                        {
+                            var indices = MenuSelection.ParseMultipleSelectionIndices(input, 22, true);
+                            Console.WriteLine(indices.Any() ? string.Join(",", indices) : "<zero-results>");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
                 }
             ),
             BuildMenuRoutine
@@ -100,7 +171,7 @@ namespace TestConsole
                     {
                         try
                         {
-                            Console.WriteLine("int=" + PromptX.Value<int>(validator: (i) => Assert.InRange(i, 1, 3)));
+                            Console.WriteLine("int=" + PromptX.Int(null, validator: (i) => Assert.InRange(i, 1, 3)));
                         }
                         catch(ConsoleNavigation.CancelInputPromptException)
                         {
@@ -110,83 +181,28 @@ namespace TestConsole
                     }
                 }
             ),
-            BuildMenuRoutine
-            (
-                "Non-cancellable routine - Console.ReadKey()",
-                () =>
-                {
-                    RenderX.Prompt("Type ctrl-C here");
-                    Console.ReadKey();
-                }
-            ),
-            BuildMenuRoutine
-            (
-                "Non-cancellable routine - Console.ReadLine()",
-                () =>
-                {
-                    RenderX.Prompt("Type ctrl-C here");
-                    Console.ReadLine();
-                }
-            ),
-            BuildMenuRoutine
-            (
-                "Non-cancellable routine - PromptX.Value<string>()",
-                () =>
-                {
-                    PromptX.Value<string>("Type ctrl-C here");
-                }
-            ),
-            BuildMenuRoutine
-            (
-                "Cancellable routine - Console.ReadKey()",
-                () =>
-                {
-                    RenderX.Prompt("Type ctrl-C here");
-                    Console.ReadKey();
-                },
-                configure: (routine) => routine.IsCancelable = true
-            ),
-            BuildMenuRoutine
-            (
-                "Cancellable routine - Console.ReadLine()",
-                () =>
-                {
-                    RenderX.Prompt("Type ctrl-C here");
-                    Console.ReadLine();
-                },
-                configure: (routine) => routine.IsCancelable = true
-            ),
-            BuildMenuRoutine
-            (
-                "Cancellable routine - PromptX.Value<string>()",
-                () =>
-                {
-                    PromptX.Value<string>("Type ctrl-C here");
-                },
-                configure: (routine) => routine.IsCancelable = true
-            ),
             new FileSystemNavigator
             (
-                text: "File Search", 
-                options: new FileSystemNavigatorOptions 
-                { 
-                    StartDirectory = @"C:\Users" 
+                text: "File Search",
+                options: new FileSystemNavigatorOptions
+                {
+                    StartDirectory = @"C:\Users"
                 }
             )
-            { 
-                OnPathSelected = (path) => Console.WriteLine("Selected path: " + path) 
+            {
+                OnPathSelected = (path) => Console.WriteLine("Selected path: " + path)
             },
             new FileSystemNavigator
             (
-                text: "Folder Search", 
-                options: new FileSystemNavigatorOptions 
-                { 
-                    StartDirectory = @"C:\Users", 
-                    DirectoryModeOn = true 
+                text: "Folder Search",
+                options: new FileSystemNavigatorOptions
+                {
+                    StartDirectory = @"C:\Users",
+                    DirectoryModeOn = true
                 }
             )
-            { 
-                OnPathSelected = (path) => Console.WriteLine("Selected path: " + path) 
+            {
+                OnPathSelected = (path) => Console.WriteLine("Selected path: " + path)
             }
         };
     }

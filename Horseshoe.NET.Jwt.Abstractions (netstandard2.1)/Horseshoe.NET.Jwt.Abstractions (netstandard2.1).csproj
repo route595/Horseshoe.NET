@@ -5,7 +5,7 @@
     <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Version>3.1.0</Version>
+    <Version>3.1.1</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>Datatypes for Horseshoe.NET.Jwt</Description>

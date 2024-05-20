@@ -211,7 +211,7 @@ namespace Horseshoe.NET.ConsoleX
                 OnRoutineExiting?.Invoke(this);
                 IsExited = true;  // exits routine if not handled by the implementation
             }
-            catch (ConsoleNavigation.ExitRoutineException)
+            catch (ConsoleNavigation.BackoutRoutineException)
             {
                 OnRoutineExiting?.Invoke(this);
                 IsExited = true;
@@ -274,7 +274,7 @@ namespace Horseshoe.NET.ConsoleX
         /// </summary>
         public static void Exit()
         {
-            ConsoleNavigation.ExitRoutine();
+            ConsoleNavigation.BackoutRoutine();
         }
 
         /// <summary>

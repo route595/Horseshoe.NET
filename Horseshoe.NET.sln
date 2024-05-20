@@ -39,10 +39,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Jwt.Abstracti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt.Abstractions (netstandard2.1)", "Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj", "{2DD58269-14C1-4710-940C-F1D600EFF817}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Ldap (net462)", "Horseshoe.NET.Ldap (net462)\Horseshoe.NET.Ldap (net462).csproj", "{7642C261-7AA6-4CED-8CBF-6B52C01E56A3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Ldap (netstandard2.0)", "Horseshoe.NET.Ldap (netstandard2.0)\Horseshoe.NET.Ldap (netstandard2.0).csproj", "{0195B0E9-9C65-49B0-A31F-1E9960E2831E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Odbc (net462)", "Horseshoe.NET.Odbc (net462)\Horseshoe.NET.Odbc (net462).csproj", "{04BF23FB-7B5F-40F2-A775-13090372AECA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Odbc (netstandard2.0)", "Horseshoe.NET.Odbc (netstandard2.0)\Horseshoe.NET.Odbc (netstandard2.0).csproj", "{809C50BD-A8E2-4C58-B3F0-2B71C8F52280}"
@@ -85,7 +81,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Abstractions 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt (net7.0)", "Horseshoe.NET.Jwt (net7.0)\Horseshoe.NET.Jwt (net7.0).csproj", "{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Jwt (net8.0)", "Horseshoe.NET.Jwt (net8.0)\Horseshoe.NET.Jwt (net8.0).csproj", "{89A1E3E2-F35D-44E7-907D-329DE5C7C322}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt (net8.0)", "Horseshoe.NET.Jwt (net8.0)\Horseshoe.NET.Jwt (net8.0).csproj", "{89A1E3E2-F35D-44E7-907D-329DE5C7C322}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.OracleDb (net472)", "Horseshoe.NET.OracleDb (net472)\Horseshoe.NET.OracleDb (net472).csproj", "{AC824526-E040-4E55-9EDD-14A49FF04EAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -165,14 +163,6 @@ Global
 		{2DD58269-14C1-4710-940C-F1D600EFF817}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2DD58269-14C1-4710-940C-F1D600EFF817}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2DD58269-14C1-4710-940C-F1D600EFF817}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7642C261-7AA6-4CED-8CBF-6B52C01E56A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7642C261-7AA6-4CED-8CBF-6B52C01E56A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7642C261-7AA6-4CED-8CBF-6B52C01E56A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7642C261-7AA6-4CED-8CBF-6B52C01E56A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0195B0E9-9C65-49B0-A31F-1E9960E2831E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0195B0E9-9C65-49B0-A31F-1E9960E2831E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0195B0E9-9C65-49B0-A31F-1E9960E2831E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0195B0E9-9C65-49B0-A31F-1E9960E2831E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{04BF23FB-7B5F-40F2-A775-13090372AECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{04BF23FB-7B5F-40F2-A775-13090372AECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04BF23FB-7B5F-40F2-A775-13090372AECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -249,6 +239,10 @@ Global
 		{89A1E3E2-F35D-44E7-907D-329DE5C7C322}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89A1E3E2-F35D-44E7-907D-329DE5C7C322}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89A1E3E2-F35D-44E7-907D-329DE5C7C322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC824526-E040-4E55-9EDD-14A49FF04EAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC824526-E040-4E55-9EDD-14A49FF04EAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC824526-E040-4E55-9EDD-14A49FF04EAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC824526-E040-4E55-9EDD-14A49FF04EAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

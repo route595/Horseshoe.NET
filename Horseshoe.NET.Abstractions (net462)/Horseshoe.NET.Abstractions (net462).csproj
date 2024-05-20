@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="AssemblyException.cs" />
     <Compile Include="AssertionFailedException.cs" />
+    <Compile Include="Auth[net462].cs" />
     <Compile Include="AuthenticationException.cs" />
     <Compile Include="BenignException.cs" />
     <Compile Include="Bootstrap\AlertMessageDetailsRenderingPolicy.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="Text\TruncateMarker.cs" />
     <Compile Include="ThisShouldNeverHappenException.cs" />
     <Compile Include="TraceJournal.cs" />
+    <Compile Include="Try.cs" />
     <Compile Include="UtilityException.cs" />
     <Compile Include="ValidationException.cs" />
     <Compile Include="XmlDoc\Assembly.cs" />

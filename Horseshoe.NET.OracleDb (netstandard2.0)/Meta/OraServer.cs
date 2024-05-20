@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.OracleDb.Meta
 {
-    public class OraServer : OraObjectBase, IEquatable<OraServer>
+    public class OraServer : OraObjectBase//, IEquatable<OraServer>
     {
         public string DataSource { get; }
 
@@ -43,10 +43,10 @@ namespace Horseshoe.NET.OracleDb.Meta
             throw new UtilityException(list.Count() + " Oracle servers match this name / data source: " + nameOrDataSource);
         }
 
-        public bool Equals(OraServer other)
-        {
-            return this == other;  // see OraObjectBase
-        }
+        //public bool Equals(OraServer other)
+        //{
+        //    return this == other;  // see OraObjectBase
+        //}
 
         public static IEnumerable<OraServer> ParseList(string rawList)
         {
@@ -109,13 +109,13 @@ namespace Horseshoe.NET.OracleDb.Meta
             throw new UtilityException("Malformed server.  Must resemble { ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1 }.");
         }
 
-        public static string BuildList(IEnumerable<OraServer> list)
-        {
-            if (list == null || !list.Any())
-                return null;
-            var listString = string.Join("|", list.Select(svr => svr.DataSource + (svr.ServiceName != null ? ";" + svr.ServiceName : "") + (svr.InstanceName != null ? (svr.ServiceName == null ? ";" : "") + ";" + svr.InstanceName : "")));
-            return listString;
-        }
+        //public static string BuildList(IEnumerable<OraServer> list)
+        //{
+        //    if (list == null || !list.Any())
+        //        return null;
+        //    var listString = string.Join("|", list.Select(svr => svr.DataSource + (svr.ServiceName != null ? ";" + svr.ServiceName : "") + (svr.InstanceName != null ? (svr.ServiceName == null ? ";" : "") + ";" + svr.InstanceName : "")));
+        //    return listString;
+        //}
 
         public static implicit operator OraServer(string raw) => Parse(raw);
     }

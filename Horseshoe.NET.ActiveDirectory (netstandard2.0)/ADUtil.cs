@@ -1,637 +1,530 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-
 using Horseshoe.NET.Collections;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.ActiveDirectory
 {
     public static class ADUtil
     {
-        static Regex ParseCNRegex { get; } = new Regex(@"(?<=CN\=)[^,]+");
-        static Regex ParseOURegex { get; } = new Regex(@"(?<=OU\=)[^,]+");
-
-        /// <summary>
-        /// Builds a PrincipalContext of type 'Domain' for AD query operations
-        /// </summary>
-        public static PrincipalContext GetDomainContext(string domain = null)
+        public static ADUser Authenticate(string userIdNameOrEmail, string plainTextPassword)
         {
-            var _domain = domain ?? ADSettings.DefaultDomain;
-            return _domain == null
-                ? new PrincipalContext(ContextType.Domain)
-                : new PrincipalContext(ContextType.Domain, _domain);
+            if (string.IsNullOrEmpty(userIdNameOrEmail))
+            {
+                throw new ADLoginException("Please supply a user name");
+            }
+
+            var context = ADEngine.GetDomainContext();
+            //using (var context = ADEngine.GetDomainContext())
+            //{
+            if (context.ValidateCredentials(userIdNameOrEmail, plainTextPassword, ContextOptions.SecureSocketLayer | ContextOptions.SimpleBind))
+            {
+                return GetUser(userIdNameOrEmail);
+            }
+            //}
+            throw new ADLoginException("Login failed");
         }
 
-        /// <summary>
-        /// Validates user credentials and, if successful, returns the associated user information
-        /// </summary>
-        public static UserInfo Authenticate(string samAccountName, string plainTextPassword, string domain = null)
+        public static ADUser GetUser(string userIdNameOrEmail,
+            string propertiesToLoad = ADConstants.UserProperties.Default,
+            string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
+            Action<string> peekFilter = null)
         {
-            if (string.IsNullOrEmpty(samAccountName))
+            var searchResult = ADEngine.GetUser(userIdNameOrEmail, propertiesToLoad, propertiesToSearch, peekFilter);
+            var dict = new Dictionary<string, object>();
+
+            foreach (DictionaryEntry entry in searchResult.Properties)
             {
-                throw new AuthenticationException("Please supply a user name");
-            }
-            try
-            {
-                using (var context = GetDomainContext(domain: domain))
+                var key = entry.Key.ToString();
+                switch (searchResult.Properties[key].Count)
                 {
-                    if (context.ValidateCredentials(samAccountName, plainTextPassword, ContextOptions.Negotiate))
-                    {
-                        var userInfo = LookupUser(samAccountName, userProperty: UserProperty.sAMAccountName);
-                        return userInfo;
-                    }
+                    case 0: // this should never happen
+                        break;
+                    case 1:
+                        dict.Add(key, searchResult.Properties[key][0]);
+                        break;
+                    default:
+                        dict.Add(key, searchResult.Properties[key].Cast<object>().ToArray());
+                        break;
                 }
-                throw new AuthenticationException("Login failed");
             }
-            catch (ADException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new ADException(ex.Message, ex);
-            }
+
+            return new ADUser(dict);
         }
 
-        /// <summary>
-        /// Validates user credentials (other than SAMAccountName) and, if successful, returns the associated user information
-        /// </summary>
-        public static UserInfo LookupAndAuthenticate(string userSearchTerm, string plainTextPassword, UserProperty? userProperty = null, string domain = null)
+        public static DirectoryEntry GetUserEntry(string userIdNameOrEmail,
+            string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
+            Action<string> peekFilter = null)
         {
-            if (string.IsNullOrEmpty(userSearchTerm))
-            {
-                throw new AuthenticationException("Please supply a search term");
-            }
-            var userInfo = LookupUser(userSearchTerm, userProperty: userProperty, domain: domain);
-            return Authenticate(userInfo.SAMAccountName, plainTextPassword, domain: domain);
+            return ADEngine.GetUser(userIdNameOrEmail, "*", propertiesToSearch, peekFilter).GetDirectoryEntry();
         }
 
-        /* * * * * * * * * * * * * * * * * * * 
-         *  USER LOOKUP FUNCTIONS (full-text)
-         * * * * * * * * * * * * * * * * * * */
-
-        public static UserInfo LookupUser(string userSearchTerm, UserProperty? userProperty = null, string domain = null)
+        public static IEnumerable<string> EnumerateUserProperties(string userIdNameOrEmail, int maxLength = 0,
+            string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
+            Action<string> peekFilter = null)
         {
-            var userInfo = BuildUser
-            (
-                RawLookupUser(userSearchTerm, userProperty: userProperty, domain: domain)
-            );
-            return userInfo;
-        }
-
-        private static DirectoryEntry RawLookupUser(string userSearchTerm, UserProperty? userProperty = null, string domain = null)
-        {
-            var _domain = domain ?? ADSettings.DefaultDomain;
-            var entry = _domain == null
-                ? new DirectoryEntry()
-                : new DirectoryEntry(ToLdapUrl(dc: _domain));
-            var mySearcher = new DirectorySearcher(entry)
+            var searchResult = ADEngine.GetUser(userIdNameOrEmail, "*", propertiesToSearch, peekFilter);
+            var list = new List<string>();
+            foreach (DictionaryEntry entry in searchResult.Properties)
             {
-                Filter = userProperty.HasValue
-                    ? FilterFactory.BuildUserLookupFilter(userSearchTerm, userProperty.Value)
-                    : FilterFactory.BuildUserLookupFilter(userSearchTerm,
-                        new UserProperty[]
-                        {
-                            UserProperty.sAMAccountName,
-                            UserProperty.name,
-                            UserProperty.displayName,
-                            UserProperty.mail,
-                            UserProperty.cn,
-                            UserProperty.distinguishedName,
-                            UserProperty.userPrincipalName
-                        }
-                    )
-            };
-            var results = mySearcher.FindAll();
-            if (results == null || results.Count == 0)
-            {
-                throw new ADException("User info not found: " + userSearchTerm);
-            }
-            var directoryEntries = results.Cast<SearchResult>()
-                .Select(sr => sr.GetDirectoryEntry())
-                .ToList();
-            switch (directoryEntries.Count())
-            {
-                case 0:
-                    throw new ADException("User info not found: " + userSearchTerm);
-                case 1:
-                    return directoryEntries.Single();
-                default:
-                    var names = directoryEntries.Select(de => de.Name).ToList();
-                    var summary = TextUtil.Crop(string.Join("; ", names), 50, truncateMarker: TruncateMarker.Ellipsis);
-                    throw new ADException("Search for users matching \"" + userSearchTerm + "\" returned " + names.Count + " results: " + summary);
-            }
-        }
-
-        /* * * * * * * * * * * * * * * * * * * * * * * 
-         *  PERSON USER LOOKUP FUNCTIONS (full-text)
-         * * * * * * * * * * * * * * * * * * * * * * */
-
-        public static UserInfo LookupPersonUser(string searchTerm, UserProperty? userProperty = null, string domain = null)
-        {
-            var userInfo = BuildUser
-            (
-                RawLookupPersonUser(searchTerm, userProperty: userProperty, domain: domain)
-            );
-            return userInfo;
-        }
-
-        private static DirectoryEntry RawLookupPersonUser(string userSearchTerm, UserProperty? userProperty = null, string domain = null)
-        {
-            var _domain = domain ?? ADSettings.DefaultDomain;
-            var entry = _domain == null
-                ? new DirectoryEntry()
-                : new DirectoryEntry(ToLdapUrl(dc: _domain));
-            var mySearcher = new DirectorySearcher(entry)
-            {
-                Filter = userProperty.HasValue
-                    ? FilterFactory.BuildPersonUserLookupFilter(userSearchTerm, userProperty.Value)
-                    : FilterFactory.BuildPersonUserLookupFilter(userSearchTerm,
-                        new UserProperty[]
-                        {
-                            UserProperty.sAMAccountName,
-                            UserProperty.name,
-                            UserProperty.displayName,
-                            UserProperty.mail,
-                            UserProperty.cn,
-                            UserProperty.distinguishedName,
-                            UserProperty.userPrincipalName
-                        }
-                    )
-            };
-            var results = mySearcher.FindAll();
-            if (results == null || results.Count == 0)
-            {
-                throw new ADException("User info not found: " + userSearchTerm);
-            }
-            var directoryEntries = results.Cast<SearchResult>()
-                .Select(sr => sr.GetDirectoryEntry())
-                .ToList();
-            switch (directoryEntries.Count())
-            {
-                case 0:
-                    throw new ADException("User info not found: " + userSearchTerm);
-                case 1:
-                    return directoryEntries.Single();
-                default:
-                    var names = directoryEntries.Select(de => de.Name).ToList();
-                    var summary = TextUtil.Crop(string.Join("; ", names), 50, truncateMarker: TruncateMarker.Ellipsis);
-                    throw new ADException("Search for users matching \"" + userSearchTerm + "\" returned " + names.Count + " results: " + summary);
-            }
-        }
-
-        /* * * * * * * * * * * * * * * * * * * * * 
-         *  USER SEARCH FUNCTIONS (partial-text)
-         * * * * * * * * * * * * * * * * * * * * */
-
-        public static IEnumerable<DirectoryEntry> RawSearchUsers(string userSearchTerm, UserProperty? userProperty = null, string domain = null)
-        {
-            var _domain = domain ?? ADSettings.DefaultDomain;
-            var entry = _domain == null
-                ? new DirectoryEntry()
-                : new DirectoryEntry(ToLdapUrl(dc: _domain));
-            var mySearcher = new DirectorySearcher(entry)
-            {
-                Filter = userProperty.HasValue
-                    ? FilterFactory.BuildUserSearchFilter(userSearchTerm, userProperty.Value)
-                    : FilterFactory.BuildUserSearchFilter(userSearchTerm,
-                        new UserProperty[]
-                        {
-                            UserProperty.sAMAccountName,
-                            UserProperty.name,
-                            UserProperty.displayName,
-                            UserProperty.mail,
-                            UserProperty.cn,
-                            UserProperty.distinguishedName,
-                            UserProperty.userPrincipalName
-                        }
-                    )
-            };
-            var results = mySearcher.FindAll();
-            if (results == null || results.Count == 0)
-            {
-                throw new ADException("User info not found: " + userSearchTerm);
-            }
-            return results.Cast<SearchResult>()
-                .Select(sr => sr.GetDirectoryEntry())
-                .ToList();
-        }
-
-        /* * * * * * * * * * * * * * * * * * * * * * * * * 
-         *  PERSON USER SEARCH FUNCTIONS (partial-text)
-         * * * * * * * * * * * * * * * * * * * * * * * * */
-
-        public static IEnumerable<DirectoryEntry> RawSearchPersonUsers(string userSearchTerm, UserProperty? userProperty = null, string domain = null)
-        {
-            var _domain = domain ?? ADSettings.DefaultDomain;
-            var entry = _domain == null
-                ? new DirectoryEntry()
-                : new DirectoryEntry(ToLdapUrl(dc: _domain));
-            var mySearcher = new DirectorySearcher(entry)
-            {
-                Filter = userProperty.HasValue
-                    ? FilterFactory.BuildPersonUserSearchFilter(userSearchTerm, userProperty.Value)
-                    : FilterFactory.BuildPersonUserSearchFilter(userSearchTerm,
-                        new UserProperty[]
-                        {
-                            UserProperty.sAMAccountName,
-                            UserProperty.name,
-                            UserProperty.displayName,
-                            UserProperty.mail,
-                            UserProperty.cn,
-                            UserProperty.distinguishedName,
-                            UserProperty.userPrincipalName
-                        }
-                    )
-            };
-            var results = mySearcher.FindAll();
-            if (results == null || results.Count == 0)
-            {
-                throw new ADException("User info not found: " + userSearchTerm);
-            }
-            return results.Cast<SearchResult>()
-                .Select(sr => sr.GetDirectoryEntry())
-                .ToList();
-        }
-
-        /* * * * * * * * * * * * * 
-         *  OU LISTING FUNCTIONS
-         * * * * * * * * * * * * */
-
-        public static IEnumerable<OUInfo> ListOUs(bool recursive = false, string domain = null)
-        {
-            var _domain = domain ?? ADSettings.DefaultDomain;
-            var entry = _domain == null
-                ? new DirectoryEntry()
-                : new DirectoryEntry(ToLdapUrl(dc: _domain));
-            var mySearcher = new DirectorySearcher(entry)
-            {
-                Filter = FilterFactory.BuildAllOUsFilter()
-            };
-            var results = mySearcher.FindAll();
-            return results
-                .Cast<SearchResult>()
-                .Select(sr => BuildOU(sr))
-                .Where(ou => recursive || ou.PseudoPath.Length == 1)
-                .OrderBy(ou => ou.DisplayPseudoPath)
-                .ToList();
-        }
-
-        public static IEnumerable<OUInfo> ListOUs(string path, bool recursive = false)
-        {
-            var ouInfo = BuildOU(path);
-            return ListOUs(ouInfo, recursive);
-        }
-
-        public static IEnumerable<OUInfo> ListOUs(string[] pseudoPath, bool recursive = false)
-        {
-            var ouInfo = BuildOU(pseudoPath);
-            return ListOUs(ouInfo, recursive);
-        }
-
-        public static IEnumerable<OUInfo> ListOUs(OUInfo ouInfo, bool recursive = false)
-        {
-            var entry = new DirectoryEntry(ouInfo.Path);
-            var mySearcher = new DirectorySearcher(entry)
-            {
-                Filter = FilterFactory.BuildAllOUsFilter()
-            };
-            var results = mySearcher.FindAll();
-            return results
-                .Cast<SearchResult>()
-                .Select(sr => BuildOU(sr))
-                .Where(ou => recursive || ou.PseudoPath.Length == ouInfo.PseudoPath.Length + 1)
-                .OrderBy(ou => ou.DisplayPseudoPath)
-                .ToList();
-        }
-
-        /* * * * * * * * * * * * * * * * * * * * * * * * * 
-         *  LDAP USER LISTING FUNCTIONS
-         * * * * * * * * * * * * * * * * * * * * * * * * */
-
-        public static UserInfo[] ListUsersByGroup(string groupName, Predicate<UserInfo> filter = null) // e.g. "Domain Users"
-        {
-            var list = new List<UserInfo>();
-            using (var ctx = new PrincipalContext(ContextType.Domain))
-            {
-                using (var grp = GroupPrincipal.FindByIdentity(ctx, IdentityType.SamAccountName, groupName))
+                string item;
+                var key = entry.Key.ToString();
+                if (entry.Value == null)
                 {
-                    if (grp != null)
+                    item = entry.Key + " = [null]";
+                }
+                else
+                {
+                    var typeStr = "(" + searchResult.Properties[key][0].GetType().Name.ToLower() + ")";
+
+                    if (searchResult.Properties[key][0] is object[] objects)
                     {
-                        foreach (Principal p in grp.GetMembers())
-                        {
-                            if (p is UserPrincipal)
-                            {
-                                list.Add(BuildUser(p as UserPrincipal));
-                            }
-                        }
+                        item = string.Join(", ", objects);
                     }
                     else
                     {
-                        throw new Exception("Group '" + groupName + "' not found: server = " + ctx.ConnectedServer);
+                        item = searchResult.Properties[key][0].ToString();
+                    }
+
+                    if (maxLength > 0 && key.Length + item.Length + typeStr.Length + 4 > maxLength)
+                    {
+                        int itemHalf = (maxLength - key.Length - typeStr.Length - 4) / 2 - 3;
+                        if (itemHalf < 1)
+                        {
+                            itemHalf = 1;
+                        }
+
+                        item = item.Substring(0, itemHalf) + "..." + item.Substring(item.Length - itemHalf);
+                    }
+
+                    item = entry.Key + " = " + item + " " + typeStr;
+                }
+
+                list.Add(item);
+            }
+
+            return list;
+        }
+
+        public static void AssignUserToGroup(string userIdNameOrEmail, string groupName,
+            string userPropertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
+            string groupPropertiesToLoad = ADConstants.GroupProperties.member,
+            Action<string> peekUserFilter = null, Action<string> peekGroupFilter = null,
+            Action beforeCommit = null, Action afterCommit = null)
+        {
+            var user = GetUserEntry(userIdNameOrEmail, propertiesToSearch: userPropertiesToSearch, peekFilter: peekUserFilter);
+            var group = GetGroupEntry(groupName, propertiesToLoad: groupPropertiesToLoad, peekFilter: peekGroupFilter);
+            AssignUserToGroup(user, group, beforeCommit: beforeCommit, afterCommit: afterCommit);
+        }
+
+        public static void AssignUserToGroup(DirectoryEntry user, DirectoryEntry group, Action beforeCommit = null, Action afterCommit = null)
+        {
+            var members = group.RawMembers();
+            if (group.RawMembers().Contains(user.RawDistinguishedName()))
+            {
+                throw new Exception("This user is already a member of this AD group: " + user.Name + ": " + group.Name);
+            }
+
+            group.RawMembers().Add(user.RawDistinguishedName());
+            beforeCommit?.Invoke();
+            group.CommitChanges();
+            afterCommit?.Invoke();
+        }
+
+        public static IEnumerable<ADUser> SearchUsers(string partialUserIdNameOrEmail,
+            string propertiesToLoad = ADConstants.UserProperties.Default,
+            string propertiesToSearch = ADConstants.UserSearchProperties.SearchDefault,
+            Func<List<ADUser>, List<ADUser>> alterList = null, Action<string> peekFilter = null)
+        {
+            var searchResultCollection = ADEngine.SearchUsers(partialUserIdNameOrEmail, propertiesToLoad,
+                propertiesToSearch, peekFilter: peekFilter);
+            var users = new List<ADUser>();
+
+            foreach (SearchResult searchResult in searchResultCollection)
+            {
+                var dict = new Dictionary<string, object>();
+                foreach (DictionaryEntry entry in searchResult.Properties)
+                {
+                    var key = entry.Key.ToString();
+                    switch (searchResult.Properties[key].Count)
+                    {
+                        case 0: // this should never happen
+                            break;
+                        case 1:
+                            dict.Add(key, searchResult.Properties[key][0]);
+                            break;
+                        default:
+                            dict.Add(key, searchResult.Properties[key].Cast<object>().ToArray());
+                            break;
                     }
                 }
-            }
-            if (filter != null)
-            {
-                list = list
-                    .Where(adUser => filter(adUser))
-                    .ToList();
-            }
-            return list
-                .ToArray();
-        }
 
-        public static IEnumerable<UserInfo> ListUsersByOU(string ouPath, Predicate<UserInfo> userNameFilter = null, bool recursive = false)
-        {
-            return ListUsersByOU(BuildOU(ouPath), userNameFilter, recursive);
-        }
-
-        public static IEnumerable<UserInfo> ListUsersByOU(OUInfo ou, Predicate<UserInfo> userNameFilter = null, bool recursive = false)
-        {
-            var list = new List<UserInfo>();
-            var entry = new DirectoryEntry(ou.Path);
-            var mySearcher = new DirectorySearcher(entry)
-            {
-                Filter = FilterFactory.BuildAllUsersFilter()
-            };
-            var results = mySearcher.FindAll();
-            var users = results
-                .Cast<SearchResult>()
-                .Select(sr => BuildUser(sr.GetDirectoryEntry()))
-                .Where(user => recursive || CollectionUtil.IsIdentical(user.OU.PseudoPath, ou.PseudoPath))
-                .OrderBy(user => user.DisplayName)
-                .ToList();
-            if(userNameFilter != null)
-            {
-                users = users
-                    .Where(u => userNameFilter(u))
-                    .ToList();
+                users.Add(new ADUser(dict));
             }
+
+            if (alterList == null)
+                alterList = list => list.OrderBy(u => u.DisplayName ?? u.CN).ToList();
+            users = alterList.Invoke(users);
             return users;
         }
 
-        private static UserInfo BuildUser(UserPrincipal userPrincipal)
+        public static ADGroup GetGroup(string groupName, string propertiesToLoad = ADConstants.GroupProperties.GetDefault,
+            Action<string> peekFilter = null)
         {
-            var entry = (DirectoryEntry)userPrincipal.GetUnderlyingObject();
-            return BuildUser(entry);
-        }
+            var searchResult = ADEngine.GetGroup(groupName, propertiesToLoad, peekFilter: peekFilter);
+            var dict = new Dictionary<string, object>();
 
-        private static UserInfo BuildUser(DirectoryEntry directoryEntry)
-        {
-            if (!directoryEntry.SchemaClassName.Equals(ObjectClass.user.ToString()))
+            foreach (DictionaryEntry entry in searchResult.Properties)
             {
-                throw new ADException("Invalid object class: " + directoryEntry.SchemaClassName);
-            }
-            var userInfo = new UserInfo
-            {
-                SAMAccountName = ParseProperty(directoryEntry.Properties["sAMAccountName"]),
-                Name = ParseProperty(directoryEntry.Properties["name"]),
-                DisplayName = ParseProperty(directoryEntry.Properties["displayName"]),
-                FirstName = ParseProperty(directoryEntry.Properties["givenName"]),
-                LastName = ParseProperty(directoryEntry.Properties["sn"]),
-                Title = ParseProperty(directoryEntry.Properties["title"]),
-                Description = ParseProperty(directoryEntry.Properties["description"]),
-                EmailAddress = ParseProperty(directoryEntry.Properties["mail"]),
-                TelephoneNumber = ParseProperty(directoryEntry.Properties["telephoneNumber"]),
-                Department = ParseProperty(directoryEntry.Properties["department"]),
-                PhysicalOfficeName = ParseProperty(directoryEntry.Properties["physicalDeliveryOfficeName"]),
-                StreetAddress = ParseProperty(directoryEntry.Properties["streetAddress"]),
-                City = ParseProperty(directoryEntry.Properties["l"]),
-                State = ParseProperty(directoryEntry.Properties["st"]),
-                PostalCode = ParseProperty(directoryEntry.Properties["postalCode"]),
-                Country = ParseProperty(directoryEntry.Properties["c"]),
-                DateCreated = ParseDateProperty(directoryEntry.Properties["whenCreated"]),
-                LastLogon = ParseDateProperty(directoryEntry.Properties["lastLogon"], tryParseComObject: true),
-                AccountExpires = ParseDateProperty(directoryEntry.Properties["accountExpires"], tryParseComObject: true),
-                UserPrincipalName = ParseProperty(directoryEntry.Properties["userPrincipalName"]),
-                Manager = ParseProperty(directoryEntry.Properties["manager"], tryParse: "CN"),
-                ExtensionAttribute1 = ParseProperty(directoryEntry.Properties["extensionAttribute1"]),
-                ParentPath = directoryEntry.Parent.Path,
-                OU = GetOU(directoryEntry),
-                GroupNames = ParseProperties(directoryEntry.Properties["memberOf"], tryParse: "CN", alphabetize: true)
-            };
-            return userInfo;
-        }
-
-        private static OUInfo GetOU(DirectoryEntry entry)
-        {
-            var parent = entry.Parent;
-            while (!parent.SchemaClassName.Equals(ObjectClass.organizationalUnit.ToString()))
-            {
-                parent = parent.Parent;
-            }
-            if (parent.SchemaClassName.Equals(ObjectClass.organizationalUnit.ToString()))
-            {
-                return BuildOU(parent.Path);
-            }
-            return null;
-        }
-
-        private static OUInfo BuildOU(SearchResult searchResult)
-        {
-            var info = new OUInfo
-            {
-                Name = _ParseProperty(searchResult.GetDirectoryEntry().Name, tryParse: "OU"),
-                Path = searchResult.Path,
-                PseudoPath = ParseOUs(searchResult.Path)
-            };
-            return info;
-        }
-
-        public static OUInfo BuildOU(string path)
-        {
-            var info = new OUInfo
-            {
-                Path = path,
-                PseudoPath = ParseOUs(path)
-            };
-            info.Name = info.PseudoPath.Last();
-            return info;
-        }
-
-        public static OUInfo BuildOU(string[] pseudoPath) // [Corporate][Users]
-        {
-            if (pseudoPath.Length == 0)
-            {
-                throw new ADException("Please supply at least one item in pseudoPath");
-            }
-            var sb = new StringBuilder(GetADRootPath());          // e.g. LDAP://DC=domain,DC=local
-            var pathOUParts = pseudoPath
-                .Reverse()
-                .Select(ou => "OU=" + ou)
-                .ToList();                                      // e.g. [OU=Users][OU=Corporate]
-            sb.Insert(7, string.Join(",", pathOUParts) + ",");  // e.g. LDAP://OU=Users,OU=Corporate,DC=domain,DC=local
-            return new OUInfo
-            {
-                Name = pseudoPath.Last(),
-                Path = sb.ToString(),
-                PseudoPath = pseudoPath
-            };
-        }
-
-        public static string GetADRootPath()
-        {
-            var sb = new StringBuilder();
-            sb.Append("LDAP://");
-            using (var ctx = new PrincipalContext(ContextType.Domain))
-            {
-                var index = ctx.ConnectedServer.IndexOf(".");                           // e.g. SERVERNAME.domain.local
-                if (index > 0 && index < ctx.ConnectedServer.Length)
+                var key = entry.Key.ToString();
+                switch (searchResult.Properties[key].Count)
                 {
-                    var dcParts = ctx.ConnectedServer.Substring(index + 1).Split('.');  // e.g. [domain][local]
-                    sb.Append(string.Join(",", dcParts.Select(dc => "DC=" + dc)));      // e.g. DC=domain,DC=local
+                    case 0: // this should never happen
+                        break;
+                    case 1:
+                        dict.Add(key, searchResult.Properties[key][0]);
+                        break;
+                    default:
+                        dict.Add(key, searchResult.Properties[key].Cast<object>().ToArray());
+                        break;
                 }
             }
-            return sb.ToString();                                                       // e.g. LDAP://DC=domain,DC=local
+            return new ADGroup(dict)
+            {
+                Name = searchResult.Path
+            };
         }
 
-        public static string ParseProperty(PropertyValueCollection collection, string tryParse = null)
+        public static DirectoryEntry GetGroupEntry(string groupName, string propertiesToLoad = ADConstants.GroupProperties.GetDefault, Action<string> peekFilter = null)
         {
-            if (collection == null) return null;
-            var property = collection.Value?.ToString();
-            return _ParseProperty(property, tryParse: tryParse);
+            return ADEngine.GetGroup(groupName, propertiesToLoad, peekFilter: peekFilter).GetDirectoryEntry();
         }
 
-        public static DateTime? ParseDateProperty(PropertyValueCollection collection, bool tryParseComObject = false)
+        public static IEnumerable<ADGroup> SearchGroups(string partialGroupName,
+            string propertiesToLoad = ADConstants.GroupProperties.SearchDefault,
+            Func<List<ADGroup>, List<ADGroup>> alterList = null, Action<string> peekFilter = null)
         {
-            if (collection == null) return null;
-            var obj = collection.Value;
-            if (obj is DateTime)
+            var searchResultCollection = ADEngine.SearchGroups(partialGroupName, propertiesToLoad,
+                peekFilter: peekFilter);
+            var groups = new List<ADGroup>();
+
+            foreach (SearchResult searchResult in searchResultCollection)
             {
-                return (DateTime)obj;
-            }
-            else if (obj != null)
-            {
-                var type = obj.GetType();
-                if (tryParseComObject)   //  && type.FullName.Equals("System.__ComObject")
+                var dict = new Dictionary<string, object>();
+                foreach (DictionaryEntry entry in searchResult.Properties)
                 {
-                    try
+                    var key = entry.Key.ToString();
+                    switch (searchResult.Properties[key].Count)
                     {
-                        long datePart = (int)type.InvokeMember("HighPart", BindingFlags.GetProperty, null, obj, null);
-                        long timePart = (int)type.InvokeMember("LowPart", BindingFlags.GetProperty, null, obj, null);
-                        if (datePart == 0 || timePart == -1)
-                        {
-                            return null;
-                        }
-                        datePart <<= 32;
-                        var dateTime = DateTime.FromFileTime(datePart + timePart);
-                        return dateTime;
-                    }
-                    catch
-                    {
-                        return null;
+                        case 0: // this should never happen
+                            break;
+                        case 1:
+                            dict.Add(key, searchResult.Properties[key][0]);
+                            break;
+                        default:
+                            dict.Add(key, searchResult.Properties[key].Cast<object>().ToArray());
+                            break;
                     }
                 }
+
+                groups.Add(new ADGroup(dict));
             }
-            return null;
+
+            if (alterList == null)
+                alterList = list => list.OrderBy(g => g.CN).ToList();
+            groups = alterList.Invoke(groups);
+            return groups;
         }
 
-        public static string[] ParseProperties(PropertyValueCollection collection, string tryParse = null, bool alphabetize = false)
+        public static IEnumerable<DirectoryEntry> SearchGroupEntries(string partialGroupName, string propertiesToLoad = ADConstants.GroupProperties.SearchDefault, Action<string> peekFilter = null)
         {
-            if (collection == null) return null;
-            var collectionAsStrings = collection
-                .Cast<object>()
-                .Select(o => _ParseProperty(o?.ToString(), tryParse: tryParse))
-                .ToList();
-            if (alphabetize)
+            var entries = new List<DirectoryEntry>();
+            using (var groupsSearch = ADEngine.SearchGroups(partialGroupName, propertiesToLoad, peekFilter: peekFilter))
             {
-                collectionAsStrings.Sort();
+                foreach (SearchResult result in groupsSearch)
+                {
+                    entries.Add(result.GetDirectoryEntry());
+                }
             }
-            return collectionAsStrings.ToArray();
+            return entries;
         }
 
-        private static string _ParseProperty(string property, string tryParse = null)
+        public static ADMember GetOU(string ouName, Action<string> peekFilter = null)
         {
-            if (property != null)
+            var searchResult = ADEngine.GetOU(ouName, peekFilter: peekFilter);
+            return ADMember.FromAdsPath(searchResult.Path);
+        }
+
+        public static IEnumerable<ADMember> ListOUs(Action<string> peekFilter = null)
+        {
+            var members = new List<ADMember>();
+            using (var ouSearch = ADEngine.ListOUs(peekFilter: peekFilter))
             {
-                switch(tryParse)
+                foreach (SearchResult result in ouSearch)
+                {
+                    members.Add(ADMember.FromAdsPath(result.Path));
+                }
+            }
+            return members;
+        }
+
+        public static IEnumerable<ADMember> SearchOUs(string partialOUName, Action<string> peekFilter = null)
+        {
+            var members = new List<ADMember>();
+            using (var ouSearch = ADEngine.SearchOUs(partialOUName, peekFilter: peekFilter))
+            {
+                foreach (SearchResult result in ouSearch)
+                {
+                    members.Add(ADMember.FromAdsPath(result.Path));
+                }
+            }
+            return members;
+        }
+
+        public static string BuildDescription(ILdapFilter filter)
+        {
+            return BuildDescription(filter.ToString());
+        }
+
+        private static Regex _objectCategoryFilterPattern =
+            new Regex(@"(?<=\(objectCategory=)[^)]+", RegexOptions.IgnoreCase);
+        private static Regex _objectClassFilterPattern =
+            new Regex(@"(?<=\(objectClass=)[^)]+", RegexOptions.IgnoreCase);
+        private static Regex _cnFilterPattern =
+            new Regex(@"(?<=\(cn=)[^)]+", RegexOptions.IgnoreCase);
+
+        public static string BuildDescription(string filter)
+        {
+            var builder = new LdapFilterDescriptionBuilder();
+            var match = _objectCategoryFilterPattern.Match(filter);
+            if (match.Success)
+            {
+                builder.ObjectCategory = match.Value;
+            }
+            match = _objectClassFilterPattern.Match(filter);
+            if (match.Success)
+            {
+                builder.ObjectClass = match.Value;
+            }
+            match = _cnFilterPattern.Match(filter);
+            if (match.Success)
+            {
+                builder.CN = match.Value;
+            }
+            return builder.ToString();
+        }
+
+        private static Regex _ldapPathPartSeparators = new Regex(@"\b[A-Z]{2}=", RegexOptions.IgnoreCase);
+        // private static Regex _cnAdsPathSeparatorPattern =
+        //     new Regex("CN=", RegexOptions.IgnoreCase);
+        // private static Regex _ouAdsPathSeparatorPattern =
+        //     new Regex("OU=", RegexOptions.IgnoreCase);
+        // private static Regex _dcAdsPathSeparatorPattern =
+        //     new Regex("DC=", RegexOptions.IgnoreCase);
+
+        public static void ExtractMemberParts(string adsPath, out string rawCn, out string rawOu, out string rawDc)
+        {
+            int rawCnStart = -1,
+                rawCnEnd = -1,
+                rawOuStart = -1,
+                rawOuEnd = -1,
+                rawDcStart = -1,
+                rawDcEnd = -1;
+            var _matches = _ldapPathPartSeparators.Matches(adsPath)
+                .Cast<Match>()
+                .ToArray();
+            for (int i = 0, max = _matches.Length; i < max; i++)
+            {
+                switch (_matches[i].Value.TrimEnd('='))
                 {
                     case "CN":
-                        var cnMatch = ParseCNRegex.Match(property);
-                        if (cnMatch.Success)
-                        {
-                            property = cnMatch.Value;
-                        }
+                        if (rawCnStart == -1)
+                            rawCnStart = _matches[i].Index;
+                        rawCnEnd = i < max - 1
+                            ? _matches[i + 1].Index
+                            : adsPath.Length;
                         break;
                     case "OU":
-                        var ouMatch = ParseOURegex.Match(property);
-                        if (ouMatch.Success)
-                        {
-                            property = ouMatch.Value;
-                        }
+                        if (rawOuStart == -1)
+                            rawOuStart = _matches[i].Index;
+                        rawOuEnd = i < max - 1
+                            ? _matches[i + 1].Index
+                            : adsPath.Length;
+                        break;
+                    case "DC":
+                        if (rawDcStart == -1)
+                            rawDcStart = _matches[i].Index;
+                        rawDcEnd = i < max - 1
+                            ? _matches[i + 1].Index
+                            : adsPath.Length;
                         break;
                 }
             }
-            return property;
+            rawCn = rawCnStart > -1
+                ? adsPath.Substring(rawCnStart, rawCnEnd - rawCnStart).TrimEnd(',')
+                : string.Empty;
+            rawOu = rawOuStart > -1
+                ? adsPath.Substring(rawOuStart, rawOuEnd - rawOuStart).TrimEnd(',')
+                : string.Empty;
+            rawDc = rawDcStart > -1
+                ? adsPath.Substring(rawDcStart, rawDcEnd - rawDcStart).TrimEnd(',')
+                : string.Empty;
         }
 
-        private static string[] ParseOUs(string property)
+        public static string ExtractCNFromRaw(string rawCn)
         {
-            if (property == null) return null;
-            var matches = ParseOURegex.Matches(property);
-            if (matches.Count > 0)
-            {
-                var returnArray = matches
-                    .Cast<Match>()
-                    .Reverse()
-                    .Select(m => m.Value)
-                    .ToArray();
-                return returnArray;
-            }
-            return new string[] { };
+            if (string.IsNullOrEmpty(rawCn))
+                return string.Empty;
+            var cn = rawCn.Contains(",CN=")
+                ? rawCn.Substring(3, rawCn.IndexOf(",CN=") - 3)
+                : rawCn.Substring(3);
+            if (Settings.Unescape)
+                cn = cn.Replace(@"\,", ",");
+            return cn;
         }
 
-        public static DomainController DetectDomainController(string domain = null)
+        public static string ExtractOUFromRaw(string rawOu)
         {
-            using (var context = GetDomainContext(domain: domain))
-            {
-                return new DomainController { Name = context.ConnectedServer };
-            }
+            if (string.IsNullOrEmpty(rawOu))
+                return string.Empty;
+            var ou = string.Join(" > ", rawOu.Substring(3).Split(new[] { ",OU=" }, 10, StringSplitOptions.None).Reverse());
+            if (Settings.Unescape)
+                ou = ou.Replace(@"\,", ",");
+            return ou;
         }
 
-        public static string ToLdapUrl(string dc = null, string ou = null, string[] ous = null, string cn = null)
+        public static string ExtractDCFromRaw(string rawDc)
         {
-            var sb = new StringBuilder("LDAP://");
-            var prependComma = false;
-            if (dc != null)
+            if (string.IsNullOrEmpty(rawDc))
+                return string.Empty;
+            var dc = rawDc.Substring(3).Replace(",DC=", ".");
+            // if (Settings.UnescapeCommas)
+            //     dc = dc.Replace(@"\,", ",");
+            return dc;
+        }
+
+        public static string ExtractFirstValue(string ldapPath)
+        {
+            return ExtractValueAtIndex(ldapPath, 0);
+        }
+
+        private static void PreExtract(ref string ldapPath, out Match[] matches, DCOption dcOption)
+        {
+            var _matches = _ldapPathPartSeparators.Matches(ldapPath).Cast<Match>().ToList();
+
+            if (!_matches.Any())
             {
-                sb.Append(string.Join(",", dc.Split('.').Select(part => "DC=" + part)));
-                prependComma = true;
+                matches = Array.Empty<Match>();
+                return;
             }
-            if (ou != null)
+
+            var _lastMatch = _matches.Last();
+
+            // Combine DC
+            // Example: CN=My Group,OU=My OU,DC=myexample,DC=com  -->  My Group > My OU > myexample.com
+            if (dcOption == DCOption.Combine && _lastMatch.Value.EndsWith("DC=", StringComparison.CurrentCultureIgnoreCase))
             {
-                if (prependComma)
+                var strb = new StringBuilder(ldapPath.Substring(_lastMatch.Index + _lastMatch.Length));
+                int dcFirstIndex = _matches.Count - 1;
+                int dcLastIndex = _matches.Count - 1;
+
+                for (int i = _matches.Count - 2; i >= 0; i--)
                 {
-                    sb.Append(",");
+                    if (_matches[i].Value.EndsWith("DC=", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        int pos = _matches[i].Index + _matches[i].Length;
+                        strb.Insert(0, '.');
+                        strb.Insert(0, ldapPath.Substring(pos, _matches[i + 1].Index - pos));
+                        _matches.RemoveAt(_matches.Count - 1);
+                        dcFirstIndex = i;
+                        continue;
+                    }
+                    break;
                 }
-                sb.Append("OU=" + ou);
-                prependComma = true;
-            }
-            if (ous != null)
-            {
-                if (prependComma)
+
+                if (dcFirstIndex < dcLastIndex)
                 {
-                    sb.Append(",");
+                    strb.Insert(0, ldapPath.Substring(0, _matches[dcFirstIndex].Index + _matches[dcFirstIndex].Length));
+                    ldapPath = strb.ToString();
                 }
-                sb.Append(string.Join(",", ous.Select(_ou => "OU=" + _ou)));
-                prependComma = true;
             }
-            if (cn != null)
+
+            // Crop DC
+            // Example: CN=My Group,OU=My OU,DC=myexample,DC=com  -->  My Group > My OU
+            if (dcOption == DCOption.Crop)
             {
-                if (prependComma)
+                Match lastRemoved = null;
+                for (int i = _matches.Count - 1; i >= 0; i--)
                 {
-                    sb.Append(",");
+                    if (_matches[i].Value.EndsWith("DC=", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        lastRemoved = _matches.PopAt(_matches.Count - 1);
+                        continue;
+                    }
+                    break;
                 }
-                sb.Append("CN=" + cn);
+
+                if (lastRemoved != null)
+                {
+                    ldapPath = ldapPath.Substring(0, lastRemoved.Index);
+                }
             }
-            return sb.ToString();
+
+            matches = _matches.ToArray();
+        }
+
+        public static string[] ExtractValues(string ldapPath, DCOption dcOption = default)
+        {
+            PreExtract(ref ldapPath, out Match[] matches, dcOption);
+            //var matches = ldapPathPartSeparators.Matches(ldapPath).Cast<Match>().ToArray();
+            var values = new string[matches.Length];
+
+            for (int i = 0, last = matches.Length - 1; i < matches.Length; i++)
+            {
+                if (i == last)
+                {
+                    values[i] = Settings.Unescape
+                        ? ldapPath.Substring(matches[i].Index + matches[i].Length).Replace(@"\", "")
+                        : ldapPath.Substring(matches[i].Index + matches[i].Length);
+                }
+                else
+                {
+                    int pos = matches[i].Index + matches[i].Length;
+                    values[i] = Settings.Unescape
+                        ? ldapPath.Substring(pos, matches[i + 1].Index - pos).Replace(@"\", "")
+                        : ldapPath.Substring(pos, matches[i + 1].Index - pos);
+                }
+            }
+
+            return values;
+        }
+
+        public static string ExtractValueAtIndex(string ldapPath, int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), nameof(index) + "cannot be less than zero");
+
+            PreExtract(ref ldapPath, out Match[] matches, default);
+            //var matches = ldapPathPartSeparators.Matches(ldapPath).Cast<Match>().ToArray();
+
+            if (index >= matches.Length)
+                throw new ArgumentOutOfRangeException(nameof(index), nameof(index) + "cannot exceed size of array minus 1");
+
+            if (index == matches.Length - 1)
+            {
+                var lastMatch = matches.Last();
+                return ldapPath.Substring(lastMatch.Index + lastMatch.Length);
+            }
+
+            int pos = matches[index].Index + matches[index].Length;
+            return Settings.Unescape
+                ? ldapPath.Substring(pos, matches[index + 1].Index - pos).Replace(@"\", "")
+                : ldapPath.Substring(pos, matches[index + 1].Index - pos);
         }
     }
 }

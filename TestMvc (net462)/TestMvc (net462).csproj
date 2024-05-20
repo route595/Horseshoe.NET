@@ -240,10 +240,6 @@
       <Project>{ac884940-d7f6-4209-866f-6b48a646d975}</Project>
       <Name>Horseshoe.NET.Jwt.Abstractions %28net462%29</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Ldap %28net462%29\Horseshoe.NET.Ldap %28net462%29.csproj">
-      <Project>{7642c261-7aa6-4ced-8cbf-6b52c01e56a3}</Project>
-      <Name>Horseshoe.NET.Ldap %28net462%29</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Odbc %28net462%29\Horseshoe.NET.Odbc %28net462%29.csproj">
       <Project>{04bf23fb-7b5f-40f2-a775-13090372aeca}</Project>
       <Name>Horseshoe.NET.Odbc %28net462%29</Name>

@@ -82,7 +82,7 @@ namespace Horseshoe.NET.ConsoleX.Plugins
                 {
                     _RunImpl();
                 }
-                catch (ConsoleNavigation.ExitRoutineException)
+                catch (ConsoleNavigation.BackoutRoutineException)
                 {
                     isExited = true;
                 }
@@ -209,7 +209,7 @@ namespace Horseshoe.NET.ConsoleX.Plugins
                     }
                 }
             }
-            catch (ConsoleNavigation.ExitRoutineException)
+            catch (ConsoleNavigation.BackoutRoutineException)
             {
                 throw;
             }

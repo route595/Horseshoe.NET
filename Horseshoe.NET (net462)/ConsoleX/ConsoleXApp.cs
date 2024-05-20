@@ -186,10 +186,10 @@ namespace Horseshoe.NET.ConsoleX
                         : OnMainMenuRoutineAutoRunComplete
                 );
             }
-            catch (ConsoleNavigation.ExitAppException)
-            {
-                ApplicationExiting = true;   // exit gracefully
-            }
+            //catch (ConsoleNavigation.ExitAppException)
+            //{
+            //    ApplicationExiting = true;   // exit gracefully
+            //}
             //catch (ConsoleNavigation.CtrlCException)
             //{
             //    ApplicationExiting = true;   // exit gracefully

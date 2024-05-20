@@ -85,6 +85,8 @@
     </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Formats.Asn1, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Formats.Asn1.7.0.0\lib\net462\System.Formats.Asn1.dll</HintPath>
     </Reference>
@@ -123,7 +125,6 @@
     <Compile Include="XmlDocTests.cs" />
     <Compile Include="ExcelDataImportTests.cs" />
     <Compile Include="DataImportTests.cs" />
-    <Compile Include="LDAPTests.cs" />
     <Compile Include="AppCacheTests.cs" />
     <Compile Include="TextTests.cs" />
     <Compile Include="AppTests.cs" />
@@ -216,10 +217,6 @@
     <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions %28net462%29\Horseshoe.NET.Jwt.Abstractions %28net462%29.csproj">
       <Project>{ac884940-d7f6-4209-866f-6b48a646d975}</Project>
       <Name>Horseshoe.NET.Jwt.Abstractions %28net462%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Ldap %28net462%29\Horseshoe.NET.Ldap %28net462%29.csproj">
-      <Project>{7642c261-7aa6-4ced-8cbf-6b52c01e56a3}</Project>
-      <Name>Horseshoe.NET.Ldap %28net462%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Odbc %28net462%29\Horseshoe.NET.Odbc %28net462%29.csproj">
       <Project>{04bf23fb-7b5f-40f2-a775-13090372aeca}</Project>

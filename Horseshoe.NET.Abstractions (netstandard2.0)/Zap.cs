@@ -725,6 +725,7 @@ namespace Horseshoe.NET
         /// <param name="defaultValue">The <c>enum</c> of <c>T</c> to return if <c>obj</c> evaluates to <c>null</c>, default is <c>0</c>.</param>
         /// <param name="ignoreCase">Whether to ignore the letter case of the <c>enum</c> value if it is a <c>string</c>, default is <c>false</c>.</param>
         /// <returns>An <c>enum</c> of <c>T</c>.</returns>
+        /// <exception cref="ConversionException"></exception>
         public static T Enum<T>(object obj, T defaultValue = default, bool ignoreCase = false) where T : struct
         {
             return NEnum<T>(obj, ignoreCase: ignoreCase) ?? defaultValue;
@@ -737,6 +738,7 @@ namespace Horseshoe.NET
         /// <param name="obj">An object to convert.</param>
         /// <param name="ignoreCase">Whether to ignore the letter case of the <c>enum</c> value if it is a <c>string</c>, default is <c>false</c>.</param>
         /// <returns>A nullable <c>enum</c> of <c>T</c>.</returns>
+        /// <exception cref="ConversionException"></exception>
         public static T? NEnum<T>(object obj, bool ignoreCase = false) where T : struct
         {
             obj = NEnumOf(typeof(T), obj, ignoreCase: ignoreCase);
@@ -752,6 +754,7 @@ namespace Horseshoe.NET
         /// <param name="obj">An object to convert.</param>
         /// <param name="ignoreCase">Whether to ignore the letter case of the <c>enum</c> value if it is a <c>string</c>, default is <c>false</c>.</param>
         /// <returns>An <c>enum</c> of <c>T</c>.</returns>
+        /// <exception cref="ConversionException"></exception>
         public static object EnumOf(Type type, object obj, bool ignoreCase = false)
         {
             if (type.IsEnum)
@@ -777,6 +780,7 @@ namespace Horseshoe.NET
         /// <param name="obj">An object to convert.</param>
         /// <param name="ignoreCase">Whether to ignore the letter case of the <c>enum</c> value if it is a <c>string</c>, default is <c>false</c>.</param>
         /// <returns>A nullable <c>enum</c> of <c>T</c>.</returns>
+        /// <exception cref="ConversionException"></exception>
         public static object NEnumOf(Type type, object obj, bool ignoreCase = false)
         {
             if ((obj = Object(obj)) == null)
@@ -804,6 +808,7 @@ namespace Horseshoe.NET
         /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
         /// <param name="ignoreCase">Whether to ignore the letter case of <c>obj</c> if it is a <c>string</c> type name, default is <c>false</c>.</param>
         /// <returns>A runtime type.</returns>
+        /// <exception cref="ConversionException"></exception>
         public static Type Type(object obj, Type inheritedType = null, bool ignoreCase = false)
         {
             if ((obj = Object(obj)) == null)
@@ -836,6 +841,7 @@ namespace Horseshoe.NET
         /// <param name="inheritedType">Applies to <c>To&lt;Type&gt;()</c>. A constraint, the type to which the returned <c>Type</c> must be assignable.</param>
         /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <returns>The value of <c>obj</c> converted to <c>T</c>.</returns>
+        /// <exception cref="ConversionException"></exception>
         public static T To<T>
         (
             object obj,

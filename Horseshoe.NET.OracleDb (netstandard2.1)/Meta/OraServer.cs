@@ -5,27 +5,27 @@ using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.OracleDb.Meta
 {
-    public class OraServer : OraObjectBase, IEquatable<OraServer>
+    public class OraServer : OraObjectBase//, IEquatable<OraServer>
     {
         public string DataSource { get; }
 
-        public string? ServiceName { get; }
+        public string ServiceName { get; }
 
-        public string? InstanceName { get; }
+        public string InstanceName { get; }
 
-        public OraServer(string dataSource, int port = 0, string? serviceName = null, string? instanceName = null, string? name = null) : base(name ?? dataSource, OraObjectType.Server)
+        public OraServer(string dataSource, int port = 0, string serviceName = null, string instanceName = null, string name = null) : base(name ?? dataSource, OraObjectType.Server)
         {
             DataSource = (Zap.String(dataSource) ?? throw new UtilityException("Data source cannot be null or blank")) + (port > 0 ? ":" + port : "");
             ServiceName = serviceName;
             InstanceName = instanceName;
         }
 
-        public static IEnumerable<OraServer>? LookupAll()
+        public static IEnumerable<OraServer> LookupAll()
         {
             return OracleDbSettings.ServerList;
         }
 
-        public static OraServer? Lookup(string nameOrDataSource, bool suppressErrors = false)
+        public static OraServer Lookup(string nameOrDataSource, bool suppressErrors = false)
         {
             var list = LookupAll();
             if (list == null || !list.Any())
@@ -43,11 +43,12 @@ namespace Horseshoe.NET.OracleDb.Meta
             throw new UtilityException(list.Count() + " Oracle servers match this name / data source: " + nameOrDataSource);
         }
 
-        public bool Equals(OraServer other)
-        {
-            return this == other;  // see OraObjectBase
-        }
-        public static IEnumerable<OraServer>? ParseList(string rawList)
+        //public bool Equals(OraServer other)
+        //{
+        //    return this == other;  // see OraObjectBase
+        //}
+
+        public static IEnumerable<OraServer> ParseList(string rawList)
         {
             try
             {
@@ -71,7 +72,7 @@ namespace Horseshoe.NET.OracleDb.Meta
         {
             if (string.IsNullOrEmpty(raw))
                 throw new ValidationException("Invalid raw server string");
-            string? name = null;
+            string name = null;
             var nameMatch = ServerNamePattern.Match(raw);
 
             if (nameMatch.Success)
@@ -85,8 +86,8 @@ namespace Horseshoe.NET.OracleDb.Meta
             if (parts.Length > 0 && parts.Length <= 3)
             {
                 string dataSource = parts[0]?.Trim() ?? throw new ValidationException("datasource not parsed");
-                string? serviceName = null;
-                string? instanceName = null;
+                string serviceName = null;
+                string instanceName = null;
 
                 if (parts.Length == 1 && name == null)
                 {
@@ -108,13 +109,13 @@ namespace Horseshoe.NET.OracleDb.Meta
             throw new UtilityException("Malformed server.  Must resemble { ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1 }.");
         }
 
-        public static string? BuildList(IEnumerable<OraServer> list)
-        {
-            if (list == null || !list.Any())
-                return null;
-            var listString = string.Join("|", list.Select(svr => svr.DataSource + (svr.ServiceName != null ? ";" + svr.ServiceName : "") + (svr.InstanceName != null ? (svr.ServiceName == null ? ";" : "") + ";" + svr.InstanceName : "")));
-            return listString;
-        }
+        //public static string BuildList(IEnumerable<OraServer> list)
+        //{
+        //    if (list == null || !list.Any())
+        //        return null;
+        //    var listString = string.Join("|", list.Select(svr => svr.DataSource + (svr.ServiceName != null ? ";" + svr.ServiceName : "") + (svr.InstanceName != null ? (svr.ServiceName == null ? ";" : "") + ";" + svr.InstanceName : "")));
+        //    return listString;
+        //}
 
         public static implicit operator OraServer(string raw) => Parse(raw);
     }

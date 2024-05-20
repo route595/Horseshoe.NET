@@ -1,4 +1,6 @@
-﻿namespace Horseshoe.NET.ConsoleX
+﻿using System;
+
+namespace Horseshoe.NET.ConsoleX
 {
     /// <summary>
     /// A suite of benign exceptions (expected to be caught immediately) for performing basic app navigation.
@@ -17,20 +19,19 @@
         /// <summary>
         /// Raises a subclass of <c>ConsoleNavigation</c> exception (listened for in <c>RoutineX</c>) that exits the routine and returns to the previous menu.
         /// </summary>
-        /// <exception cref="ExitRoutineException"></exception>
-        public static void ExitRoutine()
+        /// <exception cref="BackoutRoutineException"></exception>
+        public static void BackoutRoutine()
         {
-            throw new ExitRoutineException();
+            throw new BackoutRoutineException();
         }
 
-        /// <summary>
-        /// Raises a specific subclass of <c>ConsoleNavigation</c> exception listened for in <c>ConsoleXApp</c> exit the application.
-        /// </summary>
-        /// <exception cref="ExitAppException"></exception>
-        public static void ExitApp()
-        {
-            throw new ExitAppException();
-        }
+        ///// <summary>
+        ///// Raises a specific subclass of <c>ConsoleNavigation</c> exception listened for in <c>ConsoleXApp</c> exit the application.
+        ///// </summary>
+        //public static void ExitApp(int exitCode = 0)
+        //{
+        //    Environment.Exit(exitCode);
+        //}
 
         /// <summary>
         /// Exits input prompt.
@@ -75,24 +76,24 @@
         /// <summary>
         /// This subclass of <c>ConsoleNavigation</c> is listened for in routines which then exits the loop and return to the previous menu / routine
         /// </summary>
-        public class ExitRoutineException : ConsoleNavigation
+        public class BackoutRoutineException : ConsoleNavigation
         {
             /// <summary>
             /// Creates a new <c>ExitRoutineException</c>.
             /// </summary>
-            public ExitRoutineException() : base("Exiting routine...") { }
+            public BackoutRoutineException() : base("Backing out routine...") { }
         }
 
-        /// <summary>
-        /// This subclass of <c>ConsoleNavigation</c> is listened for in <c>ConsoleXApp</c>s which then exits the application
-        /// </summary>
-        public class ExitAppException : ConsoleNavigation
-        {
-            /// <summary>
-            /// Creates a new <c>ExitAppException</c>.
-            /// </summary>
-            public ExitAppException() : base("Exiting application...") { }
-        }
+        ///// <summary>
+        ///// This subclass of <c>ConsoleNavigation</c> is listened for in <c>ConsoleXApp</c>s which then exits the application
+        ///// </summary>
+        //public class ExitAppException : ConsoleNavigation
+        //{
+        //    /// <summary>
+        //    /// Creates a new <c>ExitAppException</c>.
+        //    /// </summary>
+        //    public ExitAppException() : base("Exiting application...") { }
+        //}
 
         /// <summary>
         /// This subclass of <c>ConsoleNavigation</c> is listened for in <c>RoutineX</c> which exits the routine and in <c>ConsoleXApp</c>s which then exits the application.

@@ -27,13 +27,39 @@ namespace Horseshoe.NET.Collections
         /// Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
         /// </summary>
         /// <typeparam name="T">A collection type.</typeparam>
-        /// <param name="collection">A collection to cast to a list.</param>
+        /// <param name="collection">A collection to cast or convert to a list.</param>
         /// <returns>A collection as a <c>List&lt;T&gt;</c></returns>
         public static List<T> AsList<T>(IEnumerable<T> collection)
         {
+            if (collection == null) return null;
             return collection is List<T> list
                 ? list
-                : new List<T>(collection ?? Enumerable.Empty<T>());
+                : ToList(collection);
+        }
+
+        /// <summary>
+        /// Creates a new array from any collection including a <c>null</c> collection.
+        /// </summary>
+        /// <typeparam name="T">A collection type.</typeparam>
+        /// <param name="collection">A collection to copy into the array.</param>
+        /// <returns>A new <c>T[]</c></returns>
+        public static T[] ToArray<T>(IEnumerable<T> collection)
+        {
+            return (collection ?? Enumerable.Empty<T>()).ToArray();
+        }
+
+        /// <summary>
+        /// Casts a collection as <c>T[]</c> if such a cast is available, otherwise creates a new <c>T[]</c> from the collection.
+        /// </summary>
+        /// <typeparam name="T">A collection type.</typeparam>
+        /// <param name="collection">A collection to cast or convert to the array.</param>
+        /// <returns>A <c>T[]</c></returns>
+        public static T[] AsArray<T>(IEnumerable<T> collection)
+        {
+            if (collection == null) return null;
+            return collection is T[] array
+                ? array
+                : ToArray(collection);
         }
 
         /// <summary>
