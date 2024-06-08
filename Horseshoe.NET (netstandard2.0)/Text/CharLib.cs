@@ -6,7 +6,7 @@ using Horseshoe.NET.Collections;
 namespace Horseshoe.NET.Text
 {
     /// <summary>
-    /// A <c>char</c> categorization library for Unicode-to-ASCII conversions. 
+    /// A <c>char</c> categorization library for text operations such as Unicode-to-ASCII conversions. 
     /// </summary>
     /// <remarks>
     /// <para>
@@ -18,6 +18,70 @@ namespace Horseshoe.NET.Text
     /// </remarks>
     public static class CharLib
     {
+        public static IEnumerable<int> GetCharIndicesByCategory(CharCategory category)
+        {
+            var list = new List<int>();
+
+            if (category == CharCategory.None)
+                return list;
+
+            if ((category & CharCategory.Spaces) == CharCategory.Spaces)
+            {
+                list.AddRange(new[] { 32, 160 });  // space, non-breaking space
+            }
+
+            if ((category & CharCategory.OtherWhitespaces) == CharCategory.OtherWhitespaces)
+            {
+                list.AddRange(new[] { 9, 10, 13 });  // tab, line feed, carriage return
+            }
+
+            if ((category & CharCategory.AsciiNumeric) == CharCategory.AsciiNumeric)
+            {
+                list.AddRange(Enumerable.Range(48, 10));  //  48 -  57 i.e. '0' - '9'
+            }
+
+            if ((category & CharCategory.AsciiAlphabetic) == CharCategory.AsciiAlphabetic)
+            {
+                list.AddRange(Enumerable.Range(65, 26));  //  65 -  90 i.e. 'A' - 'Z'
+                list.AddRange(Enumerable.Range(97, 26));  //  97 - 122 i.e. 'a' - 'z'
+            }
+
+            if ((category & CharCategory.AsciiSymbols) == CharCategory.AsciiSymbols)
+            {
+                list.AddRange(Enumerable.Range(33, 15));  //  33 -  47
+                list.AddRange(Enumerable.Range(58, 7));   //  58 -  64
+                list.AddRange(Enumerable.Range(91, 6));   //  91 -  96
+                list.AddRange(Enumerable.Range(123, 4));  // 123 - 126
+            }
+
+            if ((category & CharCategory.UnicodePrintables) == CharCategory.UnicodePrintables)
+            {
+                list.AddRange(Enumerable.Range(161, 65536 - 161));  //  161 - 65535
+                list.Remove(65279);  // byte-order mark
+                list.Remove(65533);  // unicode replacement char
+            }
+
+            if ((category & CharCategory.Nonprintables) == CharCategory.Nonprintables)
+            {
+                list.AddRange(Enumerable.Range(0, 31));   //   0 -  31 ASCII controls
+                list.AddRange(Enumerable.Range(127, 33)); // 127 - 159 ASCII 'DEL' and Unicode (or extended ASCII) controls
+                list.AddRange(new[] { 65279, 65533 });    // byte-order mark, unicode replacement char
+            }
+
+            return list;
+        }
+
+        public static IEnumerable<char> GetCharsByCategory(CharCategory category)
+        {
+            var indices = GetCharIndicesByCategory(category);
+            return GetCharsByIndices(indices);
+        }
+
+        public static IEnumerable<char> GetCharsByIndices(IEnumerable<int> indices)
+        {
+            return indices.Select(i => (char)i).ToArray();
+        }
+
         ///// <summary>
         ///// A subset of whitespace characters
         ///// </summary>
@@ -134,7 +198,7 @@ namespace Horseshoe.NET.Text
         //    // Controls (in 0 - 31 range, excluding whitespaces)                                       \t (9)    \n (10)                       \r (13)
         //    '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008',                     '\u000B', '\u000C',           '\u000E', '\u000F',
         //    '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001A', '\u001B', '\u001C', '\u001D', '\u001E', '\u001F', 
-            
+
         //    // Control (127)
         //    '\u007f'
         //};

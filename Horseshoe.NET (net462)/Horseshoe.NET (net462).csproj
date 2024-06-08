@@ -100,7 +100,6 @@
     <Compile Include="Compare\Criterinator.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConsoleX\ConsoleXApp.cs" />
-    <Compile Include="ConsoleX\CtrlC.cs" />
     <Compile Include="ConsoleX\Extensions.cs" />
     <Compile Include="ConsoleX\MenuHeader.cs" />
     <Compile Include="ConsoleX\MenuObject.cs" />

@@ -478,6 +478,12 @@ namespace Horseshoe.NET.Collections
             return list;
         }
 
+        /// <inheritdoc cref="CollectionUtilAbstractions.Contains{T}(IEnumerable{T}, T, IEqualityComparer{T})"/>
+        public static bool Contains<T>(IEnumerable<T> collection, T item, IEqualityComparer<T> comparer = null)
+        {
+            return CollectionUtilAbstractions.Contains(collection, item, comparer: comparer);
+        }
+
         /// <summary>
         /// Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
         /// </summary>

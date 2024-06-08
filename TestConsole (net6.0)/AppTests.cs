@@ -44,7 +44,7 @@ namespace TestConsole
                         {
                             if (prop.Name.Equals("NewLine"))
                             {
-                                Console.WriteLine(TextUtil.Reveal(prop.GetValue(null)?.ToString(), new RevealOptions{ CharsToReveal = CharRevealPolicy.AllWhitespaces }));
+                                Console.WriteLine(TextUtil.Reveal(prop.GetValue(null)?.ToString(), new RevealOptions{ CharCategory = CharCategory.AllWhitespaces }));
                             }
                             else if (prop.Name.Equals("StackTrace"))
                             {

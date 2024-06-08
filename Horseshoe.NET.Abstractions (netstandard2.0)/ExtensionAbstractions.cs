@@ -36,10 +36,10 @@ namespace Horseshoe.NET
             return In(obj, collection, comparer: comparer);
         }
 
-        /// <inheritdoc cref="CollectionUtilAbstractions.In"/>
+        /// <inheritdoc cref="CollectionUtilAbstractions.Contains{T}(IEnumerable{T}, T, IEqualityComparer{T})"/>
         public static bool In<T>(this T obj, IEnumerable<T> collection, IEqualityComparer<T> comparer = null)
         {
-            return CollectionUtilAbstractions.In(obj, collection, comparer);
+            return CollectionUtilAbstractions.Contains(collection, obj, comparer);
         }
 
         /// <inheritdoc cref="TextUtilAbstractions.In(string, bool, string[])"/>

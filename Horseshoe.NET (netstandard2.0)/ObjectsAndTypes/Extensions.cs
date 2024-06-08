@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Microsoft.Extensions.Primitives;
-
-using Horseshoe.NET.Compare;
-using Horseshoe.NET.Primitives;
 
 namespace Horseshoe.NET.ObjectsAndTypes
 {

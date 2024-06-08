@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Horseshoe.NET.ExcelHelper</RootNamespace>
+    <RootNamespace>Horseshoe.NET.Excel</RootNamespace>
     <Description>An Excel file import utility for .NET (uses NPOI).</Description>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Copyright>Copyright © 2020-2024 Route 595</Copyright>
-    <Version>3.1.1</Version>
+    <Version>3.1.2</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.Excel</AssemblyName>

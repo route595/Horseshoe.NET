@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
@@ -353,46 +352,45 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="quickValue">A value to suggest to the user who then can press 'Enter' to input it.</param>
         public static void Prompt(string prompt, bool required = false, object quickValue = null)
         {
-            if (prompt == null)
-            {
-                prompt = "> ";
-            }
-
-            if (prompt.Length == 0)
+            if (string.IsNullOrEmpty(prompt))
             {
                 if (required)
                 {
-                    Console.Write("(required)");                 // e.g. "(required)"
+                    Console.Write("(required) ");              // e.g. "(required) > "
                 }
-                if (quickValue != null)
-                {
-                    Console.Write("[" + quickValue + "]");       // e.g. "[Jackie]"
-                }
-            }
-            else if (char.IsLetterOrDigit(prompt[prompt.Length - 1]))
-            {
-                Console.Write(prompt);
-                if (required)
-                {
-                    Console.Write(" (required)");                // e.g. "Enter your name (required): "
-                }
-                Console.Write(": ");                             // e.g. "Enter your name: "
-                if (quickValue != null)
-                {
-                    Console.Write("[" + quickValue + "] ");      // e.g. "Enter your name: [Jackie] "
-                }
+                Console.Write("> ");                           // e.g. "> "
             }
             else
             {
-                if (required)
+                Console.Write(prompt);                         // e.g. "First name", "First name ", "First name:" or "First name: "
+                switch (prompt[prompt.Length - 1])
                 {
-                    Console.Write("(required) ");                // e.g. "(required) > "
+                    case ' ':
+                        if (required)
+                        {
+                            Console.Write("(required) ");      // "First name "  => "First name (required) "
+                        }                                      // "First name: " => "First name: (required) "
+                        break;
+                    case ':':
+                        Console.Write(' ');
+                        if (required)
+                        {
+                            Console.Write("(required) ");      // "First name:" => "First name: (required) "
+                        }
+                        break;
+                    default:
+                        if (required)
+                        {
+                            Console.Write(" (required)");      // "First name" => "First name (required): "
+                        }
+                        Console.Write(": ");                   // "First name" => "First name: "
+                        break;
                 }
-                Console.Write(prompt);                           // e.g. "> "
-                if (quickValue != null)
-                {
-                    Console.Write("[" + quickValue + "] ");      // e.g. "> [Jackie] "
-                }
+            }
+
+            if (quickValue != null)
+            {
+                Console.Write("[" + quickValue + "] ");        // e.g. "First name: [Jackie] "  -or-  "First name (required): [Jackie] " 
             }
         }
 

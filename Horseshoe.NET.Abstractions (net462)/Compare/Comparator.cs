@@ -134,7 +134,7 @@ namespace Horseshoe.NET.Compare
                 case CompareMode.In:
                     return (typeof(T) == typeof(string) && IgnoreCase)
                         ? TextUtilAbstractions.In(inputItem as string, true, Criteria.Select(t => t as string).ToArray())
-                        : CollectionUtilAbstractions.In(inputItem, Criteria);
+                        : CollectionUtilAbstractions.Contains(Criteria, inputItem);
                 case CompareMode.IsNull:
                     return false;
                 case CompareMode.IsNullOrWhitespace:

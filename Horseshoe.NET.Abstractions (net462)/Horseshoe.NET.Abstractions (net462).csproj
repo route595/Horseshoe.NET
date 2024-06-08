@@ -177,7 +177,7 @@
     <Compile Include="ReconstitutedException.cs" />
     <Compile Include="StrictSensitiveException.cs" />
     <Compile Include="Text\AutoTruncate.cs" />
-    <Compile Include="Text\CharRevealPolicy.cs" />
+    <Compile Include="Text\CharCategory.cs" />
     <Compile Include="Text\HorizontalPosition.cs" />
     <Compile Include="Text\RevealOptions.cs" />
     <Compile Include="Text\TextClean\TextCleanAbstractions.cs" />

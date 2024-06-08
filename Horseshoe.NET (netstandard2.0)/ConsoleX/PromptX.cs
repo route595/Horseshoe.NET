@@ -40,7 +40,7 @@ namespace Horseshoe.NET.ConsoleX
 
             // do stuff
             var buf = new List<char>();
-            var treatControlCAsInput = Console.TreatControlCAsInput;
+            //var treatControlCAsInput = Console.TreatControlCAsInput;
             ConsoleKeyInfo info;
             bool inputting = true;
             bool alt;
@@ -48,7 +48,7 @@ namespace Horseshoe.NET.ConsoleX
             bool shift;
             while (inputting)
             {
-                Console.TreatControlCAsInput = true;
+                //Console.TreatControlCAsInput = true;
 
                 //// check if Ctrl+C was pressed 
                 //if (ConsoleXApp.WasCtrlCPressed())
@@ -128,8 +128,9 @@ namespace Horseshoe.NET.ConsoleX
                         }
                         break;
                 }
-                Console.TreatControlCAsInput = treatControlCAsInput;
+                //Console.TreatControlCAsInput = treatControlCAsInput;
             }
+            Console.WriteLine();
             if (quickValue != null && !buf.Any(c => !char.IsWhiteSpace(c)))
             {
                 buf.Clear();
@@ -371,6 +372,7 @@ namespace Horseshoe.NET.ConsoleX
                     prompt,
                     required: required,
                     quickValue: quickValue,
+                    suppressRequiredPrompt: suppressRequiredPrompt,
                     suppressEcho: suppressEcho,
                     requiredMessage: requiredMessage,
                     padBefore: padBefore,
@@ -407,9 +409,8 @@ namespace Horseshoe.NET.ConsoleX
                     validator?.Invoke(value);
                     break;
                 }
-                catch (Exception ex)
+                catch (AssertionFailedException ex)
                 {
-                    RenderX.Alert(ex.GetType().Name);
                     RenderX.Alert(ex.Message.Replace(AssertionFailedException.MESSAGE_PREFIX + ": ", ""));
                 }
             }
@@ -1276,6 +1277,36 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to securely enter a password.
         /// </summary>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
+        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
+        public static string Password
+        (
+            bool required = false,
+            bool suppressRequiredPrompt = false,
+            int padBefore = 0,
+            int padAfter = 0,
+            TraceJournal journal = null
+        )
+        {
+            return Password
+            (
+                "password",
+                required: required,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                padBefore: padBefore,
+                padAfter: padAfter,
+                journal: journal
+            );
+        }
+
+        /// <summary>
+        /// Prompts a user to securely enter a password.
+        /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
@@ -1604,7 +1635,11 @@ namespace Horseshoe.NET.ConsoleX
                         .ToList();
                     if (int.TryParse(input, out int index))
                     {
-                        Assert.InRange(index, 1, nonHeaderMenuItems.Count);
+                        if (!Assert.TryInRange(index, 1, nonHeaderMenuItems.Count, out string message))
+                        {
+                            RenderX.Alert(message);
+                            continue;
+                        }
                         menuSelection = new MenuSelection<T>
                         {
                             SelectedItem = nonHeaderMenuItems[index - 1],  // index is 1-based

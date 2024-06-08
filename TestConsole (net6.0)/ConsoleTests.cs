@@ -35,6 +35,17 @@ namespace TestConsole
             ),
             BuildMenuRoutine
             (
+                "Prompt Password",
+                () =>
+                {
+                    RenderX.Prompt("user name");
+                    Console.WriteLine("bob");
+                    var password = PromptX.Password();
+                    Console.WriteLine("password length: " + TextUtil.Reveal(password?.Length));
+                }
+            ),
+            BuildMenuRoutine
+            (
                 "Prompt Raw Input",
                 () =>
                 {

@@ -20,18 +20,21 @@ namespace TestConsole
                 () =>
                 {
                     var phrase1 = "Å¢t Øñę\u0000";
-                    var phrase2 = "Rudolph the red-nosed reindeer" + Environment.NewLine + "had a very shiny nose!";
-                    Console.WriteLine("phrase:");
+                    var categories = new[] { CharCategory.None, CharCategory.UnicodePrintables, CharCategory.AllPrintablesAndWhitespaces, CharCategory.Nonprintables, CharCategory.All };
+                    Console.Write("phrase: ");
                     Console.WriteLine(phrase1);
-                    Console.WriteLine("revealed:");
-                    Console.WriteLine(TextUtil.Reveal(phrase1, new RevealOptions{ CharsToReveal = CharRevealPolicy.All }));
+                    foreach(var category in categories)
+                    {
+                        Console.WriteLine("  reveal: " + TextUtil.Reveal(phrase1, new RevealOptions{ CharCategory = category }) + "  (" + category + ")");
+                    }
                     Console.WriteLine();
-                    Console.WriteLine("phrase:");
+                    var phrase2 = "Rudolph the red-nosed reindeer" + Environment.NewLine + "had a very shiny nose!";
+                    Console.Write("phrase: ");
                     Console.WriteLine(phrase2);
                     Console.WriteLine("revealed:");
-                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = CharRevealPolicy.All }));
+                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharCategory = CharCategory.AllWhitespaces }));
                     Console.WriteLine("revealed (newlines preserved):");
-                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharsToReveal = CharRevealPolicy.All, PreserveNewLines = true}));
+                    Console.WriteLine(TextUtil.Reveal(phrase2, new RevealOptions{ CharCategory = CharCategory.AllWhitespaces, PreserveNewLines = true}));
                 }
             ),
             BuildMenuRoutine

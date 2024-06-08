@@ -1,4 +1,6 @@
-﻿namespace Horseshoe.NET.Text
+﻿using System.Collections.Generic;
+
+namespace Horseshoe.NET.Text
 {
     /// <summary>
     /// Customizations for revealing <c>char</c>s and <c>string</c>s.
@@ -63,17 +65,17 @@
          * * * * * * * * * * * * * * * * * * */
 
         /// <summary>
-        /// Reveals ASCII character codes (not including extended ASCII).
+        /// A user-supplied list of <c>char</c>s to reveal.
         /// </summary>
-        public CharRevealPolicy CharsToReveal { get; set; }
-
-        ///// <summary>
-        ///// When combined with <c>RevealCharCategory.RevealWhitespaces</c> indicates which whitespaces to reveal.
-        ///// </summary>
-        //public WhitespacePolicy WhitespacesToReveal { get; set; } = WhitespacePolicy.IncludeAllWhitespaces;
+        public IEnumerable<char> CharsToReveal { get; set; }
 
         /// <summary>
-        /// When combined with <c>RevealNewLines</c> renders actual new lines to the output in addition to revealed new lines.
+        /// Category(ies) of <c>char</c>s to reveal.
+        /// </summary>
+        public CharCategory CharCategory { get; set; }
+
+        /// <summary>
+        /// When combined with <c>CharRevealPolicy.OtherWhitespaces</c> renders actual new lines.
         /// </summary>
         public bool PreserveNewLines { get; set; }
 
@@ -85,6 +87,6 @@
         /// <summary>
         /// A global <c>RevealOptions</c> instance that instructs Horseshoe.NET to reveal every <c>char</c> in a string or whether it is blank or null.
         /// </summary>
-        public static RevealOptions All { get; } = new RevealOptions { CharsToReveal = CharRevealPolicy.All };
+        public static RevealOptions All { get; } = new RevealOptions { CharCategory = CharCategory.All };
     }
 }

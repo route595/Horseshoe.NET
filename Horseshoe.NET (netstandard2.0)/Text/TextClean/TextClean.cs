@@ -87,7 +87,7 @@ namespace Horseshoe.NET.Text.TextClean
             // prepare to convert to ASCII
             ReadOnlySpan<char> roSpan = text.AsSpan();
             var strb = new StringBuilder((int)(text.Length * 1.1));
-            var revealOptions = new RevealOptions { CharsToReveal = CharRevealPolicy.AllWhitespaces | CharRevealPolicy.AllNonprintables | CharRevealPolicy.UnicodePrintables };
+            var revealOptions = new RevealOptions { CharCategory = CharCategory.AllWhitespaces | CharCategory.Nonprintables | CharCategory.UnicodePrintables };
 
             for (int i = 0; i < roSpan.Length; i++)
             {

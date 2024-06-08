@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Text;
@@ -249,91 +248,103 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Generates a long string revealing the constituent <c>char</c>s in <c>text</c> 
-        /// (e.g. alphanumeric, controls, new lines, etc.).
+        /// Displays a <c>string</c> representation of the supplied <c>object</c>.
         /// </summary>
-        /// <param name="text">The text to reveal.</param>
-        /// <param name="options">Customizations for revealing <c>char</c>s and <c>string</c>s.</param>
-        /// <returns>Revealed text e.g. chars, controls, new lines, etc.</returns>
-        public static string Reveal(string text, RevealOptions options = null)
+        /// <param name="obj">The <c>object</c> to reveal.</param>
+        /// <param name="options">Options for revealing <c>object</c>s, <c>string</c>s and/or <c>char</c>s.</param>
+        /// <returns>A <c>string</c> representation of a <c>obj</c>.  Depending on options, could simply be the original <c>char</c> value.</returns>
+        public static string Reveal(object obj, RevealOptions options = null)
         {
             options = options ?? new RevealOptions();
 
-            if (text == null)
-                return options.ValueIfNull;
-            if (text.Length == 0)
-                return options.ValueIfEmpty;
+            if (obj == null) return options.ValueIfNull;
 
-            var sb = new StringBuilder();
-            ReadOnlySpan<char> span = text.AsSpan();
+            if (obj is char _c) return RevealChar(_c, options);
 
-            // bulk reveal chars
-            foreach (var c in span)
+            if (obj is string text)
             {
-                sb.Append(Reveal(c, options));
-            }
+                if (text.Length == 0) return options.ValueIfEmpty;
+                if (text.Trim().Length == 0) return options.ValueIfWhitespace;
 
-            // handle new-lines
-            if ((options.CharsToReveal & CharRevealPolicy.Newlines) == CharRevealPolicy.Newlines)
-            {
-                sb.Replace(options.ValueIfCr + options.ValueIfLf, options.ValueIfCrLf);
-                if (options.PreserveNewLines)
+                var sb = new StringBuilder();
+                ReadOnlySpan<char> span = text.AsSpan();
+
+                // bulk reveal chars
+                foreach (var c in span)
                 {
-                    sb.Replace(options.ValueIfLf, options.ValueIfLf + "\n");
-                    sb.Replace(options.ValueIfCrLf, options.ValueIfCrLf + "\r\n");
+                    sb.Append(RevealChar(c, options));
                 }
-            }
 
-            return sb.ToString();
+                // handle new-lines
+                if ((options.CharCategory & CharCategory.OtherWhitespaces) == CharCategory.OtherWhitespaces)
+                {
+                    sb.Replace(options.ValueIfCr + options.ValueIfLf, options.ValueIfCrLf);
+                    if (options.PreserveNewLines)
+                    {
+                        sb.Replace(options.ValueIfLf, options.ValueIfLf + "\n");
+                        sb.Replace(options.ValueIfCrLf, options.ValueIfCrLf + "\r\n");
+                    }
+                }
+
+                return sb.ToString();
+            }
+            else
+            {
+                return obj.ToString();
+            }
         }
 
         /// <summary>
-        /// Generates a string with <c>char</c> details depending on type e.g. alphanumeric, control, whitespace, etc.
+        /// Displays a <c>char</c> in <c>string</c> format.
         /// </summary>
-        /// <param name="c">A <c>char</c> to reveal.</param>
-        /// <param name="options">Customizations for revealing <c>char</c>s and <c>string</c>s.</param>
-        /// <returns>Revealed <c>char</c> details.</returns>
-        public static string Reveal(char c, RevealOptions options = null)
+        /// <param name="c">The <c>char</c> to reveal.</param>
+        /// <param name="options">Options for revealing <c>char</c>s.</param>
+        /// <returns>A <c>string</c> representation of a <c>char</c> including, depending on options, original <c>char</c> value.</returns>
+        public static string RevealChar(char c, RevealOptions options = null)
         {
-            int i = c;
-            options = options ?? new RevealOptions();
-
-            // group 1 - whitespaces and newlines
-            if (char.IsWhiteSpace(c))
+            var category = GetCharCategory(c);
+            if (options == null)
             {
-                switch (c)
-                {
-                    case ' ': // 32
-                        if ((options.CharsToReveal & CharRevealPolicy.Spaces) == CharRevealPolicy.Spaces)
-                            return options.ValueIfSpace;
-                        break;
-                    case '\u00A0':  // 160 - non-breaking space
-                        if ((options.CharsToReveal & CharRevealPolicy.NonbreakingSpaces) == CharRevealPolicy.NonbreakingSpaces)
-                            return options.ValueIfNbSpace;
-                        break;
-                    case '\t': // 9
-                        if ((options.CharsToReveal & CharRevealPolicy.Tabs) == CharRevealPolicy.Tabs)
-                            return options.ValueIfTab;
-                        break;
-                    case '\r': // 13
-                        if ((options.CharsToReveal & CharRevealPolicy.Newlines) == CharRevealPolicy.Newlines)
-                            return options.ValueIfCr;
-                        break;
-                    case '\n': // 10
-                        if ((options.CharsToReveal & CharRevealPolicy.Newlines) == CharRevealPolicy.Newlines)
-                            return options.ValueIfLf;
-                        break;
-                }
+                options = new RevealOptions { CharCategory = CharCategory.All };
+            }
+
+            if (!(CollectionUtil.Contains(options.CharsToReveal, c) || (options.CharCategory & category) == category))
+            {
                 return new string(c, 1);
             }
 
-            // group 2 - nonprintable chars e.g. control chars (except 9, 10 and 13 whitespaces)
-            if (!TextUtilAbstractions.IsPrintable(c))
+            int i = c;
+
+            switch (category)
             {
-                if ((options.CharsToReveal & CharRevealPolicy.AsciiNonprintables) == CharRevealPolicy.AsciiNonprintables)
-                {
+                case CharCategory.Spaces:
                     switch (i)
                     {
+                        case 32: // ' ' - space
+                            return options.ValueIfSpace;
+                        case 160:  // '\u00A0' - non-breaking space
+                            return options.ValueIfNbSpace;
+                        default:
+                            throw new ThisShouldNeverHappenException("space char not found");
+                    }
+
+                case CharCategory.OtherWhitespaces:
+                    switch (i)
+                    {
+                        case 9: // '\t' - horixontal tab
+                            return options.ValueIfTab;
+                        case 10: // '\n' - line feed
+                            return options.ValueIfLf;
+                        case 13: // '\r' - carriage return (usually found before '\n')
+                            return options.ValueIfCr;
+                        default:
+                            throw new ThisShouldNeverHappenException("other whitespace char not found");
+                    }
+
+                case CharCategory.Nonprintables:
+                    switch (i)
+                    {
+                        // ASCII
                         case 0: return "[NUL]";
                         case 1: return "[SOH]";
                         case 2: return "[STX]";
@@ -364,13 +375,8 @@ namespace Horseshoe.NET.Text
                         case 30: return "[RS]";
                         case 31: return "[US]";
                         case 127: return "[DEL]";
-                    }
-                }
 
-                if ((options.CharsToReveal & CharRevealPolicy.UnicodeNonprintables) == CharRevealPolicy.UnicodeNonprintables)
-                {
-                    switch (i)
-                    {
+                        // Unicode
                         case 128: return "[PAD]";
                         case 129: return "[HOP]";
                         case 130: return "[BPH]";
@@ -403,74 +409,136 @@ namespace Horseshoe.NET.Text
                         case 157: return "[OSC]";
                         case 158: return "[PM]";
                         case 159: return "[APC]";
-                        default:
-                            return "[??-" + i + "]";
+                        case 65279: return "[byte-order-mark]";
+                        case 65533: return "[?]";
+                        default: throw new ThisShouldNeverHappenException("nonprintable char not found: [??-" + i + "]");
                     }
-                }
 
-                return new string(c, 1);
+                default:
+                    // special case - apostrophe(')
+                    if (c == '\'')
+                        return "['\\\''-" + i + "]";
+
+                    return "['" + c + "'-" + i + "]";
             }
-
-            // group 3a - printable ASCII chars
-            if (i <= 126 && (options.CharsToReveal & CharRevealPolicy.AsciiPrintables) == CharRevealPolicy.AsciiPrintables)
-            {
-                // special case - apostrophe(')
-                if (c == '\'')
-                    return "['\\\''-" + i + "]";
-
-                return "['" + c + "'-" + i + "]";
-            }
-
-            // group 3b - printable Unicode chars
-            if ((options.CharsToReveal & CharRevealPolicy.UnicodePrintables) == CharRevealPolicy.UnicodePrintables)
-            {
-                return "['" + c + "'-" + i + "]";
-            }
-
-            return new string(c, 1);
         }
 
         /// <summary>
-        /// Same as <c>(obj?.ToString() ?? "null")</c>.
+        /// Determines a <c>char</c>'s Horseshoe.NET category
         /// </summary>
-        /// <param name="obj">An object</param>
-        /// <returns>A text representation of <c>object</c>.</returns>
-        public static string Reveal(object obj)
+        /// <param name="c">A <c>char</c></param>
+        /// <returns>The <c>char</c>'s <c>CharCategory</c></returns>
+        public static CharCategory GetCharCategory(char c)
         {
-            if (obj is string objString)
-                return Reveal(objString);
-            return Reveal(obj?.ToString());
+            return GetCharCategoryByIndex((int)c);
         }
 
+        /// <summary>
+        /// Determines a <c>char</c>'s Horseshoe.NET category
+        /// </summary>
+        /// <param name="index">A <c>char</c> index</param>
+        /// <returns>The <c>char</c>'s <c>CharCategory</c></returns>
+        public static CharCategory GetCharCategoryByIndex(int index)
+        {
+            switch (index)
+            {
+                // set 1 - whitespaces (incl. newlines)
 
-        //public static string AppendIf(bool condition, string text, string textToAppend)
-        //{
-        //    return condition
-        //        ? text + textToAppend
-        //        : text;
-        //}
+                // set 1a - spaces
+                case 32: // ' ' - space
+                case 160:  // '\u00A0' - non-breaking space
+                    return CharCategory.Spaces;
 
-        //public static string TrimLeading(string text, params char[] chars)
-        //{
-        //    if (chars == null) 
-        //        return text;
-        //    while (chars.Contains(text.First()))
-        //    {
-        //        text = text.Substring(1);
-        //    }
-        //    return text;
-        //}
+                // set 1b - other whitespaces
+                case 9:  // '\t' - horixontal tab
+                case 13: // '\r' - carriage return
+                case 10: // '\n' - line feed
+                    return CharCategory.OtherWhitespaces;
 
-        //public static string TrimTrailing(string text, params char[] chars)
-        //{
-        //    if (chars == null) 
-        //        return text;
-        //    while (chars.Contains(text.Last()))
-        //    {
-        //        text = text.Substring(1);
-        //    }
-        //    return text;
-        //}
+                // set 2 - nonprintable chars e.g. control chars (except 9, 10 and 13 whitespaces)
+
+                // set 2a - ASCII nonprintables
+                case 0: // NUL
+                case 1: // SOH
+                case 2: // STX
+                case 3: // ETX
+                case 4: // EOT
+                case 5: // ENQ
+                case 6: // ACK
+                case 7: // BEL
+                case 8: // BS
+                case 11: // VT
+                case 12: // FF
+                case 14: // SO
+                case 15: // SI
+                case 16: // DLE
+                case 17: // DC1
+                case 18: // DC2
+                case 19: // DC3
+                case 20: // DC4
+                case 21: // NAK
+                case 22: // SYN
+                case 23: // EDB
+                case 24: // CAN
+                case 25: // EM
+                case 26: // SUB
+                case 27: // ESC
+                case 28: // FS
+                case 29: // GS
+                case 30: // RS
+                case 31: // US
+                case 127: // DEL
+
+                // set 2b - Unicode nonprintables
+                case 128: // PAD
+                case 129: // HOP
+                case 130: // BPH
+                case 131: // NBH
+                case 132: // IND
+                case 133: // NEL
+                case 134: // SSA
+                case 135: // ESA
+                case 136: // HTS
+                case 137: // HTJ
+                case 138: // VTS
+                case 139: // PLD
+                case 140: // PLU
+                case 141: // RI
+                case 142: // SS2
+                case 143: // SS3
+                case 144: // DCS
+                case 145: // PU1
+                case 146: // PU2
+                case 147: // STS
+                case 148: // CCH
+                case 149: // MW
+                case 150: // SPA
+                case 151: // EPA
+                case 152: // SOS
+                case 153: // SGCI
+                case 154: // SCI
+                case 155: // CSI
+                case 156: // ST
+                case 157: // OSC
+                case 158: // PM
+                case 159: // APC
+                case 65279: // byte order mark
+                case 65533: // unicode replacement character (�)
+                    return CharCategory.Nonprintables;
+
+                // set 3 - printable chars
+
+                default:
+                    if (index >= 48 && index <= 57)
+                        return CharCategory.AsciiNumeric;
+                    if ((index >= 65 && index <= 90) || (index >= 97 && index <= 122))
+                        return CharCategory.AsciiAlphabetic;
+                    if (index <= 127)
+                        return CharCategory.AsciiSymbols;
+                    else
+                        return CharCategory.UnicodePrintables;
+            }
+        }
 
         /// <summary>
         /// Inserts spaces into title case text such as C# object property names.
