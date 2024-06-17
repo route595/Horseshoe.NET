@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET.Finance</RootNamespace>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Version>3.1.2.1</Version>
+    <Authors>Carl Thomas</Authors>
+    <Company>Route 595</Company>
+    <Description>A suite of basic financial formulas and a debt payoff projection tool</Description>
+    <Copyright>Copyright © 2020-2024 Route 595</Copyright>
+    <AssemblyName>Horseshoe.NET.Finance</AssemblyName>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
+  </ItemGroup>
+
+</Project>

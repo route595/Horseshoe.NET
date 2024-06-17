@@ -778,10 +778,9 @@ namespace Horseshoe.NET.Collections
         public static string StringDumpToGrid<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, BorderPolicy borderPolicy = default)
         {
             var textGrid = new TextGrid { BorderPolicy = borderPolicy };
-            var col1 = new Column<TKey> { Title = typeof(TKey).Name };
-            var col2 = new Column<TValue> { Title = typeof(TValue).Name };
-            textGrid.Columns.Add(col1);
-            textGrid.Columns.Add(col2);
+            var col1 = new Column { Title = typeof(TKey).Name };
+            var col2 = new Column { Title = typeof(TValue).Name };
+            textGrid.AddColumns(col1, col2);
             foreach (var kvp in dictionary)
             {
                 col1.Add(kvp.Key);

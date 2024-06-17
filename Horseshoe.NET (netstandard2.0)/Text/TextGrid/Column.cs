@@ -1,20 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.Primitives;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Horseshoe.NET.Text.TextGrid
 {
     /// <summary>
-    /// A configurable collection of values comprising a grid column.
+    /// A <c>List</c> containing column data in a <c>TextGrid</c>.
     /// </summary>
-    /// <typeparam name="T">A type.</typeparam>
-    public class Column<T> : List<T>, IColumn
+    public class Column : List<object>
     {
-        private List<string> _renderedList;
+        private List<string> _renderedList { get; set; }
+
+        /// <summary>
+        /// The parent <c>TextGrid</c>
+        /// </summary>
+        public TextGrid Parent { get; set; }
 
         /// <summary>
         /// Column titles, if set, are rendered across the top of the grid above each column.
         /// </summary>
-        public string Title { get; set; }
+        public StringValues Title { get; set; }
 
         /// <summary>
         /// An optional format for item rendering.
@@ -62,7 +67,7 @@ namespace Horseshoe.NET.Text.TextGrid
         /// Creates a new <c>Column</c>.
         /// </summary>
         /// <param name="capacity">Specifies the initial capacity.</param>
-        public Column(int capacity) : base (capacity)
+        public Column(int capacity) : base(capacity)
         {
         }
 
@@ -70,8 +75,20 @@ namespace Horseshoe.NET.Text.TextGrid
         /// Creates a new <c>Column</c>.
         /// </summary>
         /// <param name="collection">Elements to copy into this <c>Column</c>.</param>
-        public Column(IEnumerable<T> collection) : base(collection)
+        public Column(IEnumerable<object> collection) : base(collection)
         {
+        }
+
+        /// <summary>
+        /// Gets the item at <c>index</c> cast to the supplied type
+        /// </summary>
+        /// <typeparam name="T">A value or reference type</typeparam>
+        /// <param name="index">The 0-based index of the item in the column (list)</param>
+        /// <returns>The item at <c>index</c></returns>
+        /// <exception cref="System.ArgumentOutOfRangeException"></exception>
+        public T CastItemAt<T>(int index)
+        {
+            return (T)this[index];
         }
 
         /// <summary>
@@ -79,35 +96,49 @@ namespace Horseshoe.NET.Text.TextGrid
         /// </summary>
         public void Prerender()
         {
-            _renderedList = new List<string>(this.Select(o => RenderItem(o)));
+            _renderedList = Render();
             CalculatedWidth = _renderedList.Any() ? _renderedList.Max(s => s.Length) : 0;
-            if (Title?.Length > CalculatedWidth)
+            if (Title.Any() && Title.Max(s => (s ?? "").Length) > CalculatedWidth)
             {
-                CalculatedWidth = Title.Length;
+                CalculatedWidth = Title.Max(s => (s ?? "").Length);
             }
         }
 
         /// <summary>
-        /// Renders each individual item.
+        /// Renders each item to <c>string</c> and returns them as a <c>List</c>
         /// </summary>
-        /// <param name="item">The item to render.</param>
-        /// <returns>The rendered item.</returns>
-        public string RenderItem(T item)
+        /// <returns>A <c>List</c> of <c>string</c>-rendered column data</returns>
+        public List<string> Render()
         {
-            string rendered;
-            if (item != null)
-            {
-                rendered = Format != null
-                    ? string.Format("{0:" + Format + "}", item)
-                    : item.ToString();
-            }
-            else
-            {
-                rendered = DisplayNullAs;
-            }
+            return this
+                .Select(o => RenderItem(o))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Renders an individual item.
+        /// </summary>
+        /// <param name="item">The item to render</param>
+        /// <returns>The rendered item</returns>
+        public string RenderItem(object item)
+        {
+            string rendered = Format != null
+                ? string.Format("{0:" + Format + "}", item)
+                : item?.ToString() ?? DisplayNullAs;
             return TargetWidth.HasValue
                 ? TextUtil.Crop(rendered, TargetWidth.Value, truncateMarker: TruncateMarker.LongEllipsis)
                 : rendered;
+        }
+
+        /// <summary>
+        /// Renders the individual item at position <c>index</c>.
+        /// </summary>
+        /// <param name="index">The 0-based index of the item in the column (list)</param>
+        /// <returns>The rendered item</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException"></exception>
+        public string RenderItemAt(int index)
+        {
+            return RenderItem(this[index]);
         }
 
         /// <summary>
@@ -159,8 +190,14 @@ namespace Horseshoe.NET.Text.TextGrid
             {
                 list.Add("".PadLeft(paddingLeft + WidthToRender + paddingRight));
             }
-            list.Add("".PadLeft(paddingLeft) + Pad(Title ?? "", TitleAlign) + "".PadLeft(paddingRight));
-            list.Add("".PadLeft(paddingLeft) + Pad("".PadLeft(Title?.Length ?? 0, '-'), TitleAlign) + "".PadLeft(paddingRight));
+            for (int i = 0; i < Parent?.TitleHeight; i++)
+            {
+                if (Title.Count > i)
+                    list.Add("".PadLeft(paddingLeft) + Pad(Title[i] ?? "", TitleAlign) + "".PadLeft(paddingRight));
+                else
+                    list.Add("".PadLeft(paddingLeft) + Pad("", TitleAlign) + "".PadLeft(paddingRight));
+            }
+            list.Add("".PadLeft(paddingLeft) + Pad("".PadLeft(Title.Max(s => (s ?? "").Length), '-'), TitleAlign) + "".PadLeft(paddingRight));
             for (int i = 0; i < paddingBottom; i++)
             {
                 list.Add("".PadLeft(paddingLeft + WidthToRender + paddingRight));
@@ -170,7 +207,7 @@ namespace Horseshoe.NET.Text.TextGrid
 
         private string Pad(string text, HorizontalPosition align)
         {
-            switch(align)
+            switch (align)
             {
                 case HorizontalPosition.Left:
                 default:

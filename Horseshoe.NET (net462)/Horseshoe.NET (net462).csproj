@@ -179,10 +179,7 @@
     <Compile Include="Text\CharLib.cs" />
     <Compile Include="Text\TextClean\TextClean.cs" />
     <Compile Include="Text\TextGrid\Column.cs" />
-    <Compile Include="Text\TextGrid\CurrencyColumn.cs" />
-    <Compile Include="Text\TextGrid\NCurrencyColumn.cs" />
     <Compile Include="Text\TextGrid\TextGrid.cs" />
-    <Compile Include="Text\TextGrid\TypedColumn.cs" />
     <Compile Include="Text\TextMatch.cs" />
     <Compile Include="Text\TextSearch.cs" />
     <Compile Include="Text\TextSettings.cs" />

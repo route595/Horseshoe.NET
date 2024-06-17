@@ -183,8 +183,8 @@
     <Compile Include="Text\TextClean\TextCleanAbstractions.cs" />
     <Compile Include="Text\TextClean\NonprintablesPolicy.cs" />
     <Compile Include="Text\TextConstants.cs" />
+    <Compile Include="Text\TextGrid\CellPaddingPolicy.cs" />
     <Compile Include="Text\TextGrid\BorderPolicy.cs" />
-    <Compile Include="Text\TextGrid\IColumn.cs" />
     <Compile Include="Text\TextUtilAbstractions.cs" />
     <Compile Include="Text\TruncateMarker.cs" />
     <Compile Include="ThisShouldNeverHappenException.cs" />

@@ -104,10 +104,10 @@ namespace TestConsole
                     {
                         var textGrid = new TextGrid(array, 2);
                         Console.Write(textGrid.Render());
-                        Console.WriteLine("Identical?  " + CollectionUtil.IsIdentical((Column<string>)textGrid.Columns[0], (Column<string>)textGrid.Columns[1])
-                            + "   **   ignore-case: " + CollectionUtil.IsIdenticalIgnoreCase((Column<string>)textGrid.Columns[0], (Column<string>)textGrid.Columns[1])
-                            + "   **   ignore-order: " + CollectionUtil.IsIdentical((Column<string>)textGrid.Columns[0], (Column<string>)textGrid.Columns[1], ignoreOrder: true)
-                            + "   **   ignore-case-and-order: " + CollectionUtil.IsIdenticalIgnoreCase((Column<string>)textGrid.Columns[0], (Column<string>)textGrid.Columns[1], ignoreOrder: true)
+                        Console.WriteLine("Equivalent?  " + CollectionUtil.IsEquivalent(textGrid.Columns[0], textGrid.Columns[1])
+                            + "   **   ignore-case: " + CollectionUtil.IsEquivalentEq(textGrid.Columns[0].Cast<string>(), textGrid.Columns[1].Cast<string>(), ignoreCase: true)
+                            + "   **   ignore-order: " + CollectionUtil.IsEquivalent(textGrid.Columns[0], textGrid.Columns[1], ignoreOrder: true)
+                            + "   **   ignore-both: " + CollectionUtil.IsEquivalentEq(textGrid.Columns[0].Cast<string>(), textGrid.Columns[1].Cast<string>(), ignoreCase: true, ignoreOrder: true)
                             );
                         Console.WriteLine();
                     }

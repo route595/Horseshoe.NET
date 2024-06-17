@@ -633,6 +633,139 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
+        /// Compares two collections for equivalency (same size and contents or just same contents, depending).
+        /// Collections that are <c>null</c> or empty are considered equivalent to other <c>null</c> or empty collections.
+        /// </summary>
+        /// <param name="controlCollection">A collection to search</param>
+        /// <param name="compareCollection">A collection to compare</param>
+        /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison, default is <c>false</c></param>
+        /// <param name="ignoreCollectionSize"><c>true</c> if matching content values not quantites, default is <c>false</c></param>
+        /// <param name="referencialEquality"><c>true</c> if only interested in comparing items that are the same instance, default is <c>false</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool IsEquivalent(IEnumerable<object> controlCollection, IEnumerable<object> compareCollection, bool ignoreOrder = false, bool ignoreCollectionSize = false, bool referencialEquality = false)
+        {
+            if (controlCollection == null || !controlCollection.Any())
+            {
+                if (compareCollection == null || !compareCollection.Any())
+                    return true;
+                return false;
+            }
+            else if (compareCollection == null || !compareCollection.Any())
+                return false;
+
+            int controlCollectionCount = controlCollection.Count();
+            if (!ignoreCollectionSize && controlCollectionCount != compareCollection.Count())
+                return false;
+
+            if (!ignoreOrder && !ignoreCollectionSize)  // default behavior
+            {
+                for (int i = 0; i < controlCollectionCount; i++)
+                {
+                    if (referencialEquality)
+                    {
+                        if (referencialEquality && !ReferenceEquals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)))
+                            return false;
+                    }
+                    else if (!Equals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)))
+                        return false;
+                }
+                return true;
+            }
+
+            // if ignoring the order and/or collection size...
+            foreach (object controlObj in controlCollection)
+            {
+                bool foundMatch = false;
+                foreach (object compareObj in compareCollection)
+                {
+                    if (referencialEquality)
+                    {
+                        if (referencialEquality && ReferenceEquals(controlObj, compareObj))
+                        {
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                    else if (Equals(controlObj, compareObj))
+                    {
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                if (!foundMatch)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares two collections for equivalency (same size and contents or just same contents, depending).
+        /// Collections that are <c>null</c> or empty are considered equivalent to other <c>null</c> or empty collections.
+        /// </summary>
+        /// <param name="controlCollection">A collection to search</param>
+        /// <param name="compareCollection">A collection to compare</param>
+        /// <param name="ignoreCase"><c>true</c> if not a case-sensitive comparison (when <c>T = System.String</c>), default is <c>false</c></param>
+        /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison, default is <c>false</c></param>
+        /// <param name="ignoreCollectionSize"><c>true</c> if matching content values not quantites, default is <c>false</c></param>
+        /// <param name="referencialEquality"><c>true</c> if only interested in comparing items that are the same instance, default is <c>false</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool IsEquivalentEq<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, bool ignoreCase = false, bool ignoreOrder = false, bool ignoreCollectionSize = false, bool referencialEquality = false) where T : IEquatable<T>
+        {
+            if (controlCollection == null || !controlCollection.Any())
+            {
+                if (compareCollection == null || !compareCollection.Any())
+                    return true;
+                return false;
+            }
+            else if (compareCollection == null || !compareCollection.Any())
+                return false;
+
+            int controlCollectionCount = controlCollection.Count();
+            if (!ignoreCollectionSize && controlCollectionCount != compareCollection.Count())
+                return false;
+
+            if (!ignoreOrder && !ignoreCollectionSize)  // default behavior
+            {
+                for (int i = 0; i < controlCollectionCount; i++)
+                {
+                    if (referencialEquality)
+                    {
+                        if (referencialEquality && !ReferenceEquals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)))
+                            return false;
+                    }
+                    else if (!Equals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)) && !(ignoreCase && typeof(T) == typeof(string) && controlCollection.ElementAt(i) is string controlString && compareCollection.ElementAt(i) is string compareString && string.Equals(controlString, compareString, StringComparison.CurrentCultureIgnoreCase)))
+                        return false;
+                }
+                return true;
+            }
+
+            // if ignoring the order and/or collection size...
+            foreach (T controlObj in controlCollection)
+            {
+                bool foundMatch = false;
+                foreach (T compareObj in compareCollection)
+                {
+                    if (referencialEquality)
+                    {
+                        if (referencialEquality && ReferenceEquals(controlObj, compareObj))
+                        {
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                    else if (Equals(controlObj, compareObj) || (ignoreCase && typeof(T) == typeof(string) && controlObj is string controlString && compareObj is string compareString && string.Equals(controlString, compareString, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                if (!foundMatch)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>

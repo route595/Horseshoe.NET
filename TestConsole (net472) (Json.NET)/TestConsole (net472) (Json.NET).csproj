@@ -110,6 +110,7 @@
     <Compile Include="DB Tests\SqlTests.cs" />
     <Compile Include="EmailTests.cs" />
     <Compile Include="ExcelDataImportTests.cs" />
+    <Compile Include="Finance Tests\FinanceTests.cs" />
     <Compile Include="FTPTests.cs" />
     <Compile Include="HTTP Tests\HTTPTests.cs" />
     <Compile Include="HTTP Tests\SSRSTests.cs" />
@@ -165,6 +166,10 @@
     <ProjectReference Include="..\Horseshoe.NET.Excel %28net462%29\Horseshoe.NET.Excel %28net462%29.csproj">
       <Project>{4f05df3b-3ac3-47a4-b452-4018ecae48a1}</Project>
       <Name>Horseshoe.NET.Excel %28net462%29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Horseshoe.NET.Finance %28net462%29\Horseshoe.NET.Finance %28net462%29.csproj">
+      <Project>{fb501495-cefe-4f5d-82b8-0865456c7477}</Project>
+      <Name>Horseshoe.NET.Finance %28net462%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Http %28net462%29\Horseshoe.NET.Http %28net462%29.csproj">
       <Project>{813933b9-2418-4242-8ab8-d4e461d18207}</Project>

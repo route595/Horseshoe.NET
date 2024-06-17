@@ -44,7 +44,8 @@ namespace TestConsole
                     Console.WriteLine("list grid + borders...");
                     Console.WriteLine(grid.Render());
                     Console.WriteLine();
-                    grid.CellPadding = 1;
+                    //grid.CellPadding = 1;
+                    grid.PaddingPolicy = CellPaddingPolicy.All;
                     grid.OuterPaddingLeft = grid.OuterPaddingRight = 2;
                     Console.WriteLine("list grid + borders + padding...");
                     Console.WriteLine(grid.Render());
@@ -64,7 +65,8 @@ namespace TestConsole
                     Console.WriteLine("list grid (wide) + borders...");
                     Console.WriteLine(grid.Render());
                     Console.WriteLine();
-                    grid.CellPadding = 1;
+                    //grid.CellPadding = 1;
+                    grid.PaddingPolicy = CellPaddingPolicy.All;
                     grid.OuterPaddingLeft = grid.OuterPaddingRight = 2;
                     Console.WriteLine("list grid (wide) + borders + padding...");
                     Console.WriteLine(grid.Render());
@@ -83,9 +85,9 @@ namespace TestConsole
                         new TextGridTestPersonWage { Person = "Jessica", HourlyWage = 41.12m },
                         new TextGridTestPersonWage { Person = "Steve", HourlyWage = 20.02m }
                     };
-                    var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, CellPaddingLeft = 1, CellPaddingRight = 1 };
-                    var col1 = new Column<string> { Title = "Person" };
-                    var col2 = new CurrencyColumn { Title = "Hourly Wage" };
+                    var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, PaddingPolicy = CellPaddingPolicy.Vertical };
+                    var col1 = new Column { Title = "Person" };
+                    var col2 = new Column { Title = "Hourly Wage", Format = "C" };
                     foreach(var pw in personWages)
                     {
                         col1.Add(pw.Person);
@@ -109,9 +111,9 @@ namespace TestConsole
                         new TextGridTestPersonNWage { Person = "Jessica", HourlyWage = 0m },
                         new TextGridTestPersonNWage { Person = "Steve", HourlyWage = null }
                     };
-                    var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, CellPaddingLeft = 1, CellPaddingRight = 1 };
-                    var col1 = new Column<string> { Title = "Person" };
-                    var col2 = new NCurrencyColumn { Title = "Hourly Wage" };
+                    var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, PaddingPolicy = CellPaddingPolicy.Vertical };
+                    var col1 = new Column { Title = "Person" };
+                    var col2 = new Column { Title = "Hourly Wage", Format = "C" };
                     foreach(var pw in personWages)
                     {
                         col1.Add(pw.Person);
