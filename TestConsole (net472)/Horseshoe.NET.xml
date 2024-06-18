@@ -5221,47 +5221,47 @@
             </summary>
             <returns>A SQL expression.</returns>
         </member>
-        <member name="T:Horseshoe.NET.Db.AutoSort`1">
+        <member name="T:Horseshoe.NET.Db.sorter`1">
             <summary>
             Provides several options for auto-sorting parsed data from a query 
             </summary>
             <typeparam name="T">item type</typeparam>
         </member>
-        <member name="P:Horseshoe.NET.Db.AutoSort`1.Sorter">
+        <member name="P:Horseshoe.NET.Db.sorter`1.Sorter">
             <summary>
             Client-supplied sorter for <c>IComparable</c>s (see <c>IEnumerable&lt;T&gt;.OrderBy()</c>)
             </summary>
         </member>
-        <member name="P:Horseshoe.NET.Db.AutoSort`1.Comparer">
+        <member name="P:Horseshoe.NET.Db.sorter`1.Comparer">
             <summary>
             A <c>Comparer&lt;T&gt;</c> with which to sort (see <see cref="M:System.Collections.Generic.List`1.Sort(System.Collections.Generic.IComparer{`0})"/>)
             </summary>
         </member>
-        <member name="P:Horseshoe.NET.Db.AutoSort`1.Comparison">
+        <member name="P:Horseshoe.NET.Db.sorter`1.Comparison">
             <summary>
             A <c>Comparison&lt;T&gt;</c> with which to sort (see <see cref="M:System.Collections.Generic.List`1.Sort(System.Comparison{`0})"/>)
             </summary>
         </member>
-        <member name="M:Horseshoe.NET.Db.AutoSort`1.#ctor">
+        <member name="M:Horseshoe.NET.Db.sorter`1.#ctor">
             <summary>
-            Creates a new <c>AutoSort</c>
+            Creates a new <c>sorter</c>
             </summary>
         </member>
-        <member name="M:Horseshoe.NET.Db.AutoSort`1.#ctor(System.Func{`0,System.IComparable})">
+        <member name="M:Horseshoe.NET.Db.sorter`1.#ctor(System.Func{`0,System.IComparable})">
             <summary>
-            Creates a new <c>AutoSort</c>
+            Creates a new <c>sorter</c>
             </summary>
             <param name="sorter">a sortert function</param>
         </member>
-        <member name="M:Horseshoe.NET.Db.AutoSort`1.#ctor(System.Collections.Generic.IComparer{`0})">
+        <member name="M:Horseshoe.NET.Db.sorter`1.#ctor(System.Collections.Generic.IComparer{`0})">
             <summary>
-            Creates a new <c>AutoSort</c>
+            Creates a new <c>sorter</c>
             </summary>
             <param name="comparer">An <c>IComparer&lt;T&gt;</c></param>
         </member>
-        <member name="M:Horseshoe.NET.Db.AutoSort`1.#ctor(System.Comparison{`0})">
+        <member name="M:Horseshoe.NET.Db.sorter`1.#ctor(System.Comparison{`0})">
             <summary>
-            Creates a new <c>AutoSort</c>
+            Creates a new <c>sorter</c>
             </summary>
             <param name="comparison">A <c>Comparison&lt;T&gt;</c></param>
         </member>
@@ -12804,7 +12804,7 @@
             Factory methods for executing SQL query statements
             </summary>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollection``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollection``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes the user-supplied SQL query. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -12814,7 +12814,7 @@
             <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -12822,7 +12822,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollectionAsync``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollectionAsync``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes the user-supplied SQL query. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -12832,7 +12832,7 @@
             <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -12840,7 +12840,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollection``1(System.Data.OleDb.OleDbConnection,System.String,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollection``1(System.Data.OleDb.OleDbConnection,System.String,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a SQL statement using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -12850,14 +12850,14 @@
             <param name="statement">Typically a SQL 'select' statement</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,System.String,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.SQL.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,System.String,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a SQL statement using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -12867,7 +12867,7 @@
             <param name="statement">Typically a SQL 'select' statement</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -13077,7 +13077,7 @@
             Factory methods for executing table or view based queries
             </summary>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollection``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollection``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes a query on the user-supplied table or view. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13091,7 +13091,7 @@
             <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -13099,7 +13099,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollectionAsync``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollectionAsync``1(System.String,Horseshoe.NET.OleDb.OleDbConnectionInfo,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes a query on the user-supplied table or view.
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13113,7 +13113,7 @@
             <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -13121,7 +13121,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollection``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollection``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a query on the user-supplied table or view using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13135,14 +13135,14 @@
             <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Table.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.IFilter,System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a query on the user-supplied table or view using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13156,7 +13156,7 @@
             <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -13422,7 +13422,7 @@
             Factory methods for executing stored procedures
             </summary>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollection``1(System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollection``1(System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes a query on the user-supplied stored procedure. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13433,7 +13433,7 @@
             <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -13441,7 +13441,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollectionAsync``1(System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollectionAsync``1(System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes a query on the user-supplied stored procedure. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13452,7 +13452,7 @@
             <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -13460,7 +13460,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollection``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollection``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a query on the user-supplied stored procedure using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13471,14 +13471,14 @@
             <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.Procedure.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.DbCapture,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a query on the user-supplied stored procedure using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13489,7 +13489,7 @@
             <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -13715,7 +13715,7 @@
             Factory methods for executing functions
             </summary>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollection``1(Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollection``1(Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes a query on the user-supplied function. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13726,7 +13726,7 @@
             <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -13734,7 +13734,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollectionAsync``1(Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollectionAsync``1(Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.OleDb.OleDbConnectionInfo,Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},Horseshoe.NET.Crypto.CryptoOptions,System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Creates a database connection and executes a query on the user-supplied function. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13745,7 +13745,7 @@
             <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="cryptoOptions">Options for password decryption, if applicable.</param>
@@ -13753,7 +13753,7 @@
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollection``1(System.Data.OleDb.OleDbConnection,Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollection``1(System.Data.OleDb.OleDbConnection,Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a query on the user-supplied function using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13764,14 +13764,14 @@
             <param name="functionName">The name of the function being called.</param>
             <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
             <param name="journal">A trace journal to which each step of the process is logged.</param>
             <returns>The data as a colletion of <c>T</c>.</returns>
         </member>
-        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.AutoSort{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
+        <member name="M:Horseshoe.NET.OleDb.Query.TableFunction.AsCollectionAsync``1(System.Data.OleDb.OleDbConnection,Horseshoe.NET.Db.DbPlatform,System.String,System.Collections.Generic.IEnumerable{System.Data.Common.DbParameter},Horseshoe.NET.Db.RowParser{``0},Horseshoe.NET.Db.sorter{``0},Horseshoe.NET.Text.AutoTruncate,System.Nullable{System.Int32},System.Action{System.Data.OleDb.OleDbCommand},Horseshoe.NET.TraceJournal)">
             <summary>
             Executes a query on the user-supplied function using an existing open connection. 
             The data can be parsed deliberately (via explicit user-supplied parser) or, by default, automatically (mapped from DB column names) into a collection.
@@ -13782,7 +13782,7 @@
             <param name="functionName">The name of the function being called.</param>
             <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>

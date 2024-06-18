@@ -64,7 +64,7 @@
 //                    conn,
 //                    statement,
 //                    rowParser: RowParser.From((reader) => new OraSchema(reader["schema"] as string) { Parent = dataSource }),
-//                    autoSort: new AutoSort<OraSchema>(s => s.Name),
+//                    sorter: new sorter<OraSchema>(s => s.Name),
 //                    commandTimeout: commandTimeout
 //                );
 //                if (filter != null)
@@ -298,7 +298,7 @@
 //                        {
 //                            Parent = schema ?? new OraSchema(reader["schema"] as string) { Parent = dataSource }
 //                        }),
-//                    autoSort: new AutoSort<OraObject>(o => o.Schema.Name + o.Name),
+//                    sorter: new sorter<OraObject>(o => o.Schema.Name + o.Name),
 //                    commandTimeout: commandTimeout
 //                );
 //                if (filter != null)

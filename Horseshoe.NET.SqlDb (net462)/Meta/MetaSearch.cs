@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
+using Horseshoe.NET.Collections;
 using Horseshoe.NET.Compare;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.Text;
@@ -64,7 +65,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     conn,
                     statement,
                     rowParser: RowParser.From((reader) => new Db(reader["name"] as string) { Parent = server }),
-                    autoSort: new AutoSort<Db>(db => db.Name),
+                    sorter: new ListSorter<Db>(db => db.Name),
                     commandTimeout: commandTimeout
                 );
                 if (filter != null)

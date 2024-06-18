@@ -7,10 +7,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Horseshoe.NET.Collections;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.Text;
-using Horseshoe.NET.Text.TextClean;
 
 namespace Horseshoe.NET.SqlDb
 {
@@ -33,7 +33,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -45,7 +45,7 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -60,7 +60,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = AsCollection(conn, statement, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection(conn, statement, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -77,7 +77,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -89,7 +89,7 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -104,7 +104,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = await AsCollectionAsync(conn, statement, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync(conn, statement, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -121,7 +121,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="statement">Typically a SQL 'select' statement</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -133,7 +133,7 @@ namespace Horseshoe.NET.SqlDb
                 string statement,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -153,7 +153,7 @@ namespace Horseshoe.NET.SqlDb
                     null,
                     dbCapture,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -174,7 +174,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="statement">Typically a SQL 'select' statement</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -186,7 +186,7 @@ namespace Horseshoe.NET.SqlDb
                 string statement,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -206,7 +206,7 @@ namespace Horseshoe.NET.SqlDb
                     null,
                     dbCapture,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -846,7 +846,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -862,7 +862,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -877,7 +877,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = AsCollection(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -898,7 +898,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -914,7 +914,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -929,7 +929,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = await AsCollectionAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -950,7 +950,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -966,7 +966,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -996,7 +996,7 @@ namespace Horseshoe.NET.SqlDb
                     null,
                     dbCapture,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -1021,7 +1021,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -1037,7 +1037,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -1067,7 +1067,7 @@ namespace Horseshoe.NET.SqlDb
                     null,
                     dbCapture,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -1908,7 +1908,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -1921,7 +1921,7 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -1936,7 +1936,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = AsCollection<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1954,7 +1954,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -1967,7 +1967,7 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -1982,7 +1982,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = await AsCollectionAsync<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2000,7 +2000,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -2013,7 +2013,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -2033,7 +2033,7 @@ namespace Horseshoe.NET.SqlDb
                     parameters ?? Enumerable.Empty<DbParameter>(),
                     dbCapture,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -2055,7 +2055,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -2068,7 +2068,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<DbParameter> parameters = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -2088,7 +2088,7 @@ namespace Horseshoe.NET.SqlDb
                     parameters ?? Enumerable.Empty<DbParameter>(),
                     dbCapture,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -2763,7 +2763,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -2775,7 +2775,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<DbParameter> parameters = null,
                 SqlDbConnectionInfo connectionInfo = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -2790,7 +2790,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = AsCollection<T>(conn, functionName, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection<T>(conn, functionName, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2807,7 +2807,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -2819,7 +2819,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<DbParameter> parameters = null,
                 SqlDbConnectionInfo connectionInfo = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -2834,7 +2834,7 @@ namespace Horseshoe.NET.SqlDb
                 // data stuff
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
                 {
-                    var result = await AsCollectionAsync<T>(conn, functionName, parameters: parameters, rowParser: rowParser, autoSort: autoSort, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync<T>(conn, functionName, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2851,7 +2851,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="functionName">The name of the function being called.</param>
             /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -2863,7 +2863,7 @@ namespace Horseshoe.NET.SqlDb
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -2884,7 +2884,7 @@ namespace Horseshoe.NET.SqlDb
                     null,
                     null,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -2905,7 +2905,7 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="functionName">The name of the function being called.</param>
             /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
             /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="autoSort">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
             /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
             /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
             /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
@@ -2917,7 +2917,7 @@ namespace Horseshoe.NET.SqlDb
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
                 RowParser<T> rowParser = null,
-                AutoSort<T> autoSort = null,
+                ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
                 Action<SqlCommand> alterCommand = null,
@@ -2938,7 +2938,7 @@ namespace Horseshoe.NET.SqlDb
                     null,
                     null,
                     rowParser,
-                    autoSort,
+                    sorter,
                     autoTrunc,
                     commandTimeout,
                     alterCommand,
@@ -3600,7 +3600,7 @@ namespace Horseshoe.NET.SqlDb
             IEnumerable<DbParameter> parameters,
             DbCapture dbCapture,
             RowParser<T> rowParser,
-            AutoSort<T> autoSort,
+            ListSorter<T> sorter,
             AutoTruncate autoTrunc,
             int? commandTimeout,
             Action<SqlCommand> alterCommand,
@@ -3660,14 +3660,9 @@ namespace Horseshoe.NET.SqlDb
                 throw new ThisShouldNeverHappenException("No row parser.");
             }
 
-            if (autoSort != null)
+            if (sorter != null)
             {
-                list = AutoSortList
-                (
-                    list,
-                    autoSort,
-                    journal
-                );
+                list = sorter.Sort(list, journal: journal);
             }
 
             journal.Level--;
@@ -3681,7 +3676,7 @@ namespace Horseshoe.NET.SqlDb
             IEnumerable<DbParameter> parameters,
             DbCapture dbCapture,
             RowParser<T> rowParser,
-            AutoSort<T> autoSort,
+            ListSorter<T> sorter,
             AutoTruncate autoTrunc,
             int? commandTimeout,
             Action<SqlCommand> alterCommand,
@@ -3741,51 +3736,9 @@ namespace Horseshoe.NET.SqlDb
                 throw new ThisShouldNeverHappenException("No row parser.");
             }
 
-            if (autoSort != null)
+            if (sorter != null)
             {
-                list = AutoSortList
-                (
-                    list,
-                    autoSort,
-                    journal
-                );
-            }
-
-            journal.Level--;
-            return list;
-        }
-
-        internal static List<T> AutoSortList<T>
-        (
-            List<T> list,
-            AutoSort<T> autoSort,
-            TraceJournal journal
-        )
-        {
-            journal.WriteEntry("AutoSortList()");
-            journal.Level++;
-
-            if (autoSort.Sorter != null)
-            {
-                journal.WriteEntry("autoSort.Sorter");
-                list = list
-                    .OrderBy(autoSort.Sorter)
-                    .ToList();
-            }
-            else if (autoSort.Comparer != null)
-            {
-                journal.WriteEntry("autoSort.Comparer");
-                list.Sort(autoSort.Comparer);
-            }
-            else if (autoSort.Comparison != null)
-            {
-                journal.WriteEntry("autoSort.Comparison");
-                list.Sort(autoSort.Comparison);
-            }
-            else
-            {
-                journal.WriteEntry("Sort()");
-                list.Sort();
+                list = sorter.Sort(list, journal: journal);
             }
 
             journal.Level--;

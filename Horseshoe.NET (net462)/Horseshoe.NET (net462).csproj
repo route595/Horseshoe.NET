@@ -93,6 +93,7 @@
     <Compile Include="Bootstrap\BootstrapSettings.cs" />
     <Compile Include="Bootstrap\Extensions.cs" />
     <Compile Include="Collections\ArrayUtil.cs" />
+    <Compile Include="Collections\CollectionBuilder.cs" />
     <Compile Include="Collections\CollectionUtil.cs" />
     <Compile Include="Collections\DictionaryUtil.cs" />
     <Compile Include="Collections\Extensions.cs" />
