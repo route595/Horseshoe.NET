@@ -36,7 +36,7 @@ namespace Horseshoe.NET.Crypto
 
             if (salt.HasValue)
             {
-                plainBytes = ArrayUtil.Prepend(plainBytes, salt.Value);
+                plainBytes = ArrayUtil.Insert(plainBytes, 0, salt.Value);
             }
 
             var cipherBytes = algorithm.ComputeHash(plainBytes);
@@ -90,7 +90,7 @@ namespace Horseshoe.NET.Crypto
         }
 
         /// <summary>
-        /// Generate hash from source text file
+        /// Generates hash from source filesystem file
         /// </summary>
         /// <param name="filePath">source text file</param>
         /// <param name="options">hash options</param>

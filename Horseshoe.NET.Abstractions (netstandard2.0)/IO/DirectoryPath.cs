@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
+//using System.Security.AccessControl;
 
 using Horseshoe.NET.Text;
 
@@ -53,8 +53,8 @@ namespace Horseshoe.NET.IO
             FullName.Length;
 
         /// <inheritdoc cref="DirectoryInfo.Parent"/>
-        public DirectoryPath Parent =>
-            Directory.Parent;
+        public DirectoryPath? Parent =>
+            Directory.Parent != null ? Directory.Parent : null;
 
         /// <inheritdoc cref="DirectoryInfo.Create()"/>
         public void Create() =>

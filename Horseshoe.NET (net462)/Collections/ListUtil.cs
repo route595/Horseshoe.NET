@@ -8,13 +8,11 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     public static class ListUtil
     {
-        /// <inheritdoc cref="CollectionUtil.AsList{T}(IEnumerable{T})"/>
-        public static List<T> AsList<T>(IEnumerable<T> collection) =>
-            CollectionUtil.AsList(collection);
+        private static List<T> AsList<T>(IEnumerable<T> collection) =>
+            CollectionUtilAbstractions.AsList(collection);
 
-        /// <inheritdoc cref="CollectionUtil.ToList{T}(IEnumerable{T})"/>
-        public static List<T> ToList<T>(IEnumerable<T> collection) =>
-            CollectionUtil.ToList(collection);
+        private static List<T> ToList<T>(IEnumerable<T> collection) =>
+            CollectionUtilAbstractions.ToList(collection);
 
         /// <summary>
         /// Inflates a list to the desired target size by padding items at the indicated boundary
@@ -101,8 +99,9 @@ namespace Horseshoe.NET.Collections
         /// <returns>The combined list</returns>
         public static List<T> Combine<T>(params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.Combine(collections);
-            return AsList(collection);
+            return new CollectionBuilder<T>()
+                .Append(collections)
+                .ToList();
         }
 
         /// <summary>
@@ -113,8 +112,9 @@ namespace Horseshoe.NET.Collections
         /// <returns>The combined list</returns>
         public static List<T> CombineDistinct<T>(params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.CombineDistinct(collections);
-            return AsList(collection);
+            return new CollectionBuilder<T>(distinctValues: true)
+                .Append(collections)
+                .ToList();
         }
 
         /// <summary>
@@ -126,173 +126,644 @@ namespace Horseshoe.NET.Collections
         /// <returns>The combined list</returns>
         public static List<T> CombineDistinct<T>(IEqualityComparer<T> comparer, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.CombineDistinct(comparer, collections);
-            return AsList(collection);
+            return new CollectionBuilder<T>(distinctValues: true, comparer: comparer)
+                .Append(collections)
+                .ToList();
         }
 
         /// <summary>
-        /// Appends zero or more items to a list
+        /// Appends zero or more items to a collection, result is a new <c>List</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="list">A list</param>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be appended</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>A new <c>List</c></returns>
+        public static List<T> Append<T>(IEnumerable<T> collection, params T[] items)
+        {
+            var list = ToList(collection);
+            if (items != null)
+            {
+                list.AddRange(items);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Appends zero or more items to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of <c>List</c></typeparam>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be appended</param>
+        /// <param name="items">Items to append</param>
+        /// <returns>The orig <c>List</c></returns>
         public static List<T> Append<T>(List<T> list, params T[] items)
         {
-            var collection = CollectionUtil.Append(list, items);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (items != null)
+            {
+                list.AddRange(items);
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more items to a list
+        /// Conditionally appends zero or more items to a collection, result is a new <c>List</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
+        /// <typeparam name="T">Type of collection</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
+        /// <param name="collection">A collection to which <c>items</c> will conditionally be appended</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>A new <c>List</c></returns>
+        public static List<T> AppendIf<T>(bool condition, IEnumerable<T> collection, params T[] items)
+        {
+            var list = ToList(collection);
+            if (condition && items != null)
+            {
+                list.AddRange(items);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more items to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of list</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be appended</param>
+        /// <param name="items">Items to append</param>
+        /// <returns>The orig <c>List</c></returns>
         public static List<T> AppendIf<T>(bool condition, List<T> list, params T[] items)
         {
-            var collection = CollectionUtil.AppendIf(condition, list, items);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (condition && items != null)
+            {
+                list.AddRange(items);
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more items to a list
+        /// Conditionally appends zero or more items to a collection, result is a new <c>List</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets appended</param>
+        /// <param name="collection">A collection to which <c>items</c> will be conditionally appended</param>
+        /// <param name="items">Items to conditionally append</param>
+        /// <returns>A new <c>List</c></returns>
+        public static List<T> AppendIf<T>(Func<T, bool> condition, IEnumerable<T> collection, params T[] items)
+        {
+            var list = ToList(collection);
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    if (condition == null || condition.Invoke(item))
+                        list.Add(item);
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more items to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of list</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets appended</param>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be conditionally appended</param>
+        /// <param name="items">Items to conditionally append</param>
+        /// <returns>The orig <c>List</c></returns>
         public static List<T> AppendIf<T>(Func<T, bool> condition, List<T> list, params T[] items)
         {
-            var collection = CollectionUtil.AppendIf(condition, list, items);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    if (condition == null || condition.Invoke(item))
+                        list.Add(item);
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Appends zero or more collections to a list
+        /// Appends zero or more collections to a collection, result is a new <c>List</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="list">A list</param>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be appended</param>
         /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>A new <c>List</c></returns>
+        public static List<T> Append<T>(IEnumerable<T> collection, params IEnumerable<T>[] collections)
+        {
+            var list = ToList(collection);
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                        list.AddRange(coll);
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Appends zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be appended</param>
+        /// <param name="collections">Collections to append</param>
+        /// <returns>The orig <c>List</c></returns>
         public static List<T> Append<T>(List<T> list, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.Append(list, collections);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                        list.AddRange(coll);
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more collections to a list
+        /// Conditionally appends zero or more collections to a collection, result is a new <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
+        /// <param name="collection">A collection to which <c>collections</c> will conditionally be appended</param>
+        /// <param name="collections">Collections to conditionally append</param>
+        /// <returns>A new <c>List</c></returns>
+        public static List<T> AppendIf<T>(bool condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
+        {
+            var list = ToList(collection);
+            if (condition && collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                        list.AddRange(coll);
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will conditionally be appended</param>
+        /// <param name="collections">Collections to conditionally append</param>
+        /// <returns>The orig <c>List</c></returns>
         public static List<T> AppendIf<T>(bool condition, List<T> list, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.AppendIf(condition, list, collections);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (condition && collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                        list.AddRange(coll);
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more collections to a list
+        /// Conditionally appends zero or more collections to a collection, result is a new <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
+        /// <param name="condition">A function that dictates whether an item gets appended</param>
+        /// <param name="collection">A collection to which <c>collections</c> will be conditionally appended</param>
+        /// <param name="collections">Collections to conditionaaly append</param>
+        /// <returns>A new <c>List</c></returns>
+        public static List<T> AppendIf<T>(Func<T, bool> condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
+        {
+            var list = ToList(collection);
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                        {
+                            if (condition == null || condition.Invoke(item))
+                                list.Add(item);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets appended</param>
+        /// <param name="list">A <c>List</c> to which <c>collections</c> will be conditionally appended</param>
+        /// <param name="collections">Collections to conditionaaly append</param>
+        /// <returns>The orig <c>List</c></returns>
         public static List<T> AppendIf<T>(Func<T, bool> condition, List<T> list, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.AppendIf(condition, list, collections);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                        {
+                            if (condition == null || condition.Invoke(item))
+                                list.Add(item);
+                        }
+                    }
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Appends zero or more items to a list
+        /// Inserts zero or more items into a collection, result is a new <c>List</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="list">A list</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
-        public static List<T> Append_KeepOrig<T>(List<T> list, params T[] items)
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> Insert<T>(IEnumerable<T> collection, int index, params T[] items)
         {
-            var collection = CollectionUtil.Append_KeepOrig(list, items);
-            return AsList(collection);
+            var list = ToList(collection);
+            if (items != null)
+            {
+                foreach (var item in items)
+                    list.Insert(index++, item);
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more items to a list
+        /// Inserts zero or more items into a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of <c>List</c></typeparam>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the <c>List</c> to insert <c>items</c></param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The orig <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> Insert<T>(List<T> list, int index, params T[] items)
+        {
+            list = list ?? new List<T>();
+            if (items != null)
+            {
+                foreach (var item in items)
+                    list.Insert(index++, item);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="collection">A collection to which <c>items</c> will conditionally be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(bool condition, IEnumerable<T> collection, int index, params T[] items)
+        {
+            var list = ToList(collection);
+            if (condition && items != null)
+            {
+                foreach (var item in items)
+                    list.Insert(index++, item);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of list</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the <c>List</c> to insert <c>items</c></param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The orig <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(bool condition, List<T> list, int index, params T[] items)
+        {
+            list = list ?? new List<T>();
+            if (condition && items != null)
+            {
+                foreach (var item in items)
+                    list.Insert(index++, item);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets inserted</param>
+        /// <param name="collection">A collection to which <c>items</c> will be conditionally inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="items">Items to conditionally insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(Func<T, bool> condition, IEnumerable<T> collection, int index, params T[] items)
+        {
+            var list = ToList(collection);
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    if (condition == null || condition.Invoke(item))
+                        list.Insert(index++, item);
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of list</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets inserted</param>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be conditionally inserted</param>
+        /// <param name="index">Where in the <c>List</c> to insert <c>items</c></param>
+        /// <param name="items">Items to conditionally insert</param>
+        /// <returns>The orig <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(Func<T, bool> condition, List<T> list, int index, params T[] items)
+        {
+            list = list ?? new List<T>();
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    if (condition == null || condition.Invoke(item))
+                        list.Insert(index++, item);
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Appends zero or more collections to a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> Insert<T>(IEnumerable<T> collection, int index, params IEnumerable<T>[] collections)
+        {
+            var list = ToList(collection);
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                            list.Insert(index++, item);
+                    }
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Appends zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="list">A <c>List</c> to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the <c>List</c> to insert <c>items</c></param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The orig <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> Insert<T>(List<T> list, int index, params IEnumerable<T>[] collections)
+        {
+            list = list ?? new List<T>();
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                            list.Insert(index++, item);
+                    }
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to a collection, result is a new <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
-        public static List<T> AppendIf_KeepOrig<T>(bool condition, List<T> list, params T[] items)
+        /// <param name="collection">A collection to which <c>collections</c> will conditionally be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="collections">Collections to conditionally insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(bool condition, IEnumerable<T> collection, int index, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, items);
-            return AsList(collection);
+            var list = ToList(collection);
+            if (condition && collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                            list.Insert(index++, item);
+                    }
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
-        public static List<T> AppendIf_KeepOrig<T>(Func<T, bool> condition, List<T> list, params T[] items)
-        {
-            var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, items);
-            return AsList(collection);
-        }
-
-        /// <summary>
-        /// Appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="list">A list</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
-        public static List<T> Append_KeepOrig<T>(List<T> list, params IEnumerable<T>[] collections)
-        {
-            var collection = CollectionUtil.Append_KeepOrig(list, collections);
-            return AsList(collection);
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
+        /// Conditionally inserts zero or more collections to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
-        public static List<T> AppendIf_KeepOrig<T>(bool condition, List<T> list, params IEnumerable<T>[] collections)
+        /// <param name="list">A <c>List</c> to which <c>items</c> will conditionally be inserted</param>
+        /// <param name="index">Where in the <c>List</c> to insert <c>items</c></param>
+        /// <param name="collections">Collections to conditionally insert</param>
+        /// <returns>The orig <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(bool condition, List<T> list, int index, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, collections);
-            return AsList(collection);
+            list = list ?? new List<T>();
+            if (condition && collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                            list.Insert(index++, item);
+                    }
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Conditionally appends zero or more collections to a list
+        /// Conditionally inserts zero or more collections to a collection, result is a new <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="list">A list</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
-        public static List<T> AppendIf_KeepOrig<T>(Func<T, bool> condition, List<T> list, params IEnumerable<T>[] collections)
+        /// <param name="condition">A function that dictates whether an item gets inserted</param>
+        /// <param name="collection">A collection to which <c>collections</c> will be conditionally inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="collections">Collections to conditionaaly insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(Func<T, bool> condition, IEnumerable<T> collection, int index, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, collections);
-            return AsList(collection);
+            var list = ToList(collection);
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                        {
+                            if (condition == null || condition.Invoke(item))
+                                list.Insert(index++, item);
+                        }
+                    }
+                }
+            }
+            return list;
         }
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets inserted</param>
+        /// <param name="list">A <c>List</c> to which <c>collections</c> will be conditionally inserted</param>
+        /// <param name="index">Where in the <c>List</c> to insert <c>items</c></param>
+        /// <param name="collections">Collections to conditionaaly insert</param>
+        /// <returns>The orig <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static List<T> InsertIf<T>(Func<T, bool> condition, List<T> list, int index, params IEnumerable<T>[] collections)
+        {
+            list = list ?? new List<T>();
+            if (collections != null)
+            {
+                foreach (var coll in collections)
+                {
+                    if (coll != null)
+                    {
+                        foreach (var item in coll)
+                        {
+                            if (condition == null || condition.Invoke(item))
+                                list.Insert(index++, item);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        ///// <summary>
+        ///// Appends zero or more items to a list
+        ///// </summary>
+        ///// <typeparam name="T">Type of item</typeparam>
+        ///// <param name="list">A list</param>
+        ///// <param name="items">Items to append</param>
+        ///// <returns>The appended list</returns>
+        //public static List<T> Append_KeepOrig<T>(List<T> list, params T[] items)
+        //{
+        //    var collection = CollectionUtil.Append_KeepOrig(list, items);
+        //    return AsList(collection);
+        //}
+
+        ///// <summary>
+        ///// Conditionally appends zero or more items to a list
+        ///// </summary>
+        ///// <typeparam name="T">Type of item</typeparam>
+        ///// <param name="condition"><c>true</c> or <c>false</c></param>
+        ///// <param name="list">A list</param>
+        ///// <param name="items">Items to append</param>
+        ///// <returns>The appended list</returns>
+        //public static List<T> AppendIf_KeepOrig<T>(bool condition, List<T> list, params T[] items)
+        //{
+        //    var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, items);
+        //    return AsList(collection);
+        //}
+
+        ///// <summary>
+        ///// Conditionally appends zero or more items to a list
+        ///// </summary>
+        ///// <typeparam name="T">Type of item</typeparam>
+        ///// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+        ///// <param name="list">A list</param>
+        ///// <param name="items">Items to append</param>
+        ///// <returns>The appended list</returns>
+        //public static List<T> AppendIf_KeepOrig<T>(Func<T, bool> condition, List<T> list, params T[] items)
+        //{
+        //    var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, items);
+        //    return AsList(collection);
+        //}
+
+        ///// <summary>
+        ///// Appends zero or more collections to a list
+        ///// </summary>
+        ///// <typeparam name="T">Type of item</typeparam>
+        ///// <param name="list">A list</param>
+        ///// <param name="collections">Collections to append</param>
+        ///// <returns>The appended list</returns>
+        //public static List<T> Append_KeepOrig<T>(List<T> list, params IEnumerable<T>[] collections)
+        //{
+        //    var collection = CollectionUtil.Append_KeepOrig(list, collections);
+        //    return AsList(collection);
+        //}
+
+        ///// <summary>
+        ///// Conditionally appends zero or more collections to a list
+        ///// </summary>
+        ///// <typeparam name="T">Type of item</typeparam>
+        ///// <param name="condition"><c>true</c> or <c>false</c></param>
+        ///// <param name="list">A list</param>
+        ///// <param name="collections">Collections to append</param>
+        ///// <returns>The appended list</returns>
+        //public static List<T> AppendIf_KeepOrig<T>(bool condition, List<T> list, params IEnumerable<T>[] collections)
+        //{
+        //    var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, collections);
+        //    return AsList(collection);
+        //}
+
+        ///// <summary>
+        ///// Conditionally appends zero or more collections to a list
+        ///// </summary>
+        ///// <typeparam name="T">Type of item</typeparam>
+        ///// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+        ///// <param name="list">A list</param>
+        ///// <param name="collections">Collections to append</param>
+        ///// <returns>The appended list</returns>
+        //public static List<T> AppendIf_KeepOrig<T>(Func<T, bool> condition, List<T> list, params IEnumerable<T>[] collections)
+        //{
+        //    var collection = CollectionUtil.AppendIf_KeepOrig(condition, list, collections);
+        //    return AsList(collection);
+        //}
 
         /// <summary>
         /// Replace each occurrance of <c>item</c> with <c>replacement</c>

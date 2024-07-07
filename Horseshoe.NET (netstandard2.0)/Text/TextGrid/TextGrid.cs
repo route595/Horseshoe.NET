@@ -153,17 +153,18 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <summary>
         /// Creates a new <c>TextGrid</c>.
         /// </summary>
-        public TextGrid(Column column) : this(new[] { column })
+        /// <param name="columns">A collection of <c>Column</c> from which to build the grid.</param>
+        public TextGrid(IEnumerable<Column> columns)
         {
+            AddColumns(columns);
         }
 
         /// <summary>
         /// Creates a new <c>TextGrid</c>.
         /// </summary>
-        /// <param name="columns">A collection of <c>IColumns</c> from which to build the grid.</param>
-        public TextGrid(IEnumerable<Column> columns)
+        /// <param name="columns">A collection of <c>Column</c> from which to build the grid.</param>
+        public TextGrid(params Column[] columns) : this(columns as IEnumerable<Column>)
         {
-            AddColumns(columns);
         }
 
         /// <summary>
@@ -213,7 +214,48 @@ namespace Horseshoe.NET.Text.TextGrid
         }
 
         /// <summary>
-        /// The preferred method for adding a column to the grid (as opposed to adding it to the column collection)
+        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
+        /// </summary>
+        public Column AddColumn()
+        {
+            var column = new Column
+            {
+                Parent = this
+            };
+            Columns.Add(column);
+            return column;
+        }
+
+        /// <summary>
+        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
+        /// </summary>
+        /// <param name="capacity">Specifies the initial capacity.</param>
+        public Column AddColumn(int capacity)
+        {
+            var column = new Column(capacity)
+            {
+                Parent = this
+            };
+            Columns.Add(column);
+            return column;
+        }
+
+        /// <summary>
+        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
+        /// </summary>
+        /// <param name="collection">Elements to copy into this <c>Column</c>.</param>
+        public Column AddColumn(IEnumerable<object> collection)
+        {
+            var column = new Column(collection)
+            {
+                Parent = this
+            };
+            Columns.Add(column);
+            return column;
+        }
+
+        /// <summary>
+        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
         /// </summary>
         /// <param name="column">A column to add to the grid</param>
         public void AddColumn(Column column)

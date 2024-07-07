@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 
 using Horseshoe.NET.Iterator;
-using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.Collections
@@ -14,23 +13,25 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     public static class Extensions
     {
-        /// <summary>
-        /// Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
-        /// </summary>
-        /// <typeparam name="T">The collection type</typeparam>
-        /// <param name="collection"></param>
-        /// <returns>A collection as a <c>List&lt;T&gt;</c></returns>
-        public static List<T> AsList<T>(this IEnumerable<T> collection) =>
-            CollectionUtil.AsList(collection);
+        ///// <inheritdoc cref="CollectionUtilAbstractions.ToList{T}(IEnumerable{T})"/>
+        //public static List<T> ToList<T>(this IEnumerable<T> collection) =>   // conflicts with Linq
+        //    CollectionUtilAbstractions.ToList(collection);
 
-        /// <summary>
-        /// Casts a collection as <c>T[]</c> if such a cast is available, otherwise creates a new <c>T[]</c> from the collection.
-        /// </summary>
-        /// <typeparam name="T">The collection type</typeparam>
-        /// <param name="collection"></param>
-        /// <returns>A <c>T[]</c></returns>
-        public static T[] AsArray<T>(this IEnumerable<T> collection) =>
-            CollectionUtil.AsArray(collection);
+        /// <inheritdoc cref="CollectionUtilAbstractions.AsList{T}(IEnumerable{T})"/>
+        public static List<T> AsList<T>(this IEnumerable<T> collection) =>
+            CollectionUtilAbstractions.AsList(collection);
+
+        ///// <inheritdoc cref="CollectionUtilAbstractions.ToArray{T}(IEnumerable{T})"/>
+        //public static T[] ToArray<T>(this IEnumerable<T> collection)   // conflicts with Linq
+        //{
+        //    return CollectionUtilAbstractions.ToArray(collection);
+        //}
+
+        /// <inheritdoc cref="CollectionUtilAbstractions.AsArray{T}(IEnumerable{T})"/>
+        public static T[] AsArray<T>(this IEnumerable<T> collection)
+        {
+            return CollectionUtilAbstractions.AsArray(collection);
+        }
 
         #region IEnumerable methods
 
@@ -79,70 +80,6 @@ namespace Horseshoe.NET.Collections
         /// <exception cref="ValidationException"></exception>
         public static IEnumerable<T> Fit<T>(this IEnumerable<T> collection, int targetSize, CollectionBoundary cropBoundary = default, CollectionBoundary padBoundary = default, T padWith = default, bool keepOriginalListDataSource = false) =>
             CollectionUtil.Fit(collection, targetSize, cropBoundary: cropBoundary, padBoundary: padBoundary, padWith: padWith, keepOriginalListDataSource: keepOriginalListDataSource);
-
-        /// <summary>
-        /// Appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> Append<T>(this IEnumerable<T> collection, params T[] items) =>
-            CollectionUtil.Append(collection, items);
-
-        /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(this IEnumerable<T> collection, bool condition, params T[] items) =>
-            CollectionUtil.AppendIf(condition, collection, items);
-
-        /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(this IEnumerable<T> collection, Func<T, bool> condition, params T[] items) =>
-            CollectionUtil.AppendIf(condition, collection, items);
-
-        /// <summary>
-        /// Appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> Append<T>(this IEnumerable<T> collection, params IEnumerable<T>[] collections) =>
-            CollectionUtil.Append(collection, collections);
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(this IEnumerable<T> collection, bool condition, params IEnumerable<T>[] collections) =>
-            CollectionUtil.AppendIf(condition, collection, collections);
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(this IEnumerable<T> collection, Func<T, bool> condition, params IEnumerable<T>[] collections) =>
-            CollectionUtil.AppendIf(condition, collection, collections);
 
         /// <summary>
         /// Replace each occurrance of <c>item</c> with <c>replacement</c>
@@ -421,68 +358,138 @@ namespace Horseshoe.NET.Collections
             ListUtil.Fit(list, targetSize, cropBoundary: cropBoundary, padBoundary: padBoundary, padWith: padWith, keepOriginalListDataSource: keepOriginalListDataSource);
 
         /// <summary>
-        /// Appends zero or more items to a list
+        /// Appends zero or more items to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="list">A list</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>The original <c>List</c></returns>
         public static List<T> Append<T>(this List<T> list, params T[] items) =>
-            ListUtil.Append_KeepOrig(list, items);
+            ListUtil.Append(list, items);
 
         /// <summary>
-        /// Conditionally appends zero or more items to a list
+        /// Conditionally appends zero or more items to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
         /// <param name="list">A list</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>The original <c>List</c></returns>
         public static List<T> AppendIf<T>(this List<T> list, bool condition, params T[] items) =>
-            ListUtil.AppendIf_KeepOrig(condition, list, items);
+            ListUtil.AppendIf(condition, list, items);
 
         /// <summary>
-        /// Conditionally appends zero or more items to a list
+        /// Conditionally appends zero or more items to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
         /// <param name="list">A list</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>The original <c>List</c></returns>
         public static List<T> AppendIf<T>(this List<T> list, Func<T, bool> condition, params T[] items) =>
-            ListUtil.AppendIf_KeepOrig(condition, list, items);
+            ListUtil.AppendIf(condition, list, items);
 
         /// <summary>
-        /// Appends zero or more collections to a list
+        /// Appends zero or more collections to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="list">A list</param>
         /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>The original <c>List</c></returns>
         public static List<T> Append<T>(this List<T> list, params IEnumerable<T>[] collections) =>
-            ListUtil.Append_KeepOrig(list, collections);
+            ListUtil.Append(list, collections);
 
         /// <summary>
-        /// Conditionally appends zero or more collections to a list
+        /// Conditionally appends zero or more collections to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
         /// <param name="list">A list</param>
         /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>The original <c>List</c></returns>
         public static List<T> AppendIf<T>(this List<T> list, bool condition, params IEnumerable<T>[] collections) =>
-            ListUtil.AppendIf_KeepOrig(condition, list, collections);
+            ListUtil.AppendIf(condition, list, collections);
 
         /// <summary>
-        /// Conditionally appends zero or more collections to a list
+        /// Conditionally appends zero or more collections to a <c>List</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
         /// <param name="list">A list</param>
         /// <param name="collections">Collections to append</param>
-        /// <returns>The appended list</returns>
+        /// <returns>The original <c>List</c></returns>
         public static List<T> AppendIf<T>(this List<T> list, Func<T, bool> condition, params IEnumerable<T>[] collections) =>
-            ListUtil.AppendIf_KeepOrig(condition, list, collections);
+            ListUtil.AppendIf(condition, list, collections);
+
+        /// <summary>
+        /// Inserts zero or more items to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="list">A list</param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The original <c>List</c></returns>
+        public static List<T> Insert<T>(this List<T> list, int index, params T[] items) =>
+            ListUtil.Insert(list, index, items);
+
+        /// <summary>
+        /// Conditionally inserts zero or more items to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="list">A list</param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The original <c>List</c></returns>
+        public static List<T> InsertIf<T>(this List<T> list, bool condition, int index, params T[] items) =>
+            ListUtil.InsertIf(condition, list, index, items);
+
+        /// <summary>
+        /// Conditionally inserts zero or more items to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+        /// <param name="list">A list</param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The original <c>List</c></returns>
+        public static List<T> InsertIf<T>(this List<T> list, Func<T, bool> condition, int index, params T[] items) =>
+            ListUtil.InsertIf(condition, list, index, items);
+
+        /// <summary>
+        /// Inserts zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="list">A list</param>
+        /// <param name="index">Where in the final collection to place the inserted collections</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The original <c>List</c></returns>
+        public static List<T> Insert<T>(this List<T> list, int index, params IEnumerable<T>[] collections) =>
+            ListUtil.Insert(list, index, collections);
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="list">A list</param>
+        /// <param name="index">Where in the final collection to place the inserted collections</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The original <c>List</c></returns>
+        public static List<T> InsertIf<T>(this List<T> list, bool condition, int index, params IEnumerable<T>[] collections) =>
+            ListUtil.InsertIf(condition, list, index, collections);
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to a <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
+        /// <param name="list">A list</param>
+        /// <param name="index">Where in the final collection to place the inserted collections</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The original <c>List</c></returns>
+        public static List<T> InsertIf<T>(this List<T> list, Func<T, bool> condition, int index, params IEnumerable<T>[] collections) =>
+            ListUtil.InsertIf(condition, list, index, collections);
 
         /// <summary>
         /// Replace each occurrance of <c>item</c> with <c>replacement</c>
@@ -588,27 +595,6 @@ namespace Horseshoe.NET.Collections
             ArrayUtil.AppendIf(condition, array, items);
 
         /// <summary>
-        /// Adds zero or more items to the beginning an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
-        /// <param name="items">Items to prepend</param>
-        /// <returns>The appended array</returns>
-        public static T[] Prepend<T>(this T[] array, params T[] items) =>
-            ArrayUtil.Prepend(array, items);
-
-        /// <summary>
-        /// Conditionally adds zero or more items to the beginning of an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="items">Items to prepend</param>
-        /// <returns>The appended array</returns>
-        public static T[] PrependIf<T>(this T[] array, bool condition, params T[] items) =>
-            ArrayUtil.PrependIf(condition, array, items);
-
-        /// <summary>
         /// Appends zero or more collections to an array
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
@@ -628,6 +614,52 @@ namespace Horseshoe.NET.Collections
         /// <returns>The appended array</returns>
         public static T[] AppendIf<T>(this T[] array, bool condition, params IEnumerable<T>[] collections) =>
             ArrayUtil.AppendIf(condition, array, collections);
+
+        /// <summary>
+        /// Inserts zero or more items to an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The inserted array</returns>
+        public static T[] Insert<T>(this T[] array, int index, params T[] items) =>
+            ArrayUtil.Insert(array, index, items);
+
+        /// <summary>
+        /// Conditionally inserts zero or more items to an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The inserted array</returns>
+        public static T[] InsertIf<T>(this T[] array, bool condition, int index, params T[] items) =>
+            ArrayUtil.InsertIf(condition, array, index, items);
+
+        /// <summary>
+        /// Inserts zero or more collections to an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The inserted array</returns>
+        public static T[] Insert<T>(this T[] array, int index, params IEnumerable<T>[] collections) =>
+            ArrayUtil.Insert(array, index, collections);
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to an array
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="array">An array</param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="index">Where in the final collection to place the inserted items</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The inserted array</returns>
+        public static T[] InsertIf<T>(this T[] array, bool condition, int index, params IEnumerable<T>[] collections) =>
+            ArrayUtil.InsertIf(condition, array, index, collections);
 
         /// <summary>
         /// Replace each occurrance of <c>item</c> with <c>replacement</c>

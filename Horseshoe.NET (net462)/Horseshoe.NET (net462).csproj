@@ -112,6 +112,7 @@
     <Compile Include="ConsoleX\PromptX.cs" />
     <Compile Include="ConsoleX\RenderX.cs" />
     <Compile Include="ConsoleX\RoutineX.cs" />
+    <Compile Include="Crypto\RecursiveHashEngine.cs" />
     <Compile Include="DataImport\Column.cs" />
     <Compile Include="DataImport\ImportData.cs" />
     <Compile Include="DataImport\ImportedRow.cs" />
@@ -139,7 +140,10 @@
     <Compile Include="Email\Sms\TextMessage.cs" />
     <Compile Include="EnvVar.cs" />
     <Compile Include="Ftp\FtpConnectionInfo.cs" />
+    <Compile Include="IO\FileTraversal\AdvancedAction.cs" />
+    <Compile Include="IO\FileTraversal\TraversalDirectoryIntercom.cs" />
     <Compile Include="IO\FileTraversal\TraversalEngine.cs" />
+    <Compile Include="IO\FileTraversal\TraversalFileIntercom.cs" />
     <Compile Include="Iterator\Memory\Extensions.cs" />
     <Compile Include="Iterator\Extensions.cs" />
     <Compile Include="ObjectsAndTypes\TypeUtil.cs" />
@@ -180,6 +184,7 @@
     <Compile Include="Text\CharLib.cs" />
     <Compile Include="Text\TextClean\TextClean.cs" />
     <Compile Include="Text\TextGrid\Column.cs" />
+    <Compile Include="Text\TextGrid\EZGrid.cs" />
     <Compile Include="Text\TextGrid\TextGrid.cs" />
     <Compile Include="Text\TextMatch.cs" />
     <Compile Include="Text\TextSearch.cs" />

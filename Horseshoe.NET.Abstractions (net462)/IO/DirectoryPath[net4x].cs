@@ -53,8 +53,8 @@ namespace Horseshoe.NET.IO
             FullName.Length;
 
         /// <inheritdoc cref="DirectoryInfo.Parent"/>
-        public DirectoryPath Parent =>
-            Directory.Parent;
+        public DirectoryPath? Parent =>
+            Directory.Parent != null ? Directory.Parent : null;
 
         /// <inheritdoc cref="DirectoryInfo.Create()"/>
         public void Create() =>
@@ -183,8 +183,8 @@ namespace Horseshoe.NET.IO
         /// <summary>
         /// Implicitly converts a <c>DirectoryPath</c> to a <c>string</c>
         /// </summary>
-        /// <param name="directoryPath">A <c>DirectoryPath</c></param>
-        public static implicit operator string(DirectoryPath directoryPath) => directoryPath.FullName;
+        /// <param name="directory">A <c>DirectoryPath</c></param>
+        public static implicit operator string(DirectoryPath directory) => directory.FullName;
 
         /// <summary>
         /// Implicitly converts a <c>DirectoryInfo</c> to a <c>DirectoryPath</c>
@@ -195,7 +195,7 @@ namespace Horseshoe.NET.IO
         /// <summary>
         /// Implicitly converts a <c>DirectoryPath</c> back to a <c>DirectoryInfo</c>
         /// </summary>
-        /// <param name="directoryPath">A <c>DirectoryPath</c></param>
-        public static implicit operator DirectoryInfo(DirectoryPath directoryPath) => directoryPath.Directory;
+        /// <param name="directory">A <c>DirectoryPath</c></param>
+        public static implicit operator DirectoryInfo(DirectoryPath directory) => directory.Directory;
     }
 }

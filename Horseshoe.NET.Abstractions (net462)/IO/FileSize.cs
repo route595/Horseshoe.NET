@@ -71,8 +71,9 @@
         /// <param name="size"></param>
         /// <param name="bi"></param>
         /// <returns></returns>
-        public static FileSizeUnit DeriveUnit(long size, bool bi = false)
+        public static FileSizeUnit DeriveUnit(long? size, bool bi = false)
         {
+            if (!size.HasValue) return FileSizeUnit.B;
             if (size < 1000L) return FileSizeUnit.B;
             if (bi)
             {

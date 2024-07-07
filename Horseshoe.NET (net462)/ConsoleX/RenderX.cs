@@ -7,6 +7,7 @@ using Microsoft.Extensions.Primitives;
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
+using Horseshoe.NET.Text.TextClean;
 
 namespace Horseshoe.NET.ConsoleX
 {
@@ -345,13 +346,36 @@ namespace Horseshoe.NET.ConsoleX
         //private static Regex AlphaNumericPattern { get; } = new Regex("[a-z0-9]", RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Renders a prompt for user input e.g. free text, menu selection, etc.
+        /// Renders a prompt for user input e.g. menu selection, etc.
         /// </summary>
-        /// <param name="prompt">An input prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, adds an indicator to the prompt to suggest an input is required, default is <c>false</c>.</param>
         /// <param name="quickValue">A value to suggest to the user who then can press 'Enter' to input it.</param>
-        public static void Prompt(string prompt, bool required = false, object quickValue = null)
+        public static void Prompt(PromptType promptType, bool required = false, object quickValue = null)
         {
+            Prompt(null, promptType: promptType, required: required, quickValue: quickValue);
+        }
+
+        /// <summary>
+        /// Renders a prompt for user input e.g. free text, etc.
+        /// </summary>
+        /// <param name="prompt">An input prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="required">If <c>true</c>, adds an indicator to the prompt to suggest an input is required, default is <c>false</c>.</param>
+        /// <param name="quickValue">A value to suggest to the user who then can press 'Enter' to input it.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
+        public static void Prompt(string prompt, PromptType promptType = PromptType.Auto, bool required = false, object quickValue = null, object defaultValue = null)
+        {
+            switch (promptType)
+            {
+                case PromptType.Literal:
+                    Console.Write(prompt ?? "");               // e.g. "  M:y mickEY moU$e   CluB "
+                    return;
+                case PromptType.MenuOrList:
+                    Console.Write("> ");                       // e.g. "> "
+                    return;
+            }
+
             if (string.IsNullOrEmpty(prompt))
             {
                 if (required)
@@ -362,35 +386,31 @@ namespace Horseshoe.NET.ConsoleX
             }
             else
             {
-                Console.Write(prompt);                         // e.g. "First name", "First name ", "First name:" or "First name: "
-                switch (prompt[prompt.Length - 1])
+                prompt = TextClean.Remove(prompt, '\t', '\r', '\n').TrimEnd(' ', ':');
+                Console.Write(prompt);                         // e.g. "First name", "First name ", "First name:" or "First name: " => "First name: "
+                if (required)
                 {
-                    case ' ':
-                        if (required)
-                        {
-                            Console.Write("(required) ");      // "First name "  => "First name (required) "
-                        }                                      // "First name: " => "First name: (required) "
-                        break;
-                    case ':':
-                        Console.Write(' ');
-                        if (required)
-                        {
-                            Console.Write("(required) ");      // "First name:" => "First name: (required) "
-                        }
-                        break;
-                    default:
-                        if (required)
-                        {
-                            Console.Write(" (required)");      // "First name" => "First name (required): "
-                        }
-                        Console.Write(": ");                   // "First name" => "First name: "
-                        break;
+                    Console.Write(" (required)");              // "First name"  => "First name (required): "
                 }
-            }
-
-            if (quickValue != null)
-            {
-                Console.Write("[" + quickValue + "] ");        // e.g. "First name: [Jackie] "  -or-  "First name (required): [Jackie] " 
+                if (promptType == PromptType.Bool)
+                {
+                    if (defaultValue is bool boolValue)
+                    {
+                        if (boolValue)
+                            Console.Write(" [Y/n]");            // "Yankees fan"  => "Yankees fan [Y/n]: "
+                        else
+                            Console.Write(" [y/N]");            // "Yankees fan"  => "Yankees fan [y/N]: "
+                    }
+                    else
+                    {
+                        Console.Write(" [y/n]");                // "Yankees fan"  => "Yankees fan [y/n]: "
+                    }
+                }
+                else if (quickValue != null)
+                {
+                    Console.Write(" [" + quickValue + "]");    // "First name" => "First name [Jackie]: " or "First name (required) [Jackie]: "
+                }
+                Console.Write(": ");
             }
         }
 

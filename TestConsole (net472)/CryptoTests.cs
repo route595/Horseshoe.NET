@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
+using Horseshoe.NET;
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Crypto;
+using Horseshoe.NET.IO.FileTraversal;
 using Horseshoe.NET.Text;
+using TestConsole.IOTests;
 
 namespace TestConsole
 {
@@ -55,6 +57,53 @@ namespace TestConsole
                     var fileToHashPath = PromptX.Value<string>("Input file (or drag and drop)").Replace("\"", "");
                     var fileHash = Hash.String(fileToHashPath, new HashOptions { Algorithm = new System.Security.Cryptography.MD5CryptoServiceProvider() });
                     Console.WriteLine("Hash: " + fileHash);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Recursive hash entire directory \"animalia\"",
+                () =>
+                {
+                    int dirLevel = 0;
+                    FileTraversalTests.ResetFiles();
+                    var cumulativeHash = RecursiveHash.String
+                    (
+                        "animalia",
+                        out TraversalStatistics statistics,
+                        onDirectoryHello: (dp, _) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
+                        onDirectoryGoodbye: (dp) => dirLevel--,
+                        onDirectorySkipping: (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (skipping)"),
+                        onDirectorySkipped: (dp) => dirLevel--,
+                        onFileHello: (fp, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        onFileSkipped: (fp) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (skipped)"),
+                        onFileHashed: (fp, hash) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " " + hash)
+                    );
+                    Console.WriteLine("Cumulative Hash: " + cumulativeHash);
+                    Console.Write(statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Recursive hash mammal \".txt\" files in directory \"animalia\"",
+                () =>
+                {
+                    int dirLevel = 0;
+                    FileTraversalTests.ResetFiles();
+                    var cumulativeHash = RecursiveHash.String
+                    (
+                        "animalia",
+                        out TraversalStatistics statistics,
+                        optimizations: new TraversalOptimizations { DirectoryFilter = (dp) => dp.Name.In("mammalia"), FileSearchPattern = "*.txt" },
+                        onDirectoryHello: (dp, _) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
+                        onDirectoryGoodbye: (dp) => dirLevel--,
+                        onDirectorySkipping: (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (skipping)"),
+                        onDirectorySkipped: (dp) => dirLevel--,
+                        onFileHello: (fp, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        onFileSkipped: (fp) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (skipped)"),
+                        onFileHashed: (fp, hash) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " " + hash)
+                    );
+                    Console.WriteLine("Cumulative Hash: " + cumulativeHash);
+                    Console.Write(statistics.Dump());
                 }
             ),
             BuildMenuRoutine

@@ -96,6 +96,7 @@
     <Compile Include="ConsoleX\ListSelection.cs" />
     <Compile Include="ConsoleX\LoopMode.cs" />
     <Compile Include="ConsoleX\MenuAndListRealtimeConfigurator.cs" />
+    <Compile Include="ConsoleX\PromptType.cs" />
     <Compile Include="ConsoleX\QuickValue.cs" />
     <Compile Include="ConsoleX\Title.cs" />
     <Compile Include="ConversionException.cs" />
@@ -149,13 +150,9 @@
     <Compile Include="IO\FilePath.cs" />
     <Compile Include="IO\FileSize.cs" />
     <Compile Include="IO\FileSizeUnit.cs" />
-    <Compile Include="IO\FileTraversal\ClientAction.cs" />
-    <Compile Include="IO\FileTraversal\DirectoryTraversalMetadata.cs" />
-    <Compile Include="IO\FileTraversal\RecursiveAction.cs" />
-    <Compile Include="IO\FileTraversal\TraversalActions.cs" />
-    <Compile Include="IO\FileTraversal\FileTraversalMetadata.cs" />
-    <Compile Include="IO\FileTraversal\TraversalError.cs" />
-    <Compile Include="IO\FileTraversal\TraversalOptimization.cs" />
+    <Compile Include="IO\FileTraversal\FileSystemObjectType.cs" />
+    <Compile Include="IO\FileTraversal\TraversalOptimizations.cs" />
+    <Compile Include="IO\FileTraversal\TraversalStatistics.cs" />
     <Compile Include="IO\FileType.cs" />
     <Compile Include="IO\FileUtilAbstractions.cs" />
     <Compile Include="IO\NamedMemoryStream.cs" />

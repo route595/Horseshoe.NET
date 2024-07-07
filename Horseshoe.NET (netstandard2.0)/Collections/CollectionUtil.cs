@@ -12,54 +12,28 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     public static class CollectionUtil
     {
-        /// <summary>
-        /// Creates a new <c>List&lt;T&gt;</c> from any collection.
-        /// </summary>
-        /// <typeparam name="T">A collection type.</typeparam>
-        /// <param name="collection">A collection to copy into the list.</param>
-        /// <returns>A new <c>List&lt;T&gt;</c></returns>
+        /// <inheritdoc cref="CollectionUtilAbstractions.ToList{T}(IEnumerable{T})"/>
         public static List<T> ToList<T>(IEnumerable<T> collection)
         {
-            return new List<T>(collection ?? Enumerable.Empty<T>());
+            return CollectionUtilAbstractions.ToList(collection);
         }
 
-        /// <summary>
-        /// Casts a collection as <c>List&lt;T&gt;</c> if such a cast is available, otherwise creates a new <c>List&lt;T&gt;</c> from the collection.
-        /// </summary>
-        /// <typeparam name="T">A collection type.</typeparam>
-        /// <param name="collection">A collection to cast or convert to a list.</param>
-        /// <returns>A collection as a <c>List&lt;T&gt;</c></returns>
+        /// <inheritdoc cref="CollectionUtilAbstractions.AsList{T}(IEnumerable{T})"/>
         public static List<T> AsList<T>(IEnumerable<T> collection)
         {
-            if (collection == null) return null;
-            return collection is List<T> list
-                ? list
-                : ToList(collection);
+            return CollectionUtilAbstractions.AsList(collection);
         }
 
-        /// <summary>
-        /// Creates a new array from any collection including a <c>null</c> collection.
-        /// </summary>
-        /// <typeparam name="T">A collection type.</typeparam>
-        /// <param name="collection">A collection to copy into the array.</param>
-        /// <returns>A new <c>T[]</c></returns>
+        /// <inheritdoc cref="CollectionUtilAbstractions.ToArray{T}(IEnumerable{T})"/>
         public static T[] ToArray<T>(IEnumerable<T> collection)
         {
-            return (collection ?? Enumerable.Empty<T>()).ToArray();
+            return CollectionUtilAbstractions.ToArray(collection);
         }
 
-        /// <summary>
-        /// Casts a collection as <c>T[]</c> if such a cast is available, otherwise creates a new <c>T[]</c> from the collection.
-        /// </summary>
-        /// <typeparam name="T">A collection type.</typeparam>
-        /// <param name="collection">A collection to cast or convert to the array.</param>
-        /// <returns>A <c>T[]</c></returns>
+        /// <inheritdoc cref="CollectionUtilAbstractions.AsArray{T}(IEnumerable{T})"/>
         public static T[] AsArray<T>(IEnumerable<T> collection)
         {
-            if (collection == null) return null;
-            return collection is T[] array
-                ? array
-                : ToArray(collection);
+            return CollectionUtilAbstractions.AsArray(collection);
         }
 
         /// <summary>
@@ -214,207 +188,6 @@ namespace Horseshoe.NET.Collections
             return list
                 .Distinct(comparer)
                 .ToList();
-        }
-
-        /// <summary>
-        /// Appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> Append<T>(IEnumerable<T> collection, params T[] items)
-        {
-            return AppendIf(true, collection, items);
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(bool condition, IEnumerable<T> collection, params T[] items)
-        {
-            var list = ToList(collection);
-            if (condition)
-            {
-                foreach (T item in items ?? Array.Empty<T>())
-                {
-                    list.Add(item);
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> Append<T>(IEnumerable<T> collection, params IEnumerable<T>[] collections)
-        {
-            return AppendIf(true, collection, collections);
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(bool condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
-        {
-            var list = ToList(collection);
-            if (condition)
-            {
-                foreach (var _collection in collections)
-                {
-                    list.AddRange(_collection ?? Enumerable.Empty<T>());
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf<T>(Func<T, bool> condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
-        {
-            var list = ToList(collection);
-            foreach (var _collection in collections ?? Enumerable.Empty<IEnumerable<T>>())
-            {
-                foreach (var item in _collection ?? Enumerable.Empty<T>())
-                {
-                    if (condition(item))
-                    {
-                        list.Add(item);
-                    }
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> Append_KeepOrig<T>(IEnumerable<T> collection, params T[] items)
-        {
-            return AppendIf_KeepOrig(true, collection, items);
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf_KeepOrig<T>(bool condition, IEnumerable<T> collection, params T[] items)
-        {
-            var list = AsList(collection);
-            if (condition)
-            {
-                foreach (T item in items ?? Array.Empty<T>())
-                {
-                    list.Add(item);
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more items to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf_KeepOrig<T>(Func<T, bool> condition, IEnumerable<T> collection, params T[] items)
-        {
-            var list = AsList(collection);
-            foreach (T item in items ?? Array.Empty<T>())
-            {
-                if (condition(item))
-                {
-                    list.Add(item);
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> Append_KeepOrig<T>(IEnumerable<T> collection, params IEnumerable<T>[] collections)
-        {
-            return AppendIf_KeepOrig(true, collection, collections);
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf_KeepOrig<T>(bool condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
-        {
-            var list = AsList(collection);
-            if (condition)
-            {
-                foreach (var _collection in collections)
-                {
-                    list.AddRange(_collection ?? Enumerable.Empty<T>());
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more collections to a list
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition">A required function that returns <c>true</c> or <c>false</c></param>
-        /// <param name="collection">A collection</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended collection</returns>
-        public static IEnumerable<T> AppendIf_KeepOrig<T>(Func<T, bool> condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
-        {
-            var list = AsList(collection);
-            foreach (var _collection in collections ?? Enumerable.Empty<IEnumerable<T>>())
-            {
-                foreach (var item in _collection ?? Enumerable.Empty<T>())
-                {
-                    if (condition(item))
-                    {
-                        list.Add(item);
-                    }
-                }
-            }
-            return list;
         }
 
         /// <summary>

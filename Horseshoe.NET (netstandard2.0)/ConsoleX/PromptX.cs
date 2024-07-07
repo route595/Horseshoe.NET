@@ -167,8 +167,10 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">Value to apply by pressing 'Enter', suggested before the prompt.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
         /// <param name="requiredMessage">The alert to display if a required input is not supplied.</param>
@@ -180,8 +182,10 @@ namespace Horseshoe.NET.ConsoleX
         public static string RawConsoleInput
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             object quickValue = null,
+            object defaultValue = null,
             bool suppressRequiredPrompt = false,
             bool suppressEcho = false,
             string requiredMessage = "Input is required.",
@@ -207,7 +211,7 @@ namespace Horseshoe.NET.ConsoleX
 
             try
             {
-                RenderX.Prompt(prompt, required: required && !suppressRequiredPrompt, quickValue: quickValue);
+                RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt, quickValue: quickValue, defaultValue: defaultValue);
                 //input = _KeyStrokes(mask, quickText, journal);
                 input = _ConsoleLine(quickValue, suppressEcho, journal);
                 while (input.Length == 0 && required && quickValue == null)
@@ -308,9 +312,11 @@ namespace Horseshoe.NET.ConsoleX
         /// </summary>
         /// <typeparam name="T">A runtime type.</typeparam>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="parser">A required text-to-value converter.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="dateTimeStyle">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
@@ -334,9 +340,11 @@ namespace Horseshoe.NET.ConsoleX
         public static T Value<T>
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             Func<string,T> parser = null,
             bool required = false,
             T quickValue = default,
+            T defaultValue = default,
             DateTimeStyles? dateTimeStyle = null,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
@@ -370,8 +378,10 @@ namespace Horseshoe.NET.ConsoleX
                 input = RawConsoleInput
                 (
                     prompt,
+                    promptType: promptType,
                     required: required,
                     quickValue: quickValue,
+                    defaultValue: defaultValue,
                     suppressRequiredPrompt: suppressRequiredPrompt,
                     suppressEcho: suppressEcho,
                     requiredMessage: requiredMessage,
@@ -425,6 +435,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Strings are zapped (whitespace trimmed and then blank converts to <c>null</c>).
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
         /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
@@ -440,6 +451,7 @@ namespace Horseshoe.NET.ConsoleX
         public static string String
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             string quickValue = null,
             Action<string> validator = null,
@@ -461,6 +473,7 @@ namespace Horseshoe.NET.ConsoleX
             var value = Value
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 validator: validator,
@@ -482,6 +495,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>int?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
@@ -500,6 +514,7 @@ namespace Horseshoe.NET.ConsoleX
         public static int? NInt
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             int? quickValue = null,
             NumberStyles? numberStyle = null,
@@ -524,6 +539,7 @@ namespace Horseshoe.NET.ConsoleX
             var value = Value
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 numberStyle: numberStyle,  // numeric formatting
@@ -548,6 +564,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>int</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
@@ -567,6 +584,7 @@ namespace Horseshoe.NET.ConsoleX
         public static int Int
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             int defaultValue = default,
             int? quickValue = null,
@@ -592,6 +610,7 @@ namespace Horseshoe.NET.ConsoleX
             var nValue = NInt
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 numberStyle: numberStyle,  // numeric formatting
@@ -625,6 +644,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>double?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
@@ -643,6 +663,7 @@ namespace Horseshoe.NET.ConsoleX
         public static double? NDouble
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             double? quickValue = null,
             NumberStyles? numberStyle = null,
@@ -667,6 +688,7 @@ namespace Horseshoe.NET.ConsoleX
             var value = Value
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 numberStyle: numberStyle,  // numeric formatting
@@ -691,6 +713,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>double</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
@@ -710,6 +733,7 @@ namespace Horseshoe.NET.ConsoleX
         public static double Double
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             double defaultValue = default,
             double? quickValue = null,
@@ -735,6 +759,7 @@ namespace Horseshoe.NET.ConsoleX
             var nValue = NDouble
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 numberStyle: numberStyle,  // numeric formatting
@@ -768,6 +793,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>decimal?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
@@ -786,6 +812,7 @@ namespace Horseshoe.NET.ConsoleX
         public static decimal? NDecimal
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             decimal? quickValue = null,
             NumberStyles? numberStyle = null,
@@ -810,6 +837,7 @@ namespace Horseshoe.NET.ConsoleX
             var value = Value
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 numberStyle: numberStyle,  // numeric formatting
@@ -834,6 +862,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>decimal</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
@@ -853,6 +882,7 @@ namespace Horseshoe.NET.ConsoleX
         public static decimal Decimal
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             decimal defaultValue = default,
             decimal? quickValue = null,
@@ -878,6 +908,7 @@ namespace Horseshoe.NET.ConsoleX
             var nValue = NDecimal
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 numberStyle: numberStyle,  // numeric formatting
@@ -911,8 +942,9 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>bool?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
         /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
         /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
@@ -928,8 +960,10 @@ namespace Horseshoe.NET.ConsoleX
         public static bool? NBool
         (
             string prompt,
+            PromptType promptType = PromptType.Bool,
             bool required = false,
-            bool? quickValue = null,
+             //bool? quickValue = null,
+            bool? defaultValue = null,
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
             bool ignoreCase = false,
@@ -951,8 +985,9 @@ namespace Horseshoe.NET.ConsoleX
             var value = Value
             (
                 prompt,
+                promptType: promptType,
                 required: required,
-                quickValue: quickValue,
+                defaultValue: defaultValue,
                 trueValues: trueValues,
                 falseValues: falseValues,
                 ignoreCase: ignoreCase,
@@ -974,9 +1009,9 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>bool</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
         /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
         /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
         /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
@@ -992,9 +1027,9 @@ namespace Horseshoe.NET.ConsoleX
         public static bool Bool
         (
             string prompt,
+            PromptType promptType = PromptType.Bool,
             bool required = false,
             bool defaultValue = default,
-            bool? quickValue = null,
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
             bool ignoreCase = false,
@@ -1016,8 +1051,9 @@ namespace Horseshoe.NET.ConsoleX
             var nValue = NBool
             (
                 prompt,
+                promptType: promptType,
                 required: required,
-                quickValue: quickValue,
+                defaultValue: defaultValue,
                 trueValues: trueValues,
                 falseValues: falseValues,
                 ignoreCase: ignoreCase,
@@ -1039,6 +1075,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>DateTime?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
@@ -1056,6 +1093,7 @@ namespace Horseshoe.NET.ConsoleX
         public static DateTime? NDateTime
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             DateTime? quickValue = null,
             IFormatProvider provider = null,
@@ -1079,6 +1117,7 @@ namespace Horseshoe.NET.ConsoleX
             var value = Value
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 provider: provider,        // date formatting
@@ -1102,6 +1141,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for console input of type <c>DateTime</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
@@ -1120,6 +1160,7 @@ namespace Horseshoe.NET.ConsoleX
         public static DateTime DateTime
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             DateTime defaultValue = default,
             DateTime? quickValue = null,
@@ -1144,6 +1185,7 @@ namespace Horseshoe.NET.ConsoleX
             var nValue = NDateTime
             (
                 prompt,
+                promptType: promptType,
                 required: required,
                 quickValue: quickValue,
                 provider: provider,        // date formatting
@@ -1277,6 +1319,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to securely enter a password.
         /// </summary>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
@@ -1286,6 +1329,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static string Password
         (
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             bool suppressRequiredPrompt = false,
             int padBefore = 0,
@@ -1296,6 +1340,7 @@ namespace Horseshoe.NET.ConsoleX
             return Password
             (
                 "password",
+                promptType: promptType,
                 required: required,
                 suppressRequiredPrompt: suppressRequiredPrompt,
                 padBefore: padBefore,
@@ -1308,6 +1353,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts a user to securely enter a password.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
@@ -1318,6 +1364,7 @@ namespace Horseshoe.NET.ConsoleX
         public static string Password
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             bool suppressRequiredPrompt = false,
             int padBefore = 0,
@@ -1334,7 +1381,7 @@ namespace Horseshoe.NET.ConsoleX
 
             RenderX.Pad(padBefore);
 
-            RenderX.Prompt(prompt, required: required && !suppressRequiredPrompt);
+            RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt);
             var password = _Keystrokes('*', null, journal);
 
             RenderX.Pad(padAfter);
@@ -1348,6 +1395,7 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts a user to securely enter a secure password.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
@@ -1358,6 +1406,7 @@ namespace Horseshoe.NET.ConsoleX
         public static SecureString SecurePassword
         (
             string prompt,
+            PromptType promptType = PromptType.Auto,
             bool required = false,
             bool suppressRequiredPrompt = false,
             int padBefore = 0,
@@ -1375,7 +1424,7 @@ namespace Horseshoe.NET.ConsoleX
 
             RenderX.Pad(padBefore);
 
-            RenderX.Prompt(prompt, required: required && !suppressRequiredPrompt);
+            RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt);
             var buf = _BufferedKeystrokes('*', null, journal);
             for (int i = 0; i < buf.Count; i++)
             {
@@ -1526,6 +1575,7 @@ namespace Horseshoe.NET.ConsoleX
             var index = Int
             (
                 null,
+                promptType: PromptType.MenuOrList,
                 required: required,
                 suppressRequiredPrompt: true,
                 requiredMessage: "A selection is required.",
@@ -1605,7 +1655,7 @@ namespace Horseshoe.NET.ConsoleX
 
             while (true)
             {
-                var input = String(null, padAfter: padAfter);
+                var input = String(null, promptType: PromptType.MenuOrList, padAfter: padAfter);
                 onMenuSelecting?.Invoke(input);
 
                 // selection type 1 of 4 - custom menu items

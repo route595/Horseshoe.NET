@@ -1,4 +1,7 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Horseshoe.NET.IO
@@ -20,7 +23,7 @@ namespace Horseshoe.NET.IO
         /// <returns></returns>
         public static string GetDisplayFileSize(FilePath file, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = false, FileSizeUnit? unit = null, bool bi = false)
         {
-            return GetDisplayFileSize(file.Exists ? file.Size : -1L, minDecimalPlaces: minDecimalPlaces, maxDecimalPlaces: maxDecimalPlaces, addSeparators: addSeparators, unit: unit, bi: bi);
+            return GetDisplayFileSize(file.Exists ? (long?)file.Size : null, minDecimalPlaces: minDecimalPlaces, maxDecimalPlaces: maxDecimalPlaces, addSeparators: addSeparators, unit: unit, bi: bi);
         }
 
         /// <summary>
@@ -34,8 +37,9 @@ namespace Horseshoe.NET.IO
         /// <param name="bi">Whether to use kibibytes vs kilobytes, for example, default is <c>false</c>.</param>
         /// <returns></returns>
         /// <exception cref="ValidationException"></exception>
-        public static string GetDisplayFileSize(long size, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = true, FileSizeUnit? unit = null, bool bi = false)
+        public static string GetDisplayFileSize(long? size, int? minDecimalPlaces = null, int? maxDecimalPlaces = null, bool addSeparators = true, FileSizeUnit? unit = null, bool bi = false)
         {
+            if (!size.HasValue) return "-";
             if (size < 0L) return size + (unit.HasValue ? " " + unit : "");
             if (size == 0L) return size + " " + (unit ?? FileSizeUnit.B);
 
@@ -89,6 +93,113 @@ namespace Horseshoe.NET.IO
             var result = size / ToMultiplier(unit.Value);
 
             return string.Format(format, result);
+        }
+
+        /// <summary>
+        /// Tests whether <c>directory</c> is a descendant of <c>ancestorDirectory</c>.  The test is a simple
+        /// path string comparison.
+        /// </summary>
+        /// <param name="directory">A directory.</param>
+        /// <param name="ancestorDirectory">A directory of whom <c>directory</c> might be a descendant (e.g. subdirectory).</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <returns></returns>
+        public static bool IsChildOf(DirectoryPath directory, DirectoryPath ancestorDirectory, bool ignoreCase = false)
+        {
+            return ignoreCase
+                ? directory.FullName.IndexOf(ancestorDirectory.FullName, StringComparison.OrdinalIgnoreCase) == 0
+                : directory.FullName.IndexOf(ancestorDirectory.FullName, StringComparison.Ordinal) == 0;
+        }
+
+        /// <summary>
+        /// Tests whether <c>file</c> is a descendant of <c>ancestorDirectory</c>.  The test is a simple
+        /// path string comparison.
+        /// </summary>
+        /// <param name="file">A file.</param>
+        /// <param name="ancestorDirectory">A directory of whom <c>file</c> might be a descendant.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <returns></returns>
+        public static bool IsChildOf(FilePath file, DirectoryPath ancestorDirectory, bool ignoreCase = false)
+        {
+            return ignoreCase
+                ? file.DirectoryName.IndexOf(ancestorDirectory.FullName, StringComparison.OrdinalIgnoreCase) == 0
+                : file.DirectoryName.IndexOf(ancestorDirectory.FullName, StringComparison.Ordinal) == 0;
+        }
+
+        /// <summary>
+        /// Creates a virtual directory path from a root directory in its tree.
+        /// <para>
+        /// Example
+        /// </para>
+        /// <code>
+        /// Root      C : \ r o o t     (len = 7)
+        /// AltRoot   C : \ r o o t \   (len = 8)
+        /// Dir       C : \ r o o t \ s u b d i r 1 \ s u b d i r 2
+        /// Cutoff                 └───────... (cutoff = index = len = 7)
+        /// Index     0 1 2 3 4 5 6 7
+        /// Virtual               ~ \ s u b d i r 1 \ s u b d i r 2
+        /// Prepend Indicator ────┘
+        /// </code>
+        /// </summary>
+        /// <param name="directory">A directory</param>
+        /// <param name="root">An ancestor directory of <c>directory</c> and the virtual root.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <param name="strict">If <c>true</c>, throws an exception for non ancestor roots, default is <c>false</c>.</param>
+        /// <param name="strb">You can optionally supply a <c>StringBuilder</c> instance for GC/heap optimization. The default is to construct a new one on each method call.</param>
+        /// <exception cref="ValidationException"></exception>
+        public static string DisplayAsVirtualPathFromRoot(DirectoryPath directory, DirectoryPath root, bool ignoreCase = false, bool strict = false, StringBuilder strb = null)
+        {
+            if (strict && !IsChildOf(directory, root, ignoreCase: ignoreCase))
+                throw new ValidationException(directory.Name + " is not a child of " + root.FullName);
+
+            if (strb == null)
+                strb = new StringBuilder();
+            else
+                strb.Clear();
+
+            strb.Append('~');
+            if (directory == root)
+                strb.Append(Path.DirectorySeparatorChar);
+            else
+                strb.Append(directory.FullName.Substring(root.FullName.Length + (root.FullName.Last() == Path.DirectorySeparatorChar ? -1 : 0)));
+           
+            return strb.ToString();
+        }
+
+        /// <summary>
+        /// Creates a virtual directory path from a root directory in its tree.
+        /// <para>
+        /// Example
+        /// </para>
+        /// <code>
+        /// Root      C : \ r o o t     (len = 7)
+        /// AltRoot   C : \ r o o t \   (len = 8)
+        /// Dir       C : \ r o o t \ s u b d i r 1 \ s u b d i r 2 \ f i l e . t x t
+        /// Cutoff                 └───────... (cutoff = index = len = 7)
+        /// Index     0 1 2 3 4 5 6 7
+        /// Virtual               ~ \ s u b d i r 1 \ s u b d i r 2 \ f i l e . t x t
+        /// Prepend Indicator ────┘
+        /// </code>
+        /// </summary>
+        /// <param name="file">A file</param>
+        /// <param name="root">An ancestor directory of <c>file</c> and the virtual root.</param>
+        /// <param name="ignoreCase">If <c>true</c>, does not take sensitivity into account when comparing paths, default is <c>false</c>.</param>
+        /// <param name="strict">If <c>true</c>, throws an exception for non ancestor roots, default is <c>false</c>.</param>
+        /// <param name="strb">You can optionally supply a <c>StringBuilder</c> instance for GC/heap optimization. The default is to construct a new one on each method call.</param>
+        /// <exception cref="ValidationException"></exception>
+        public static string DisplayAsVirtualPathFromRoot(FilePath file, DirectoryPath root, bool ignoreCase = false, bool strict = false, StringBuilder strb = null)
+        {
+            if (strict && !IsChildOf(file, root, ignoreCase: ignoreCase))
+                throw new ValidationException(file.Name + " is not a child of " + root.FullName);
+
+            if (strb == null)
+                strb = new StringBuilder();
+            else
+                strb.Clear();
+
+            strb.Append('~')
+                .Append(file.FullName.Substring(root.FullName.Length + (root.FullName.Last() == Path.DirectorySeparatorChar ? -1 : 0)));
+        
+            return strb.ToString();
         }
 
         /// <summary>

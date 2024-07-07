@@ -97,8 +97,9 @@ namespace Horseshoe.NET.Collections
         /// <returns>The combined array</returns>
         public static T[] Combine<T>(params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.Combine(collections);
-            return collection.ToArray();
+            return new CollectionBuilder<T>()
+                .Append(collections)
+                .ToArray();
         }
 
         /// <summary>
@@ -109,8 +110,9 @@ namespace Horseshoe.NET.Collections
         /// <returns>The combined array</returns>
         public static T[] CombineDistinct<T>(params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.CombineDistinct(collections);
-            return collection.ToArray();
+            return new CollectionBuilder<T>(distinctValues: true)
+                .Append(collections)
+                .ToArray();
         }
 
         /// <summary>
@@ -122,168 +124,173 @@ namespace Horseshoe.NET.Collections
         /// <returns>The combined array</returns>
         public static T[] CombineDistinct<T>(IEqualityComparer<T> comparer, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.CombineDistinct(comparer, collections);
-            return collection.ToArray();
+            return new CollectionBuilder<T>(distinctValues: true, comparer: comparer)
+                .Append(collections)
+                .ToArray();
         }
 
         /// <summary>
-        /// Appends zero or more items to an array
+        /// Appends zero or more items to a collection, result is an array of <c>T</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be appended</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] Append<T>(T[] array, params T[] items)
+        /// <returns>An array of <c>T</c></returns>
+        public static T[] Append<T>(IEnumerable<T> collection, params T[] items)
         {
-            return Append<T>(array, items as IEnumerable<T>);
+            return ListUtil.Append(collection, items).ToArray();
         }
 
         /// <summary>
-        /// Appends zero or more items to an array
+        /// Conditionally appends zero or more items to a collection, result is an array of <c>T</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
-        /// <param name="items">Items to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] Append<T>(T[] array, IEnumerable<T> items)  // array = ['apple', 'orange', 'banana']   items = { 'pear', 'grape' }
-        {                                                             //            [0]      [1]       [2]                  [0]      [1]
-            if (array == null)
-            {
-                if (items == null || !items.Any())
-                    return new T[0];
-                if (items is T[] _array)
-                    return _array;
-                return items.ToArray();
-            }
-            if (items == null || !items.Any())
-                return array;
-            var newArray = new T[array.Length + items.Count()];       // newArray = [ null,     null,     null,       null,     null]
-            Array.Copy(array, newArray, array.Length);                // newArray = ['apple', 'orange', 'banana',     null,     null]
-            if (items is T[] itemArray)                               //               [0]      [1]       [2]          [3]       [4]
-            {
-                for (int i = 0; i < itemArray.Length; i++) 
-                {                                                     //                                              'pear'   'grape'
-                    newArray[array.Length + i] = itemArray[i];        //                                             [3 + 0]   [3 + 1]     (array len = 3)
-                }
-            }
-            else
-            {
-                var itemIndex = 0;
-                foreach (var item in items)
-                {                                                     //                                              'pear'   'grape'
-                    newArray[array.Length + itemIndex++] = item;      //                                             [3 + 0]   [3 + 1]     (array len = 3)
-                }
-            }
-            return newArray;
-        }
-
-        /// <summary>
-        /// Conditionally appends zero or more items to an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
+        /// <typeparam name="T">Type of collection</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="array">An array</param>
+        /// <param name="collection">A collection to which <c>items</c> will conditionally be appended</param>
         /// <param name="items">Items to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] AppendIf<T>(bool condition, T[] array, params T[] items)
+        /// <returns>An array of <c>T</c></returns>
+        public static T[] AppendIf<T>(bool condition, IEnumerable<T> collection, params T[] items)
         {
-            if (!condition)
-                return array;
-            return Append(array, items);
+            return ListUtil.AppendIf(condition, collection, items).ToArray();
         }
 
         /// <summary>
-        /// Adds zero or more items to the beginning of an array
+        /// Conditionally appends zero or more items to a collection, result is an array of <c>T</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
-        /// <param name="items">Items to prepend</param>
-        /// <returns>The appended array</returns>
-        public static T[] Prepend<T>(T[] array, params T[] items)
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets appended</param>
+        /// <param name="collection">A collection to which <c>items</c> will be conditionally appended</param>
+        /// <param name="items">Items to conditionally append</param>
+        /// <returns>An array of <c>T</c></returns>
+        public static T[] AppendIf<T>(Func<T, bool> condition, IEnumerable<T> collection, params T[] items)
         {
-            return Prepend<T>(array, items as IEnumerable<T>);
+            return ListUtil.AppendIf(condition, collection, items).ToArray();
         }
 
         /// <summary>
-        /// Adds zero or more items to the beginning of an array
+        /// Appends zero or more collections to a collection, result is an array of <c>T</c>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
-        /// <param name="items">Items to prepend</param>
-        /// <returns>The appended array</returns>
-        public static T[] Prepend<T>(T[] array, IEnumerable<T> items) // array = ['apple', 'orange', 'banana']   items = { 'pear', 'grape' }
-        {                                                             //            [0]      [1]       [2]                  [0]      [1]
-            if (array == null)
-            {
-                if (items == null || !items.Any())
-                    return new T[0];
-                if (items is T[] _array)
-                    return _array;
-                return items.ToArray();
-            }
-            if (items == null || !items.Any())
-                return array;
-            var itemCount = items.Count();
-            var newArray = new T[array.Length + itemCount];           // newArray = [null,     null,    null,     null,     null  ]
-            Array.Copy(array, 0, newArray, itemCount, array.Length);  // newArray = [null,     null,   'apple', 'orange', 'banana']
-            if (items is T[] itemArray)                               //              [0]       [1]      [2]      [3]       [4]
-            {
-                for (int i = 0; i < itemArray.Length; i++)
-                {                                                     //             'pear'   'grape'
-                    newArray[i] = itemArray[i];                       //              [0]       [1]
-                }
-            }
-            else
-            {
-                var itemIndex = 0;
-                foreach (var item in items)
-                {                                                     //             'pear'   'grape'
-                    newArray[itemIndex++] = item;                     //              [0]       [1]
-                }
-            }
-            return newArray;
-        }
-
-        /// <summary>
-        /// Conditionally adds zero or more items to the beginning an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="array">An array</param>
-        /// <param name="items">Items to prepend</param>
-        /// <returns>The appended array</returns>
-        public static T[] PrependIf<T>(bool condition, T[] array, params T[] items)
-        {
-            if (!condition)
-                return array;
-            return Prepend(array, items);
-        }
-
-        /// <summary>
-        /// Appends zero or more collections to an array
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="array">An array</param>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be appended</param>
         /// <param name="collections">Collections to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] Append<T>(T[] array, params IEnumerable<T>[] collections)
+        /// <returns>An array of <c>T</c></returns>
+        public static T[] Append<T>(IEnumerable<T> collection, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.Append(array, collections);
-            return collection.ToArray();
+            return ListUtil.Append(collection, collections).ToArray();
         }
 
         /// <summary>
-        /// Conditionally appends zero or more collections to an array
+        /// Conditionally appends zero or more collections to a collection, result is an array of <c>T</c>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="condition"><c>true</c> or <c>false</c></param>
-        /// <param name="array">An array</param>
-        /// <param name="collections">Collections to append</param>
-        /// <returns>The appended array</returns>
-        public static T[] AppendIf<T>(bool condition, T[] array, params IEnumerable<T>[] collections)
+        /// <param name="collection">A collection to which <c>collections</c> will conditionally be appended</param>
+        /// <param name="collections">Collections to conditionally append</param>
+        /// <returns>An array of <c>T</c></returns>
+        public static T[] AppendIf<T>(bool condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
         {
-            var collection = CollectionUtil.AppendIf(condition, array, collections);
-            return collection.ToArray();
+            return ListUtil.AppendIf(condition, collection, collections).ToArray();
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more collections to a collection, result is an array of <c>T</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets appended</param>
+        /// <param name="collection">A collection to which <c>collections</c> will be conditionally appended</param>
+        /// <param name="collections">Collections to conditionaaly append</param>
+        /// <returns>An array of <c>T</c></returns>
+        public static T[] AppendIf<T>(Func<T, bool> condition, IEnumerable<T> collection, params IEnumerable<T>[] collections)
+        {
+            return ListUtil.AppendIf(condition, collection, collections).ToArray();
+        }
+
+        /// <summary>
+        /// Inserts zero or more items into a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static T[] Insert<T>(IEnumerable<T> collection, int index, params T[] items)
+        {
+            return ListUtil.Insert(collection, index, items).ToArray();
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="collection">A collection to which <c>items</c> will conditionally be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static T[] InsertIf<T>(bool condition, IEnumerable<T> collection, int index, params T[] items)
+        {
+            return ListUtil.InsertIf(condition, collection, index, items).ToArray();
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets inserted</param>
+        /// <param name="collection">A collection to which <c>items</c> will be conditionally inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="items">Items to conditionally insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static T[] InsertIf<T>(Func<T, bool> condition, IEnumerable<T> collection, int index, params T[] items)
+        {
+            return ListUtil.InsertIf(condition, collection, index, items).ToArray();
+        }
+
+        /// <summary>
+        /// Appends zero or more collections to a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="collection">A collection to which <c>items</c> will be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static T[] Insert<T>(IEnumerable<T> collection, int index, params IEnumerable<T>[] collections)
+        {
+            return ListUtil.Insert(collection, index, collections).ToArray();
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="collection">A collection to which <c>collections</c> will conditionally be inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="collections">Collections to conditionally insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static T[] InsertIf<T>(bool condition, IEnumerable<T> collection, int index, params IEnumerable<T>[] collections)
+        {
+            return ListUtil.InsertIf(condition, collection, index, collections).ToArray();
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to a collection, result is a new <c>List</c>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="condition">A function that dictates whether an item gets inserted</param>
+        /// <param name="collection">A collection to which <c>collections</c> will be conditionally inserted</param>
+        /// <param name="index">Where in the collection to insert <c>items</c></param>
+        /// <param name="collections">Collections to conditionaaly insert</param>
+        /// <returns>A new <c>List</c></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static T[] InsertIf<T>(Func<T, bool> condition, IEnumerable<T> collection, int index, params IEnumerable<T>[] collections)
+        {
+            return ListUtil.InsertIf(condition, collection, index, collections).ToArray();
         }
 
         /// <summary>

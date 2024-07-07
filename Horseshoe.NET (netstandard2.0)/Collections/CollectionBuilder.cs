@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Horseshoe.NET.Collections
 {
@@ -16,24 +17,38 @@ namespace Horseshoe.NET.Collections
         public ListSorter<T> Sorter { get; }
 
         /// <summary>
-        /// Creates a new <c>ConstructionBuilder</c>
+        /// If <c>true</c> reduces the result to only unique values, default is <c>false</c>
+        /// </summary>
+        public bool DistinctValues { get; }
+
+        /// <summary>
+        /// An optional equality comparer to use in conjunction with <c>DistinctValues</c>
+        /// </summary>
+        public IEqualityComparer<T> Comparer { get; }
+
+        /// <summary>
+        /// Creates a new <c>CollectionBuilder</c>
         /// </summary>
         /// <param name="sorter">An optional sorter</param>
-        public CollectionBuilder(ListSorter<T> sorter = null)
+        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
+        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
+        public CollectionBuilder(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null) : this(null, sorter: sorter, distinctValues: distinctValues, comparer: comparer)
         {
-            list = new List<T>();
-            Sorter = sorter;
         }
 
         /// <summary>
-        /// Creates a new <c>ConstructionBuilder</c> from an existing collection
+        /// Creates a new <c>CollectionBuilder</c> from an existing collection
         /// </summary>
         /// <param name="collection">A collection</param>
         /// <param name="sorter">An optional sorter</param>
-        public CollectionBuilder(IEnumerable<T> collection, ListSorter<T> sorter = null) : this(sorter: sorter)
+        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
+        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
+        public CollectionBuilder(IEnumerable<T> collection, ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null)
         {
-            if (collection != null)
-                list.AddRange(collection);
+            list = CollectionUtil.ToList(collection);
+            Sorter = sorter;
+            DistinctValues = distinctValues;
+            Comparer = comparer;
         }
 
         /// <summary>
@@ -69,21 +84,68 @@ namespace Horseshoe.NET.Collections
         /// <summary>
         /// Returns the final collection as a <c>List</c>
         /// </summary>
+        /// <param name="sorter">An optional sorter</param>
+        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
+        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
         /// <returns>The final collection</returns>
-        public List<T> ToList() 
+        public List<T> ToList(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null) 
         { 
-            if (Sorter != null)
-                return Sorter.Sort(list);
-            return list; 
+            IEnumerable<T> collection = list;
+            if ((sorter ?? Sorter) != null)
+                collection = (sorter ?? Sorter)._Sort(collection);
+            if (distinctValues || DistinctValues)
+                collection = (comparer ?? Comparer) == null
+                    ? collection.Distinct()
+                    : collection.Distinct(comparer ?? Comparer);
+            return CollectionUtil.AsList(collection); 
         }
 
         /// <summary>
         /// Returns the final collection as an array
         /// </summary>
+        /// <param name="sorter">An optional sorter</param>
+        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
+        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
         /// <returns>The final collection</returns>
-        public T[] ToArray() 
-        { 
-            return ToList().ToArray();
+        public T[] ToArray(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null) 
+        {
+            IEnumerable<T> collection = list;
+            if ((sorter ?? Sorter) != null)
+                collection = (sorter ?? Sorter)._Sort(collection);
+            if (distinctValues || DistinctValues)
+                collection = (comparer ?? Comparer) == null
+                    ? collection.Distinct()
+                    : collection.Distinct(comparer ?? Comparer);
+            return collection.ToArray();
         }
+    }
+
+    /// <summary>
+    /// Static methods for generating <c>CollectionBuilder</c> instances
+    /// </summary>
+    public static class CollectionBuilder
+    {
+        /// <summary>
+        /// Creates a new <c>CollectionBuilder</c>
+        /// </summary>
+        /// <typeparam name="T">The collection type</typeparam>
+        /// <param name="sorter">An optional sorter</param>
+        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
+        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
+        /// <returns>A new <c>CollectionBuilder</c> instance</returns>
+        public static CollectionBuilder<T> Build<T>(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null)
+            => new CollectionBuilder<T>(sorter: sorter, distinctValues: distinctValues, comparer: comparer);
+
+        /// <summary>
+        /// Creates a new <c>CollectionBuilder</c> from an existing collection
+        /// </summary>
+        /// <typeparam name="T">The collection type</typeparam>
+        /// <param name="collection">A collection</param>
+        /// <param name="sorter">An optional sorter</param>
+        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
+        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
+        /// <returns>A new <c>CollectionBuilder</c> instance</returns>
+        public static CollectionBuilder<T> Build<T>(IEnumerable<T> collection, ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null)
+            => new CollectionBuilder<T>(collection, sorter: sorter, distinctValues: distinctValues, comparer: comparer);
     }
 }

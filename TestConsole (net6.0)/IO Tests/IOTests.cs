@@ -72,7 +72,9 @@ namespace TestConsole.IOTests
             Console.WriteLine("Start dir: " + path);
             while (BinPath.IsMatch(path.FullName))
             {
-                path = path.Parent;
+                if (!path.Parent.HasValue)
+                    break;
+                path = path.Parent.Value;
             }
             Console.WriteLine("Current dir: " + path);
             Console.WriteLine();
