@@ -30,6 +30,6 @@ namespace Horseshoe.NET.IO.FileTraversal
         /// <summary>
         /// If <c>true</c> only directories are scanned and not files, default is <c>false</c>.
         /// </summary>
-        public bool ScanDirectoriesOnly { get; set; }
+        public bool DirectoriesOnlyMode { get; set; }
     }
 }

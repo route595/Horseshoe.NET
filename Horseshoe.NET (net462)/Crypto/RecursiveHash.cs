@@ -31,23 +31,21 @@ namespace Horseshoe.NET.Crypto
             out TraversalStatistics statistics, 
             TraversalOptimizations optimizations = null,
             HashOptions options = null,
-            Action<DirectoryPath, TraversalDirectoryIntercom> onDirectoryHello = null,
-            Action<DirectoryPath> onDirectoryGoodbye = null,
-            Action<DirectoryPath> onDirectorySkipping = null,
-            Action<DirectoryPath> onDirectorySkipped = null,
-            Action<FilePath, TraversalFileIntercom> onFileHello = null,
-            Action<FilePath> onFileSkipped = null,
-            Action<FilePath,string> onFileHashed = null
+            Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> onDirectoryHello = null,
+            Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> onDirectoryGoodbye = null,
+            Action<DirectoryPath, TraversalEngine> onDirectorySkipped = null,
+            Action<FilePath, TraversalEngine, TraversalFileIntercom> onFileHello = null,
+            Action<FilePath, TraversalEngine> onFileSkipped = null,
+            Action<FilePath, string> onFileHashed = null
         )
         {
             var engine = new RecursiveHashEngine(directory, optimizations: optimizations, hashOptions: options)
             {
                 OnDirectoryHello = onDirectoryHello,
                 OnDirectoryGoodbye = onDirectoryGoodbye,
-                OnDirectorySkipping = onDirectorySkipping,
                 OnDirectorySkipped = onDirectorySkipped,
                 OnFileHello = onFileHello,
-                OnFileSkipped = onFileSkipped,
+                OnFileSkip = onFileSkipped,
                 OnFileHashed = onFileHashed
             };
             statistics = engine.Statistics;

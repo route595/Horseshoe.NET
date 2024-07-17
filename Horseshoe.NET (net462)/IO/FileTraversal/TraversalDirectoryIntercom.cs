@@ -5,24 +5,25 @@
     /// </summary>
     public class TraversalDirectoryIntercom
     {
-        internal bool SkipRequested { get; private set; }
+        internal bool Skipped { get; private set; }
         internal bool DeleteRequested { get; private set; }
-        internal bool DeleteContentsRequested { get; private set; }
+        internal bool DeleteContents { get; private set; }
+        internal bool DryRun { get; private set; }
 
         /// <summary>
         /// Client may request this action during certain traversal actions.
         /// </summary>
-        public void Skip() => SkipRequested = true;
+        public void Skip() => Skipped = true;
 
         /// <summary>
         /// Client may request this action during certain traversal actions.
         /// </summary>
-        public void Delete() => DeleteRequested = true;
-
-        /// <summary>
-        /// Client may request this action during certain traversal actions.
-        /// </summary>
-        public void DeleteContents() => DeleteContentsRequested = true;
+        public void RequestDelete(bool deleteContents = false, bool dryRun = false)
+        {
+            DeleteRequested = true;
+            DeleteContents = deleteContents;
+            DryRun = dryRun;
+        }
 
         /// <summary>
         /// Resets the instance's properties to default values.
@@ -30,9 +31,10 @@
         /// <returns>The instance.</returns>
         public TraversalDirectoryIntercom Reset()
         {
-            SkipRequested = false;
+            Skipped = false;
             DeleteRequested = false;
-            DeleteContentsRequested = false;
+            DeleteContents = false;
+            DryRun = false;
             return this;
         }
 

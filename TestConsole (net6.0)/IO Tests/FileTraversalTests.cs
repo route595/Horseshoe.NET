@@ -31,9 +31,9 @@ namespace TestConsole.IOTests
                     int dirLevel = 0;
                     var engine = new TraversalEngine("animalia")
                     {
-                        OnDirectoryHello = (dp, cmd) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
-                        OnDirectoryGoodbye = (dp) => dirLevel--,
-                        OnFileHello = (fp, cmd) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
+                        OnDirectoryHello = (dp, eng, cmd) => Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\"),
+                        OnDirectoryGoodbye = (dp, eng, cmd) => dirLevel--,
+                        OnFileHello = (fp, eng, cmd) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
                     };
                     foreach (var filePattern in filePatterns)
                     {
@@ -53,9 +53,9 @@ namespace TestConsole.IOTests
                     int dirLevel = 0;
                     var engine = new TraversalEngine("animalia")
                     {
-                        OnDirectoryHello = (dp, cmd) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
-                        OnDirectoryGoodbye = (dp) => dirLevel--,
-                        OnFileHello = (fp, cmd) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
+                        OnDirectoryHello = (dp, eng, cmd) => Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\"),
+                        OnDirectoryGoodbye = (dp, eng, cmd) => dirLevel--,
+                        OnFileHello = (fp, eng, cmd) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
                     };
                     foreach (var filePattern in filePatterns)
                     {
@@ -75,11 +75,10 @@ namespace TestConsole.IOTests
                     int dirLevel = 0;
                     var engine = new TraversalEngine("animalia")
                     {
-                        OnDirectoryHello = (dp, _) => Console.WriteLine(new string(' ', N(++dirLevel) * 2) + dp.Name + "\\"),
-                        OnDirectoryGoodbye = (dp) => dirLevel--,
-                        OnDirectorySkipping = (dp) => Console.WriteLine(new string(' ', N(++dirLevel) * 2) + dp.Name + "\\ (skipping)"),
-                        OnDirectorySkipped = (dp) => dirLevel--,
-                        OnFileHello = (fp, _) => Console.WriteLine(new string(' ', N(dirLevel) * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
+                        OnDirectoryHello = (dp, eng, _) => Console.WriteLine(new string(' ', N(dirLevel++) * 2) + dp.Name + "\\"),
+                        OnDirectoryGoodbye = (dp, eng, cmd) => dirLevel--,
+                        OnDirectorySkipped = (dp, eng) => { Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"); },
+                        OnFileHello = (fp, eng, _) => Console.WriteLine(new string(' ', N(dirLevel) * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
                     };
                     engine.Optimizations.DirectoryFilter = (dp) => dp.Name.In("mammalia");
                     engine.Start();
@@ -89,50 +88,230 @@ namespace TestConsole.IOTests
             ),
             BuildMenuRoutine
             (
-                "Delete 'mammalia' via advanced action",
+                "Delete 'mammalia' via filter + intercom callback",
                 () =>
                 {
                     ResetFiles();
-                    int dirLevel = 0;
-                    var engine = new TraversalEngine("animalia")
+                    var optimizations = new TraversalOptimizations
                     {
-                        AdvancedAction = AdvancedAction.Delete(),
-                        OnDirectoryHello = (dp, _) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
-                        OnDirectoryGoodbye = (dp) => dirLevel--,
-                        OnDirectorySkipping = (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (skipping)"),
-                        OnDirectorySkipped = (dp) => dirLevel--,
-                        OnDirectoryDeleting = (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (deleting)"),
-                        OnDirectoryDeleted = (dp) => dirLevel--,
-                        OnFileHello = (fp, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
-                        OnFileDeleted = (fp, sz) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + FileUtil.GetDisplayFileSize(sz) + ") (deleted)")
+                        DirectoryFilter = (dp) => dp.Name.In("mammalia")
                     };
-                    engine.Optimizations.DirectoryFilter = (dp) => dp.Name.In("mammalia");
-                    engine.DryRun = PromptX.Bool("Dry run?", defaultValue: true);
+                    var dryRun = PromptX.Bool("Dry run?");
+                    int dirLevel = 0;
+                    var engine = new TraversalEngine("animalia", optimizations: optimizations)
+                    {
+                        OnDirectoryHello = (dp, eng, cmd) =>
+                        {
+                            Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                            cmd.RequestDelete();
+                        },
+                        OnDirectoryGoodbye = (dp, eng, cmd) =>
+                            dirLevel--,
+                        OnDirectorySkipped = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"),
+                        OnDirectoryDeleting = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(deleting)"),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + dp.Name + "\\)"),
+                        OnFileHello = (fp, eng, _) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        OnFileDelete = (fp, eng, sz) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + FileUtil.GetDisplayFileSize(sz) + ")"),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
+                    };
                     engine.Start();
                     Console.Write(engine.Statistics.Dump());
                 }
             ),
             BuildMenuRoutine
             (
-                "Delete 'mammalia' contents via advanced action",
+                "Delete 'mammalia' contents via filter + intercom callback",
                 () =>
                 {
                     ResetFiles();
+                    var optimizations = new TraversalOptimizations
+                    {
+                        DirectoryFilter = (dp) => dp.Name.In("mammalia")
+                    };
+                    var dryRun = PromptX.Bool("Dry run?");
+                    int dirLevel = 0;
+                    var engine = new TraversalEngine("animalia", optimizations: optimizations)
+                    {
+                        OnDirectoryHello = (dp, eng, cmd) =>
+                        {
+                            Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                            cmd.RequestDelete(deleteContents: true);
+                        },
+                        OnDirectoryGoodbye = (dp, eng, cmd) =>
+                            dirLevel--,
+                        OnDirectorySkipped = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"),
+                        OnDirectoryDeleting = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(deleting)"),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + dp.Name + "\\)"),
+                        OnFileHello = (fp, eng, _) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        OnFileDelete = (fp, eng, sz) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + FileUtil.GetDisplayFileSize(sz) + ")"),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
+                    };
+                    engine.Start();
+                    Console.Write(engine.Statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Delete 'mammalia' via filter + intercom callback - directories only mode",
+                () =>
+                {
+                    ResetFiles();
+                    var optimizations = new TraversalOptimizations
+                    {
+                        DirectoryFilter = (dp) => dp.Name.In("mammalia"),
+                        DirectoriesOnlyMode = true
+                    };
+                    var dryRun = PromptX.Bool("Dry run?");
+                    int dirLevel = 0;
+                    var engine = new TraversalEngine("animalia", optimizations: optimizations)
+                    {
+                        OnDirectoryHello = (dp, eng, cmd) =>
+                        {
+                            Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                            cmd.RequestDelete();
+                        },
+                        OnDirectoryGoodbye = (dp, eng, cmd) =>
+                            dirLevel--,
+                        OnDirectorySkipped = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"),
+                        OnDirectoryDeleting = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(deleting)"),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + dp.Name + "\\)"),
+                        OnFileHello = (fp, eng, _) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        OnFileDelete = (fp, eng, sz) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + FileUtil.GetDisplayFileSize(sz) + ")"),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
+                    };
+                    engine.Start();
+                    Console.Write(engine.Statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Delete 'mammalia' via intercom callback",
+                () =>
+                {
+                    ResetFiles();
+                    var dryRun = PromptX.Bool("Dry run?");
                     int dirLevel = 0;
                     var engine = new TraversalEngine("animalia")
                     {
-                        AdvancedAction = AdvancedAction.DeleteContents(/*Path.Combine(Directory.GetCurrentDirectory(), "animalia", "mammalia"),*/ autoLoadActionRoot: true),
-                        OnDirectoryHello = (dp, _) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
-                        OnDirectoryGoodbye = (dp) => dirLevel--,
-                        OnDirectorySkipping = (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (skipping)"),
-                        OnDirectorySkipped = (dp) => dirLevel--,
-                        OnDirectoryDeleting = (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (deleting)"),
-                        OnDirectoryDeleted = (dp) => dirLevel--,
-                        OnFileHello = (fp, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
-                        OnFileDeleted = (fp, sz) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + FileUtil.GetDisplayFileSize(sz) + ") (deleted)")
+                        OnDirectoryHello = (dp, eng, cmd) =>
+                        {
+                            Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                            if (dp.Name.In("mammalia"))
+                                cmd.RequestDelete();
+                        },
+                        OnDirectoryGoodbye = (dp, eng, cmd) =>
+                            dirLevel--,
+                        OnDirectorySkipped = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"),
+                        OnDirectoryDeleting = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(deleting)"),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + dp.Name + "\\)"),
+                        OnFileHello = (fp, eng, _) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        OnFileDelete = (fp, eng, sz) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + FileUtil.GetDisplayFileSize(sz) + ")"),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
                     };
-                    engine.Optimizations.DirectoryFilter = (dp) => dp.Name.In("mammalia");
-                    engine.DryRun = PromptX.Bool("Dry run?", defaultValue: true);
+                    engine.Start();
+                    Console.Write(engine.Statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Delete 'mammalia' contents via intercom callback",
+                () =>
+                {
+                    ResetFiles();
+                    var dryRun = PromptX.Bool("Dry run?");
+                    int dirLevel = 0;
+                    var engine = new TraversalEngine("animalia")
+                    {
+                        OnDirectoryHello = (dp, eng, cmd) =>
+                        {
+                            Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                            if (dp.Name.In("mammalia"))
+                                cmd.RequestDelete(deleteContents: true);
+                        },
+                        OnDirectoryGoodbye = (dp, eng, cmd) =>
+                            dirLevel--,
+                        OnDirectorySkipped = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"),
+                        OnDirectoryDeleting = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(deleting)"),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + dp.Name + "\\)"),
+                        OnFileHello = (fp, eng, _) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        OnFileDelete = (fp, eng, sz) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + FileUtil.GetDisplayFileSize(sz) + ")"),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
+                    };
+                    engine.Start();
+                    Console.Write(engine.Statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Delete 'mammalia' via intercom callback - directories only mode - inline delete msg",
+                () =>
+                {
+                    ResetFiles();
+                    var optimizations = new TraversalOptimizations
+                    {
+                        DirectoriesOnlyMode = true
+                    };
+                    var dryRun = PromptX.Bool("Dry run?");
+                    int dirLevel = 0;
+                    var engine = new TraversalEngine("animalia", optimizations: optimizations)
+                    {
+                        OnDirectoryHello = (dp, eng, cmd) =>
+                        {
+                            Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                            if (dp.Name.In("mammalia"))
+                                cmd.RequestDelete();
+                        },
+                        OnDirectoryGoodbye = (dp, eng, cmd) =>
+                            dirLevel--,
+                        OnDirectorySkipped = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"),
+                        OnDirectoryDeleting = (dp, eng) =>
+                            Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(deleting)"),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + dp.Name + "\\)"),
+                        OnFileHello = (fp, eng, _) =>
+                            Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        //OnFileDelete = (fp, eng, sz) =>
+                        //    Console.WriteLine(new string(' ', dirLevel * 2) + "(deleted " + FileUtil.GetDisplayFileSize(sz) + ")"),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
+                    };
                     engine.Start();
                     Console.Write(engine.Statistics.Dump());
                 }

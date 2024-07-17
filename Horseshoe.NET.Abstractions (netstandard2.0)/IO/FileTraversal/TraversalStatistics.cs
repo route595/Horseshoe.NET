@@ -10,32 +10,28 @@ namespace Horseshoe.NET.IO.FileTraversal
     /// </summary>
     public class TraversalStatistics : List<TraversalStatistics.Entry>
     {
-        public const string Hello = "Hello";
-        public const string Skipping = "Skipping";
-        public const string Skipped = "Skipped";
-        public const string Deleting = "Deleting";
-        public const string DeletingContents = "Deleting Contents";
-        public const string Deleted = "Deleted";
-        public const string ContentsDeleted = "Contents Deleted";
-        public const string NoLogging = "NoLogging";
-        public const string LogFile = "LogFile";
-        public const string LogDirectory = "LogDirectory";
-        public const string UpdateLogActionFile = "UpdateLogActionFile";
-        public const string UpdateLogActionDirectory = "UpdateLogActionDirectory";
+        private string _tempVirtualPath;
 
         public int DirectoryCount => this.Count(tse => tse.ObjectType == FileSystemObjectType.Directory);
         public int TotalFileCount => this.Count(tse => tse.ObjectType == FileSystemObjectType.File);
         public long TotalFileSize => this.Sum(tse => tse.FileSize ?? 0L);
         public int FilesDeleted { get; set; }
 
-        public void Log(DirectoryPath directory, DirectoryPath root, string action = Hello)
+        private readonly static StringBuilder strb = new StringBuilder();  // using this optimizes memory
+
+        public void Log(DirectoryPath directory, DirectoryPath root, string action)
         {
-            Add(new Entry(directory, root, FileSystemObjectType.Directory, action: action));
+            Add(new Entry { VirtualPath = FileUtilAbstractions.DisplayAsVirtualPathFromRoot(directory, root, strb: strb), ObjectType = FileSystemObjectType.Directory, Action = action });
         }
 
-        public void Log(FilePath file, DirectoryPath root, long? fileSize = null, string action = Hello)
+        public void LogHello(DirectoryPath directory, DirectoryPath root)
         {
-            Add(new Entry(file, root, FileSystemObjectType.File, fileSize: fileSize, action: action));
+            Log(directory, root, TraversalConstants.Hello);
+        }
+
+        public void LogHello(FilePath file, DirectoryPath root)
+        {
+            Add(new Entry { VirtualPath = FileUtilAbstractions.DisplayAsVirtualPathFromRoot(file, root, strb: strb), ObjectType = FileSystemObjectType.File, FileSize = file.Size, Action = TraversalConstants.Hello });
         }
 
         //public void UpdateActionLastDirectory(string action)
@@ -48,14 +44,16 @@ namespace Horseshoe.NET.IO.FileTraversal
         //    this.Last(tse => tse.ObjectType == FileSystemObjectType.File).Action = action;
         //}
 
-        public void UpdateAction(DirectoryPath directory, string action)
+        public void UpdateAction(DirectoryPath directory, DirectoryPath root, string action)
         {
-            this.Single(tse => tse.ObjectType == FileSystemObjectType.Directory && tse.Path == directory.FullName).Action = action;
+            _tempVirtualPath = FileUtilAbstractions.DisplayAsVirtualPathFromRoot(directory, root, strb: strb);
+            this.Single(tse => tse.ObjectType == FileSystemObjectType.Directory && tse.VirtualPath == _tempVirtualPath).Action = action;
         }
 
-        public void UpdateAction(FilePath file, string action)
+        public void UpdateAction(FilePath file, DirectoryPath root, string action)
         {
-            this.Single(tse => tse.ObjectType == FileSystemObjectType.File && tse.Path == file.FullName).Action = action;
+            _tempVirtualPath = FileUtilAbstractions.DisplayAsVirtualPathFromRoot(file, root, strb: strb);
+            this.Single(tse => tse.ObjectType == FileSystemObjectType.File && tse.VirtualPath == _tempVirtualPath).Action = action;
         }
 
         public string Dump()
@@ -97,33 +95,11 @@ namespace Horseshoe.NET.IO.FileTraversal
 
         public class Entry
         {
-            public string Path { get; }
-            public string VirtualPath { get; }
-            public FileSystemObjectType ObjectType { get; }
-            public long? FileSize { get; }
+            //public string Path { get; }
+            public string VirtualPath { get; set; }
+            public FileSystemObjectType ObjectType { get; set; }
+            public long? FileSize { get; set; }
             public string Action { get; set; }
-
-            private readonly static StringBuilder strb = new StringBuilder();  // using this optimizes memory
-
-            public Entry(FilePath file, DirectoryPath root, FileSystemObjectType objectType, long? fileSize = null, string action = null)
-                : this(FileUtilAbstractions.DisplayAsVirtualPathFromRoot(file, root, strb: strb), objectType, fileSize: fileSize ?? (file.Exists ? file.Size as long? : null), action: action)
-            {
-                Path = file;
-            }
-
-            public Entry(DirectoryPath directory, DirectoryPath root, FileSystemObjectType objectType, string action = null)
-                : this(FileUtilAbstractions.DisplayAsVirtualPathFromRoot(directory, root, strb: strb), objectType, action: action)
-            {
-                Path = directory;
-            }
-
-            private Entry(string virtualPath, FileSystemObjectType objectType, long? fileSize = null, string action = null)
-            {
-                VirtualPath = virtualPath;
-                ObjectType = objectType;
-                FileSize = fileSize;
-                Action = action;
-            }
 
             public override string ToString()
             {

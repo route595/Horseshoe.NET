@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.IO.FileTraversal
 {
@@ -23,6 +23,11 @@ namespace Horseshoe.NET.IO.FileTraversal
         public bool DryRun { get; set; }
 
         /// <summary>
+        /// Attempts to reflect at the instance level the real-time state of the internal recursive delete flag 
+        /// </summary>
+        public bool RecursiveDeleteMode { get; private set; }
+
+        /// <summary>
         /// A snapshot of what occurred during the file traversal session
         /// </summary>
         public TraversalStatistics Statistics { get; }
@@ -33,55 +38,56 @@ namespace Horseshoe.NET.IO.FileTraversal
         public virtual TraversalOptimizations Optimizations { get; }
 
         /// <summary>
-        /// EvenT to trigger on directory discovery
+        /// Event to trigger on directory discovery
         /// </summary>
-        public virtual Action<DirectoryPath, TraversalDirectoryIntercom> OnDirectoryHello { get; set; }
+        public virtual Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> OnDirectoryHello { get; set; }
 
         /// <summary>
         /// Event to trigger on directory exit
         /// </summary>
-        public virtual Action<DirectoryPath> OnDirectoryGoodbye { get; set; }
-
-        /// <summary>
-        /// Event to trigger when a directory is being skipped
-        /// </summary>
-        public virtual Action<DirectoryPath> OnDirectorySkipping { get; set; }
-
+        public virtual Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> OnDirectoryGoodbye { get; set; }
 
         /// <summary>
         /// Event to trigger on skipped directory exit
         /// </summary>
-        public virtual Action<DirectoryPath> OnDirectorySkipped { get; set; }
+        public virtual Action<DirectoryPath, TraversalEngine> OnDirectorySkipped { get; set; }
 
         /// <summary>
         /// Event to trigger when a directory is being deleted
         /// </summary>
-        public virtual Action<DirectoryPath> OnDirectoryDeleting { get; set; }
+        public virtual Action<DirectoryPath, TraversalEngine> OnDirectoryDeleting { get; set; }
 
         /// <summary>
         /// Event to trigger on deleted directory exit
         /// </summary>
-        public virtual Action<DirectoryPath> OnDirectoryDeleted { get; set; }
+        public virtual Action<DirectoryPath, TraversalEngine> OnDirectoryDeleted { get; set; }
 
         /// <summary>
         /// Event to trigger on file discovery
         /// </summary>
-        public virtual Action<FilePath, TraversalFileIntercom> OnFileHello { get; set; }
+        public virtual Action<FilePath, TraversalEngine, TraversalFileIntercom> OnFileHello { get; set; }
 
         /// <summary>
         /// Event to trigger when a file is being skipped
         /// </summary>
-        public virtual Action<FilePath> OnFileSkipped { get; set; }
+        public virtual Action<FilePath, TraversalEngine> OnFileSkip { get; set; }
+
+        ///// <summary>
+        ///// Event to trigger for files that should be processed, if applicable
+        ///// </summary>
+        //public virtual Action<FilePath, TraversalEngine, TraversalFileIntercom> OnFileProcess { get; set; }
 
         /// <summary>
         /// Event to trigger after a file has been deleted
         /// </summary>
-        public virtual Action<FilePath, long> OnFileDeleted { get; set; }
+        public virtual Action<FilePath, TraversalEngine, long> OnFileDelete { get; set; }
 
         /// <summary>
-        /// 
+        /// Event to trigger when a warning condition occurs
         /// </summary>
-        public virtual AdvancedAction AdvancedAction { get; set; }
+        public virtual Action<string> OnWarning { get; set; }
+
+        private DirectoryPath? doNotDelete;
 
         public TraversalEngine(DirectoryPath root, TraversalStatistics statistics = null, TraversalOptimizations optimizations = null)
         {
@@ -94,103 +100,78 @@ namespace Horseshoe.NET.IO.FileTraversal
 
         public void Start()
         {
-            AdvancedAction.CurrentTraversalEngine = this;
-
-            try
-            {
-                if (Root.Parent.HasValue)
-                {
-                    var rootSiblingNames = GetSubdirectories(Root.Parent.Value, Optimizations, out bool filtered)
-                        .Select(d => d.Name);
-                    if (filtered && !Root.Name.In(rootSiblingNames))
-                    {
-                        Iterate(Root, true, AdvancedAction);
-                        return;
-                    }
-                }
-            }
-            catch { }
-            Iterate(Root, false, AdvancedAction);
+            //AdvancedAction.CurrentTraversalEngine = this;
+            bool skipRoot = (Optimizations.DirectoryFilter != null && !Optimizations.DirectoryFilter.Invoke(Root)) || (Optimizations.DirectorySearchPattern != null && !Regex.IsMatch(Root, Optimizations.DirectorySearchPattern.Replace(".", "\\.").Replace("*", ".*")));
+            Iterate(Root, skipRoot, false);
         }
 
-        private void Iterate(DirectoryPath dirPath, bool skipDir, AdvancedAction advancedAction)
+        private void Iterate(DirectoryPath dirPath, bool skipDir, bool recursiveDelete)
         {
-            if (skipDir)
+            OnDirectoryHello?.Invoke(dirPath, this, TraversalDirectoryIntercom.Instance.Reset());
+            Statistics.LogHello(dirPath, Root);
+            if (skipDir && !recursiveDelete)
             {
-                OnDirectorySkipping?.Invoke(dirPath);
-                Log(dirPath, action: TraversalStatistics.Skipping);
-            }
-            else if (advancedAction != null)
-            {
-                if (advancedAction.AutoLoadActionRoot && AdvancedAction.CurrentRoot == null)
-                    AdvancedAction.SetCurrentRoot(dirPath);
-                if (advancedAction.DirectoryHelloAction != null)
-                    advancedAction.DirectoryHelloAction.Invoke(dirPath);
-                else
-                    OnDirectoryHello?.Invoke(dirPath, null);
-                if (advancedAction.DirectoryHelloLogAction != null)
-                    advancedAction.DirectoryHelloLogAction.Invoke(dirPath);
-                else
-                    Log(dirPath);
+                OnDirectorySkipped?.Invoke(dirPath, this);
+                Statistics.UpdateAction(dirPath, Root, TraversalConstants.Skipped);
             }
             else
             {
-                OnDirectoryHello?.Invoke(dirPath, TraversalDirectoryIntercom.Instance.Reset());
-                if (TraversalDirectoryIntercom.Instance.SkipRequested)
+                if (recursiveDelete)
                 {
-                    OnDirectorySkipping?.Invoke(dirPath);
-                    Log(dirPath, action: TraversalStatistics.Skipping);
+                    if (TraversalDirectoryIntercom.Instance.Skipped)
+                        OnWarning?.Invoke("Skip denied in recursive delete mode");
+                    if (TraversalDirectoryIntercom.Instance.DeleteRequested)
+                        OnWarning?.Invoke("Delete request is redundant in recursive delete mode");
+                }
+                if (TraversalDirectoryIntercom.Instance.DeleteRequested)
+                {
+                    RecursiveDeleteMode = recursiveDelete = true;
+                    if (TraversalDirectoryIntercom.Instance.DeleteContents)
+                        doNotDelete = dirPath;
+                    OnDirectoryDeleting?.Invoke(dirPath, this);
+                    Statistics.UpdateAction(dirPath, Root, action: TraversalConstants.Deleting);
+                }
+                else if (TraversalDirectoryIntercom.Instance.Skipped)
+                {
+                    OnDirectorySkipped?.Invoke(dirPath, this);
+                    Statistics.UpdateAction(dirPath, Root, TraversalConstants.Skipped);
                     skipDir = true;
                 }
-                else if (TraversalDirectoryIntercom.Instance.DeleteRequested)
-                {
-                    advancedAction = AdvancedAction.Delete(dryRun: DryRun);
-                    Log(dirPath, action: TraversalStatistics.Deleting);
-                }
-                else if (TraversalDirectoryIntercom.Instance.DeleteContentsRequested)
-                {
-                    advancedAction = AdvancedAction.DeleteContents(dirPath, dryRun: DryRun);
-                    Log(dirPath, action: TraversalStatistics.DeletingContents);
-                }
-                else
-                {
-                    Log(dirPath);
-                }
-            }
 
-            // Files
-            if (!Optimizations.ScanDirectoriesOnly && !skipDir)
-            {
-                foreach (var file in GetFiles(dirPath, Optimizations))
+                // Files
+                if ((!Optimizations.DirectoriesOnlyMode && !skipDir) || recursiveDelete)
                 {
-                    var fileSize = file.Size;
-                    if (advancedAction != null)
+                    foreach (var file in GetFiles(dirPath, Optimizations))
                     {
-                        if (advancedAction.FileHelloAction != null)
-                            advancedAction.FileHelloAction.Invoke(file);
-                        else
-                            OnFileHello?.Invoke(file, null);
-                        if (advancedAction.FileHelloLogAction != null)
-                            advancedAction.FileHelloLogAction?.Invoke(file);
-                        else
-                            Log(file, action: "Hello-" + advancedAction.Name);
-                    }
-                    else
-                    {
-                        OnFileHello?.Invoke(file, TraversalFileIntercom.Instance.Reset(dryRun: DryRun));
-                        if (TraversalFileIntercom.Instance.SkipRequested)
+                        Statistics.LogHello(file, Root);
+                        var fileSize = file.Size;
+                        OnFileHello?.Invoke(file, this, TraversalFileIntercom.Instance.Reset(dryRun: DryRun));
+                        if (recursiveDelete)
                         {
-                            OnFileSkipped?.Invoke(file);
-                            Log(file, action: TraversalStatistics.Skipped);
+                            if (TraversalFileIntercom.Instance.Skipped)
+                                OnWarning?.Invoke("Skip denied in recursive delete mode");
+                            if (TraversalFileIntercom.Instance.DeleteRequested)
+                                OnWarning?.Invoke("Delete request is redundant in recursive delete mode");
+                            if (!DryRun)
+                                file.Delete();
+                            OnFileDelete?.Invoke(file, this, fileSize);
+                            Statistics.UpdateAction(file, Root, TraversalConstants.Deleted);
+                        }
+                        else if (TraversalFileIntercom.Instance.Skipped)
+                        {
+                            OnFileSkip?.Invoke(file, this);
+                            Statistics.UpdateAction(file, Root, TraversalConstants.Skipped);
                         }
                         else if (TraversalFileIntercom.Instance.DeleteRequested)
                         {
-                            Delete(file);
-                            Log(file, action: TraversalStatistics.Deleted);
+                            if (!DryRun && !TraversalFileIntercom.Instance.DryRun)
+                                file.Delete();
+                            OnFileDelete?.Invoke(file, this, fileSize);
+                            Statistics.UpdateAction(file, Root, TraversalConstants.Deleted);
                         }
-                        else
+                        else if (TraversalFileIntercom.Instance.ActionName != null)
                         {
-                            Log(file);
+                            Statistics.UpdateAction(file, Root, TraversalFileIntercom.Instance.ActionName);
                         }
                     }
                 }
@@ -201,38 +182,54 @@ namespace Horseshoe.NET.IO.FileTraversal
                 .Select(d => d.Name);
             foreach (var dir in dirPath.GetDirectories())
             {
-                if (filtered && !dir.Name.In(dirNames))
-                {
-                    Iterate(dir, true, advancedAction);
-                }
-                else
-                {
-                    Iterate(dir, false, advancedAction);
-                }
+                Iterate(dir, filtered && !dir.Name.In(dirNames), recursiveDelete);
             }
 
             // goodbye
-            if (skipDir)
+            OnDirectoryGoodbye?.Invoke(dirPath, this, TraversalDirectoryIntercom.Instance.Reset());
+
+            if (skipDir && !recursiveDelete)
+                return;
+
+            if (recursiveDelete)
             {
-                OnDirectorySkipped?.Invoke(dirPath);
-                Statistics.UpdateAction(dirPath, TraversalStatistics.Skipped);
-            }
-            else
-            {
-                if (advancedAction != null)
+                if (doNotDelete.HasValue && doNotDelete.Value == dirPath)
                 {
-                    if (advancedAction.DirectoryGoodbyeAction != null)
-                    {
-                        advancedAction.DirectoryGoodbyeAction.Invoke(dirPath);
-                    }
-                    advancedAction.DirectoryGoodbyeLogAction?.Invoke(dirPath);
+                    doNotDelete = null;
+                    Statistics.UpdateAction(dirPath, Root, TraversalConstants.ContentsDeleted);
                 }
-
-                OnDirectoryGoodbye?.Invoke(dirPath);
-
-                if (advancedAction != null && advancedAction.AutoLoadActionRoot && AdvancedAction.CurrentRoot.HasValue && AdvancedAction.CurrentRoot == dirPath)
-                    AdvancedAction.SetCurrentRoot(null);
+                else
+                {
+                    if (!DryRun)
+                        dirPath.Delete();
+                    OnDirectoryDeleted?.Invoke(dirPath, this);
+                    Statistics.UpdateAction(dirPath, Root, TraversalConstants.Deleted);
+                }
             }
+            else if (TraversalDirectoryIntercom.Instance.Skipped)
+            {
+                OnWarning?.Invoke("Skip request is denied in goodbye stage");
+            }
+            else if (TraversalDirectoryIntercom.Instance.DeleteRequested)
+            {
+                if (TraversalDirectoryIntercom.Instance.Skipped)
+                    OnWarning?.Invoke("Skip request is denied in delete mode");
+                if (TraversalDirectoryIntercom.Instance.DeleteContents)
+                    OnWarning?.Invoke("Delete contents is not honored in goodbye stage");
+
+                if (dirPath.Exists)
+                {
+                    if (!DryRun)
+                        dirPath.Delete();
+                    Statistics.UpdateAction(dirPath, Root, TraversalConstants.Deleted);
+                    OnDirectoryDeleted?.Invoke(dirPath, this);
+                }
+                else
+                {
+                    OnWarning?.Invoke("This directory has already been deleted: " + FileUtilAbstractions.DisplayAsVirtualPathFromRoot( dirPath, Root));
+                }
+            }
+            RecursiveDeleteMode = recursiveDelete;
         }
 
         private static IEnumerable<FilePath> GetFiles(DirectoryPath dirPath, TraversalOptimizations optimizations)
@@ -277,61 +274,66 @@ namespace Horseshoe.NET.IO.FileTraversal
             return dirs;
         }
 
-        public void Delete(FilePath file, bool dryRun = false, string logAction = TraversalStatistics.NoLogging)
-        {
-            var fileSize = file.Size;
-            if (!(DryRun || dryRun))
-                file.Delete();
-            OnFileDeleted?.Invoke(file, fileSize);
-            switch (logAction)
-            {
-                case TraversalStatistics.LogFile:
-                    Log(file, fileSize: fileSize, action: TraversalStatistics.Deleted);
-                    break;
-                case TraversalStatistics.UpdateLogActionFile:
-                    Statistics.UpdateAction(file, TraversalStatistics.Deleted);
-                    break;
-            }
-        }
+        //public void Delete(FilePath file, bool dryRun = false, string logAction = TraversalStatistics.NoLogging)
+        //{
+        //    var fileSize = file.Size;
+        //    if (!(DryRun || dryRun))
+        //        file.Delete();
+        //    OnFileDelete?.Invoke(file, fileSize);
+        //    switch (logAction)
+        //    {
+        //        case TraversalStatistics.LogFile:
+        //            Log(file, fileSize: fileSize, action: TraversalStatistics.Deleted);
+        //            break;
+        //        case TraversalStatistics.UpdateLogActionFile:
+        //            Statistics.UpdateAction(file, TraversalStatistics.Deleted);
+        //            break;
+        //    }
+        //}
 
-        public void Deleting(DirectoryPath directory, string logAction = TraversalStatistics.NoLogging)
-        {
-            OnDirectoryDeleting?.Invoke(directory);
-            switch (logAction)
-            {
-                case TraversalStatistics.LogDirectory:
-                    Log(directory, action: TraversalStatistics.Deleting);
-                    break;
-                case TraversalStatistics.UpdateLogActionDirectory:
-                    Statistics.UpdateAction(directory, TraversalStatistics.Deleting);
-                    break;
-            }
-        }
+        //public void Deleting(DirectoryPath directory, string logAction = TraversalStatistics.NoLogging)
+        //{
+        //    OnDirectoryDeleting?.Invoke(directory);
+        //    switch (logAction)
+        //    {
+        //        case TraversalStatistics.LogDirectory:
+        //            Log(directory, action: TraversalStatistics.Deleting);
+        //            break;
+        //        case TraversalStatistics.UpdateLogActionDirectory:
+        //            Statistics.UpdateAction(directory, TraversalStatistics.Deleting);
+        //            break;
+        //    }
+        //}
 
-        public void Delete(DirectoryPath directory, bool dryRun = false, string logAction = TraversalStatistics.NoLogging)
-        {
-            if (!(DryRun || dryRun))
-                directory.Delete();
-            OnDirectoryDeleted?.Invoke(directory);
-            switch (logAction)
-            {
-                case TraversalStatistics.LogDirectory:
-                    Log(directory, action: TraversalStatistics.Deleted);
-                    break;
-                case TraversalStatistics.UpdateLogActionDirectory:
-                    Statistics.UpdateAction(directory, TraversalStatistics.Deleted);
-                    break;
-            }
-        }
+        //public void Delete(DirectoryPath directory, bool dryRun = false, string logAction = TraversalStatistics.NoLogging)
+        //{
+        //    if (!(DryRun || dryRun))
+        //        directory.Delete();
+        //    OnDirectoryDeleted?.Invoke(directory);
+        //    switch (logAction)
+        //    {
+        //        case TraversalStatistics.LogDirectory:
+        //            Log(directory, action: TraversalStatistics.Deleted);
+        //            break;
+        //        case TraversalStatistics.UpdateLogActionDirectory:
+        //            Statistics.UpdateAction(directory, Root, TraversalStatistics.Deleted);
+        //            break;
+        //    }
+        //}
 
-        public void Log(FilePath file, long? fileSize = null, string action = TraversalStatistics.Hello)
-        {
-            Statistics.Log(file, Root, fileSize: fileSize, action: action);
-        }
+        //private void Log(FilePath file, long? fileSize = null, string action = TraversalStatistics.Hello)
+        //{
+        //    Statistics.Log(file, Root, fileSize: file.Size, action: TraversalStatistics.Hello);
+        //}
 
-        public void Log(DirectoryPath directory, string action = TraversalStatistics.Hello)
-        {
-            Statistics.Log(directory, Root, action: action);
-        }
+        //public void Log(FilePath file, long? fileSize = null, string action = TraversalStatistics.Hello)
+        //{
+        //    Statistics.Log(file, Root, fileSize: fileSize, action: action);
+        //}
+
+        //public void Log(DirectoryPath directory, string action = TraversalStatistics.Hello)
+        //{
+        //    Statistics.Log(directory, Root, action: action);
+        //}
     }
 }

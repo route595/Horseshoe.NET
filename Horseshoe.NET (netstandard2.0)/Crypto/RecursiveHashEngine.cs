@@ -10,18 +10,6 @@ namespace Horseshoe.NET.Crypto
     {
         private StringBuilder _hashes = new StringBuilder();
 
-        public override AdvancedAction AdvancedAction =>
-            new AdvancedAction
-            (
-                "Hash",
-                fileHelloAction: (fp) =>
-                {
-                    var hash = Hash.String(fp, options: HashOptions);
-                    OnFileHashed?.Invoke(fp, hash);
-                    _hashes.Append(hash);
-                }
-            );
-
         /// <summary>
         /// Hash options
         /// </summary>
@@ -62,6 +50,15 @@ namespace Horseshoe.NET.Crypto
             //OnFileSkipped = onFileSkipped;
             //OnFileHashed = onFileHashed;
         }
+
+        /// <inheritdoc cref="TraversalEngine.OnFileHello" />
+        public override Action<FilePath, TraversalEngine, TraversalFileIntercom> OnFileHello => (fp, eng, cmd) =>
+        {
+            var hash = Hash.String(fp, options: HashOptions);
+            OnFileHashed?.Invoke(fp, hash);
+            eng.Statistics.UpdateAction(fp, eng.Root, "Hash");
+            _hashes.Append(hash);
+        };
 
         /// <summary>
         /// Calculates the cumulutive hash of all the file hashes

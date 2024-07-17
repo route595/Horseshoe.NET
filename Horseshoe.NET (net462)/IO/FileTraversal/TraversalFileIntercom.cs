@@ -5,19 +5,30 @@
     /// </summary>
     public class TraversalFileIntercom
     {
-        internal bool SkipRequested { get; private set; }
+
+        /// <summary>
+        /// A file action label for the traversal engine to display in the statistics 
+        /// </summary>
+        public string ActionName { get; set; }
+
+        internal bool Skipped { get; private set; }
         internal bool DeleteRequested { get; private set; }
         internal bool DryRun { get; private set; }
 
         /// <summary>
         /// Client can call this during certain traversal actions.
         /// </summary>
-        public void Skip() => SkipRequested = true;
+        public void Skip() => Skipped = true;
 
         /// <summary>
         /// Client can call this during certain traversal actions.
         /// </summary>
-        public void Delete() => DeleteRequested = true;
+        public void RequestDelete(bool dryRun = false) 
+        {
+            DeleteRequested = true;
+            if (dryRun)
+                DryRun = true;
+        }
 
         /// <summary>
         /// Resets the instance's properties to default values.
@@ -25,7 +36,8 @@
         /// <returns>The instance.</returns>
         public TraversalFileIntercom Reset(bool dryRun = false)
         {
-            SkipRequested = false;
+            ActionName = null;
+            Skipped = false;
             DeleteRequested = false;
             DryRun = dryRun;
             return this;

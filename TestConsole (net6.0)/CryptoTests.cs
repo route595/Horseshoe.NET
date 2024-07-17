@@ -70,13 +70,12 @@ namespace TestConsole
                     (
                         "animalia",
                         out TraversalStatistics statistics,
-                        onDirectoryHello: (dp, _) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
-                        onDirectoryGoodbye: (dp) => dirLevel--,
-                        onDirectorySkipping: (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (skipping)"),
-                        onDirectorySkipped: (dp) => dirLevel--,
-                        onFileHello: (fp, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
-                        onFileSkipped: (fp) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (skipped)"),
-                        onFileHashed: (fp, hash) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " " + hash)
+                        onDirectoryHello: (dp, eng, _) => Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\"),
+                        onDirectoryGoodbye: (dp, eng, _) => dirLevel--,
+                        onDirectorySkipped: (dp, eng) => {  Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"); },
+                        onFileHello: (fp, eng, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        onFileSkipped: (fp, eng) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (skipped)"),
+                        onFileHashed: (fp, hash) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " " + hash)
                     );
                     Console.WriteLine("Cumulative Hash: " + cumulativeHash);
                     Console.Write(statistics.Dump());
@@ -94,13 +93,12 @@ namespace TestConsole
                         "animalia",
                         out TraversalStatistics statistics,
                         optimizations: new TraversalOptimizations { DirectoryFilter = (dp) => dp.Name.In("mammalia"), FileSearchPattern = "*.txt" },
-                        onDirectoryHello: (dp, _) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\"),
-                        onDirectoryGoodbye: (dp) => dirLevel--,
-                        onDirectorySkipping: (dp) => Console.WriteLine(new string(' ', ++dirLevel * 2) + dp.Name + "\\ (skipping)"),
-                        onDirectorySkipped: (dp) => dirLevel--,
-                        onFileHello: (fp, _) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
-                        onFileSkipped: (fp) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " (skipped)"),
-                        onFileHashed: (fp, hash) => Console.WriteLine(new string(' ', dirLevel * 2 + 2) + fp.Name + " " + hash)
+                        onDirectoryHello: (dp, eng, _) => Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\"),
+                        onDirectoryGoodbye: (dp, eng, _) => dirLevel--,
+                        onDirectorySkipped: (dp, eng) => {  Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"); },
+                        onFileHello: (fp, eng, _) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")"),
+                        onFileSkipped: (fp, eng) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " (skipped)"),
+                        onFileHashed: (fp, hash) => Console.WriteLine(new string(' ', dirLevel * 2) + fp.Name + " " + hash)
                     );
                     Console.WriteLine("Cumulative Hash: " + cumulativeHash);
                     Console.Write(statistics.Dump());

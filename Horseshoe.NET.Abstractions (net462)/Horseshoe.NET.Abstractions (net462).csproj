@@ -152,6 +152,7 @@
     <Compile Include="IO\FileSizeUnit.cs" />
     <Compile Include="IO\FileTraversal\FileSystemObjectType.cs" />
     <Compile Include="IO\FileTraversal\TraversalOptimizations.cs" />
+    <Compile Include="IO\FileTraversal\TraversalConstants.cs" />
     <Compile Include="IO\FileTraversal\TraversalStatistics.cs" />
     <Compile Include="IO\FileType.cs" />
     <Compile Include="IO\FileUtilAbstractions.cs" />
