@@ -56,6 +56,22 @@ namespace Horseshoe.NET.IO
         public DirectoryPath? Parent =>
             Directory.Parent != null ? Directory.Parent : null;
 
+        /// <summary>
+        /// Returns the nth parent directory or throws an exception if not accessible or nonexistent
+        /// </summary>
+        /// <param name="levels">How far up the directory tree to go</param>
+        /// <returns>The nth parent directory</returns>
+        /// <exception cref="ValidationException"></exception>
+        public DirectoryPath Back(int levels = 1)
+        {
+            var dir = this;
+            for (int i = 0; i < levels; i++)
+            {
+                dir = dir.Parent ?? throw new ValidationException("Parent directory does not exist or is inaccessible");
+            }
+            return dir;
+        }
+
         /// <inheritdoc cref="DirectoryInfo.Create()"/>
         public void Create() =>
             Directory.Create();
@@ -151,6 +167,11 @@ namespace Horseshoe.NET.IO
         {
             return 772425832 + EqualityComparer<DirectoryInfo>.Default.GetHashCode(Directory);
         }
+
+        /// <summary>
+        /// The current directory
+        /// </summary>
+        public static DirectoryPath CurrentDirectory = System.IO.Directory.GetCurrentDirectory();
 
         /// <summary>
         /// Indicates whether this <c>DirectoryPath</c> is equal to another.

@@ -18,6 +18,11 @@ namespace Horseshoe.NET.IO.FileTraversal
         public Func<FilePath, bool> FileFilter { get; set; }
 
         /// <summary>
+        /// If either <c>FileSearchPattern</c> or <c>FileFilter</c> is set then <c>true</c>, otherwise <c>false</c>
+        /// </summary>
+        public bool HasFileFilter => FileFilter != null || FileSearchPattern != null;
+
+        /// <summary>
         /// An optional native search pattern to specify which directories are browsed by the traversal engine, e.g. "Program Files*".
         /// </summary>
         public string DirectorySearchPattern { get; set; }
@@ -31,5 +36,10 @@ namespace Horseshoe.NET.IO.FileTraversal
         /// If <c>true</c> only directories are scanned and not files, default is <c>false</c>.
         /// </summary>
         public bool DirectoriesOnlyMode { get; set; }
+
+        /// <summary>
+        /// If either <c>DirectorySearchPattern</c> or <c>DirectoryFilter</c> is set then <c>true</c>, otherwise <c>false</c>
+        /// </summary>
+        public bool HasDirectoryFilter => DirectoryFilter != null || DirectorySearchPattern != null;
     }
 }

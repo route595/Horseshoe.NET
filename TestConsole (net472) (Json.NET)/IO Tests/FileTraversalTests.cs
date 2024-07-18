@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Text;
 using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.IO;
@@ -75,10 +75,10 @@ namespace TestConsole.IOTests
                     int dirLevel = 0;
                     var engine = new TraversalEngine("animalia")
                     {
-                        OnDirectoryHello = (dp, eng, _) => Console.WriteLine(new string(' ', N(dirLevel++) * 2) + dp.Name + "\\"),
+                        OnDirectoryHello = (dp, eng, cmd) => Console.WriteLine(new string(' ', N(dirLevel++) * 2) + dp.Name + "\\"),
                         OnDirectoryGoodbye = (dp, eng, cmd) => dirLevel--,
                         OnDirectorySkipped = (dp, eng) => { Console.WriteLine(new string(' ', (dirLevel - 1) * 2) + "(skipping)"); },
-                        OnFileHello = (fp, eng, _) => Console.WriteLine(new string(' ', N(dirLevel) * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
+                        OnFileHello = (fp, eng, cmd) => Console.WriteLine(new string(' ', N(dirLevel) * 2) + fp.Name + " (" + fp.GetDisplaySize() + ")")
                     };
                     engine.Optimizations.DirectoryFilter = (dp) => dp.Name.In("mammalia");
                     engine.Start();
@@ -103,6 +103,9 @@ namespace TestConsole.IOTests
                         OnDirectoryHello = (dp, eng, cmd) =>
                         {
                             Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                        },
+                        OnDirectoryFilterMatch = (dp, eng, cmd) =>
+                        {
                             cmd.RequestDelete();
                         },
                         OnDirectoryGoodbye = (dp, eng, cmd) =>
@@ -142,6 +145,9 @@ namespace TestConsole.IOTests
                         OnDirectoryHello = (dp, eng, cmd) =>
                         {
                             Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                        },
+                        OnDirectoryFilterMatch = (dp, eng, cmd) =>
+                        {
                             cmd.RequestDelete(deleteContents: true);
                         },
                         OnDirectoryGoodbye = (dp, eng, cmd) =>
@@ -182,6 +188,9 @@ namespace TestConsole.IOTests
                         OnDirectoryHello = (dp, eng, cmd) =>
                         {
                             Console.WriteLine(new string(' ', dirLevel++ * 2) + dp.Name + "\\");
+                        },
+                        OnDirectoryFilterMatch = (dp, eng, cmd) =>
+                        {
                             cmd.RequestDelete();
                         },
                         OnDirectoryGoodbye = (dp, eng, cmd) =>
@@ -312,6 +321,60 @@ namespace TestConsole.IOTests
                             RenderX.Alert(msg),
                         DryRun = dryRun
                     };
+                    engine.Start();
+                    Console.Write(engine.Statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Delete 'bin', 'obj' via filter + intercom callback - directories only mode",
+                () =>
+                {
+                    ResetFiles();
+                    var optimizations = new TraversalOptimizations
+                    {
+                        DirectoriesOnlyMode = true,
+                        DirectoryFilter = dp => dp.Name.In("bin", "obj")
+                    };
+                    var dryRun = PromptX.Bool("Dry run?");
+                    var strb = new StringBuilder();
+                    var engine = new TraversalEngine(DirectoryPath.CurrentDirectory.Back(2), optimizations: optimizations)
+                    {
+                        //OnDirectoryHello = (dp, eng, cmd) => cmd.RequestDelete(deleteContents: true),
+                        OnDirectoryFilterMatch = (dp, eng, cmd) => cmd.RequestDelete(deleteContents: true),
+                        OnDirectoryDeleted = (dp, eng) =>
+                            Console.WriteLine("deleted " + FileUtil.DisplayAsVirtualPathFromRoot(dp, eng.Root, strb: strb)),
+                        OnFileDelete = (fp, eng, sz) =>
+                            Console.WriteLine("deleted " + FileUtil.DisplayAsVirtualPathFromRoot(fp, eng.Root, strb: strb)),
+                        OnWarning = (msg) =>
+                            RenderX.Alert(msg),
+                        DryRun = dryRun
+                    };
+                    engine.Start();
+                    Console.Write(engine.Statistics.Dump());
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Delete 'bin', 'obj' via filter + intercom callback - directories only mode - using builder",
+                () =>
+                {
+                    ResetFiles();
+                    var dryRun = PromptX.Bool("Dry run?");
+                    var strb = new StringBuilder();
+                    var engine = TraversalEngine.BuildDirectoryHunterAndDeleter
+                    (
+                        DirectoryPath.CurrentDirectory.Back(2),
+                        new[] { "bin", "obj" },
+                        deleteContents: true,
+                        dryRun: dryRun,
+                        onDirectoryDeleted: (dp, eng) =>
+                            Console.WriteLine("deleted " + FileUtil.DisplayAsVirtualPathFromRoot(dp, eng.Root, strb: strb)),
+                        onFileDelete: (fp, eng, sz) =>
+                            Console.WriteLine("deleted " + FileUtil.DisplayAsVirtualPathFromRoot(fp, eng.Root, strb: strb)),
+                        onWarning: (msg) =>
+                            RenderX.Alert(msg)
+                    );
                     engine.Start();
                     Console.Write(engine.Statistics.Dump());
                 }

@@ -28,7 +28,7 @@ namespace Horseshoe.NET.IO.FileTraversal
         public bool RecursiveDeleteMode { get; private set; }
 
         /// <summary>
-        /// A snapshot of what occurred during the file traversal session
+        /// A snapshot of what occurs during a file traversal session
         /// </summary>
         public TraversalStatistics Statistics { get; }
 
@@ -37,10 +37,21 @@ namespace Horseshoe.NET.IO.FileTraversal
         /// </summary>
         public virtual TraversalOptimizations Optimizations { get; }
 
+        /// <inheritdoc cref="TraversalOptimizations.HasDirectoryFilter"/>
+        public bool HasDirectoryFilter => Optimizations.HasDirectoryFilter;
+
+        /// <inheritdoc cref="TraversalOptimizations.HasFileFilter"/>
+        public bool HasFileFilter => Optimizations.HasFileFilter;
+
         /// <summary>
         /// Event to trigger on directory discovery
         /// </summary>
         public virtual Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> OnDirectoryHello { get; set; }
+
+        /// <summary>
+        /// Event to trigger on directory filter match
+        /// </summary>
+        public virtual Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> OnDirectoryFilterMatch { get; set; }
 
         /// <summary>
         /// Event to trigger on directory exit
@@ -48,7 +59,7 @@ namespace Horseshoe.NET.IO.FileTraversal
         public virtual Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> OnDirectoryGoodbye { get; set; }
 
         /// <summary>
-        /// Event to trigger on skipped directory exit
+        /// Event to trigger on directory being skipped
         /// </summary>
         public virtual Action<DirectoryPath, TraversalEngine> OnDirectorySkipped { get; set; }
 
@@ -58,7 +69,7 @@ namespace Horseshoe.NET.IO.FileTraversal
         public virtual Action<DirectoryPath, TraversalEngine> OnDirectoryDeleting { get; set; }
 
         /// <summary>
-        /// Event to trigger on deleted directory exit
+        /// Event to trigger on directory deletion
         /// </summary>
         public virtual Action<DirectoryPath, TraversalEngine> OnDirectoryDeleted { get; set; }
 
@@ -71,11 +82,6 @@ namespace Horseshoe.NET.IO.FileTraversal
         /// Event to trigger when a file is being skipped
         /// </summary>
         public virtual Action<FilePath, TraversalEngine> OnFileSkip { get; set; }
-
-        ///// <summary>
-        ///// Event to trigger for files that should be processed, if applicable
-        ///// </summary>
-        //public virtual Action<FilePath, TraversalEngine, TraversalFileIntercom> OnFileProcess { get; set; }
 
         /// <summary>
         /// Event to trigger after a file has been deleted
@@ -98,81 +104,117 @@ namespace Horseshoe.NET.IO.FileTraversal
             Optimizations = optimizations ?? new TraversalOptimizations();
         }
 
+        /// <summary>
+        /// Starts the file traversal engine
+        /// </summary>
         public void Start()
         {
-            //AdvancedAction.CurrentTraversalEngine = this;
-            bool skipRoot = (Optimizations.DirectoryFilter != null && !Optimizations.DirectoryFilter.Invoke(Root)) || (Optimizations.DirectorySearchPattern != null && !Regex.IsMatch(Root, Optimizations.DirectorySearchPattern.Replace(".", "\\.").Replace("*", ".*")));
-            Iterate(Root, skipRoot, false);
+            Start(false);
         }
 
-        private void Iterate(DirectoryPath dirPath, bool skipDir, bool recursiveDelete)
+
+        /// <summary>
+        /// Starts the file traversal engine in recursive delete mode
+        /// </summary>
+        public void StartRecursiveDelete()
+        {
+            Start(true);
+        }
+
+        /// <summary>
+        /// Starts the file traversal engine
+        /// </summary>
+        private void Start(bool recursiveDelete)
+        {
+            bool filterMatch = false;
+            if (Optimizations.DirectoryFilter != null && Optimizations.DirectoryFilter.Invoke(Root))
+            {
+                filterMatch = true;
+            }
+            if (Optimizations.DirectorySearchPattern != null && Regex.IsMatch(Root, Optimizations.DirectorySearchPattern.Replace(".", "\\.").Replace("*", ".*")))
+            {
+                filterMatch = false;
+            }
+            Iterate(Root, filterMatch, recursiveDelete);
+        }
+
+        private void Iterate(DirectoryPath dirPath, bool filterMatch, bool recursiveDelete)
         {
             OnDirectoryHello?.Invoke(dirPath, this, TraversalDirectoryIntercom.Instance.Reset());
             Statistics.LogHello(dirPath, Root);
-            if (skipDir && !recursiveDelete)
+            bool skipDir = false;
+            if (recursiveDelete)
             {
-                OnDirectorySkipped?.Invoke(dirPath, this);
-                Statistics.UpdateAction(dirPath, Root, TraversalConstants.Skipped);
+                if (TraversalDirectoryIntercom.Instance.Skipped)
+                    OnWarning?.Invoke("Skip denied in recursive delete mode");
+                if (TraversalDirectoryIntercom.Instance.DeleteRequested)
+                    OnWarning?.Invoke("Delete request is redundant in recursive delete mode");
+                OnDirectoryDeleting?.Invoke(dirPath, this);
+                Statistics.UpdateAction(dirPath, Root, action: TraversalConstants.Deleting);
             }
             else
             {
-                if (recursiveDelete)
+                if (filterMatch)
                 {
-                    if (TraversalDirectoryIntercom.Instance.Skipped)
-                        OnWarning?.Invoke("Skip denied in recursive delete mode");
+                    OnDirectoryFilterMatch?.Invoke(dirPath, this, TraversalDirectoryIntercom.Instance);
                     if (TraversalDirectoryIntercom.Instance.DeleteRequested)
-                        OnWarning?.Invoke("Delete request is redundant in recursive delete mode");
+                    {
+                        RecursiveDeleteMode = recursiveDelete = true;
+                        if (TraversalDirectoryIntercom.Instance.DeleteContents)
+                            doNotDelete = dirPath;
+                        OnDirectoryDeleting?.Invoke(dirPath, this);
+                        Statistics.UpdateAction(dirPath, Root, action: TraversalConstants.Deleting);
+                    }
+                    else if (TraversalDirectoryIntercom.Instance.Skipped)
+                    {
+                        OnDirectorySkipped?.Invoke(dirPath, this);
+                        Statistics.UpdateAction(dirPath, Root, TraversalConstants.Skipped);
+                        skipDir = true;
+                    }
                 }
-                if (TraversalDirectoryIntercom.Instance.DeleteRequested)
-                {
-                    RecursiveDeleteMode = recursiveDelete = true;
-                    if (TraversalDirectoryIntercom.Instance.DeleteContents)
-                        doNotDelete = dirPath;
-                    OnDirectoryDeleting?.Invoke(dirPath, this);
-                    Statistics.UpdateAction(dirPath, Root, action: TraversalConstants.Deleting);
-                }
-                else if (TraversalDirectoryIntercom.Instance.Skipped)
+                else if (HasDirectoryFilter)
                 {
                     OnDirectorySkipped?.Invoke(dirPath, this);
                     Statistics.UpdateAction(dirPath, Root, TraversalConstants.Skipped);
                     skipDir = true;
                 }
+            }
+            TraversalDirectoryIntercom.Instance.Reset();
 
-                // Files
-                if ((!Optimizations.DirectoriesOnlyMode && !skipDir) || recursiveDelete)
+            // Files
+            if ((!Optimizations.DirectoriesOnlyMode && !skipDir) || recursiveDelete)
+            {
+                foreach (var file in GetFiles(dirPath, Optimizations, recursiveDelete))
                 {
-                    foreach (var file in GetFiles(dirPath, Optimizations))
+                    Statistics.LogHello(file, Root);
+                    var fileSize = file.Size;
+                    OnFileHello?.Invoke(file, this, TraversalFileIntercom.Instance.Reset(dryRun: DryRun));
+                    if (recursiveDelete)
                     {
-                        Statistics.LogHello(file, Root);
-                        var fileSize = file.Size;
-                        OnFileHello?.Invoke(file, this, TraversalFileIntercom.Instance.Reset(dryRun: DryRun));
-                        if (recursiveDelete)
-                        {
-                            if (TraversalFileIntercom.Instance.Skipped)
-                                OnWarning?.Invoke("Skip denied in recursive delete mode");
-                            if (TraversalFileIntercom.Instance.DeleteRequested)
-                                OnWarning?.Invoke("Delete request is redundant in recursive delete mode");
-                            if (!DryRun)
-                                file.Delete();
-                            OnFileDelete?.Invoke(file, this, fileSize);
-                            Statistics.UpdateAction(file, Root, TraversalConstants.Deleted);
-                        }
-                        else if (TraversalFileIntercom.Instance.Skipped)
-                        {
-                            OnFileSkip?.Invoke(file, this);
-                            Statistics.UpdateAction(file, Root, TraversalConstants.Skipped);
-                        }
-                        else if (TraversalFileIntercom.Instance.DeleteRequested)
-                        {
-                            if (!DryRun && !TraversalFileIntercom.Instance.DryRun)
-                                file.Delete();
-                            OnFileDelete?.Invoke(file, this, fileSize);
-                            Statistics.UpdateAction(file, Root, TraversalConstants.Deleted);
-                        }
-                        else if (TraversalFileIntercom.Instance.ActionName != null)
-                        {
-                            Statistics.UpdateAction(file, Root, TraversalFileIntercom.Instance.ActionName);
-                        }
+                        if (TraversalFileIntercom.Instance.Skipped)
+                            OnWarning?.Invoke("Skip denied in recursive delete mode");
+                        if (TraversalFileIntercom.Instance.DeleteRequested)
+                            OnWarning?.Invoke("Delete request is redundant in recursive delete mode");
+                        if (!DryRun)
+                            file.Delete();
+                        OnFileDelete?.Invoke(file, this, fileSize);
+                        Statistics.UpdateAction(file, Root, TraversalConstants.Deleted);
+                    }
+                    else if (TraversalFileIntercom.Instance.Skipped)
+                    {
+                        OnFileSkip?.Invoke(file, this);
+                        Statistics.UpdateAction(file, Root, TraversalConstants.Skipped);
+                    }
+                    else if (TraversalFileIntercom.Instance.DeleteRequested)
+                    {
+                        if (!DryRun && !TraversalFileIntercom.Instance.DryRun)
+                            file.Delete();
+                        OnFileDelete?.Invoke(file, this, fileSize);
+                        Statistics.UpdateAction(file, Root, TraversalConstants.Deleted);
+                    }
+                    else if (TraversalFileIntercom.Instance.ActionName != null)
+                    {
+                        Statistics.UpdateAction(file, Root, TraversalFileIntercom.Instance.ActionName);
                     }
                 }
             }
@@ -182,13 +224,13 @@ namespace Horseshoe.NET.IO.FileTraversal
                 .Select(d => d.Name);
             foreach (var dir in dirPath.GetDirectories())
             {
-                Iterate(dir, filtered && !dir.Name.In(dirNames), recursiveDelete);
+                Iterate(dir, !filtered || dir.Name.In(dirNames), recursiveDelete);
             }
 
             // goodbye
             OnDirectoryGoodbye?.Invoke(dirPath, this, TraversalDirectoryIntercom.Instance.Reset());
 
-            if (skipDir && !recursiveDelete)
+            if (skipDir)
                 return;
 
             if (recursiveDelete)
@@ -229,16 +271,16 @@ namespace Horseshoe.NET.IO.FileTraversal
                     OnWarning?.Invoke("This directory has already been deleted: " + FileUtilAbstractions.DisplayAsVirtualPathFromRoot( dirPath, Root));
                 }
             }
-            RecursiveDeleteMode = recursiveDelete;
+            RecursiveDeleteMode = recursiveDelete;  // for when recursiveDelete naturally ends after the last iteration, if applicable
         }
 
-        private static IEnumerable<FilePath> GetFiles(DirectoryPath dirPath, TraversalOptimizations optimizations)
+        private static IEnumerable<FilePath> GetFiles(DirectoryPath dirPath, TraversalOptimizations optimizations, bool recursiveDelete)
         {
-            IEnumerable<FilePath> files = optimizations.FileSearchPattern != null
+            IEnumerable<FilePath> files = optimizations.FileSearchPattern != null && !recursiveDelete
                 ? dirPath.GetFiles(optimizations.FileSearchPattern)
                 : dirPath.GetFiles();
 
-            if (optimizations.FileFilter != null)
+            if (optimizations.FileFilter != null && !recursiveDelete)
             {
                 files = files.Where(optimizations.FileFilter);
             }
@@ -335,5 +377,67 @@ namespace Horseshoe.NET.IO.FileTraversal
         //{
         //    Statistics.Log(directory, Root, action: action);
         //}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root">The starting directory.  Traversal will not occur outside of this directory.</param>
+        /// <param name="directoryNames">The names of directories you wish to delete</param>
+        /// <param name="deleteContents">If <c>true</c>, deletes the contents of the directory while leaving the directory intact.  Default is <c>false</c>.</param>
+        /// <param name="dryRun">A hint suggesting whether or not to perform a file write or delete, useful during development and prototyping</param>
+        /// <param name="statistics">A snapshot of what occurs during a file traversal session</param>
+        /// <param name="onDirectoryHello">Event to trigger on directory discovery</param>
+        /// <param name="onDirectoryFilterMatch">Event to trigger on directory filter match</param>
+        /// <param name="onDirectoryGoodbye">Event to trigger on directory exit</param>
+        /// <param name="onDirectorySkipped">Event to trigger on directory being skipped</param>
+        /// <param name="onDirectoryDeleting">Event to trigger when a directory is being deleted</param>
+        /// <param name="onDirectoryDeleted">Event to trigger on directory deletion</param>
+        /// <param name="onFileHello">Event to trigger on file discovery</param>
+        /// <param name="onFileDelete">Event to trigger after a file has been deleted</param>
+        /// <param name="onWarning">Event to trigger when a warning condition occurs</param>
+        /// <param name="ignoreCase">If <c>true</c>, matches directories whose names would match if not for the letter case, default is <c>false</c>.</param>
+        /// <returns>A traversal engine configured for hunt and delete directories.</returns>
+        public static TraversalEngine BuildDirectoryHunterAndDeleter
+        (
+            DirectoryPath root,
+            string[] directoryNames,
+            bool deleteContents = false,
+            bool dryRun = false,
+            TraversalStatistics statistics = null,
+            Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> onDirectoryHello = null,
+            Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> onDirectoryFilterMatch = null,
+            Action<DirectoryPath, TraversalEngine, TraversalDirectoryIntercom> onDirectoryGoodbye = null,
+            Action<DirectoryPath, TraversalEngine> onDirectorySkipped = null,
+            Action<DirectoryPath, TraversalEngine> onDirectoryDeleting = null,
+            Action<DirectoryPath, TraversalEngine> onDirectoryDeleted = null,
+            Action<FilePath, TraversalEngine, TraversalFileIntercom> onFileHello = null,
+            Action<FilePath, TraversalEngine, long> onFileDelete = null,
+            Action<string> onWarning = null,
+            bool ignoreCase = false
+        )
+        {
+            var optimizations = new TraversalOptimizations
+            {
+                DirectoriesOnlyMode = true,
+                DirectoryFilter = dp => ignoreCase ? dp.Name.InIgnoreCase(directoryNames) : dp.Name.In(directoryNames)
+            };
+            return new TraversalEngine(root, statistics: statistics, optimizations: optimizations)
+            {
+                OnDirectoryHello = onDirectoryHello,
+                OnDirectoryFilterMatch = (dp, eng, icom) =>
+                {
+                    icom.RequestDelete(deleteContents: deleteContents);
+                    onDirectoryFilterMatch?.Invoke(dp, eng, icom);
+                },
+                OnDirectoryGoodbye = onDirectoryGoodbye,
+                OnDirectorySkipped = onDirectorySkipped,
+                OnDirectoryDeleting = onDirectoryDeleting,
+                OnDirectoryDeleted = onDirectoryDeleted,
+                OnFileHello = onFileHello,
+                OnFileDelete = onFileDelete,
+                OnWarning = onWarning,
+                DryRun = dryRun
+            };
+        }
     }
 }
