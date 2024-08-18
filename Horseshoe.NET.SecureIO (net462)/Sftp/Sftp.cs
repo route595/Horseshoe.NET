@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Horseshoe.NET.Collections;
-using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Ftp;
 using Horseshoe.NET.IO;
 using Horseshoe.NET.Text;

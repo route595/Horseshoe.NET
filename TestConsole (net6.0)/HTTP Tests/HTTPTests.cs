@@ -219,7 +219,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         proxyAddress: ProxyUrl,
                         proxyPort: ProxyPort,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.WriteLine((int)response.StatusCode + " (" + response.StatusCode + ")"); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
@@ -235,7 +235,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         proxyAddress: ProxyUrl,
                         proxyPort: ProxyPort,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     ))
                     {
@@ -255,7 +255,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         securityProtocol: SecurityProtocolType.Ssl3,
                         proxyAddress: ProxyUrl,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
@@ -271,7 +271,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         securityProtocol: SecurityProtocolType.Tls,
                         proxyAddress: ProxyUrl,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
@@ -287,7 +287,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         securityProtocol: SecurityProtocolType.Tls11,
                         proxyAddress: ProxyUrl,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
@@ -303,7 +303,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         securityProtocol: SecurityProtocolType.Tls12,
                         proxyAddress: ProxyUrl,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
@@ -319,7 +319,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         securityProtocol: SecurityProtocolType.Tls | SecurityProtocolType.Tls12,
                         proxyAddress: ProxyUrl,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
@@ -335,7 +335,7 @@ namespace TestConsole.HTTPTests
                         "https://www.google.com",
                         securityProtocol: SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12,
                         proxyAddress: ProxyUrl,
-                        proxyCredentials: new Credential(ProxyUser ?? "arbitrary", ProxyPassword),
+                        proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
                     Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
