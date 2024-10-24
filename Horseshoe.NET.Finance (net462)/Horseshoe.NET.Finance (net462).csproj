@@ -66,6 +66,10 @@
     <Compile Include="Account.cs" />
     <Compile Include="BankAccount.cs" />
     <Compile Include="CompoundingPeriod.cs" />
+    <Compile Include="LineOfCreditAccount.cs" />
+    <Compile Include="CreditCardAccount.cs" />
+    <Compile Include="FinanceException.cs" />
+    <Compile Include="MortgageAccount.cs" />
     <Compile Include="CreditAccount.cs" />
     <Compile Include="CreditAccountPayoffInfo.cs" />
     <Compile Include="CreditAccountSorter.cs" />

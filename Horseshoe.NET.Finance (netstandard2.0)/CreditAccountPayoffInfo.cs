@@ -9,7 +9,7 @@ namespace Horseshoe.NET.Finance
     public class CreditAccountPayoffInfo : List<MonthlyPaymentInfo>
     {
         public CreditAccount Account { get; set; }
-        public decimal RunningBalance => this.Any() ? this.Last().RunningBalance : Account.Balance;
+        public decimal RunningBalance => this.LastOrDefault()?.RunningBalance ?? Account.Balance;
         public decimal MonthlyInterestAmount => FinanceEngine.CalculateSimpleInterest(RunningBalance, Account.APR, 1, compoundingPeriod: CompoundingPeriod.Monthly);
         public decimal MinimumPaymentAmount => CalculateMinimumPaymentAmount();
         internal int MaxPaymentNumericOutputWidth { get; set; }        //    "$600.00"       "$ 60.00"    =>   1 + (6)

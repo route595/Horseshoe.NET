@@ -35,47 +35,32 @@ namespace TestConsole.Finance
                 "Test Snowball",
                 () =>
                 {
-                    var accounts = new []
+                    Settings.IncludePrincipalPaymentsInSnowballOutput = true;
+                    Settings.IncludeInterestPaymentsInSnowballOutput = true;
+                    var accounts = new CreditAccount[]
                     {
-                        new CreditAccount { Name = "Credit Card", APR = .1299m, AccountNumber = "*7890", Balance = 10000m, MinimumPaymentAmount = 200m },
-                        new CreditAccount { Name = "Line of Credit", APR = .0624m, Balance = 4000m, MinimumPaymentAmount = 150m },
-                        new CreditAccount { Name = "My Store Card", APR = .1999m, Balance = 20000m, MinimumPaymentAmount = 350m }
+                            new CreditAccount { Name = "Credit Card", APR = .1299m, AccountNumber = "*7890", Balance = 10000m, MinimumPaymentAmount = 200m },
+                            new CreditAccount { Name = "Line of Credit", APR = .0624m, Balance = 4000m, MinimumPaymentAmount = 150m },
+                            new CreditAccount { Name = "My Store Card", APR = .1999m, Balance = 20000m, MinimumPaymentAmount = 350m }
+                    };
+                    var descendingAPR = new CreditAccountSorter { Descending = true, Mode = CreditAccountSortMode.APR };
+                    var projections = new[]
+                    {
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, sorter: descendingAPR),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sorter: descendingAPR),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m, sorter: descendingAPR),
                     };
                     TextGrid textGrid = null;
-                    try
+                    foreach (var projection in projections)
                     {
-                        Settings.IncludePrincipalPaymentsInSnowballOutput = true;
-                        Settings.IncludeInterestPaymentsInSnowballOutput = true;
-                        var projections = new []
-                        {
-                            FinanceEngine.GenerateCreditPayoffProjection(accounts, sorter: new CreditAccountSorter { Mode = CreditAccountSortMode.APR }),
-                            //FinanceEngine.GenerateCreditPayoffProjection(accounts, sort: new CreditAccountPayoffSort { Mode = CreditAccountPayoffSortMode.APR, Descending = true }),
-                            //FinanceEngine.GenerateCreditPayoffProjection(accounts, sort: new CreditAccountPayoffSort { Mode = CreditAccountPayoffSortMode.Balance }),
-                            //FinanceEngine.GenerateCreditPayoffProjection(accounts, sort: new CreditAccountPayoffSort { Mode = CreditAccountPayoffSortMode.Balance, Descending = true }),
-                            FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sorter: new CreditAccountSorter { Mode = CreditAccountSortMode.APR }),
-                            FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sorter: new CreditAccountSorter { Mode = CreditAccountSortMode.APR, Descending = true }),
-                            FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sorter: new CreditAccountSorter { Mode = CreditAccountSortMode.Balance }),
-                            FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sorter: new CreditAccountSorter { Mode = CreditAccountSortMode.Balance, Descending = true })
-                        };
-                        foreach(var projection in projections)
-                        {
-                            Console.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, sorting by {projection.Sorter}, budget = {(projection.MonthlyBudget > 0m ? $"{projection.MonthlyBudget:C}" : "default")}{GetShowingAdditionalOutputPhrase()}");
-                            textGrid = projection.RenderToTextGrid();
-                            Console.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Format + "}", textGrid.Columns[0].Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
-                            Console.WriteLine();
-                        }
-                        Console.WriteLine(textGrid?.Render() ?? TextConstants.Null);
-                        Settings.IncludePrincipalPaymentsInSnowballOutput = false;
-                        Settings.IncludeInterestPaymentsInSnowballOutput = false;
+                        Console.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, sorting by {projection.Sorter}, monthly budget = {projection.MonthlyBudget:C}");
+                        textGrid = projection.RenderToTextGrid();
+                        Console.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Format + "}", textGrid.Columns[0].Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
+                        Console.WriteLine();
                     }
-                    catch (NotSupportedException nsex)
-                    {
-                        RenderX.Exception(nsex, includeStackTrace: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        RenderX.Alert(ex.RenderMessage());
-                    }
+                    Console.WriteLine(textGrid.Render());
+                    Settings.IncludePrincipalPaymentsInSnowballOutput = false;
+                    Settings.IncludeInterestPaymentsInSnowballOutput = false;
                 }
             )
         };

@@ -967,17 +967,33 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
-        /// Renders this entire <c>IDictionary</c> to text
+        /// Renders this dictionary to text
         /// </summary>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <param name="dict"></param>
-        /// <returns></returns>
-        public static string Dump<TKey, TValue>(this IDictionary<TKey, TValue> dict)
+        /// <typeparam name="TKey">The key type.</typeparam>
+        /// <typeparam name="TValue">The value type.</typeparam>
+        /// <param name="dict">A dictionary.</param>
+        /// <param name="itemSeparator">The item separator.</param>
+        /// <param name="keyValueSeparator">The key/value separator.</param>
+        /// <returns>A string representation of dictionary data.</returns>
+        public static string Dump<TKey, TValue>(this IDictionary<TKey, TValue> dict, string itemSeparator = "; ", string keyValueSeparator = ": ")
         {
             return dict == null 
-                ? Environment.NewLine
-                : TextGrid.FromDictionary(dict).Render();
+                ? string.Empty
+                : string.Join(itemSeparator, dict.Select(kvp => kvp.Key + keyValueSeparator + kvp.Value));
+        }
+
+        /// <summary>
+        /// Copies this dictionary to a <c>TextGrid</c>
+        /// </summary>
+        /// <typeparam name="TKey">The key type.</typeparam>
+        /// <typeparam name="TValue">The value type.</typeparam>
+        /// <param name="dict">A dictionary.</param>
+        /// <returns>A text grid for displaying dictionary data.</returns>
+        public static TextGrid DumpToTextGrid<TKey, TValue>(this IDictionary<TKey, TValue> dict)
+        {
+            return dict == null
+                ? new TextGrid()
+                : TextGrid.FromDictionary(dict);
         }
 
         #endregion

@@ -126,5 +126,30 @@ namespace Horseshoe.NET.DateAndTime
                     return -1;
             }
         }
+
+        /// <summary>
+        /// Gets the <c>DateTime</c> representing the beginning of the month.
+        /// </summary>
+        /// <param name="basedOnDateTime">An optional <c>DateTime</c> upon which to base the result <c>DateTime</c>.</param>
+        /// <returns>A <c>DateTime</c>.</returns>
+        public static DateTime GetMonthStart(DateTime? basedOnDateTime = null)
+        {
+            if (!basedOnDateTime.HasValue)
+            {
+                basedOnDateTime = DateTime.Today;
+            }
+            return GetMonthStart(basedOnDateTime.Value.Year, basedOnDateTime.Value.Month);
+        }
+
+        /// <summary>
+        /// Gets the <c>DateTime</c> representing the beginning of the specified month.
+        /// </summary>
+        /// <param name="year">A year</param>
+        /// <param name="month">A month</param>
+        /// <returns>A <c>DateTime</c>.</returns>
+        public static DateTime GetMonthStart(int year, int month)
+        {
+            return new DateTime(year, month, 1);
+        }
     }
 }

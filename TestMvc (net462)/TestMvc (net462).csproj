@@ -224,10 +224,6 @@
       <Project>{b30f21c3-d24d-4726-af26-779728c339b3}</Project>
       <Name>Horseshoe.NET.Configuration %28net462%29</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Excel %28net462%29\Horseshoe.NET.Excel %28net462%29.csproj">
-      <Project>{4f05df3b-3ac3-47a4-b452-4018ecae48a1}</Project>
-      <Name>Horseshoe.NET.Excel %28net462%29</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Http %28net462%29\Horseshoe.NET.Http %28net462%29.csproj">
       <Project>{813933b9-2418-4242-8ab8-d4e461d18207}</Project>
       <Name>Horseshoe.NET.Http %28net462%29</Name>

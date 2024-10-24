@@ -97,16 +97,12 @@ namespace Horseshoe.NET.Finance
             return convertedRate;
         }
 
-        public static CreditPayoffProjection GenerateCreditPayoffProjection(IEnumerable<CreditAccount> creditAccounts, bool snowballing = false, decimal? monthlyBudget = null, CreditAccountSorter sorter = null)
+        public static CreditPayoffProjection GenerateCreditPayoffProjection(IEnumerable<CreditAccount> creditAccounts, bool snowballing = false, decimal extraSnowballAmount = 0m, CreditAccountSorter sorter = null)
         {
-            var projection = new CreditPayoffProjection(snowballing: snowballing, monthlyBudget: monthlyBudget, sorter: sorter);
+            var projection = new CreditPayoffProjection(creditAccounts, snowballing: snowballing, extraSnowballAmount: extraSnowballAmount, sorter: sorter);
 
             if (creditAccounts != null)
             {
-                // validation
-                if (creditAccounts.Any(ca => ca.MinimumPaymentAmount <= 0m))
-                    throw new ValidationException("All credit accounts must have a positive minimum payment amount for payoff projection");
-
                 // sort and load the credit accounts
                 if (sorter != null && creditAccounts.Any())
                 {
@@ -131,7 +127,6 @@ namespace Horseshoe.NET.Finance
                         }
                     }
                 }
-                projection.LoadAccounts(creditAccounts);
             }
 
             // validation
@@ -143,62 +138,65 @@ namespace Horseshoe.NET.Finance
                 while (projection.TotalRunningBalance > 0m)
                 {
                     // pass 1 of 1 - minimum payments
-                    foreach (var sa in projection)
+                    foreach (var capi in projection)
                     {
-                        if (sa.RunningBalance > 0m)
+                        if (capi.RunningBalance > 0m)
                         {
-                            var monthlyPayment = new MonthlyPaymentInfo { InterestAmount = sa.MonthlyInterestAmount };
+                            // validation
+                            if (!(capi.MinimumPaymentAmount > capi.MonthlyInterestAmount))
+                                throw new FinanceException($"{capi.Account.Name}: Please increase the minimum payment amount to exceed the monthly interest amount: {capi.MinimumPaymentAmount} < {capi.MonthlyInterestAmount}.");
+
+                            var monthlyPayment = new MonthlyPaymentInfo { InterestAmount = capi.MonthlyInterestAmount };
 
                             // scenario 1 - account paid down
-                            if (sa.RunningBalance > sa.MinimumPaymentAmount - monthlyPayment.InterestAmount)
+                            if (capi.RunningBalance > capi.MinimumPaymentAmount - monthlyPayment.InterestAmount)
                             {
-                                monthlyPayment.PaymentAmount = sa.MinimumPaymentAmount;
-                                monthlyPayment.RunningBalance = sa.RunningBalance - monthlyPayment.PaymentAmount + monthlyPayment.InterestAmount;
+                                monthlyPayment.PaymentAmount = capi.MinimumPaymentAmount;
+                                monthlyPayment.RunningBalance = capi.RunningBalance - monthlyPayment.PaymentAmount + monthlyPayment.InterestAmount;
+
                             }
                             // scenario 2 - account paid off
                             else
                             {
-                                monthlyPayment.PaymentAmount = sa.RunningBalance;
+                                monthlyPayment.PaymentAmount = capi.RunningBalance;
                                 monthlyPayment.RunningBalance = 0m;
                             }
-                            sa.Add(monthlyPayment);
+                            capi.Add(monthlyPayment);
                         }
                     }
                 }
             }
             else
             {
-                var _monthlyBudget = projection.Sum(sa => sa.MinimumPaymentAmount);
-                if (!monthlyBudget.HasValue)
-                    monthlyBudget = _monthlyBudget;
-                else if (monthlyBudget < _monthlyBudget)
-                    throw new ValidationException($"The monthly budget ({monthlyBudget:C}) must meet or exceed the combined minimum monthly payment amount: {_monthlyBudget:C}.");
-
                 while (projection.TotalRunningBalance > 0m)
                 {
                     // perform monthly payment calculations
-                    var remainingMonthlyBudget = monthlyBudget.Value;
+                    var remainingMonthlyBudget = projection.MonthlyBudget;
 
                     // pass 1 of 2 - minimum payments
-                    foreach (var sa in projection)
+                    foreach (var capi in projection)
                     {
-                        if (sa.RunningBalance > 0m)
+                        if (capi.RunningBalance > 0m)
                         {
-                            var monthlyPayment = new MonthlyPaymentInfo { InterestAmount = sa.MonthlyInterestAmount };
+                            // validation
+                            if (!(capi.MinimumPaymentAmount > capi.MonthlyInterestAmount))
+                                throw new FinanceException($"{capi.Account.Name}: Please increase the minimum payment amount to exceed the monthly interest amount: {capi.MinimumPaymentAmount} < {capi.MonthlyInterestAmount}.");
+
+                            var monthlyPayment = new MonthlyPaymentInfo { InterestAmount = capi.MonthlyInterestAmount };
 
                             // scenario 1 - account paid down
-                            if (sa.RunningBalance > sa.MinimumPaymentAmount - monthlyPayment.InterestAmount)
+                            if (capi.RunningBalance > capi.MinimumPaymentAmount - monthlyPayment.InterestAmount)
                             {
-                                monthlyPayment.PaymentAmount = sa.MinimumPaymentAmount;
-                                monthlyPayment.RunningBalance = sa.RunningBalance - monthlyPayment.PaymentAmount + monthlyPayment.InterestAmount;
+                                monthlyPayment.PaymentAmount = capi.MinimumPaymentAmount;
+                                monthlyPayment.RunningBalance = capi.RunningBalance - monthlyPayment.PaymentAmount + monthlyPayment.InterestAmount;
                             }
                             // scenario 2 - account paid off
                             else
                             {
-                                monthlyPayment.PaymentAmount = sa.RunningBalance + monthlyPayment.InterestAmount;
+                                monthlyPayment.PaymentAmount = capi.RunningBalance + monthlyPayment.InterestAmount;
                                 monthlyPayment.RunningBalance = 0m;
                             }
-                            sa.Add(monthlyPayment);
+                            capi.Add(monthlyPayment);
                             remainingMonthlyBudget -= monthlyPayment.PaymentAmount;
                         }
                     }
