@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -23,12 +23,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -64,20 +65,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Account.cs" />
+    <Compile Include="AltCreditAccountPayoffInfo.cs" />
     <Compile Include="BankAccount.cs" />
     <Compile Include="CompoundingPeriod.cs" />
+    <Compile Include="CreditAccountSortOrder.cs" />
     <Compile Include="LineOfCreditAccount.cs" />
     <Compile Include="CreditCardAccount.cs" />
     <Compile Include="FinanceException.cs" />
     <Compile Include="MortgageAccount.cs" />
     <Compile Include="CreditAccount.cs" />
     <Compile Include="CreditAccountPayoffInfo.cs" />
-    <Compile Include="CreditAccountSorter.cs" />
-    <Compile Include="CreditAccountSortMode.cs" />
-    <Compile Include="CreditPayoffProjection.cs" />
+    <Compile Include="DebtPayoffProjection.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FinanceEngine.cs" />
     <Compile Include="MonthlyPaymentInfo.cs" />
+    <Compile Include="OptionalColumnDisplayPref.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
   </ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 using Horseshoe.NET.Text;
 
@@ -11,23 +12,22 @@ namespace Horseshoe.NET.Finance
         public decimal PrincipalAmount => PaymentAmount - InterestAmount;
         public decimal RunningBalance { get; set; }
 
-        public string Render(CreditAccountPayoffInfo sAccount)
+        public string Render(CreditAccountPayoffInfo capi)
         {
-            sAccount.CalculateOutputWidths();
-            return Render(sAccount.MaxPaymentNumericOutputWidth, sAccount.MaxPrincipalNumericOutputWidth, sAccount.MaxInterestNumericOutputWidth, sAccount.MaxRunningBalanceNumericOutputWidth);
+            capi.CalculateOutputWidths();
+            return Render(capi.MaxPaymentOutputWidth, capi.DisplayInterestAndPrincipalColumns() ? capi.MaxPrincipalOutputWidth : -1, capi.DisplayInterestAndPrincipalColumns() ? capi.MaxInterestOutputWidth : -1, capi.MaxRunningBalanceOutputWidth);
         }
 
         public string Render(int paymentNumericWidth, int principalNumericWidth, int interestNumericWidth, int runningBalanceNumericWidth)
         {
-            return new StringBuilder("$")
-                .Append(PaymentAmount.ToString("N2").PadLeft(paymentNumericWidth))
-                .AppendIf(Settings.IncludePrincipalPaymentsInSnowballOutput, " $")
-                .AppendIf(Settings.IncludePrincipalPaymentsInSnowballOutput, PrincipalAmount.ToString("N2").PadLeft(principalNumericWidth))
-                .AppendIf(Settings.IncludeInterestPaymentsInSnowballOutput, " $")
-                .AppendIf(Settings.IncludeInterestPaymentsInSnowballOutput, InterestAmount.ToString("N2").PadLeft(interestNumericWidth))
-                .Append(" $")
-                .Append(RunningBalance.ToString("N2").PadLeft(runningBalanceNumericWidth))
-                .ToString();
+            var strb = new StringBuilder("$")
+                .Append(PaymentAmount.ToString("N2").PadLeft(paymentNumericWidth));
+            if (principalNumericWidth > -1)
+                strb.Append(" $" + PrincipalAmount.ToString("N2").PadLeft(principalNumericWidth));
+            if (interestNumericWidth > -1)
+                strb.Append(" $" + InterestAmount.ToString("N2").PadLeft(interestNumericWidth));
+            strb.Append(" $" + RunningBalance.ToString("N2").PadLeft(runningBalanceNumericWidth));
+            return strb.ToString();
         }
     }
 }

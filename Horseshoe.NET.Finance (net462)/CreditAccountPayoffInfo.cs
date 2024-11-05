@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -8,51 +9,91 @@ namespace Horseshoe.NET.Finance
 {
     public class CreditAccountPayoffInfo : List<MonthlyPaymentInfo>
     {
-        public CreditAccount Account { get; set; }
+        public CreditAccount Account { get; }
         public decimal RunningBalance => this.LastOrDefault()?.RunningBalance ?? Account.Balance;
-        public decimal MonthlyInterestAmount => FinanceEngine.CalculateSimpleInterest(RunningBalance, Account.APR, 1, compoundingPeriod: CompoundingPeriod.Monthly);
-        public decimal MinimumPaymentAmount => CalculateMinimumPaymentAmount();
-        internal int MaxPaymentNumericOutputWidth { get; set; }        //    "$600.00"       "$ 60.00"    =>   1 + (6)
-        internal int MaxInterestNumericOutputWidth { get; set; }       //    " $60.00"       " $ 6.00"    =>   2 + (5)
-        internal int MaxPrincipalNumericOutputWidth { get; set; }      //    " $60.00"       " $ 6.00"    =>   2 + (5)
-        internal int MaxRunningBalanceNumericOutputWidth { get; set; } // " $6,000.00"    " $  600.00"    =>   2 + (8)
-        internal int MaxOutputWidth => 1 + MaxPaymentNumericOutputWidth + (Settings.IncludeInterestPaymentsInSnowballOutput ? 2 + MaxInterestNumericOutputWidth : 0) + 2 + MaxRunningBalanceNumericOutputWidth;
+        //public decimal CurrentCycleInterestAmount => CalculateInterestAmount();
+        //public decimal CurrentCyclePaymentAmount => CalculatePaymentAmount();
+        internal int MaxPaymentOutputWidth { get; set; }        // 1 + 6  =>   "$" +   "600.00" (also  "$" +   " 60.00")  =>     "$600.00" (also    "$ 60.00")
+        internal int MaxInterestOutputWidth { get; set; }       // 2 + 5  =>  " $" +    "60.00" (also " $" +    " 6.00")  =>     " $60.00" (also    " $ 6.00")
+        internal int MaxPrincipalOutputWidth { get; set; }      // 2 + 6  =>  " $" +   "540.00" (also " $" +   " 54.00")  =>    " $540.00" (also   " $ 54.00")
+        internal int MaxRunningBalanceOutputWidth { get; set; } // 2 + 8  =>  " $" + "6,000.00" (also " $" + "  600.00")  =>  " $6,000.00" (also " $  600.00")
+        internal int MaxOutputWidth => 1 + MaxPaymentOutputWidth + (DisplayInterestAndPrincipalColumns() ? 2 + MaxInterestOutputWidth + 2 + MaxPrincipalOutputWidth : 0) + 2 + MaxRunningBalanceOutputWidth;
 
         public CreditAccountPayoffInfo(CreditAccount account)
         {
             Account = account;
         }
 
-        private decimal CalculateMinimumPaymentAmount()
+        public decimal CalculateCurrentCycleInterest(DateTime date)
         {
-            decimal p = RunningBalance,
-                i = MonthlyInterestAmount;
+            if (Account.AltList != null)
+            {
+                foreach (var acap in Account.AltList)
+                {
+                    if (date >= acap.StartDate && date <= acap.EndDate && acap.APR is decimal apr)
+                    {
+                        return FinanceEngine.CalculateSimpleInterest(RunningBalance, apr, 1, compoundingPeriod: CompoundingPeriod.Monthly);
+                    }
+                }
+            }
+            return FinanceEngine.CalculateSimpleInterest(RunningBalance, Account.APR, 1, compoundingPeriod: CompoundingPeriod.Monthly);
+        }
+
+        public decimal CalculateCurrentCyclePayment(DateTime date)
+        {
+            decimal p = RunningBalance, i = CalculateCurrentCycleInterest(date);
+            if (Account.AltList != null)
+            {
+                foreach (var acap in Account.AltList)
+                {
+                    if (date >= acap.StartDate && date <= acap.EndDate && acap.PaymentAmount is decimal paymentAmount)
+                    {
+                        if (paymentAmount > p + i)
+                            return p + i;
+                        return paymentAmount;
+                    }
+                }
+            }
             if (Account.MinimumPaymentAmount > p + i)
                 return p + i;
             return Account.MinimumPaymentAmount;
         }
 
+        internal bool DisplayInterestAndPrincipalColumns()
+        {
+            if (Settings.Snowball.DisplayInterestAndPrincipalColumns == OptionalColumnDisplayPref.Always)
+                return true;
+            if (Settings.Snowball.DisplayInterestAndPrincipalColumns == OptionalColumnDisplayPref.IfGreaterThanZero && this.Any() && this.Max(mp => mp.InterestAmount) > 0m)
+                return true;
+            return false;
+        }
+
         internal void CalculateOutputWidths()
         {
-            MaxPaymentNumericOutputWidth = (this.Any() ? this.Max(mp => mp.PaymentAmount) : 0m).ToString("N2").Length;
-            if (Settings.IncludeInterestPaymentsInSnowballOutput)
-                MaxInterestNumericOutputWidth = (this.Any() ? this.Max(mp => mp.InterestAmount) : 0m).ToString("N2").Length;
-            if (Settings.IncludePrincipalPaymentsInSnowballOutput)
-                MaxPrincipalNumericOutputWidth = (this.Any() ? this.Max(mp => mp.PrincipalAmount) : 0m).ToString("N2").Length;
-            MaxRunningBalanceNumericOutputWidth = (this.Any() ? this.Max(mp => mp.RunningBalance) : 0m).ToString("N2").Length;
+            MaxPaymentOutputWidth = (this.Any() ? this.Max(mp => mp.PaymentAmount) : 0m).ToString("N2").Length;
+            if (DisplayInterestAndPrincipalColumns())
+                MaxInterestOutputWidth = this.Max(mp => mp.InterestAmount).ToString("N2").Length;
+            if (DisplayInterestAndPrincipalColumns())
+                MaxPrincipalOutputWidth = this.Max(mp => mp.PrincipalAmount).ToString("N2").Length;
+            MaxRunningBalanceOutputWidth = (this.Any() ? this.Max(mp => mp.RunningBalance) : 0m).ToString("N2").Length;
         }
 
         public string RenderSubColumnTitles()
         {
-            return new StringBuilder()
-                .Append("Pmt".PadRight(MaxPaymentNumericOutputWidth + 1))
-                .AppendIf(Settings.IncludePrincipalPaymentsInSnowballOutput, ' ')
-                .AppendIf(Settings.IncludePrincipalPaymentsInSnowballOutput, "Pri".PadRight(MaxPrincipalNumericOutputWidth + 1))
-                .AppendIf(Settings.IncludeInterestPaymentsInSnowballOutput, ' ')
-                .AppendIf(Settings.IncludeInterestPaymentsInSnowballOutput, "Int".PadRight(MaxInterestNumericOutputWidth + 1))
+            var strb = new StringBuilder()
+                .Append("Pmt".PadRight(MaxPaymentOutputWidth + 1));
+            if (DisplayInterestAndPrincipalColumns())
+            {
+                strb
+                    .Append(' ')
+                    .Append("Pri".PadRight(MaxPrincipalOutputWidth + 1))
+                    .Append(' ')
+                    .Append("Int".PadRight(MaxInterestOutputWidth + 1));
+            }
+            strb
                 .Append(' ')
-                .Append("Bal".PadRight(MaxRunningBalanceNumericOutputWidth + 1))
-                .ToString();
+                .Append("Bal".PadRight(MaxRunningBalanceOutputWidth + 1));
+            return strb.ToString();
         }
     }
 }

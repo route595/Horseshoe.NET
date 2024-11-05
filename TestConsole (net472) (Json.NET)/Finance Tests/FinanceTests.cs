@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
+using Horseshoe.NET.DateAndTime;
 using Horseshoe.NET.Finance;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
@@ -35,44 +38,44 @@ namespace TestConsole.Finance
                 "Test Snowball",
                 () =>
                 {
-                    Settings.IncludePrincipalPaymentsInSnowballOutput = true;
-                    Settings.IncludeInterestPaymentsInSnowballOutput = true;
+                    Settings.Snowball.DisplayInterestAndPrincipalColumns = OptionalColumnDisplayPref.IfGreaterThanZero;
                     var accounts = new CreditAccount[]
                     {
-                            new CreditAccount { Name = "Credit Card", APR = .1299m, AccountNumber = "*7890", Balance = 10000m, MinimumPaymentAmount = 200m },
-                            new CreditAccount { Name = "Line of Credit", APR = .0624m, Balance = 4000m, MinimumPaymentAmount = 150m },
-                            new CreditAccount { Name = "My Store Card", APR = .1999m, Balance = 20000m, MinimumPaymentAmount = 350m }
+                        new CreditAccount { Name = "Credit Card", APR = .1299m, AccountNumber = "*7890", Balance = 10000m, MinimumPaymentAmount = 200m },
+                        new CreditAccount { Name = "Family Loan", APR = 0m, Balance = 1000m, MinimumPaymentAmount = 50m, AltList = new[] { new AltCreditAccountPayoffInfo { StartDate = DateUtil.GetMonthStart(), EndDate = DateUtil.GetMonthStart(2025, 2), PaymentAmount = 25m } } },
+                        new CreditAccount { Name = "Line of Credit", APR = .0624m, Balance = 4000m, MinimumPaymentAmount = 150m },
+                        new CreditAccount { Name = "My Store Card", APR = .1999m, Balance = 20000m, MinimumPaymentAmount = 350m }
                     };
-                    var descendingAPR = new CreditAccountSorter { Descending = true, Mode = CreditAccountSortMode.APR };
                     var projections = new[]
                     {
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, sorter: descendingAPR),
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sorter: descendingAPR),
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m, sorter: descendingAPR),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, sortOrder : CreditAccountSortOrder.APR_Descending),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, sortOrder : CreditAccountSortOrder.APR_Descending),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m, sortOrder : CreditAccountSortOrder.APR_Descending),
                     };
                     TextGrid textGrid = null;
-                    foreach (var projection in projections)
+                    var tempFilePath = Path.Combine(Path.GetTempPath(), "Horseshoe.NET.TestConsole.FinanceTest.output.txt");
+                    using (var writer = new StreamWriter(File.OpenWrite(tempFilePath)))
                     {
-                        Console.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, sorting by {projection.Sorter}, monthly budget = {projection.MonthlyBudget:C}");
-                        textGrid = projection.RenderToTextGrid();
-                        Console.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Format + "}", textGrid.Columns[0].Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
-                        Console.WriteLine();
+                        foreach (var projection in projections)
+                        {
+                            writer.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, sorted by {projection.SortOrder}, monthly budget = {projection.MinimumMonthlyBudget:C}{(projection.Snowballing && projection.ExtraSnowballAmount > 0m ? $" + {projection.ExtraSnowballAmount:C} = {projection.TotalMonthlyBudget:C}" : "")}");
+                            textGrid = projection.RenderToTextGrid();
+                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Format + "}", textGrid.Columns[0].Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
+                            writer.WriteLine();
+                        }
+                        writer.WriteLine(textGrid.Render());
                     }
-                    Console.WriteLine(textGrid.Render());
-                    Settings.IncludePrincipalPaymentsInSnowballOutput = false;
-                    Settings.IncludeInterestPaymentsInSnowballOutput = false;
+                    Console.WriteLine("Opening temp file...");
+                    System.Diagnostics.Process.Start(tempFilePath);
                 }
             )
         };
+
         private static string GetShowingAdditionalOutputPhrase()
         {
             var list = new List<string>();
-            if (Settings.IncludePrincipalPaymentsInSnowballOutput)
-                list.Add("Pri");
-            if (Settings.IncludeInterestPaymentsInSnowballOutput)
-                list.Add("Int");
-            if (list.Any())
-                return ", additional output: (" + string.Join(", ", list) + ")";
+            if (Settings.Snowball.DisplayInterestAndPrincipalColumns.In(OptionalColumnDisplayPref.Always, OptionalColumnDisplayPref.IfGreaterThanZero))
+                return ", additional output: (Pri, Int)";
             return "";
         }
 
