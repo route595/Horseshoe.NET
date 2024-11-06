@@ -1,12 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Primitives;
 
 namespace Horseshoe.NET.Finance
 {
     public static class Extensions
     {
-        public static string[] GetTitleElements(this CreditAccountPayoffInfo cap)
+        public static StringValues GetTitleElements(this CreditAccountPayoffInfo cap)
         {
+            if (cap.IsTotalColumn)
+                return "Totals";
+            
             var list = new List<string>();
             if (cap.Account.Name != null)
                 list.Add(cap.Account.Name);
@@ -18,9 +22,9 @@ namespace Horseshoe.NET.Finance
                 list.Add($"Balance: {cap.Account.Balance:C}");
             if (cap.Account.MinimumPaymentAmount > 0m)
                 list.Add($"Min Payment: {cap.Account.MinimumPaymentAmount:C}");
-            if (!list.Any())
-                list.Add("[account]");
-            return list.ToArray();
+            if (list.Any())
+                return list.ToArray();
+            return "[account]";
         }
     }
 }

@@ -241,6 +241,7 @@ namespace Horseshoe.NET.Finance
                 // increment date
                 runningDate = runningDate.AddMonths(1);
             }
+            projection.CreateTotalsColumn();
             return projection;
         }
     }

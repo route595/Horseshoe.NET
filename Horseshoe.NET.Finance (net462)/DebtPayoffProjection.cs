@@ -51,12 +51,33 @@ namespace Horseshoe.NET.Finance
             Dates = new List<DateTime>();
         }
 
+        public void CreateTotalsColumn()
+        {
+            // remove any previously calculated total columns
+            if (this.Last().IsTotalColumn)
+            {
+                RemoveAt(Count - 1);
+            }
+
+            // create and populate the totals column
+            var totalCap = new CreditAccountPayoffInfo(new CreditAccount { Name = "Total" }, Snowballing, true);
+            for (int i = 0; i < Dates.Count; i++)
+            {
+                totalCap.Add(new MonthlyPaymentInfo
+                {
+                    PaymentAmount = this.Sum(cap => cap.Count > i ? cap[i].PaymentAmount : 0m),
+                    InterestAmount = this.Sum(cap => cap.Count > i ? cap[i].InterestAmount : 0m)
+                });
+            }
+            Add(totalCap);
+        }
+
         public TextGrid RenderToTextGrid(string dateFormat = "MMM yyyy")
         {
             var dateColumn = new Column { Title = "Date", Format = dateFormat };
             //var date = DateUtil.GetMonthStart(basedOnDateTime: startDate);
             var accountColumns = this
-                .Select(sa => new Column(sa.Select(mp => mp.Render(sa))) { Title = sa.GetTitleElements() })
+                .Select(cap => new Column(cap.Select(mp => mp.Render(cap))) { Title = cap.GetTitleElements() })
                 .ToList();
             var textGrid = new TextGrid(accountColumns)
             {

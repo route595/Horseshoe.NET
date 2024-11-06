@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.Finance</RootNamespace>
     <PackageId>$(AssemblyName)</PackageId>
-    <Version>3.1.5.3</Version>
+    <Version>3.1.5.4</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A suite of basic financial formulas and a debt payoff projection tool with optional snowballing</Description>

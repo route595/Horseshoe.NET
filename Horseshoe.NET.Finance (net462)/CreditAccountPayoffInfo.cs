@@ -10,6 +10,7 @@ namespace Horseshoe.NET.Finance
         public CreditAccount Account { get; }
         public decimal MinimumPaymentAmount => Account.MinimumPaymentAmount;
         public bool Snowballing { get; }
+        internal bool IsTotalColumn { get; }
         public decimal RunningBalance => this.LastOrDefault()?.RunningBalance ?? Account.Balance;
         //public decimal CurrentCycleInterestAmount => CalculateInterestAmount();
         //public decimal CurrentCyclePaymentAmount => CalculatePaymentAmount();
@@ -23,6 +24,13 @@ namespace Horseshoe.NET.Finance
         {
             Account = account;
             Snowballing = snowballing;
+        }
+
+        internal CreditAccountPayoffInfo(CreditAccount account, bool snowballing, bool isTotalColumn)
+        {
+            Account = account;
+            Snowballing = snowballing;
+            IsTotalColumn = isTotalColumn;
         }
 
         public decimal CalculateCurrentCycleInterest(DateTime date)
@@ -62,11 +70,16 @@ namespace Horseshoe.NET.Finance
 
         internal bool DisplayInterestAndPrincipalColumns()
         {
-            if (Settings.Snowball.DisplayInterestAndPrincipalColumns == OptionalColumnDisplayPref.Always)
+            if (Settings.Snowball.DisplayInterestAndPrincipalColumns == OptionalColumnDisplayPref.Always || IsTotalColumn)
                 return true;
             if (Settings.Snowball.DisplayInterestAndPrincipalColumns == OptionalColumnDisplayPref.IfGreaterThanZero && this.Any() && this.Max(mp => mp.InterestAmount) > 0m)
                 return true;
             return false;
+        }
+
+        internal bool DisplayBalanceColumn()
+        {
+            return !IsTotalColumn;
         }
 
         internal void CalculateOutputWidths()
@@ -76,7 +89,8 @@ namespace Horseshoe.NET.Finance
                 MaxInterestOutputWidth = this.Max(mp => mp.InterestAmount).ToString("N2").Length;
             if (DisplayInterestAndPrincipalColumns())
                 MaxPrincipalOutputWidth = this.Max(mp => mp.PrincipalAmount).ToString("N2").Length;
-            MaxRunningBalanceOutputWidth = (this.Any() ? this.Max(mp => mp.RunningBalance) : 0m).ToString("N2").Length;
+            if (DisplayBalanceColumn())
+                MaxRunningBalanceOutputWidth = (this.Any() ? this.Max(mp => mp.RunningBalance) : 0m).ToString("N2").Length;
         }
 
         public string RenderSubColumnTitles()
@@ -91,9 +105,12 @@ namespace Horseshoe.NET.Finance
                     .Append(' ')
                     .Append("Int".PadRight(MaxInterestOutputWidth + 1));
             }
-            strb
-                .Append(' ')
-                .Append("Bal".PadRight(MaxRunningBalanceOutputWidth + 1));
+            if (DisplayBalanceColumn())
+            {
+                strb
+                    .Append(' ')
+                    .Append("Bal".PadRight(MaxRunningBalanceOutputWidth + 1));
+            }
             return strb.ToString();
         }
     }

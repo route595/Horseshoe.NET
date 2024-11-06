@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-using Horseshoe.NET.Text;
+﻿using System.Text;
 
 namespace Horseshoe.NET.Finance
 {
@@ -15,7 +12,7 @@ namespace Horseshoe.NET.Finance
         public string Render(CreditAccountPayoffInfo cap)
         {
             cap.CalculateOutputWidths();
-            return Render(cap.MaxPaymentOutputWidth, cap.DisplayInterestAndPrincipalColumns() ? cap.MaxPrincipalOutputWidth : -1, cap.DisplayInterestAndPrincipalColumns() ? cap.MaxInterestOutputWidth : -1, cap.MaxRunningBalanceOutputWidth);
+            return Render(cap.MaxPaymentOutputWidth, cap.DisplayInterestAndPrincipalColumns() ? cap.MaxPrincipalOutputWidth : -1, cap.DisplayInterestAndPrincipalColumns() ? cap.MaxInterestOutputWidth : -1, cap.DisplayBalanceColumn() ? cap.MaxRunningBalanceOutputWidth : -1);
         }
 
         public string Render(int paymentNumericWidth, int principalNumericWidth, int interestNumericWidth, int runningBalanceNumericWidth)
@@ -26,7 +23,8 @@ namespace Horseshoe.NET.Finance
                 strb.Append(" $" + PrincipalAmount.ToString("N2").PadLeft(principalNumericWidth));
             if (interestNumericWidth > -1)
                 strb.Append(" $" + InterestAmount.ToString("N2").PadLeft(interestNumericWidth));
-            strb.Append(" $" + RunningBalance.ToString("N2").PadLeft(runningBalanceNumericWidth));
+            if (runningBalanceNumericWidth > -1)
+                strb.Append(" $" + RunningBalance.ToString("N2").PadLeft(runningBalanceNumericWidth));
             return strb.ToString();
         }
     }
