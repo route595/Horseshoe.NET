@@ -15,6 +15,11 @@ namespace Horseshoe.NET.Finance
             Id = Guid.NewGuid();
         }
 
+        //public decimal CalculateFirstMonthInterestAmount()
+        //{
+
+        //}
+
         public override bool Equals(object obj)
         {
             return base.Equals(obj);

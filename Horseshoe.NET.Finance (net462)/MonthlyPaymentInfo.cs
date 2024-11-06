@@ -12,10 +12,10 @@ namespace Horseshoe.NET.Finance
         public decimal PrincipalAmount => PaymentAmount - InterestAmount;
         public decimal RunningBalance { get; set; }
 
-        public string Render(CreditAccountPayoffInfo capi)
+        public string Render(CreditAccountPayoffInfo cap)
         {
-            capi.CalculateOutputWidths();
-            return Render(capi.MaxPaymentOutputWidth, capi.DisplayInterestAndPrincipalColumns() ? capi.MaxPrincipalOutputWidth : -1, capi.DisplayInterestAndPrincipalColumns() ? capi.MaxInterestOutputWidth : -1, capi.MaxRunningBalanceOutputWidth);
+            cap.CalculateOutputWidths();
+            return Render(cap.MaxPaymentOutputWidth, cap.DisplayInterestAndPrincipalColumns() ? cap.MaxPrincipalOutputWidth : -1, cap.DisplayInterestAndPrincipalColumns() ? cap.MaxInterestOutputWidth : -1, cap.MaxRunningBalanceOutputWidth);
         }
 
         public string Render(int paymentNumericWidth, int principalNumericWidth, int interestNumericWidth, int runningBalanceNumericWidth)

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Horseshoe.NET.Text;
-
 namespace Horseshoe.NET.Finance
 {
     public class CreditAccountPayoffInfo : List<MonthlyPaymentInfo>
     {
         public CreditAccount Account { get; }
+        public decimal MinimumPaymentAmount => Account.MinimumPaymentAmount;
+        public bool Snowballing { get; }
         public decimal RunningBalance => this.LastOrDefault()?.RunningBalance ?? Account.Balance;
         //public decimal CurrentCycleInterestAmount => CalculateInterestAmount();
         //public decimal CurrentCyclePaymentAmount => CalculatePaymentAmount();
@@ -19,14 +19,15 @@ namespace Horseshoe.NET.Finance
         internal int MaxRunningBalanceOutputWidth { get; set; } // 2 + 8  =>  " $" + "6,000.00" (also " $" + "  600.00")  =>  " $6,000.00" (also " $  600.00")
         internal int MaxOutputWidth => 1 + MaxPaymentOutputWidth + (DisplayInterestAndPrincipalColumns() ? 2 + MaxInterestOutputWidth + 2 + MaxPrincipalOutputWidth : 0) + 2 + MaxRunningBalanceOutputWidth;
 
-        public CreditAccountPayoffInfo(CreditAccount account)
+        public CreditAccountPayoffInfo(CreditAccount account, bool snowballing)
         {
             Account = account;
+            Snowballing = snowballing;
         }
 
         public decimal CalculateCurrentCycleInterest(DateTime date)
         {
-            if (Account.AltList != null)
+            if (Snowballing && Account.AltList != null)
             {
                 foreach (var acap in Account.AltList)
                 {
@@ -42,7 +43,7 @@ namespace Horseshoe.NET.Finance
         public decimal CalculateCurrentCyclePayment(DateTime date)
         {
             decimal p = RunningBalance, i = CalculateCurrentCycleInterest(date);
-            if (Account.AltList != null)
+            if (Snowballing && Account.AltList != null)
             {
                 foreach (var acap in Account.AltList)
                 {

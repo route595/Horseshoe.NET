@@ -1,8 +1,8 @@
 ﻿namespace Horseshoe.NET.Finance
 {
-    public enum CreditAccountSortOrder
+    public enum SnowballOrder
     {
-        NotSorted,
+        SameAsSourceCreditAccountCollection,
         APR,
         APR_Descending,
         Balance,

@@ -104,34 +104,34 @@ namespace Horseshoe.NET.Finance
         /// <param name="startDate">An optional <c>DateTime</c> at which to start the debt payoff calculation.</param>
         /// <param name="snowballing">If <c>true</c>, the calculated payments will snowball as account payoffs are projected.  Default is <c>false</c>.</param>
         /// <param name="extraSnowballAmount">An optional extra monthly amount to add to the payoff calculation.</param>
-        /// <param name="sortOrder">How the account list was sorted (see <c>FinanceEngine.GenerateCreditPayoffProjection()</c>)</param>
+        /// <param name="snowballOrder">How to sort the account list when snowballing payments.</param>
         /// <returns>A fully fleshed out <c>CreditPayoffProjection</c>.</returns>
         /// <exception cref="FinanceException"></exception>
         /// <exception cref="ValidationException"></exception>
-        public static DebtPayoffProjection GenerateCreditPayoffProjection(IEnumerable<CreditAccount> creditAccounts, DateTime? startDate = null, bool snowballing = false, decimal extraSnowballAmount = 0m, CreditAccountSortOrder sortOrder = CreditAccountSortOrder.NotSorted)
+        public static DebtPayoffProjection GenerateCreditPayoffProjection(IEnumerable<CreditAccount> creditAccounts, DateTime? startDate = null, bool snowballing = false, decimal extraSnowballAmount = 0m, SnowballOrder snowballOrder = SnowballOrder.SameAsSourceCreditAccountCollection)
         {
             // sort the credit accounts
-            if (creditAccounts != null)
+            if (creditAccounts != null && snowballing)
             {
-                switch (sortOrder)
+                switch (snowballOrder)
                 {
-                    case CreditAccountSortOrder.APR:
+                    case SnowballOrder.APR:
                         creditAccounts = creditAccounts.OrderBy(ca => ca.APR);
                         break;
-                    case CreditAccountSortOrder.APR_Descending:
+                    case SnowballOrder.APR_Descending:
                         creditAccounts = creditAccounts.OrderByDescending(ca => ca.APR);
                         break;
-                    case CreditAccountSortOrder.Balance:
+                    case SnowballOrder.Balance:
                         creditAccounts = creditAccounts.OrderBy(ca => ca.Balance);
                         break;
-                    case CreditAccountSortOrder.Balance_Descending:
+                    case SnowballOrder.Balance_Descending:
                         creditAccounts = creditAccounts.OrderByDescending(ca => ca.Balance);
                         break;
                 }
             }
 
             // instantiate the payoff projections
-            var projection = new DebtPayoffProjection(creditAccounts, startDate: startDate, snowballing: snowballing, extraSnowballAmount: extraSnowballAmount, sortOrder: sortOrder);
+            var projection = new DebtPayoffProjection(creditAccounts, startDate: startDate, snowballing: snowballing, extraSnowballAmount: extraSnowballAmount, snowballOrder: snowballOrder);
             var runningDate = projection.StartDate;
 
             // validation
@@ -144,33 +144,32 @@ namespace Horseshoe.NET.Finance
                 if (!snowballing)
                 {
                     // pass 1 of 1 - minimum payments
-                    foreach (var capi in projection)
+                    foreach (var cap in projection)
                     {
-                        if (capi.RunningBalance > 0m)
+                        if (cap.RunningBalance > 0m)
                         {
-                            var currentCycleInterestAmt = capi.CalculateCurrentCycleInterest(runningDate);
-                            var currentCyclePaymentAmt = capi.CalculateCurrentCyclePayment(runningDate);
+                            var currentCycleInterestAmt = cap.CalculateCurrentCycleInterest(runningDate);
+                            var currentCyclePaymentAmt = cap.CalculateCurrentCyclePayment(runningDate);
 
                             // validation
-                            if (!(currentCyclePaymentAmt > currentCycleInterestAmt))
-                                throw new FinanceException($"{capi.Account.Name}: Please increase the minimum payment amount to exceed the monthly interest amount: {currentCyclePaymentAmt} < {currentCycleInterestAmt}.");
+                            if (currentCyclePaymentAmt < currentCycleInterestAmt)
+                                throw new FinanceException($"{cap.Account.Name}: Please increase the minimum payment amount to exceed the monthly interest amount: {currentCyclePaymentAmt:C} < {currentCycleInterestAmt:C}.");
 
                             var monthlyPayment = new MonthlyPaymentInfo { InterestAmount = currentCycleInterestAmt };
 
-                            // scenario 1 - account paid down
-                            if (capi.RunningBalance > currentCyclePaymentAmt - monthlyPayment.InterestAmount)
+                            // scenario 1 - account paid down (potentially zero)
+                            if (cap.RunningBalance > currentCyclePaymentAmt - currentCycleInterestAmt)
                             {
                                 monthlyPayment.PaymentAmount = currentCyclePaymentAmt;
-                                monthlyPayment.RunningBalance = capi.RunningBalance - monthlyPayment.PaymentAmount + monthlyPayment.InterestAmount;
-
+                                monthlyPayment.RunningBalance = cap.RunningBalance - currentCyclePaymentAmt + currentCycleInterestAmt;
                             }
                             // scenario 2 - account paid off
                             else
                             {
-                                monthlyPayment.PaymentAmount = capi.RunningBalance;
+                                monthlyPayment.PaymentAmount = cap.RunningBalance;
                                 monthlyPayment.RunningBalance = 0m;
                             }
-                            capi.Add(monthlyPayment);
+                            cap.Add(monthlyPayment);
                         }
                     }
                 }
@@ -180,43 +179,43 @@ namespace Horseshoe.NET.Finance
                     var remainingMonthlyBudget = projection.TotalMonthlyBudget;
 
                     // pass 1 of 2 - minimum payments
-                    foreach (var capi in projection)
+                    foreach (var cap in projection)
                     {
-                        if (capi.RunningBalance > 0m)
+                        if (cap.RunningBalance > 0m)
                         {
-                            var currentCycleInterestAmt = capi.CalculateCurrentCycleInterest(runningDate);
-                            var currentCyclePaymentAmt = capi.CalculateCurrentCyclePayment(runningDate);
+                            var currentCycleInterestAmt = cap.CalculateCurrentCycleInterest(runningDate);
+                            var currentCyclePaymentAmt = cap.CalculateCurrentCyclePayment(runningDate);
 
                             // validation
-                            if (!(currentCyclePaymentAmt > capi.CalculateCurrentCycleInterest(runningDate)))
-                                throw new FinanceException($"{capi.Account.Name}: Please increase the minimum payment amount to exceed the monthly interest amount: {currentCyclePaymentAmt} < {currentCycleInterestAmt}.");
+                            if (currentCyclePaymentAmt < currentCycleInterestAmt && cap.MinimumPaymentAmount < currentCyclePaymentAmt)
+                                throw new FinanceException($"{cap.Account.Name}: Please increase the minimum payment amount to exceed the monthly interest amount: {currentCyclePaymentAmt} < {currentCycleInterestAmt}.");
 
                             var monthlyPayment = new MonthlyPaymentInfo { InterestAmount = currentCycleInterestAmt };
 
-                            // scenario 1 - account paid down
-                            if (capi.RunningBalance > currentCyclePaymentAmt - monthlyPayment.InterestAmount)
+                            // scenario 1 - account paid down (potentially zero)
+                            if (cap.RunningBalance > currentCyclePaymentAmt - currentCycleInterestAmt)
                             {
                                 monthlyPayment.PaymentAmount = currentCyclePaymentAmt;
-                                monthlyPayment.RunningBalance = capi.RunningBalance - monthlyPayment.PaymentAmount + monthlyPayment.InterestAmount;
+                                monthlyPayment.RunningBalance = cap.RunningBalance - currentCyclePaymentAmt + currentCycleInterestAmt;
                             }
                             // scenario 2 - account paid off
                             else
                             {
-                                monthlyPayment.PaymentAmount = capi.RunningBalance + monthlyPayment.InterestAmount;
+                                monthlyPayment.PaymentAmount = cap.RunningBalance + currentCycleInterestAmt;
                                 monthlyPayment.RunningBalance = 0m;
                             }
-                            capi.Add(monthlyPayment);
+                            cap.Add(monthlyPayment);
                             remainingMonthlyBudget -= monthlyPayment.PaymentAmount;
                         }
                     }
 
                     // pass 2 of 2 - snowball payments - withSnowballing in order of original sort
-                    foreach (var capi in projection)
+                    foreach (var cap in projection)
                     {
-                        var _runningBalance = capi.RunningBalance;  // eq sa.Last().RunningBalance
+                        var _runningBalance = cap.RunningBalance;  // eq sa.Last().RunningBalance
                         if (_runningBalance > 0m)
                         {
-                            var last = capi.Last();
+                            var last = cap.Last();
 
                             // scenario 1 - account paid down
                             if (_runningBalance > remainingMonthlyBudget)

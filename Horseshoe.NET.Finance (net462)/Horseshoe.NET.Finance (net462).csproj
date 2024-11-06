@@ -68,7 +68,7 @@
     <Compile Include="AltCreditAccountPayoffInfo.cs" />
     <Compile Include="BankAccount.cs" />
     <Compile Include="CompoundingPeriod.cs" />
-    <Compile Include="CreditAccountSortOrder.cs" />
+    <Compile Include="SnowballOrder.cs" />
     <Compile Include="LineOfCreditAccount.cs" />
     <Compile Include="CreditCardAccount.cs" />
     <Compile Include="FinanceException.cs" />

@@ -17,7 +17,7 @@ namespace Horseshoe.NET.Finance
         public decimal MinimumMonthlyBudget { get; }
         public decimal ExtraSnowballAmount { get; }
         public decimal TotalMonthlyBudget => MinimumMonthlyBudget + (Snowballing ? ExtraSnowballAmount : 0m);
-        public CreditAccountSortOrder SortOrder { get; }
+        public SnowballOrder SnowballOrder { get; }
         internal IList<DateTime> Dates { get; }
 
         /// <summary>
@@ -27,9 +27,9 @@ namespace Horseshoe.NET.Finance
         /// <param name="startDate">An optional <c>DateTime</c> at which to start the debt payoff calculation.</param>
         /// <param name="snowballing">If <c>true</c>, the calculated payments will snowball as account payoffs are projected.  Default is <c>false</c>.</param>
         /// <param name="extraSnowballAmount">An optional extra monthly amount to add to the payoff calculation.</param>
-        /// <param name="sortOrder">How the account list was sorted (see <c>FinanceEngine.GenerateCreditPayoffProjection()</c>)</param>
+        /// <param name="snowballOrder">How to sort the account list when snowballing payments (see <c>FinanceEngine.GenerateCreditPayoffProjection()</c>)</param>
         /// <exception cref="ValidationException"></exception>
-        internal DebtPayoffProjection(IEnumerable<CreditAccount> creditAccounts, DateTime? startDate = null, bool snowballing = false, decimal extraSnowballAmount = 0m, CreditAccountSortOrder sortOrder = CreditAccountSortOrder.NotSorted)
+        internal DebtPayoffProjection(IEnumerable<CreditAccount> creditAccounts, DateTime? startDate = null, bool snowballing = false, decimal extraSnowballAmount = 0m, SnowballOrder snowballOrder = SnowballOrder.SameAsSourceCreditAccountCollection)
         {
             // validation
             if (creditAccounts == null || !creditAccounts.Any())
@@ -42,16 +42,16 @@ namespace Horseshoe.NET.Finance
                 throw new ValidationException("extra snowball amount must be greater than zero: " + extraSnowballAmount);
 
             // build projection
-            AddRange(creditAccounts.Select(ca => new CreditAccountPayoffInfo(ca)));
+            AddRange(creditAccounts.Select(ca => new CreditAccountPayoffInfo(ca, snowballing)));
             StartDate = DateUtil.GetMonthStart(startDate);
             Snowballing = snowballing;
             MinimumMonthlyBudget = creditAccounts.Sum(a => a.MinimumPaymentAmount);
             ExtraSnowballAmount = extraSnowballAmount;
-            SortOrder = sortOrder;
+            SnowballOrder = snowballOrder;
             Dates = new List<DateTime>();
         }
 
-        public TextGrid RenderToTextGrid(DateTime? startDate = null, string dateFormat = "MMM yyyy")
+        public TextGrid RenderToTextGrid(string dateFormat = "MMM yyyy")
         {
             var dateColumn = new Column { Title = "Date", Format = dateFormat };
             //var date = DateUtil.GetMonthStart(basedOnDateTime: startDate);
