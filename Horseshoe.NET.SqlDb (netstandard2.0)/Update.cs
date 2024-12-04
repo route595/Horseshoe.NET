@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Reflection;
+
 using Horseshoe.NET.Db;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.SqlDb
 {
@@ -21,10 +19,11 @@ namespace Horseshoe.NET.SqlDb
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to update (uses <c>DbParameter</c> as column info).</param>
         /// <param name="where">A filter indicating which rows to update.</param>
-        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of updated rows.</returns>
         public static int Table
         (
@@ -33,7 +32,8 @@ namespace Horseshoe.NET.SqlDb
             Filter where,
             SqlDbConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
-            Action<SqlCommand> alterCommand = null,
+            Action<SqlConnection> peekConnection = null,
+            Action<SqlCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -43,9 +43,9 @@ namespace Horseshoe.NET.SqlDb
             journal.Level++;
 
             // data stuff
-            using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+            using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
             {
-                var result = Table(conn, tableName, columns, where, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var result = Table(conn, tableName, columns, where, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -60,9 +60,9 @@ namespace Horseshoe.NET.SqlDb
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to update (uses <c>DbParameter</c> as column info).</param>
         /// <param name="where">A filter indicating which rows to update.</param>
-        /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of updated rows.</returns>
         public static int Table
         (
@@ -70,8 +70,9 @@ namespace Horseshoe.NET.SqlDb
             string tableName,
             IEnumerable<DbParameter> columns,
             Filter where,
+            SqlTransaction transaction = null,
             int? commandTimeout = null,
-            Action<SqlCommand> alterCommand = null,
+            Action<SqlCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -81,8 +82,8 @@ namespace Horseshoe.NET.SqlDb
             journal.Level++;
 
             // data stuff
-            var statement = DbUtil.BuildUpdateStatement(DbPlatform.SqlServer, tableName, columns, where, journal: journal);
-            var result = Execute.SQL(conn, statement, commandTimeout: commandTimeout, alterCommand: alterCommand);
+            var statement = DbUtil.BuildUpdateStatement(DbProvider.SqlServer, tableName, columns, where, journal: journal);
+            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
             // finalize
             journal.Level--;

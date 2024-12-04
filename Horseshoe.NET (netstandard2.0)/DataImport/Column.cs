@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 
 using Horseshoe.NET.DateAndTime;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.DataImport
 {

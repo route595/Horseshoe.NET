@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Horseshoe.NET.Iterator;
+using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.Collections
@@ -784,6 +785,50 @@ namespace Horseshoe.NET.Collections
         /// <returns></returns>
         public static IDictionary<TKey, TValue> AppendMergeLeftToRight<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
             DictionaryUtil.AppendMergeLeftToRight(dictionary, dictionariesToAppend);
+
+        /// <summary>
+        /// Dumps a collection to a single line of text with the specified separator optionally rendering only the
+        /// first <c>n</c> items and terminating the result with a remaining count indicator, e.g. "14 more...".
+        /// </summary>
+        /// <typeparam name="T">The item type</typeparam>
+        /// <param name="collection">A collection</param>
+        /// <param name="separator">The text that seperates items in the rendered <c>string</c>, default is ", ".</param>
+        /// <param name="n">
+        /// The max number of items to render.  If <c>n &lt;= 0</c> all items are rendered.  
+        /// If <c>n &lt; collection.Count()</c> the output will end with a remaining count indicator, e.g. "14 more...".
+        /// </param>
+        /// <param name="renderer">An optional way to render each item.  
+        /// <para>
+        /// For example...
+        /// <code>
+        /// var dates = new List&lt;DateTime&gt;{ DateTime.MinValue, DateTime.Today, DateTime.MaxValue };
+        /// Console.WriteLine(dates.StringDump(renderer: (d) => d.ToString("yyyy-MM-dd")));
+        /// // same as
+        /// Console.WriteLine(string.Join(", ", dates.Select(d => d.ToString("yyyy-MM-dd"))));
+        /// </code>
+        /// </para>
+        /// </param>
+        /// <returns>A single-line <c>string</c> representation of a colleciton</returns>
+        public static string StringDump<T>(this IEnumerable<T> collection, string separator = ", ", int n = 0, Func<T, string> renderer = null)
+        {
+            if (collection == null)
+                return TextConstants.Null;
+            if (!collection.Any())
+                return TextConstants.Empty;
+            if (n > 0)
+            {
+                var partialList = collection.Take(n);
+                var strb = new StringBuilder(string.Join(separator, partialList.Select(t => renderer != null ? renderer.Invoke(t) : t?.ToString())));
+                if (collection.Count() > n)
+                {
+                    strb.Append(separator)
+                        .Append(collection.Count() - n)
+                        .Append(" more...");
+                }
+                return strb.ToString();
+            }
+            return string.Join(separator, collection.Select(t => renderer != null ? renderer.Invoke(t) : t?.ToString()));
+        }
 
         /// <summary>
         /// Displays a dictionary's contents as a string

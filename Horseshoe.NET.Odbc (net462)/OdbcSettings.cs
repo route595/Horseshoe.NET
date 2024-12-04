@@ -142,5 +142,10 @@ namespace Horseshoe.NET.Odbc
                 _defaultConnectionTimeout = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets optional cryptographic properties used to decrypt database passwords
+        /// </summary>
+        public static CryptoOptions CryptoOptions { get; set; }
     }
 }

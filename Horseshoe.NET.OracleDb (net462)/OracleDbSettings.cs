@@ -273,5 +273,10 @@ namespace Horseshoe.NET.OracleDb
                 _serverList = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the optional cryptographic properties used to decrypt database passwords
+        /// </summary>
+        public static CryptoOptions CryptoOptions { get; set; }
     }
 }

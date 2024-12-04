@@ -29,7 +29,7 @@ namespace TestConsole.DbTests
                     DoFilterTest("\"name\" is null", () => Filter.IsNull("name"));
                     DoFilterTest("\"name\" is not null", () => Filter.Not().IsNull("name"));
                     DoFilterTest("\"object_id\" equals OBJECT_ID('dbo.table12345')", () => Filter.Literal("object_id", "OBJECT_ID('dbo.table12345')"));
-                    DoFilterTest("\"due_date\" after today", () => Filter.GreaterThan("due_date", SqlLiteral.CurrentDate(DbPlatform.SqlServer)));
+                    DoFilterTest("\"due_date\" after today", () => Filter.GreaterThan("due_date", SqlLiteral.CurrentDate(DbProvider.SqlServer)));
                     DoFilterTest("\"due_date\" after today", () => Filter.Literal("due_date > GETDATE()"));
                     DoFilterTest("\"due_date\" after today", () => Filter.Literal("due_date", "> GETDATE()"));
                     DoFilterTest("first letter in \"name\" is 'A', 'B' or 'C')", () => Filter.In(new ColumnExpression("name", "LEFT({0}, 1)"), new[] { 'A', 'B', 'C' }));

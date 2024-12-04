@@ -4,7 +4,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET.Db
 {
     /// <summary>
-    /// A set of useful, platform-dependent SQL literals to use as parameter values, for example
+    /// A set of useful, provider-dependent SQL literals to use as parameter values, for example
     /// </summary>
     public class SqlLiteral : IComparable<SqlLiteral>
     {
@@ -60,29 +60,29 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// The SQL literal expression for getting the current date/time.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements. Required.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc. Required.</param>
         /// <param name="dotNetOverride">If <c>true</c>, uses the .NET runtime's current date/time instead, default is <c>false</c>.</param>
         /// <returns>A SQL literal expression for getting the current date/time.</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static SqlLiteral CurrentDate(DbPlatform platform, bool dotNetOverride = false)
+        public static SqlLiteral CurrentDate(DbProvider provider, bool dotNetOverride = false)
         {
             return new SqlLiteral
             (
                 () =>
                 {
                     if (dotNetOverride)
-                        return DbUtilAbstractions.Sqlize(DateTime.Now, platform);
+                        return DbUtilAbstractions.Sqlize(DateTime.Now, provider: provider);
 
-                    switch (platform)
+                    switch (provider)
                     {
-                        case DbPlatform.SqlServer:
+                        case DbProvider.SqlServer:
                             return "GETDATE()";
-                        case DbPlatform.Oracle:
+                        case DbProvider.Oracle:
                             return "SYSDATE";
-                        case DbPlatform.Neutral:
-                            throw new ArgumentException("This method requires a non-neutral DB platform.");
+                        case DbProvider.Neutral:
+                            throw new ArgumentException("This method requires a non-neutral DB provider.");
                         default:
-                            throw new NotImplementedException("This platform does not yet have an implementation of 'get current date': " + platform);
+                            throw new NotImplementedException("This provider does not yet have an implementation of 'get current date': " + provider);
                     }
                 }
             );
@@ -91,11 +91,11 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// The SQL literal expression for generating a GUID.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements. Required.</param>
+        /// <param name="provider">A DB provider lends hints about how to render SQL expressions and statements. Required.</param>
         /// <param name="dotNetOverride">If <c>true</c>, uses the .NET runtime to generate the GUID, default is <c>false</c>.</param>
         /// <returns>A SQL literal expression for generating a GUID.</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static SqlLiteral NewGuid(DbPlatform platform, bool dotNetOverride = false)
+        public static SqlLiteral NewGuid(DbProvider provider, bool dotNetOverride = false)
         {
             return new SqlLiteral
             (
@@ -104,16 +104,16 @@ namespace Horseshoe.NET.Db
                     if (dotNetOverride)
                         return "'" + Guid.NewGuid() + "'";
 
-                    switch (platform)
+                    switch (provider)
                     {
-                        case DbPlatform.SqlServer:
+                        case DbProvider.SqlServer:
                             return "NEWID()";
-                        case DbPlatform.Oracle:
+                        case DbProvider.Oracle:
                             return "SYSGUID()";
-                        case DbPlatform.Neutral:
-                            throw new ArgumentException("This method requires a non-neutral DB platform.");
+                        case DbProvider.Neutral:
+                            throw new ArgumentException("This method requires a non-neutral DB provider.");
                         default:
-                            throw new NotImplementedException("This platform does not yet have an implementation of 'new GUID': " + platform);
+                            throw new NotImplementedException("This provider does not yet have an implementation of 'new GUID': " + provider);
                     }
                 }
             );
@@ -122,25 +122,25 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// The SQL literal expression for getting the integer auto-increment ID after inserting a row
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements. Required.</param>
+        /// <param name="provider">A DB provider lends hints about how to render SQL expressions and statements. Required.</param>
         /// <returns>A SQL literal expression for getting the last inserted row ID.</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static SqlLiteral Identity(DbPlatform platform)
+        public static SqlLiteral Identity(DbProvider provider)
         {
             return new SqlLiteral
             (
                 () =>
                 {
-                    switch (platform)
+                    switch (provider)
                     {
-                        case DbPlatform.SqlServer:
+                        case DbProvider.SqlServer:
                             return "CONVERT(int, SCOPE_IDENTITY())";
-                        case DbPlatform.Oracle:
+                        case DbProvider.Oracle:
                             return "LAST_INSERT_ID()";
-                        case DbPlatform.Neutral:
-                            throw new ArgumentException("This method requires a non-neutral DB platform.");
+                        case DbProvider.Neutral:
+                            throw new ArgumentException("This method requires a non-neutral DB provider.");
                         default:
-                            throw new NotImplementedException("This platform does not yet have an implementation of 'get identity': " + platform);
+                            throw new NotImplementedException("This provider does not yet have an implementation of 'get identity': " + provider);
                     }
                 }
             );

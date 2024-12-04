@@ -1,5 +1,5 @@
 ﻿using Horseshoe.NET.Db;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.OracleDb.Meta;
 
 namespace Horseshoe.NET.OracleDb
@@ -37,7 +37,7 @@ namespace Horseshoe.NET.OracleDb
 
         public bool AutoClearConnectionPool { get; set; }
 
-        public override DbPlatform? Platform => DbPlatform.Oracle;
+        public override DbProvider? Provider => DbProvider.Oracle;
 
         public OracleDbConnectionInfo() { }
 
@@ -51,9 +51,15 @@ namespace Horseshoe.NET.OracleDb
             DataSource = dataSource;
         }
 
-        public override string BuildConnectionString()   // Uses EZ Connect style connection string, not including user id and password
+        public override string BuildFinalConnectionString()   // Uses EZ Connect style connection string, not including user id and password
         {
             return OracleDbUtil.BuildConnectionString(DataSource, hasCredentials: OracleCredentials != null, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }
+
+        /// <summary>
+        /// Implicitly converts connection strings to <c>OracleDbConnectionInfo</c>
+        /// </summary>
+        /// <param name="connectionString"></param>
+        public static implicit operator OracleDbConnectionInfo(string connectionString) => new OracleDbConnectionInfo { ConnectionString = connectionString };
     }
 }

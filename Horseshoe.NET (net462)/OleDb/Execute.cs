@@ -6,7 +6,6 @@ using System.Data.OleDb;
 using System.Linq;
 using System.Reflection;
 
-using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 
 namespace Horseshoe.NET.OleDb
@@ -24,8 +23,8 @@ namespace Horseshoe.NET.OleDb
         /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int Procedure
@@ -35,8 +34,8 @@ namespace Horseshoe.NET.OleDb
             OleDbConnectionInfo connectionInfo = null, 
             DbCapture dbCapture = null,
             int? commandTimeout = null,
-            CryptoOptions cryptoOptions = null,
-            Action<OleDbCommand> alterCommand = null,
+            Action<OleDbConnection> peekConnection = null,
+            Action<OleDbCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -46,9 +45,9 @@ namespace Horseshoe.NET.OleDb
             journal.Level++;
 
             // data stuff
-            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
             {
-                var result = Procedure(conn, procedureName, parameters: parameters, dbCapture: dbCapture, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var result = Procedure(conn, procedureName, parameters: parameters, dbCapture: dbCapture, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -62,9 +61,10 @@ namespace Horseshoe.NET.OleDb
         /// <param name="conn">An open DB connection.</param>
         /// <param name="procedureName">The name of the stored procedure being executed.</param>
         /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+        /// <param name="transaction">A transaction can encapsulate multiple DML commands including the ability to roll them all back.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int Procedure
@@ -72,9 +72,10 @@ namespace Horseshoe.NET.OleDb
             OleDbConnection conn, 
             string procedureName, 
             IEnumerable<DbParameter> parameters = null,
+            OleDbTransaction transaction = null,
             DbCapture dbCapture = null,
             int? commandTimeout = null,
-            Action<OleDbCommand> alterCommand = null,
+            Action<OleDbCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -84,7 +85,7 @@ namespace Horseshoe.NET.OleDb
             journal.Level++;
 
             // data stuff
-            using (var cmd = OleDbUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+            using (var cmd = OleDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand))
             {
                 var result = cmd.ExecuteNonQuery();
 
@@ -109,8 +110,8 @@ namespace Horseshoe.NET.OleDb
         /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
         /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int SQL
@@ -119,8 +120,8 @@ namespace Horseshoe.NET.OleDb
             IEnumerable<DbParameter> parameters = null,
             OleDbConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
-            CryptoOptions cryptoOptions = null,
-            Action<OleDbCommand> alterCommand = null,
+            Action<OleDbConnection> peekConnection = null,
+            Action<OleDbCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -130,9 +131,9 @@ namespace Horseshoe.NET.OleDb
             journal.Level++;
 
             // data stuff
-            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
             {
-                var result = SQL(conn, statement, parameters: parameters, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);   // parameters optional here, e.g. may already be included in the SQL statement
+                var result = SQL(conn, statement, parameters: parameters, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);   // parameters optional here, e.g. may already be included in the SQL statement
 
                 // finalize
                 journal.Level--;
@@ -146,8 +147,9 @@ namespace Horseshoe.NET.OleDb
         /// <param name="conn">An open DB connection.</param>
         /// <param name="statement">The SQL statement to execute.</param>
         /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
+        /// <param name="transaction">A transaction can encapsulate multiple DML commands including the ability to roll them all back.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int SQL
@@ -155,8 +157,9 @@ namespace Horseshoe.NET.OleDb
             OleDbConnection conn, 
             string statement,
             IEnumerable<DbParameter> parameters = null,
+            OleDbTransaction transaction = null,
             int? commandTimeout = null,
-            Action<OleDbCommand> alterCommand = null,
+            Action<OleDbCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -166,7 +169,7 @@ namespace Horseshoe.NET.OleDb
             journal.Level++;
 
             // data stuff
-            using (var cmd = OleDbUtil.BuildTextCommand(conn, statement, parameters, commandTimeout, alterCommand))   // parameters optional here, e.g. may already be included in the SQL statement
+            using (var cmd = OleDbUtil.BuildTextCommand(conn, statement, parameters, transaction, commandTimeout, peekCommand))   // parameters optional here, e.g. may already be included in the SQL statement
             {
                 var result = cmd.ExecuteNonQuery();
 

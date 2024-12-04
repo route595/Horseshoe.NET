@@ -6,7 +6,7 @@ using Horseshoe.NET.Text;
 namespace Horseshoe.NET.Db
 {
     /// <summary>
-    /// A collection of common, platform agnostic factory methods for Horseshoe.NET DB operations.
+    /// A collection of common, provider agnostic factory methods for Horseshoe.NET DB operations.
     /// </summary>
     public static class DbUtilAbstractions
     {
@@ -18,17 +18,17 @@ namespace Horseshoe.NET.Db
         /// around the column name especially if it contains spaces or other non-word characters.
         /// </summary>
         /// <param name="columnName">a column name</param>
-        /// <param name="platform">An optional DB platform</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
-        public static string RenderColumnName(string columnName, DbPlatform platform = default)
+        public static string RenderColumnName(string columnName, DbProvider provider = default)
         {
             if (SimpleColumnNamePattern.IsMatch(columnName))
                 return columnName;
-            switch (platform)
+            switch (provider)
             {
-                case DbPlatform.SqlServer:
+                case DbProvider.SqlServer:
                     return "[" + columnName + "]";
-                case DbPlatform.Oracle:
+                case DbProvider.Oracle:
                     return "\"" + columnName + "\"";
                 default:
                     return columnName;
@@ -39,9 +39,9 @@ namespace Horseshoe.NET.Db
         /// Prepare an object for insertion into a SQL statement.
         /// </summary>
         /// <param name="obj">An object.</param>
-        /// <param name="platform">An optional DB platform.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
-        public static string Sqlize(object obj, DbPlatform platform = default)
+        public static string Sqlize(object obj, DbProvider provider = default)
         {
             if (obj == null || obj is DBNull) return "NULL";
             if (obj is bool boolValue) obj = boolValue ? 1 : 0;
@@ -49,12 +49,12 @@ namespace Horseshoe.NET.Db
             if (obj is DateTime dateTimeValue)
             {
                 string dateTimeFormat;
-                switch (platform)
+                switch (provider)
                 {
-                    case DbPlatform.SqlServer:
+                    case DbProvider.SqlServer:
                         dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";  // format inspired by Microsoft SQL Server Managament Studio (SSMS)
                         break;
-                    case DbPlatform.Oracle:
+                    case DbProvider.Oracle:
                         dateTimeFormat = "MM/dd/yyyy hh:mm:ss tt";   // format inspired by dbForge for Oracle
                         var oracleDateFormat = "mm/dd/yyyy hh:mi:ss am";
                         return "TO_DATE('" + dateTimeValue.ToString(dateTimeFormat) + "', '" + oracleDateFormat + "')";  // example: TO_DATE('02/02/2014 3:35:57 PM', 'mm/dd/yyyy hh:mi:ss am')
@@ -69,7 +69,7 @@ namespace Horseshoe.NET.Db
                 return sqlLiteral.Render();
             }
             var returnValue = "'" + obj.ToString().Replace("'", "''") + "'";
-            if (platform == DbPlatform.SqlServer && !TextUtilAbstractions.IsAsciiPrintable(returnValue))
+            if (provider == DbProvider.SqlServer && !TextUtilAbstractions.IsAsciiPrintable(returnValue))
             {
                 return "N" + returnValue;
             }

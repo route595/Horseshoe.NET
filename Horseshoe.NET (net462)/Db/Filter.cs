@@ -28,9 +28,9 @@ namespace Horseshoe.NET.Db
         public ObjectValues Criteria { get; set; }
 
         /// <summary>
-        /// A DB platform lends hints about how to render SQL expressions and statements.
+        /// A DB provider may lend hints about how to render column names, SQL expressions, etc.
         /// </summary>
-        public DbPlatform? Platform { get; set; }
+        public DbProvider? Provider { get; set; }
 
         /// <summary>
         /// Validates whether search criteria is valid.
@@ -65,16 +65,16 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// Renders the filter as a SQL expression.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>A SQL expression.</returns>
         /// <exception cref="ThisShouldNeverHappenException"></exception>
-        public virtual string Render(DbPlatform? platform = null)
+        public virtual string Render(DbProvider? provider = null)
         {
-            var columnExpression = ColumnName.Render(platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+            var columnExpression = ColumnName.Render(provider: provider ?? Provider ?? DbSettings.DefaultProvider);
             switch (Mode)
             {
                 case CompareMode.Equals:
-                    return columnExpression + " = " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+                    return columnExpression + " = " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
                 case CompareMode.Contains:
                     return columnExpression + " LIKE '%" + Criteria[0] + "%'";
                 case CompareMode.StartsWith:
@@ -82,21 +82,21 @@ namespace Horseshoe.NET.Db
                 case CompareMode.EndsWith:
                     return columnExpression + " LIKE '%" + Criteria[0] + "'";
                 case CompareMode.GreaterThan:
-                    return columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+                    return columnExpression + " > " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
                 case CompareMode.GreaterThanOrEquals:
-                    return columnExpression + " >= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+                    return columnExpression + " >= " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
                 case CompareMode.LessThan:
-                    return columnExpression + " < " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+                    return columnExpression + " < " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
                 case CompareMode.LessThanOrEquals:
-                    return columnExpression + " <= " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+                    return columnExpression + " <= " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
                 case CompareMode.In:
                     return Criteria.Count == 0
                         ? "1 = 0"
-                        : columnExpression + " IN ( " + string.Join(", ", Criteria.Select(val => DbUtil.Sqlize(val, platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default))) + " )";
+                        : columnExpression + " IN ( " + string.Join(", ", Criteria.Select(val => DbUtil.Sqlize(val, provider: provider ?? Provider ?? DbSettings.DefaultProvider))) + " )";
                 case CompareMode.Between:
-                    return columnExpression + " BETWEEN " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " AND " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default);
+                    return columnExpression + " BETWEEN " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider) + " AND " + DbUtil.Sqlize(Criteria[1], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
                 case CompareMode.BetweenExclusive:
-                    return "( " + columnExpression + " > " + DbUtil.Sqlize(Criteria[0], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " AND " + columnExpression + " < " + DbUtil.Sqlize(Criteria[1], platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " )";
+                    return "( " + columnExpression + " > " + DbUtil.Sqlize(Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider) + " AND " + columnExpression + " < " + DbUtil.Sqlize(Criteria[1], provider: provider ?? Provider ?? DbSettings.DefaultProvider) + " )";
                 case CompareMode.IsNull:
                     return columnExpression + " IS NULL";
                 case CompareMode.IsNullOrWhitespace:

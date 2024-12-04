@@ -3,10 +3,9 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml;
-//using System.Xml;
 
 using Horseshoe.NET.IO;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.XmlDoc
 {

@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Text;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.SqlDb.Meta;
 
 namespace Horseshoe.NET.SqlDb
@@ -44,9 +45,9 @@ namespace Horseshoe.NET.SqlDb
             }
 
             // timeout
-            if (connectionTimeout.HasValue)
+            if (ValueUtil.TryHasValue(connectionTimeout, out int value))
             {
-                sb.Append(";Connect Timeout = " + connectionTimeout);
+                sb.Append(";" + (SqlDbSettings.PreferConnectTimeoutInGeneratedConnectionString ? "Connect" : "Connection") + " Timeout = " + value);
             }
 
             return sb.ToString();
@@ -57,17 +58,31 @@ namespace Horseshoe.NET.SqlDb
             return BuildConnectionString(SqlDbSettings.DefaultDataSource, initialCatalog: SqlDbSettings.DefaultInitialCatalog, hasCredentials: SqlDbSettings.DefaultCredentials.HasValue, additionalConnectionAttributes: SqlDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: SqlDbSettings.DefaultConnectionTimeout);
         }
 
+        /// <summary>
+        /// Creates an open DB connection ready to send queries, updates, etc.
+        /// </summary>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="journal"></param>
+        /// <returns>A new DB connection</returns>
         public static SqlConnection LaunchConnection
         (
             SqlDbConnectionInfo connectionInfo = null,
+            Action<SqlConnection> peekConnection = null,
             TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
             var conn = connectionInfo.SqlCredentials != null
                 ? new SqlConnection(connectionInfo.ConnectionString, connectionInfo.SqlCredentials)
-                : new SqlConnection(connectionInfo.ConnectionString);
+                : new SqlConnection
+                  (
+                      connectionInfo.IsEncryptedPassword 
+                        ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: SqlDbSettings.CryptoOptions) 
+                        : connectionInfo.ConnectionString
+                  );
             conn.Open();
+            peekConnection?.Invoke(conn);
             return conn;
         }
 
@@ -76,8 +91,9 @@ namespace Horseshoe.NET.SqlDb
             SqlConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            SqlTransaction transaction,
             int? commandTimeout,
-            Action<SqlCommand> alterCommand
+            Action<SqlCommand> peekCommand
         )
         {
             return BuildCommand
@@ -85,47 +101,52 @@ namespace Horseshoe.NET.SqlDb
                 conn,
                 CommandType.Text,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
         internal static SqlCommand BuildProcedureCommand
         (
             SqlConnection conn,
-            string commandText,
+            string prodecureName,
             IEnumerable<DbParameter> parameters,
+            SqlTransaction transaction,
             int? commandTimeout,
-            Action<SqlCommand> alterCommand
+            Action<SqlCommand> peekCommand
         )
         {
             return BuildCommand
             (
                 conn,
                 CommandType.StoredProcedure,
-                commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                prodecureName,
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
-        internal static SqlCommand BuildCommand
+        public static SqlCommand BuildCommand
         (
             SqlConnection conn,
             CommandType commandType,
             string commandText,
             IEnumerable<DbParameter> parameters = null,
+            SqlTransaction transaction = null,
             int? commandTimeout = null,
-            Action<SqlCommand> modifyCommand = null
+            Action<SqlCommand> peekCommand = null
         )
         {
             var cmd = new SqlCommand
             {
                 Connection = conn,
                 CommandType = commandType,
-                CommandText = commandText
+                CommandText = commandText,
+                Transaction = transaction
             };
             if (parameters != null)
             {
@@ -141,11 +162,11 @@ namespace Horseshoe.NET.SqlDb
                     }
                 }
             }
-            if (commandTimeout.TryHasValue(out int value))
+            if (ValueUtil.TryHasValue(commandTimeout, out int value))
             {
                 cmd.CommandTimeout = value;
             }
-            modifyCommand?.Invoke(cmd);
+            peekCommand?.Invoke(cmd);
             return cmd;
         }
 

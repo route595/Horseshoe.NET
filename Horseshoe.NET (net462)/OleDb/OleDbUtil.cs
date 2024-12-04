@@ -7,6 +7,7 @@ using System.Text;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.OleDb
 {
@@ -51,9 +52,9 @@ namespace Horseshoe.NET.OleDb
 
             // additional attributes
             // ref https://learn.microsoft.com/en-us/dotnet/api/system.data.oledb.oledbconnection.connectiontimeout?view=dotnet-plat-ext-6.0
-            if (connectionTimeout.HasValue)
+            if (ValueUtil.TryHasValue(connectionTimeout, out int value))
             {
-                sb.Append(";Connect Timeout=" + connectionTimeout);
+                sb.Append(";" + (OleDbSettings.PreferConnectTimeoutInGeneratedConnectionString ? "Connect" : "Connection") + " Timeout=" + value);
             }
 
             return sb.ToString();
@@ -69,27 +70,28 @@ namespace Horseshoe.NET.OleDb
         }
 
         /// <summary>
-        /// Creates and opens a DB connection from the supplied connection information
+        /// Creates an open DB connection ready to send queries, updates, etc.
         /// </summary>
-        /// <param name="connectionInfo">Connection information.</param>
-        /// <param name="cryptoOptions">Options for decrypting DB passwords.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns></returns>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="journal"></param>
+        /// <returns>A new DB connection</returns>
         public static OleDbConnection LaunchConnection
         (
-            OleDbConnectionInfo connectionInfo = null, 
-            CryptoOptions cryptoOptions = null,
+            OleDbConnectionInfo connectionInfo = null,
+            Action<OleDbConnection> peekConnection = null,
             TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
             var conn = new OleDbConnection
             (
                 connectionInfo.IsEncryptedPassword
-                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: cryptoOptions)
+                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: OleDbSettings.CryptoOptions)
                   : connectionInfo.ConnectionString
             );
             conn.Open();
+            peekConnection?.Invoke(conn);
             return conn;
         }
 
@@ -98,8 +100,9 @@ namespace Horseshoe.NET.OleDb
             OleDbConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OleDbTransaction transaction,
             int? commandTimeout,
-            Action<OleDbCommand> alterCommand
+            Action<OleDbCommand> peekCommand
         )
         {
             return BuildCommand
@@ -107,9 +110,10 @@ namespace Horseshoe.NET.OleDb
                 conn,
                 CommandType.Text,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
@@ -118,8 +122,9 @@ namespace Horseshoe.NET.OleDb
             OleDbConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OleDbTransaction transaction,
             int? commandTimeout,
-            Action<OleDbCommand> alterCommand
+            Action<OleDbCommand> peekCommand
         )
         {
             return BuildCommand
@@ -127,9 +132,10 @@ namespace Horseshoe.NET.OleDb
                 conn,
                 CommandType.StoredProcedure,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
@@ -139,15 +145,17 @@ namespace Horseshoe.NET.OleDb
             CommandType commandType,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OleDbTransaction transaction,
             int? commandTimeout,
-            Action<OleDbCommand> alterCommand
+            Action<OleDbCommand> peekCommand
         )
         {
             var cmd = new OleDbCommand
             {
                 Connection = conn,
                 CommandType = commandType,
-                CommandText = commandText
+                CommandText = commandText,
+                Transaction = transaction
             };
             if (parameters != null)
             {
@@ -183,7 +191,7 @@ namespace Horseshoe.NET.OleDb
             {
                 cmd.CommandTimeout = value;
             }
-            alterCommand?.Invoke(cmd);
+            peekCommand?.Invoke(cmd);
             return cmd;
         }
     }

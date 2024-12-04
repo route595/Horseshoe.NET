@@ -7,7 +7,7 @@
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Copyright>Copyright © 2020-2024 Route 595</Copyright>
-    <Version>3.1.5</Version>
+    <Version>3.1.6</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.Excel</AssemblyName>
@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-    <PackageReference Include="NPOI" Version="2.7.1" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" />
+    <PackageReference Include="NPOI" Version="2.7.2" />
   </ItemGroup>
 
   <ItemGroup>

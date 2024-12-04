@@ -41,8 +41,8 @@
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.8.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -116,10 +116,9 @@
     <Compile Include="DateAndTime\TimePartDisplay.cs" />
     <Compile Include="Db\AndGroupFilter.cs" />
     <Compile Include="Db\ColumnExpression.cs" />
-    <Compile Include="Db\ConnectionInfo.cs" />
     <Compile Include="Db\ConnectionStringPart.cs" />
     <Compile Include="Db\DbCapture.cs" />
-    <Compile Include="Db\DbPlatform.cs" />
+    <Compile Include="Db\DbProvider.cs" />
     <Compile Include="Db\DbUtilAbstractions.cs" />
     <Compile Include="Db\ExtensionAbstractions.cs" />
     <Compile Include="Db\IFilter.cs" />
@@ -160,19 +159,30 @@
     <Compile Include="Iterator\ContinueNextException.cs" />
     <Compile Include="Iterator\ExitIterationException.cs" />
     <Compile Include="Iterator\IteratorMetadata.cs" />
+    <Compile Include="RelayProgress\IProgressRelay.cs" />
+    <Compile Include="RelayMessage\IMessageRelay.cs" />
+    <Compile Include="RelayProgress\RelayProgressBase.cs" />
+    <Compile Include="RelayProgress\RelayerOfProgress.cs" />
+    <Compile Include="RelayProgress\RelayProgressToConsole_Basic.cs" />
+    <Compile Include="RelayMessage\RelayToFile.cs" />
+    <Compile Include="RelayMessage\RelayToConsole.cs" />
+    <Compile Include="RelayMessage\RelayIndentedMessagesBase.cs" />
+    <Compile Include="RelayMessage\RelayerOfExceptions.cs" />
+    <Compile Include="RelayMessage\RelayerOfMessages.cs" />
     <Compile Include="NumberUtil.cs" />
-    <Compile Include="ObjectsAndTypes\ExtensionsAbstractions.cs" />
-    <Compile Include="ObjectsAndTypes\ObjectMappingException.cs" />
-    <Compile Include="ObjectsAndTypes\ObjectMemberException.cs" />
-    <Compile Include="ObjectsAndTypes\ObjectUtilAbstractions.cs" />
-    <Compile Include="ObjectsAndTypes\PropertyValue.cs" />
-    <Compile Include="ObjectsAndTypes\TypeUtilAbstractions.cs" />
-    <Compile Include="ObjectsAndTypes\TypeNotFoundException.cs" />
+    <Compile Include="ObjectsTypesAndValues\ExtensionsAbstractions.cs" />
+    <Compile Include="ObjectsTypesAndValues\ObjectMappingException.cs" />
+    <Compile Include="ObjectsTypesAndValues\ObjectMemberException.cs" />
+    <Compile Include="ObjectsTypesAndValues\ObjectUtilAbstractions.cs" />
+    <Compile Include="ObjectsTypesAndValues\PropertyValue.cs" />
+    <Compile Include="ObjectsTypesAndValues\TypeUtilAbstractions.cs" />
+    <Compile Include="ObjectsTypesAndValues\TypeNotFoundException.cs" />
     <Compile Include="Password.cs" />
     <Compile Include="Primitives\ObjectValues.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PrunePolicy.cs" />
     <Compile Include="ReconstitutedException.cs" />
+    <Compile Include="RelayMessage\IndentHint.cs" />
     <Compile Include="StrictSensitiveException.cs" />
     <Compile Include="Text\AutoTruncate.cs" />
     <Compile Include="Text\CharCategory.cs" />

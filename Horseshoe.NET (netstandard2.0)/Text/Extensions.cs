@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using System.Text;
@@ -107,85 +108,260 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Appends a <c>string</c> to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        /// Contitionally appends a reference type (class) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
         /// unless <c>valueIfFalse</c> has a value, then that is appended.
         /// </summary>
-        /// <param name="sb">A <c>StringBuilder</c>.</param>
-        /// <param name="criteria"><c>true</c> or <c>false</c></param>
-        /// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
-        /// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
-        /// <returns>The <c>StringBuilder</c>.</returns>
-        public static StringBuilder AppendIf(this StringBuilder sb, bool criteria, string valueIfTrue, string valueIfFalse = null)
-        {
-            if (criteria)
-            {
-                return sb.Append(valueIfTrue);
-            }
-            else if(valueIfFalse != null)
-            {
-                return sb.Append(valueIfFalse);
-            }
-            return sb;
-        }
-
-        /// <summary>
-        /// Appends an <c>object</c> to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
-        /// unless <c>valueIfFalse</c> has a value, then that is appended.
-        /// </summary>
-        /// <param name="sb">A <c>StringBuilder</c>.</param>
-        /// <param name="criteria"><c>true</c> or <c>false</c></param>
-        /// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
-        /// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
-        /// <returns>The <c>StringBuilder</c>.</returns>
-        public static StringBuilder AppendIf(this StringBuilder sb, bool criteria, object valueIfTrue, object valueIfFalse = null)
-        {
-            if (criteria)
-            {
-                return sb.Append(valueIfTrue);
-            }
-            else if (valueIfFalse != null)
-            {
-                return sb.Append(valueIfFalse);
-            }
-            return sb;
-        }
-
-        /// <summary>
-        /// Appends a new line to a <c>StringBuilder</c> if <c>criteria == true</c>.
-        /// </summary>
-        /// <param name="sb">A <c>StringBuilder</c>.</param>
-        /// <param name="criteria"><c>true</c> or <c>false</c></param>
-        /// <returns>The <c>StringBuilder</c>.</returns>
-        public static StringBuilder AppendLineIf(this StringBuilder sb, bool criteria)
-        {
-            if (criteria)
-            {
-                return sb.AppendLine();
-            }
-            return sb;
-        }
-
-        /// <summary>
-        /// Appends a new line of content to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
-        /// unless <c>valueIfFalse</c> has a value, then that is appended to a new line.
-        /// </summary>
-        /// <param name="sb">A <c>StringBuilder</c>.</param>
-        /// <param name="criteria"><c>true</c> or <c>false</c></param>
-        /// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
-        /// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
         /// <returns></returns>
-        public static StringBuilder AppendLineIf(this StringBuilder sb, bool criteria, string valueIfTrue, string valueIfFalse = null)
+        public static StringBuilder AppendIf<T>(this StringBuilder sb, bool condition, T valueIfTrue, T valueIfFalse = null, Func<T> functionIfFalse = null) where T : class
         {
-            if (criteria)
-            {
-                return sb.AppendLine(valueIfTrue);
-            }
+            if (condition)
+                sb.Append(valueIfTrue);
             else if (valueIfFalse != null)
-            {
-                return sb.AppendLine(valueIfFalse);
-            }
+                sb.Append(valueIfFalse);
+            else if (functionIfFalse != null)
+                sb.Append(functionIfFalse.Invoke());
             return sb;
         }
+
+        /// <summary>
+        /// Contitionally appends a reference type (class) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="functionIfTrue">The function whose result to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendIf<T>(this StringBuilder sb, bool condition, Func<T> functionIfTrue, T valueIfFalse = null, Func<T> functionIfFalse = null) where T : class
+        {
+            if (condition)
+                sb.Append(functionIfTrue.Invoke());
+            else if (valueIfFalse != null)
+                sb.Append(valueIfFalse);
+            else if (functionIfFalse != null)
+                sb.Append(functionIfFalse.Invoke());
+            return sb;
+        }
+
+        /// <summary>
+        /// Contitionally appends a value type (struct) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendIf<T>(this StringBuilder sb, bool condition, T valueIfTrue, T? valueIfFalse = null, Func<T> functionIfFalse = null) where T : struct
+        {
+            if (condition)
+                sb.Append(valueIfTrue);
+            else if (valueIfFalse != null)
+                sb.Append(valueIfFalse);
+            else if (functionIfFalse != null)
+                sb.Append(functionIfFalse.Invoke());
+            return sb;
+        }
+
+        /// <summary>
+        /// Contitionally appends a value type (struct) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="functionIfTrue">The function whose result to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendIf<T>(this StringBuilder sb, bool condition, Func<T> functionIfTrue, T? valueIfFalse = null, Func<T> functionIfFalse = null) where T : struct
+        {
+            if (condition)
+                sb.Append(functionIfTrue.Invoke());
+            else if (valueIfFalse != null)
+                sb.Append(valueIfFalse);
+            else if (functionIfFalse != null)
+                sb.Append(functionIfFalse.Invoke());
+            return sb;
+        }
+        /// <summary>
+        /// Contitionally appends a reference type (class) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendLineIf<T>(this StringBuilder sb, bool condition, T valueIfTrue, T valueIfFalse = null, Func<T> functionIfFalse = null) where T : class
+        {
+            if (condition)
+                sb.AppendLine(valueIfTrue?.ToString() ?? "");
+            else if (valueIfFalse != null)
+                sb.AppendLine(valueIfFalse?.ToString() ?? "");
+            else if (functionIfFalse != null)
+                sb.AppendLine(functionIfFalse.Invoke()?.ToString() ?? "");
+            return sb;
+        }
+
+        /// <summary>
+        /// Contitionally appends a reference type (class) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="functionIfTrue">The function whose result to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendLineIf<T>(this StringBuilder sb, bool condition, Func<T> functionIfTrue, T valueIfFalse = null, Func<T> functionIfFalse = null) where T : class
+        {
+            if (condition)
+                sb.AppendLine(functionIfTrue.Invoke()?.ToString() ?? "");
+            else if (valueIfFalse != null)
+                sb.AppendLine(valueIfFalse?.ToString() ?? "");
+            else if (functionIfFalse != null)
+                sb.AppendLine(functionIfFalse.Invoke()?.ToString() ?? "");
+            return sb;
+        }
+
+        /// <summary>
+        /// Contitionally appends a value type (struct) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="valueIfTrue">The value to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendLineIf<T>(this StringBuilder sb, bool condition, T valueIfTrue, T? valueIfFalse = null, Func<T> functionIfFalse = null) where T : struct
+        {
+            if (condition)
+                sb.AppendLine(valueIfTrue.ToString());
+            else if (valueIfFalse != null)
+                sb.AppendLine(valueIfFalse.ToString());
+            else if (functionIfFalse != null)
+                sb.AppendLine(functionIfFalse.Invoke().ToString());
+            return sb;
+        }
+
+        /// <summary>
+        /// Contitionally appends a value type (struct) value to a <c>StringBuilder</c>.  If <c>condition == false</c> then nothing is appended 
+        /// unless <c>valueIfFalse</c> has a value, then that is appended.
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="sb">A <c>StringBuilder</c></param>
+        /// <param name="condition"><c>true</c> or <c>false</c></param>
+        /// <param name="functionIfTrue">The function whose result to append if <c>condition == true</c>.</param>
+        /// <param name="valueIfFalse">An optional value to append only if supplied and if <c>condition == false</c>.</param>
+        /// <param name="functionIfFalse">An optional function whose result to append only if supplied and if <c>condition == false</c>.</param>
+        /// <returns></returns>
+        public static StringBuilder AppendLineIf<T>(this StringBuilder sb, bool condition, Func<T> functionIfTrue, T? valueIfFalse = null, Func<T> functionIfFalse = null) where T : struct
+        {
+            if (condition)
+                sb.AppendLine(functionIfTrue.Invoke().ToString());
+            else if (valueIfFalse != null)
+                sb.AppendLine(valueIfFalse.ToString());
+            else if (functionIfFalse != null)
+                sb.AppendLine(functionIfFalse.Invoke().ToString());
+            return sb;
+        }
+
+        ///// <summary>
+        ///// Appends a <c>string</c> to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        ///// unless <c>valueIfFalse</c> has a value, then that is appended.
+        ///// </summary>
+        ///// <param name="sb">.</param>
+        ///// <param name="criteria"><c>true</c> or <c>false</c></param>
+        ///// <param name="valueIfTrue"></param>
+        ///// <param name="valueIfFalse"></param>
+        ///// <returns>The <c>StringBuilder</c>.</returns>
+        //public static StringBuilder AppendIf(this StringBuilder sb, bool criteria, string valueIfTrue, string valueIfFalse = null)
+        //{
+        //    if (criteria)
+        //    {
+        //        return sb.Append(valueIfTrue);
+        //    }
+        //    else if(valueIfFalse != null)
+        //    {
+        //        return sb.Append(valueIfFalse);
+        //    }
+        //    return sb;
+        //}
+
+        ///// <summary>
+        ///// Appends an <c>object</c> to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        ///// unless <c>valueIfFalse</c> has a value, then that is appended.
+        ///// </summary>
+        ///// <param name="sb">A <c>StringBuilder</c>.</param>
+        ///// <param name="criteria"><c>true</c> or <c>false</c></param>
+        ///// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
+        ///// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
+        ///// <returns>The <c>StringBuilder</c>.</returns>
+        //public static StringBuilder AppendIf(this StringBuilder sb, bool criteria, object valueIfTrue, object valueIfFalse = null)
+        //{
+        //    if (criteria)
+        //    {
+        //        return sb.Append(valueIfTrue);
+        //    }
+        //    else if (valueIfFalse != null)
+        //    {
+        //        return sb.Append(valueIfFalse);
+        //    }
+        //    return sb;
+        //}
+
+        ///// <summary>
+        ///// Appends a new line to a <c>StringBuilder</c> if <c>criteria == true</c>.
+        ///// </summary>
+        ///// <param name="sb">A <c>StringBuilder</c>.</param>
+        ///// <param name="criteria"><c>true</c> or <c>false</c></param>
+        ///// <returns>The <c>StringBuilder</c>.</returns>
+        //public static StringBuilder AppendLineIf(this StringBuilder sb, bool criteria)
+        //{
+        //    if (criteria)
+        //    {
+        //        return sb.AppendLine();
+        //    }
+        //    return sb;
+        //}
+
+        ///// <summary>
+        ///// Appends a new line of content to a <c>StringBuilder</c> if <c>criteria == true</c>.  If <c>false</c> then nothing is appended 
+        ///// unless <c>valueIfFalse</c> has a value, then that is appended to a new line.
+        ///// </summary>
+        ///// <param name="sb">A <c>StringBuilder</c>.</param>
+        ///// <param name="criteria"><c>true</c> or <c>false</c></param>
+        ///// <param name="valueIfTrue">The value to append if <c>criteria == true</c>.</param>
+        ///// <param name="valueIfFalse">An optional value to append if <c>criteria == false</c>. If <c>null</c> then nothing is appended.</param>
+        ///// <returns></returns>
+        //public static StringBuilder AppendLineIf(this StringBuilder sb, bool criteria, string valueIfTrue, string valueIfFalse = null)
+        //{
+        //    if (criteria)
+        //    {
+        //        return sb.AppendLine(valueIfTrue);
+        //    }
+        //    else if (valueIfFalse != null)
+        //    {
+        //        return sb.AppendLine(valueIfFalse);
+        //    }
+        //    return sb;
+        //}
 
 
         /// <inheritdoc cref="TextUtil.ReplaceLast" />

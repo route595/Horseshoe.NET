@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.Configuration
 {
@@ -195,7 +195,7 @@ namespace Horseshoe.NET.Configuration
             }
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException("Invalid connection string name: " + (name == null ? "[null]" : "[blank]"));
+                throw new ArgumentException("'name' cannot be blank or null: " + (name == null ? "[null]" : "[blank]"));
             }
             var connectionString = config.GetSection("ConnectionStrings")[name];
             if (connectionString == null && required)

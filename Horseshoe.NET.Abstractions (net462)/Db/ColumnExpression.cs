@@ -55,16 +55,16 @@
         /// <summary>
         /// Renders a column name (or literal column name substitute) to a SQL expression.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>A SQL expression.</returns>
         /// <exception cref="ThisShouldNeverHappenException"></exception>
-        public string Render(DbPlatform platform = default)
+        public string Render(DbProvider provider = default)
         {
             if (ColumnName != null)
             {
                 if (Format != null)
-                    return string.Format(Format, DbUtilAbstractions.RenderColumnName(ColumnName, platform: platform));
-                return DbUtilAbstractions.RenderColumnName(ColumnName, platform: platform);
+                    return string.Format(Format, DbUtilAbstractions.RenderColumnName(ColumnName, provider: provider));
+                return DbUtilAbstractions.RenderColumnName(ColumnName, provider: provider);
             }
             if (SqlLiteral != null)
                 return SqlLiteral.Render();

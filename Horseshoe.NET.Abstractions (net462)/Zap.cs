@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextClean;
 

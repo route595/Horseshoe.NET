@@ -7,7 +7,7 @@ namespace Horseshoe.NET.Db
     /// </summary>
     public class OrGroupFilter : IGroupFilter
     {
-        private DbPlatform? _platform;
+        private DbProvider? _provider;
 
         /// <summary>
         /// The filters contained by this <c>OrGroupFilter</c>.
@@ -15,17 +15,17 @@ namespace Horseshoe.NET.Db
         public IFilter[] Filters { get; private set; }
 
         /// <summary>
-        /// A DB platform lends hints about how to render SQL expressions and statements.
+        /// A DB provider may lend hints about how to render column names, SQL expressions, etc.
         /// </summary>
-        public DbPlatform? Platform 
+        public DbProvider? Provider
         {
-            get => _platform;
+            get => _provider;
             set 
             {
-                _platform = value;
+                _provider = value;
                 foreach (var filter in Filters)
                 {
-                    filter.Platform = _platform;
+                    filter.Provider = _provider;
                 }
             }
         }
@@ -59,10 +59,11 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// Renders this <c>OrGroupFilter</c> to a SQL expression.
         /// </summary>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>A SQL expression.</returns>
-        public string Render(DbPlatform? platform = null)
+        public string Render(DbProvider? provider = null)
         {
-            return "( " + string.Join(" OR ", Filters.Select(f => f.Render(platform: platform))) + " )";
+            return "( " + string.Join(" OR ", Filters.Select(f => f.Render(provider: provider))) + " )";
         }
     }
 }

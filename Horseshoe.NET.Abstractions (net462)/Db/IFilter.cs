@@ -6,15 +6,15 @@
     public interface IFilter
     {
         /// <summary>
-        /// A DB platform lends hints about how to render SQL expressions and statements.
+        /// A DB provider may lend hints about how to render column names, SQL expressions, etc.
         /// </summary>
-        DbPlatform? Platform { get; set; }
+        DbProvider? Provider { get; set; }
 
         /// <summary>
         /// Renders the filter as a SQL expression.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements.</param>
-        /// <returns>A SQL expression.</returns>
-        string Render(DbPlatform? platform = null);
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
+        /// <returns>A SQL filtering expression.</returns>
+        string Render(DbProvider? provider = null);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Horseshoe.NET.Db;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.OleDb
 {
@@ -26,9 +26,17 @@ namespace Horseshoe.NET.OleDb
         /// Builds a connection string for connecting to an OLE DB data source
         /// </summary>
         /// <returns>A connection string.</returns>
-        public override string BuildConnectionString()
+        public override string BuildFinalConnectionString()
         {
+
             return OleDbUtil.BuildConnectionString(DataSource, credentials: Credentials, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }
+
+        /// <summary>
+        /// Implicitly converts connection strings to <c>OleDbConnectionInfo</c>
+        /// </summary>
+        /// <param name="connectionString">A connection string</param>
+        public static implicit operator OleDbConnectionInfo(string connectionString) => new OleDbConnectionInfo { ConnectionString = connectionString };
+
     }
 }

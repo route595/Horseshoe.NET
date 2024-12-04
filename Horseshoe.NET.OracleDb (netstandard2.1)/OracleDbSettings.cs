@@ -49,13 +49,13 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static string? _defaultConnectionString;
+        private static string _defaultConnectionString;
         private static bool _isEncryptedPassword;
 
         /// <summary>
         /// Gets the default Oracle connection string used by Horseshoe.NET.  Note: Overrides other settings (i.e. OrganizationalDefaultSettings: key = OracleDb.ConnectionString)
         /// </summary>
-        public static string? DefaultConnectionString
+        public static string DefaultConnectionString
         {
             get
             {
@@ -65,7 +65,7 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static string? _GetConnectionString(string? connectionString, bool isEncryptedPassword)
+        private static string _GetConnectionString(string connectionString, bool isEncryptedPassword)
         {
             if (connectionString == null) return null;
             return isEncryptedPassword
@@ -82,12 +82,12 @@ namespace Horseshoe.NET.OracleDb
             _isEncryptedPassword = isEncryptedPassword;
         }
 
-        private static OraServer? _defaultDataSource;
+        private static OraServer _defaultDataSource;
 
         /// <summary>
         /// Gets or sets the default Oracle server used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:Server and OrganizationalDefaultSettings: key = OracleDb.Server)
         /// </summary>
-        public static OraServer? DefaultDataSource
+        public static OraServer DefaultDataSource
         {
             get
             {
@@ -125,12 +125,12 @@ namespace Horseshoe.NET.OracleDb
         //    }
         //}
 
-        private static string? _defaultServiceName;
+        private static string _defaultServiceName;
 
         /// <summary>
         /// Gets or sets the default Oracle service name used by Horseshoe.NET.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:ServiceName and OrganizationalDefaultSettings: key = OracleDb.ServiceName)
         /// </summary>
-        public static string? DefaultServiceName
+        public static string DefaultServiceName
         {
             get
             {
@@ -251,12 +251,12 @@ namespace Horseshoe.NET.OracleDb
             }
         }
 
-        private static IEnumerable<OraServer>? _serverList;
+        private static IEnumerable<OraServer> _serverList;
 
         /// <summary>
         /// Gets or sets a list of Oracle servers for OraServer's Lookup() method.  Note: Overrides other settings (i.e. app|web.config: key = Horseshoe.NET:OracleDb:ServerList and OrganizationalDefaultSettings: key = OracleDb.ServerList)
         /// </summary>
-        public static IEnumerable<OraServer>? ServerList
+        public static IEnumerable<OraServer> ServerList
         {
             get
             {
@@ -273,5 +273,10 @@ namespace Horseshoe.NET.OracleDb
                 _serverList = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the optional cryptographic properties used to decrypt database passwords
+        /// </summary>
+        public static CryptoOptions CryptoOptions { get; set; }
     }
 }

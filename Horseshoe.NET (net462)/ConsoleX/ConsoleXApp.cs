@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.ConsoleX
@@ -119,7 +119,12 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Action to perform when user selects a menu item from the main menu.
         /// </summary>
-        public virtual Action<string> OnMainMenuSelecting { get; }
+        public virtual Action<string> OnMainMenuIndexSelecting { get; }
+
+        /// <summary>
+        /// Action to perform when user selects a menu item from the main menu.
+        /// </summary>
+        public virtual Action<MenuSelection<MenuObject>> OnMainMenuSelection { get; }
 
         /// <summary>
         /// Action to perform when a <c>MainMenu</c> routine completes.
@@ -166,13 +171,20 @@ namespace Horseshoe.NET.ConsoleX
                     title: MainMenuTitle,
                     columns: MainMenuColumns,
                     configureTextGrid: ConfigureTextGrid,
-                    onMenuSelecting: LoopMode == LoopMode.ClearScreen
+                    onMenuIndexSelecting: LoopMode == LoopMode.ClearScreen
                         ? (menuSelection) =>
                         {
                             Console.Clear();
-                            OnMainMenuSelecting?.Invoke(menuSelection);
+                            OnMainMenuIndexSelecting?.Invoke(menuSelection);
                         }
-                        : OnMainMenuSelecting,
+                        : OnMainMenuIndexSelecting,
+                    onMenuSelection: LoopMode == LoopMode.ClearScreen
+                        ? (menuSelection) =>
+                        {
+                            Console.Clear();
+                            OnMainMenuSelection?.Invoke(menuSelection);
+                        }
+                        : OnMainMenuSelection,
                     onRoutineAutoRunComplete: LoopMode == LoopMode.ClearScreen
                         ? (routine) =>
                         {

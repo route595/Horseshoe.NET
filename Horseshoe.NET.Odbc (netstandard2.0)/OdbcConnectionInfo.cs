@@ -1,5 +1,5 @@
 ﻿using Horseshoe.NET.Db;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.Odbc
 {
@@ -12,7 +12,7 @@ namespace Horseshoe.NET.Odbc
             ObjectUtil.MapProperties(connectionInfo, this);
         }
 
-        public override string BuildConnectionString()
+        public override string BuildFinalConnectionString()
         {
             return OdbcUtil.BuildConnectionString(DataSource, credentials: Credentials, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }

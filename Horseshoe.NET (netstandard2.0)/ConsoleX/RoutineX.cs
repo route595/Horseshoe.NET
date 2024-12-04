@@ -77,7 +77,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// An event to hook into
         /// </summary>
-        public virtual Action<string> OnMenuSelecting { get; set; }
+        public virtual Action<string> OnMenuIndexSelecting { get; set; }
 
         /// <summary>
         /// An event to hook into
@@ -191,7 +191,7 @@ namespace Horseshoe.NET.ConsoleX
                         customItemsToAppend: BuildCustomMenuItems(CustomMenuItemsToAppend, AutoAppendExitRoutineMenuItem),
                         columns: MenuColumns,
                         configureTextGrid: ConfigureTextGrid,
-                        onMenuSelecting: OnMenuSelecting,
+                        onMenuIndexSelecting: OnMenuIndexSelecting,
                         onMenuSelection: OnMenuSelection,
                         onRoutineAutoRunComplete: OnRoutineAutoRunComplete
                     );
@@ -248,13 +248,13 @@ namespace Horseshoe.NET.ConsoleX
             configure?.Invoke(this);
         }
 
-        public void RequestExit()
-        {
-            new Thread(new ThreadStart(() => { 
-                Thread.Sleep(500);
-                Exit();
-            })).Start();
-        }
+        //public void RequestExit()
+        //{
+        //    new Thread(new ThreadStart(() => { 
+        //        Thread.Sleep(500);
+        //        Exit();
+        //    })).Start();
+        //}
 
         /// <summary>
         /// Action to perform configurations globally on all reoutines

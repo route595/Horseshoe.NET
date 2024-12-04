@@ -2,8 +2,6 @@
 using System.Globalization;
 using System.Text;
 
-using Horseshoe.NET.ObjectsAndTypes;
-
 namespace Horseshoe.NET
 {
     /// <summary>

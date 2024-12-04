@@ -16,9 +16,9 @@
         public SqlLiteral SqlLiteral { get; }
 
         /// <summary>
-        /// A DB platform lends hints about how to render SQL expressions and statements.
+        /// A DB provider may lend hints about how to render column names, SQL expressions, etc.
         /// </summary>
-        public DbPlatform? Platform { get; set; }
+        public DbProvider? Provider { get; set; }
 
         /// <summary>
         /// Creates a new <c>IFilter</c> from a <see cref="SqlLiteral" />.
@@ -63,11 +63,11 @@
         /// <summary>
         /// Renders the filter as a SQL expression.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>A SQL expression.</returns>
-        public string Render(DbPlatform? platform = null)
+        public string Render(DbProvider? provider = null)
         {
-            return (ColumnName.HasValue ? ColumnName.Value.Render(platform: platform ?? Platform ?? DbSettings.DefaultPlatform ?? default) + " " : "") 
+            return (ColumnName.HasValue ? ColumnName.Value.Render(provider: provider ?? Provider ?? DbSettings.DefaultProvider) + " " : "") 
                 + SqlLiteral.Render();
         }
     }

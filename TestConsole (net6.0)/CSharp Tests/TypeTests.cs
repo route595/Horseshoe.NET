@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using Horseshoe.NET.ConsoleX;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace TestConsole.CSharpTests
 {

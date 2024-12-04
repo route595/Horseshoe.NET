@@ -144,5 +144,15 @@ namespace Horseshoe.NET.OleDb
                 _defaultConnectionTimeout = value;
             }
         }
+
+        /// <summary>
+        /// Whether to use "Connect Timeout" rather than "Connection Timeout" in generated connection strings. Default is <c>true</c>.
+        /// </summary>
+        public static bool PreferConnectTimeoutInGeneratedConnectionString { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the optional cryptographic properties used to decrypt database passwords
+        /// </summary>
+        public static CryptoOptions CryptoOptions { get; set; }
     }
 }

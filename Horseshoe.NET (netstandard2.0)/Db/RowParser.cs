@@ -3,7 +3,8 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
-using Horseshoe.NET.ObjectsAndTypes;
+
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text.TextClean;
 
 namespace Horseshoe.NET.Db

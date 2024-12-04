@@ -9,7 +9,7 @@ using System.Text;
 namespace Horseshoe.NET.Db
 {
     /// <summary>
-    /// Extension methods for databases
+    /// A small set of extension methods for database related tasks
     /// </summary>
     public static class Extensions
     {
@@ -62,15 +62,15 @@ namespace Horseshoe.NET.Db
         /// Converts this parameter to SQL syntax for inserting or updating data
         /// </summary>
         /// <param name="parameter">A DB parameter (column name and value).</param>
-        /// <param name="platform">A DB platform may lend hints about how to render column names and parameters.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
-        public static string ToDMLString(this DbParameter parameter, DbPlatform? platform = null)
+        public static string ToDMLString(this DbParameter parameter, DbProvider? provider = null)
         {
             return string.Format
             (
                 "{0} = {1}",
-                DbUtil.RenderColumnName(parameter, platform: platform ?? DbSettings.DefaultPlatform ?? default),
-                DbUtil.Sqlize(parameter.Value, platform: platform ?? DbSettings.DefaultPlatform ?? default)
+                DbUtil.RenderColumnName(parameter, provider: provider ?? DbSettings.DefaultProvider),
+                DbUtil.Sqlize(parameter.Value, provider: provider ?? DbSettings.DefaultProvider)
             );
         }
 
@@ -141,14 +141,14 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Specifies a platform to set as this filter's default.
+        /// Specifies a provider to set as this filter's default.
         /// </summary>
         /// <param name="filter">A filter.</param>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions and statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>The filter.</returns>
-        public static IFilter On(this IFilter filter, DbPlatform platform)
+        public static IFilter On(this IFilter filter, DbProvider provider)
         {
-            filter.Platform = platform;
+            filter.Provider = provider;
             return filter;
         }
     }

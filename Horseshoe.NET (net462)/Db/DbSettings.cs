@@ -5,24 +5,48 @@
     /// </summary>
     public static class DbSettings
     {
-        static DbPlatform? _defaultPlatform;
+        static DbProvider? _defaultProvider;
 
         /// <summary>
-        /// Gets or sets the text platform used in DB operations. Note: Override by passing directly to a DB method or via config file: key = "Horseshoe.NET:Db:Platform" or OrganizationalDefaultSettings: key = Db.Platform
+        /// Gets or sets the text DB provider. Note: Override by passing directly to a DB method or via config file: key = "Horseshoe.NET:Db:Provider" or OrganizationalDefaultSettings: key = Db.Provider
         /// </summary>
-        public static DbPlatform? DefaultPlatform
+        public static DbProvider DefaultProvider
         {
             get
             {
-                return _defaultPlatform
-                    ?? _Config.Get<DbPlatform?>("Horseshoe.NET:Db:Platform")
-                    ?? OrganizationalDefaultSettings.Get<DbPlatform?>("Db.Platform");
+                return _defaultProvider
+                    ?? _Config.Get<DbProvider?>("Horseshoe.NET:Db:Provider")
+                    ?? OrganizationalDefaultSettings.Get<DbProvider?>("Db.Provider")
+                    ?? DbProvider.Neutral;
             }
             set
             {
-                _defaultPlatform = value;
+                _defaultProvider = value;
             }
         }
 
+        /// <summary>
+        /// If <c>true</c>, the <c>Credentials</c> user name and password will be copied (overwritten) into the final generated connection string, default is provider specific.
+        /// </summary>
+        public static bool DefaultMergeCredentialsIntoFinalConnectionString => false;
+
+        //private static bool? _isEncryptedPassword;
+
+        ///// <summary>
+        ///// Gets or sets
+        ///// </summary>
+        //public static bool? IsEncryptedPassword
+        //{
+        //    get
+        //    {
+        //        return _isEncryptedPassword
+        //            ?? _Config.Get<bool?>("Horseshoe.NET:Db:IsEncryptedPassword")
+        //            ?? OrganizationalDefaultSettings.Get<bool?>("Db.IsEncryptedPassword");
+        //    }
+        //    set
+        //    {
+        //        _isEncryptedPassword = value;
+        //    }
+        //}
     }
 }

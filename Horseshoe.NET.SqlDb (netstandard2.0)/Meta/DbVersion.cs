@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Horseshoe.NET.Compare;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.SqlDb.Meta
 {

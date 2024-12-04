@@ -22,19 +22,19 @@ namespace Horseshoe.NET.Odbc
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
         /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="cryptoOptions">Options for password decryption, if applicable</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of inserted rows.</returns>
         public static int Table
         (
-            DbPlatform platform,
+            DbProvider platform,
             string tableName,
             IEnumerable<DbParameter> columns,
             OdbcConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
-            CryptoOptions cryptoOptions = null,
-            Action<OdbcCommand> alterCommand = null,
+            Action<OdbcConnection> peekConnection = null,
+            Action<OdbcCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -44,9 +44,9 @@ namespace Horseshoe.NET.Odbc
             journal.Level++;
 
             // data stuff
-            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
             {
-                var result = Table(conn, platform, tableName, columns, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var result = Table(conn, platform, tableName, columns, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -61,18 +61,20 @@ namespace Horseshoe.NET.Odbc
         /// <param name="platform">A DB platform lends hints about how to render SQL expression or entire SQL statements.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
+        /// <param name="transaction">A transaction can encapsulate multiple DML commands including the ability to roll them all back.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of inserted rows.</returns>
         public static int Table
         (
             OdbcConnection conn,
-            DbPlatform platform,
+            DbProvider platform,
             string tableName,
             IEnumerable<DbParameter> columns,
+            OdbcTransaction transaction = null,
             int? commandTimeout = null,
-            Action<OdbcCommand> alterCommand = null,
+            Action<OdbcCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -83,7 +85,7 @@ namespace Horseshoe.NET.Odbc
 
             // data stuff
             var statement = DbUtil.BuildInsertStatement(platform, tableName, columns, journal: journal);
-            var result = Execute.SQL(conn, statement, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
             // finalize
             journal.Level--;
@@ -100,21 +102,21 @@ namespace Horseshoe.NET.Odbc
         /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
         /// <param name="getIdentitySql">An optional select statement for retrieving the identity of the inserted row.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="cryptoOptions">Options for password decryption, if applicable.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of inserted rows.</returns>
         public static int Table
         (
             out int? identity,
-            DbPlatform platform,
+            DbProvider platform,
             string tableName,
             IEnumerable<DbParameter> columns,
             OdbcConnectionInfo connectionInfo = null,
             string getIdentitySql = null,
             int? commandTimeout = null,
-            CryptoOptions cryptoOptions = null,
-            Action<OdbcCommand> alterCommand = null,
+            Action<OdbcConnection> peekConnection = null,
+            Action<OdbcCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -124,9 +126,9 @@ namespace Horseshoe.NET.Odbc
             journal.Level++;
 
             // data stuff
-            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, cryptoOptions: cryptoOptions, journal: journal))
+            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
             {
-                var result = Table(out identity, conn, platform, tableName, columns, getIdentitySql: getIdentitySql, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var result = Table(out identity, conn, platform, tableName, columns, getIdentitySql: getIdentitySql, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -142,21 +144,23 @@ namespace Horseshoe.NET.Odbc
         /// <param name="platform">A DB platform lends hints about how to render SQL expression or entire SQL statements.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
+        /// <param name="transaction">A transaction can encapsulate multiple DML commands including the ability to roll them all back.</param>
         /// <param name="getIdentitySql">An optional select statement for retrieving the identity of the inserted row.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-        /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of inserted rows.</returns>
         public static int Table
         (
             out int? identity,
             OdbcConnection conn,
-            DbPlatform platform,
+            DbProvider platform,
             string tableName,
             IEnumerable<DbParameter> columns,
+            OdbcTransaction transaction = null,
             string getIdentitySql = null,
             int? commandTimeout = null,
-            Action<OdbcCommand> alterCommand = null,
+            Action<OdbcCommand> peekCommand = null,
             TraceJournal journal = null
         )
         {
@@ -167,7 +171,7 @@ namespace Horseshoe.NET.Odbc
 
             // data stuff
             var statement = DbUtil.BuildInsertAndGetIdentityStatements(platform, tableName, columns, getIdentitySql: getIdentitySql, journal: journal);
-            identity = Zap.NInt(Query.SQL.AsScalar(conn, statement, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal));
+            identity = Zap.NInt(Query.SQL.AsScalar(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal));
 
             // finalize
             journal.Level--;

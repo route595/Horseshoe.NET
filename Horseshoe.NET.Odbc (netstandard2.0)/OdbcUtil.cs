@@ -7,6 +7,7 @@ using System.Text;
 
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.Odbc
 {
@@ -40,9 +41,9 @@ namespace Horseshoe.NET.Odbc
 
             // additional attributes
             // ref https://stackoverflow.com/questions/20142746/what-is-connect-timeout-in-sql-server-connection-string
-            if (connectionTimeout.HasValue)
+            if (ValueUtil.TryHasValue(connectionTimeout, out int value))
             {
-                sb.Append(";Connection Timeout=" + connectionTimeout);
+                sb.Append(";Connection Timeout=" + value);
             }
 
             return sb.ToString();
@@ -56,18 +57,19 @@ namespace Horseshoe.NET.Odbc
         public static OdbcConnection LaunchConnection
         (
             OdbcConnectionInfo connectionInfo = null,
-            CryptoOptions cryptoOptions = null,
+            Action<OdbcConnection> peekConnection = null,
             TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
             var conn = new OdbcConnection
             (
                 connectionInfo.IsEncryptedPassword
-                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: cryptoOptions)
+                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: OdbcSettings.CryptoOptions)
                   : connectionInfo.ConnectionString
             );
             conn.Open();
+            peekConnection?.Invoke(conn);
             return conn;
         }
 
@@ -76,8 +78,9 @@ namespace Horseshoe.NET.Odbc
             OdbcConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OdbcTransaction transaction,
             int? commandTimeout,
-            Action<OdbcCommand> alterCommand
+            Action<OdbcCommand> peekCommand
         )
         {
             return BuildCommand
@@ -85,9 +88,10 @@ namespace Horseshoe.NET.Odbc
                 conn,
                 CommandType.Text,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
@@ -96,8 +100,9 @@ namespace Horseshoe.NET.Odbc
             OdbcConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OdbcTransaction transaction,
             int? commandTimeout,
-            Action<OdbcCommand> alterCommand
+            Action<OdbcCommand> peekCommand
         )
         {
             return BuildCommand
@@ -105,27 +110,30 @@ namespace Horseshoe.NET.Odbc
                 conn,
                 CommandType.StoredProcedure,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
-        internal static OdbcCommand BuildCommand
+        public static OdbcCommand BuildCommand
         (
             OdbcConnection conn,
             CommandType commandType,
             string commandText,
-            IEnumerable<DbParameter> parameters,
-            int? commandTimeout,
-            Action<OdbcCommand> alterCommand
+            IEnumerable<DbParameter> parameters = null,
+            OdbcTransaction transaction = null,
+            int? commandTimeout = null,
+            Action<OdbcCommand> peekCommand = null
         )
         {
             var cmd = new OdbcCommand
             {
                 Connection = conn,
                 CommandType = commandType,
-                CommandText = commandText
+                CommandText = commandText,
+                Transaction = transaction
             };
             if (parameters != null)
             {
@@ -162,7 +170,7 @@ namespace Horseshoe.NET.Odbc
             {
                 cmd.CommandTimeout = value;
             }
-            alterCommand?.Invoke(cmd);
+            peekCommand?.Invoke(cmd);
             return cmd;
         }
     }

@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Crypto;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Db
 {
     /// <summary>
-    /// A collection of common, platform agnostic factory methods for Horseshoe.NET DB operations.
+    /// A collection of common, provider agnostic factory methods for Horseshoe.NET DB operations.
     /// </summary>
     public static class DbUtil
     {
@@ -22,175 +23,293 @@ namespace Horseshoe.NET.Db
          *   CONNECTION STRINGS + CREDENTIALS    *
          * * * * * * * * * * * * * * * * * * * * */
 
+        ///// <summary>
+        ///// Loads connection info from all possible sources, reporting which source contained the info,
+        ///// and compiles it all into a resultant <c>ConnectionInfo</c> instance
+        ///// </summary>
+        ///// <typeparam name="T">a subclass of <c>ConnectionInfo</c></typeparam>
+        ///// <param name="connectionInfo">an optional <c>ConnectionInfo</c> instance</param>
+        ///// <param name="buildConnectionStringFromConfig">an optional function for building a provider-specific connection string from <c>app|web.config</c> or <c>appsettings.json</c></param>
+        ///// <param name="cryptoOptions">Optional options for the crypto engine to decrypt the connection string password. Source should be DB settings.</param>
+        ///// <param name="getConnectionStringSource">Sends the connection string source to any listening client</param>
+        ///// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        ///// <returns>A new <c>ConnectionInfo</c> object whose <c>ConnectionString</c> should be used to build connections.</returns>
+        ///// <exception cref="ValidationException"></exception>
+        //public static T LoadConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, CryptoOptions cryptoOptions = null, Func<string> getConnectionStringSource = null, TraceJournal journal = null) where T : ConnectionInfo, new()
+        //{
+        //    // journaling
+        //    journal = journal ?? new TraceJournal();
+        //    journal.WriteEntry("DbUtil.LoadConnectionInfo()  =>  T = " + typeof(T).FullName);
+        //    journal.Level++;
+
+        //    var configPart = typeof(T).Name.Replace("ConnectionInfo", "");
+        //    var configUserName = _Config.Get("Horseshoe.NET:" + configPart + ":UserID");
+        //    var configPassword = _Config.Get("Horseshoe.NET:" + configPart + ":Password");
+        //    var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword");
+
+        //    // first check 'user-supplied' info
+        //    if (connectionInfo != null)
+        //    {
+        //        connectionInfo = (T)connectionInfo.Clone();
+        //        if (connectionInfo.ConnectionString != null)
+        //        {
+        //            journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
+        //            journal.AddAndWriteEntry("connection.info.source", "user-supplied-connection-string");
+        //            if (connectionInfo.IsEncryptedPassword)
+        //            {
+        //                connectionInfo.ConnectionString = DecryptInlinePassword(connectionInfo.ConnectionString, connectionInfo.CryptoOptions ?? cryptoOptions);
+        //                connectionInfo.IsEncryptedPassword = false;
+        //            }
+        //            journal.Level--;
+        //            return connectionInfo;
+        //        }
+
+        //        if (connectionInfo.ConnectionStringName != null)
+        //        {
+        //            journal.WriteEntry("connection string name = " + connectionInfo.ConnectionStringName);
+        //            connectionInfo.ConnectionString = _Config.GetConnectionString(connectionInfo.ConnectionStringName);
+        //            if (connectionInfo.ConnectionString == null)
+        //            {
+        //                var msg = string.Concat("No connection string named \"", connectionInfo.ConnectionStringName, "\" could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
+        //                journal.WriteEntry("ValidationException: " + msg);
+        //                throw new ValidationException(msg);
+        //            }
+        //            journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
+        //            journal.AddAndWriteEntry("connection.info.source", "user-supplied-connection-string-name");
+        //            if (connectionInfo.IsEncryptedPassword || configIsEncryptedPassword)
+        //            {
+        //                connectionInfo.ConnectionString = DecryptInlinePassword(connectionInfo.ConnectionString, connectionInfo.CryptoOptions ?? cryptoOptions);
+        //                connectionInfo.IsEncryptedPassword = false;
+        //            }
+        //            journal.Level--;
+        //            return connectionInfo;
+        //        }
+
+        //        if (connectionInfo.DataSource != null)
+        //        {
+        //            journal.WriteEntry("data source = " + connectionInfo.DataSource);
+        //            connectionInfo.ConnectionString = connectionInfo.BuildConnectionString();
+        //            if (connectionInfo.ConnectionString == null)
+        //            {
+        //                var msg = string.Concat("Cannot build connection string from data source: \"", connectionInfo.DataSource, "\".", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " This is perhaps due to Horseshoe.NET.Configuration is not installed." : "");
+        //                journal.WriteEntry("ValidationException: " + msg);
+        //                throw new ValidationException(msg);
+        //            }
+        //            journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
+        //            journal.AddAndWriteEntry("connection.info.source", "user-supplied-data-source");
+        //            journal.Level--;
+        //            return connectionInfo;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        connectionInfo = new T();
+        //    }
+
+        //    // next, check config
+        //    var connStr = _Config.Get("Horseshoe.NET:" + configPart + ":ConnectionString");
+        //    if (connStr != null)
+        //    {
+        //        connectionInfo.ConnectionString = connStr;
+        //        connectionInfo.Credentials = configIsEncryptedPassword
+        //            ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
+        //            : Credential.Build(configUserName, configPassword);
+        //        journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
+        //        journal.AddAndWriteEntry("connection.info.source", "config-connection-string");
+        //        journal.Level--;
+        //        return connectionInfo;
+        //    }
+
+        //    var connStrName = _Config.Get("Horseshoe.NET:" + configPart + ":ConnectionStringName");
+        //    if (connStrName != null)
+        //    {
+        //        journal.WriteEntry("connection string name = " + connStrName);
+        //        connectionInfo.ConnectionString = _Config.GetConnectionString(connStrName);
+        //        if (connectionInfo.ConnectionString == null)
+        //        {
+        //            var msg = string.Concat("No connection string named \"", connStrName, "\" could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Config is not installed" : "", ".");
+        //            journal.WriteEntry("ValidationException: " + msg);
+        //            throw new ValidationException(msg);
+        //        }
+        //        connectionInfo.Credentials = configIsEncryptedPassword
+        //            ? Credential.Build
+        //            (
+        //                configUserName,
+        //                () => Decrypt.String(configPassword)
+        //            )
+        //            : Credential.Build
+        //            (
+        //                configUserName,
+        //                configPassword
+        //            );
+        //        journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
+        //        journal.AddAndWriteEntry("connection.info.source", "config-connection-string-name");
+        //        journal.Level--;
+        //        return connectionInfo;
+        //    }
+
+        //    if (buildConnectionStringFromConfig != null)
+        //    {
+        //        connStr = buildConnectionStringFromConfig();
+        //        if (connStr != null)
+        //        {
+        //            connectionInfo.ConnectionString = connStr;
+        //            connectionInfo.Credentials = configIsEncryptedPassword
+        //                ? Credential.Build
+        //                  (
+        //                    configUserName,
+        //                    () => Decrypt.String(configPassword)
+        //                  )
+        //                : Credential.Build
+        //                  (
+        //                    configUserName,
+        //                    configPassword
+        //                  );
+        //            journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
+        //            journal.AddAndWriteEntry("connection.info.source", "config-data-source");
+        //            journal.Level--;
+        //            return connectionInfo;
+        //        }
+        //    }
+
+        //    var dfltMsg = string.Concat("No connection info could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
+        //    journal.WriteEntry("ValidationException: " + dfltMsg);
+        //    throw new ValidationException(dfltMsg);
+        //}
+
+
         /// <summary>
-        /// Loads connection info from all possible sources, reporting which source contained the info,
-        /// and compiles it all into a resultant <c>ConnectionInfo</c> instance
+        /// Internal use only.  Scans all possible sources for the connection string.  Client code
+        /// can listen to <c>getConnectionStringSource</c> to get the connection string source.
         /// </summary>
-        /// <typeparam name="T">a subclass of <c>ConnectionInfo</c></typeparam>
-        /// <param name="connectionInfo">an optional <c>ConnectionInfo</c> instance</param>
-        /// <param name="buildConnectionStringFromConfig">an optional function for building a platform-specific connection string from <c>app|web.config</c> or <c>appsettings.json</c></param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="connectionInfo">The <c>ConnectionInfo</c> supplied to the database method, can be <c>null</c></param>
+        /// <param name="buildConnectionStringFromConfig">A provider specific function for building a connection string from configuration file</param>
+        /// <param name="cryptoOptions">Optional options for the crypto engine to decrypt the connection string password. Source should be DB settings.</param>
+        /// <param name="revealConnectionStringSource">Sends the connection string source to any listening client</param>
+        /// <param name="journal">An optional trace journal to which each step of the process is logged.</param>
         /// <returns>A new <c>ConnectionInfo</c> object whose <c>ConnectionString</c> should be used to build connections.</returns>
         /// <exception cref="ValidationException"></exception>
-        public static T LoadConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, TraceJournal journal = null) where T : ConnectionInfo, new()
+        public static T LoadFinalConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, CryptoOptions cryptoOptions = null, Action<string> revealConnectionStringSource = null, TraceJournal journal = null) where T : ConnectionInfo, new()
         {
             // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.LoadConnectionInfo()  =>  T = " + typeof(T).FullName);
-            journal.Level++;
+            journal?.WriteEntry("DbUtil.LoadFinalConnectionInfo()  =>  T = " + typeof(T).FullName);
+            journal?.IncrementLevel();
 
-            // first check 'user-supplied' info
+            string connStr = null;
+            string connStrSource = null;
+            var configPart = typeof(T).Name.Replace("ConnectionInfo", "");
+            //var configUserName = _Config.Get("Horseshoe.NET:" + configPart + ":UserID");
+            //var configPassword = _Config.Get("Horseshoe.NET:" + configPart + ":Password");
+            //var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword");
+
+            // first check user-supplied connection values
             if (connectionInfo != null)
             {
-                connectionInfo = (T)connectionInfo.Clone();
-                if (connectionInfo.ConnectionString != null)
+                // check connection string
+                if (connectionInfo.ConnectionString is string _connStr && !string.IsNullOrEmpty(_connStr))
                 {
-                    journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
-                    journal.AddAndWriteEntry("connection.info.source", "user-supplied-connection-string");
-                    journal.Level--;
-                    return connectionInfo;
+                    connStr = _connStr;
+                    connStrSource = "client-supplied-connection-string";
+                }
+                // then check connection string name
+                else if (connectionInfo.ConnectionStringName is string connStrName && !string.IsNullOrEmpty(connStrName) && _Config.GetConnectionString(connStrName) is string _connStrN && !string.IsNullOrEmpty(_connStrN))
+                {
+                    connStr = _connStrN;
+                    connStrSource = "client-supplied-connection-string-name";
+                }
+                // then check connection string builder values
+                else if (connectionInfo.BuildFinalConnectionString() is string _connStrB && !string.IsNullOrEmpty(_connStrB))
+                {
+                    connStr = _connStrB;
+                    connStrSource = "client-supplied-datasource";
                 }
 
-                if (connectionInfo.ConnectionStringName != null)
-                {
-                    journal.WriteEntry("connection string name = " + connectionInfo.ConnectionStringName);
-                    connectionInfo.ConnectionString = _Config.GetConnectionString(connectionInfo.ConnectionStringName);
-                    if (connectionInfo.ConnectionString == null)
-                    {
-                        var msg = string.Concat("No connection string named \"", connectionInfo.ConnectionStringName, "\" could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
-                        journal.WriteEntry("ValidationException: " + msg);
-                        throw new ValidationException(msg);
-                    }
-                    journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
-                    journal.AddAndWriteEntry("connection.info.source", "user-supplied-connection-string-name");
-                    journal.Level--;
-                    return connectionInfo;
-                }
-
-                if (connectionInfo.DataSource != null)
-                {
-                    journal.WriteEntry("data source = " + connectionInfo.DataSource);
-                    connectionInfo.ConnectionString = connectionInfo.BuildConnectionString();
-                    if (connectionInfo.ConnectionString == null)
-                    {
-                        var msg = string.Concat("Cannot build connection string from data source: \"", connectionInfo.DataSource, "\".", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " This is perhaps due to Horseshoe.NET.Configuration is not installed." : "");
-                        journal.WriteEntry("ValidationException: " + msg);
-                        throw new ValidationException(msg);
-                    }
-                    journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
-                    journal.AddAndWriteEntry("connection.info.source", "user-supplied-data-source");
-                    journal.Level--;
-                    return connectionInfo;
-                }
-            }
-            else
-            {
-                connectionInfo = new T();
-            }
-
-            // next, check config
-            var configPart = typeof(T).Name.Replace("ConnectionInfo", "");
-            var configUserName = _Config.Get("Horseshoe.NET:" + configPart + ":UserID");
-            var configPassword = _Config.Get("Horseshoe.NET:" + configPart + ":Password");
-            var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword");
-
-            var connStr = _Config.Get("Horseshoe.NET:" + configPart + ":ConnectionString");
-            if (connStr != null)
-            {
-                connectionInfo.ConnectionString = connStr;
-                connectionInfo.Credentials = configIsEncryptedPassword
-                    ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
-                    : Credential.Build(configUserName, configPassword);
-                journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
-                journal.AddAndWriteEntry("connection.info.source", "config-connection-string");
-                journal.Level--;
-                return connectionInfo;
-            }
-
-            var connStrName = _Config.Get("Horseshoe.NET:" + configPart + ":ConnectionStringName");
-            if (connStrName != null)
-            {
-                journal.WriteEntry("connection string name = " + connStrName);
-                connectionInfo.ConnectionString = _Config.GetConnectionString(connStrName);
-                if (connectionInfo.ConnectionString == null)
-                {
-                    var msg = string.Concat("No connection string named \"", connStrName, "\" could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Config is not installed" : "", ".");
-                    journal.WriteEntry("ValidationException: " + msg);
-                    throw new ValidationException(msg);
-                }
-                connectionInfo.Credentials = configIsEncryptedPassword
-                    ? Credential.Build
-                      (
-                        configUserName,
-                        () => Decrypt.String(configPassword)
-                      )
-                    : Credential.Build
-                      (
-                        configUserName,
-                        configPassword
-                      );
-                journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
-                journal.AddAndWriteEntry("connection.info.source", "config-connection-string-name");
-                journal.Level--;
-                return connectionInfo;
-            }
-
-            if (buildConnectionStringFromConfig != null)
-            {
-                connStr = buildConnectionStringFromConfig();
                 if (connStr != null)
                 {
-                    connectionInfo.ConnectionString = connStr;
-                    connectionInfo.Credentials = configIsEncryptedPassword
-                        ? Credential.Build
-                          (
-                            configUserName,
-                            () => Decrypt.String(configPassword)
-                          )
-                        : Credential.Build
-                          (
-                            configUserName,
-                            configPassword
-                          );
-                    journal.AddAndWriteEntry("connection.string", HideInlinePassword(connectionInfo.ConnectionString));
-                    journal.AddAndWriteEntry("connection.info.source", "config-data-source");
-                    journal.Level--;
-                    return connectionInfo;
+                    var finalConnectionInfo = new T
+                    {
+                        ConnectionString = connStr,
+                        Credentials = connectionInfo.Credentials
+                    };
+                    journal?.AddAndWriteEntry("connectionstring", HideInlinePassword(connStr));
+                    journal?.AddAndWriteEntry("connectionstring.source", connStrSource);
+                    revealConnectionStringSource?.Invoke(connStrSource);
+                    journal?.DecrementLevel();
+                    return finalConnectionInfo;
                 }
             }
 
-            var dfltMsg = string.Concat("No connection info could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
-            journal.WriteEntry("ValidationException: " + dfltMsg);
-            throw new ValidationException(dfltMsg);
+            // finally, check config
+
+            // check config connection string
+            if (_Config.Get("Horseshoe.NET:" + configPart + ":ConnectionString") is string _connStrC && !string.IsNullOrEmpty(_connStrC))
+            {
+                connStr = _connStrC;
+                connStrSource = "config-connection-string";
+            }
+            // then check config connection string name
+            else if (_Config.Get("Horseshoe.NET:" + configPart + ":ConnectionStringName") is string connStrName && !string.IsNullOrEmpty(connStrName) && _Config.GetConnectionString(connStrName) is string _connStrN && !string.IsNullOrEmpty(_connStrN))
+            {
+                connStr = _connStrN;
+                connStrSource = "config-connection-string-name";
+            }
+            // then check config connection string builder values
+            else if (buildConnectionStringFromConfig?.Invoke() is string _connStrB && !string.IsNullOrEmpty(_connStrB))
+            {
+                connStr = _connStrB;
+                connStrSource = "config-datasource";
+            }
+
+            if (connStr != null)
+            {
+                var finalConnectionInfo = new T
+                {
+                    ConnectionString = connStr,
+                    Credentials = BuildCredentials(_Config.Get("Horseshoe.NET:" + configPart + ":UserID"),
+                                                   _Config.Get("Horseshoe.NET:" + configPart + ":Password"),
+                                                   _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword"),
+                                                   cryptoOptions: cryptoOptions)
+                };
+                journal?.AddAndWriteEntry("connectionstring", HideInlinePassword(connStr));
+                journal?.AddAndWriteEntry("connectionstring.source", connStrSource);
+                revealConnectionStringSource?.Invoke(connStrSource);
+                journal?.DecrementLevel();
+                return finalConnectionInfo;
+            }
+
+            var msg = string.Concat("No connection info could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
+            journal?.WriteEntry("ValidationException: " + msg);
+            throw new ValidationException(msg);
         }
 
         /// <summary>
         /// Utility method for inline decrypting the password in a connection string
         /// </summary>
-        /// <param name="connStrWithEcryptedPassword">a connection string with encrypted password</param>
-        /// <param name="cryptoOptions">crypto options</param>
-        /// <returns></returns>
-        public static string DecryptInlinePassword(string connStrWithEcryptedPassword, CryptoOptions cryptoOptions = null)
+        /// <param name="connectionString">A connection string potentially with an encrypted password</param>
+        /// <param name="cryptoOptions">Optional cryptographic properties used to decrypt database passwords</param>
+        /// <returns>A sensitive connection string i.e. may contain user id and password.</returns>
+        public static string DecryptInlinePassword(string connectionString, CryptoOptions cryptoOptions = null)
         {
-            var cipherText = ParseConnectionStringValue(ConnectionStringPart.Password, connStrWithEcryptedPassword);
+            var cipherText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
             if (cipherText == null)
-                return null;
+                return connectionString;
             var plainText = Decrypt.String(cipherText, options: cryptoOptions);
-            var reconstitutedConnStr = connStrWithEcryptedPassword.Replace(cipherText, plainText);
-            return reconstitutedConnStr;
+            var sensitiveConnectionString = connectionString.Replace(cipherText, plainText);
+            return sensitiveConnectionString;
         }
 
         /// <summary>
         /// Utility method for inline encrypting the password in a connection string
         /// </summary>
-        /// <param name="connectionString">a connection string with plaintext password</param>
-        /// <returns></returns>
+        /// <param name="connectionString">A connection string potentially with an encrypted password</param>
+        /// <returns>A version of the connection string with the password redatcted.</returns>
         public static string HideInlinePassword(string connectionString)
         {
-            var plainText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
-            if (plainText == null) return connectionString;
-            var reconstitutedConnStr = connectionString.Replace(plainText, "******");
-            return reconstitutedConnStr;
+            var passwordText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
+            if (passwordText == null) 
+                return connectionString;
+            var safeConnectionString = connectionString.Replace(passwordText, "******");
+            return safeConnectionString;
         }
 
         /// <summary>
@@ -225,7 +344,7 @@ namespace Horseshoe.NET.Db
                 case ConnectionStringPart.Password:
                     return ParseConnectionStringValue("Password", connectionString) ?? ParseConnectionStringValue("PWD", connectionString);
             }
-            throw new ValidationException("Unknown connection string part: " + part);  // this should never happen
+            throw new ThisShouldNeverHappenException("Unknown connection string part: " + part); 
         }
 
         /// <summary>
@@ -265,14 +384,14 @@ namespace Horseshoe.NET.Db
         /// around the column name especially if it contains spaces or other non-word characters.
         /// </summary>
         /// <param name="parameter">a parameter</param>
-        /// <param name="platform">An optional DB platform</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
         /// <exception cref="ValidationException"></exception>
-        public static string RenderColumnName(DbParameter parameter, DbPlatform platform = default)
+        public static string RenderColumnName(DbParameter parameter, DbProvider provider = default)
         {
             if (Zap.String(parameter.ParameterName) == null)
                 throw new ValidationException("column name cannot be null");
-            return RenderColumnName(parameter.ParameterName, platform: platform);
+            return RenderColumnName(parameter.ParameterName, provider: provider);
         }
 
         /// <summary>
@@ -281,11 +400,11 @@ namespace Horseshoe.NET.Db
         /// around the column name especially if it contains spaces or other non-word characters.
         /// </summary>
         /// <param name="columnName">a column name</param>
-        /// <param name="platform">An optional DB platform</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
-        public static string RenderColumnName(string columnName, DbPlatform platform = default)
+        public static string RenderColumnName(string columnName, DbProvider provider = default)
         {
-            return DbUtilAbstractions.RenderColumnName(columnName, platform: platform);
+            return DbUtilAbstractions.RenderColumnName(columnName, provider: provider);
         }
 
         /// <summary>
@@ -322,13 +441,12 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// Gets all field values from the current row of an open <c>IDataReader</c> as an <c>object[]</c>.
         /// </summary>
-        /// <param name="reader">a data reader</param>
-        /// <param name="columnCount">the number of columns</param>
+        /// <param name="reader">An open DB data reader</param>
         /// <param name="autoTrunc">how to handle strings</param>
         /// <returns></returns>
-        public static object[] GetAllRowValues(IDataReader reader, int columnCount, AutoTruncate autoTrunc = default)
+        public static object[] GetAllRowValues(IDataReader reader, AutoTruncate autoTrunc = default)
         {
-            var items = new object[columnCount];
+            var items = new object[reader.FieldCount];
 
             for (int i = 0; i < items.Length; i++)
             {
@@ -366,15 +484,14 @@ namespace Horseshoe.NET.Db
         /// <summary>
         /// Gets all field values from the current row of an open <c>IDataReader</c> as an <c>object[]</c>.
         /// </summary>
-        /// <param name="reader">a data reader</param>
-        /// <param name="columnCount">the number of columns</param>
+        /// <param name="reader">An open DB data reader</param>
         /// <param name="autoTrunc">how to handle strings</param>
         /// <returns></returns>
-        public static async Task<object[]> GetAllRowValuesAsync(IDataReader reader, int columnCount, AutoTruncate autoTrunc = default)
+        public static async Task<object[]> GetAllRowValuesAsync(IDataReader reader, AutoTruncate autoTrunc = default)
         {
-            var items = new object[columnCount];
+            var items = new object[reader.FieldCount];
 
-            for (int i = 0; i < columnCount; i++)
+            for (int i = 0; i < items.Length; i++)
             {
                 if (reader is DbDataReader dbDataReader && await dbDataReader.IsDBNullAsync(i))
                     continue;
@@ -429,7 +546,7 @@ namespace Horseshoe.NET.Db
                 dbCapture.DataColumns = cols;
             while (reader.Read())
             {
-                var objects = GetAllRowValues(reader, cols.Length, autoTrunc: autoTrunc);
+                var objects = GetAllRowValues(reader, autoTrunc: autoTrunc);
                 list.Add(objects);
             }
 
@@ -455,12 +572,11 @@ namespace Horseshoe.NET.Db
 
             // data stuff
             var list = new List<object[]>();
-            var cols = reader.GetDataColumns();
             if (dbCapture != null)
-                dbCapture.DataColumns = cols;
+                dbCapture.DataColumns = reader.GetDataColumns();
             while (await reader.ReadAsync())
             {
-                var objects = await GetAllRowValuesAsync(reader, cols.Length, autoTrunc: autoTrunc);
+                var objects = await GetAllRowValuesAsync(reader, autoTrunc: autoTrunc);
                 list.Add(objects);
             }
 
@@ -613,11 +729,11 @@ namespace Horseshoe.NET.Db
         /// Prepare an object for insertion into a SQL statement.
         /// </summary>
         /// <param name="obj">An object.</param>
-        /// <param name="platform">An optional DB platform.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
-        public static string Sqlize(object obj, DbPlatform platform = default)
+        public static string Sqlize(object obj, DbProvider provider = default)
         {
-            return DbUtilAbstractions.Sqlize(obj, platform: platform);
+            return DbUtilAbstractions.Sqlize(obj, provider: provider);
         }
 
         /// <summary>
@@ -689,7 +805,7 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a statement to delete one or more rows from a table or drop (truncate) the table based on the default platform..
+        /// Builds a statement to delete one or more rows from a table or drop (truncate) the table based on the default provider.
         /// </summary>
         /// <param name="tableName">A table name.</param>
         /// <param name="where">A filter indicating which rows to delete.</param>
@@ -707,7 +823,7 @@ namespace Horseshoe.NET.Db
             // data stuff
             try
             {
-                return BuildDeleteStatement(DbSettings.DefaultPlatform ?? DbPlatform.Neutral, tableName, where, drop: drop, purge: purge, journal: journal);
+                return BuildDeleteStatement(DbSettings.DefaultProvider, tableName, where, drop: drop, purge: purge, journal: journal);
             }
             finally
             {
@@ -717,29 +833,29 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to delete one or more rows from a table or drop (truncate) the table.
+        /// Builds a provider-specific statement to delete one or more rows from a table or drop (truncate) the table.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="where">A filter indicating which rows to delete.</param>
         /// <param name="drop">If <c>true</c>, returns a statement to delete the table database object (rather than just delete rows), default is <c>false</c>.</param>
         /// <param name="purge">Oracle DB only. If <c>true</c> and if <c>drop == true</c>, returns a statement to delete the table database object (rather than just delete rows) and release the space associated with it in a single step, default is <c>false</c>.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildDeleteStatement(DbPlatform platform, string tableName, IFilter where, bool drop = false, bool purge = false, TraceJournal journal = null)
+        public static string BuildDeleteStatement(DbProvider provider, string tableName, IFilter where, bool drop = false, bool purge = false, TraceJournal journal = null)
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildDeleteStatement(" + platform + ", \"" + tableName + "\")");
+            journal.WriteEntry("DbUtil.BuildDeleteStatement(" + provider + ", \"" + tableName + "\")");
             journal.Level++;
 
             // data stuff
             string statement;
-            journal.WriteEntry("platform = " + platform);
+            journal.WriteEntry("provider = " + provider);
 
-            switch (platform)
+            switch (provider)
             {
-                case DbPlatform.SqlServer:
+                case DbProvider.SqlServer:
                     if (drop)
                     {
                         statement = "TRUNCATE TABLE " + tableName;
@@ -748,10 +864,10 @@ namespace Horseshoe.NET.Db
                     {
                         statement = "DELETE FROM " + tableName;
                         if (where != null)
-                            statement += " WHERE " + where.Render(DbPlatform.SqlServer);
+                            statement += " WHERE " + where.Render(DbProvider.SqlServer);
                     }
                     break;
-                case DbPlatform.Oracle:
+                case DbProvider.Oracle:
                     if (drop)
                     {
                         statement = "DROP TABLE " + tableName;
@@ -762,12 +878,12 @@ namespace Horseshoe.NET.Db
                     {
                         statement = "DELETE FROM " + tableName;
                         if (where != null)
-                            statement += " WHERE " + where.Render(DbPlatform.Oracle);
+                            statement += " WHERE " + where.Render(DbProvider.Oracle);
                     }
                     statement += ";";
                     break;
                 default:
-                    throw new ArgumentException("This method requires a non-neutral DB platform.");
+                    throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
             }
 
             journal.AddAndWriteEntry("sql.statement", statement);
@@ -778,7 +894,7 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a statement to insert a row into a table based on the default platform.
+        /// Builds a statement to insert a row into a table based on the default provider.
         /// </summary>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
@@ -794,7 +910,7 @@ namespace Horseshoe.NET.Db
             // data stuff
             try
             {
-                return BuildInsertStatement(DbSettings.DefaultPlatform ?? DbPlatform.Neutral, tableName, columns, journal: journal);
+                return BuildInsertStatement(DbSettings.DefaultProvider, tableName, columns, journal: journal);
             }
             finally
             {
@@ -804,36 +920,36 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to insert a row into a table.
+        /// Builds a provider-specific statement to insert a row into a table.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildInsertStatement(DbPlatform platform, string tableName, IEnumerable<DbParameter> columns, TraceJournal journal = null)
+        public static string BuildInsertStatement(DbProvider provider, string tableName, IEnumerable<DbParameter> columns, TraceJournal journal = null)
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildInsertStatement(" + platform + ", \"" + tableName + "\")");
+            journal.WriteEntry("DbUtil.BuildInsertStatement(" + provider + ", \"" + tableName + "\")");
             journal.Level++;
 
             // data stuff
             string statement;
-            journal.WriteEntry("platform = " + platform);
+            journal.WriteEntry("provider = " + provider);
 
-            switch (platform)
+            switch (provider)
             {
-                case DbPlatform.SqlServer:
-                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columns.Select(c => RenderColumnName(c, platform: DbPlatform.SqlServer))) + ")";
-                    statement += " VALUES (" + string.Join(", ", columns.Select(c => Sqlize(c.Value, platform: DbPlatform.SqlServer))) + ")";
+                case DbProvider.SqlServer:
+                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columns.Select(c => RenderColumnName(c, provider: DbProvider.SqlServer))) + ")";
+                    statement += " VALUES (" + string.Join(", ", columns.Select(c => Sqlize(c.Value, provider: DbProvider.SqlServer))) + ")";
                     break;
-                case DbPlatform.Oracle:
-                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columns.Select(c => RenderColumnName(c, platform: DbPlatform.Oracle))) + ")";
-                    statement += " VALUES (" + string.Join(", ", columns.Select(c => Sqlize(c.Value, platform: DbPlatform.Oracle))) + ");";
+                case DbProvider.Oracle:
+                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columns.Select(c => RenderColumnName(c, provider: DbProvider.Oracle))) + ")";
+                    statement += " VALUES (" + string.Join(", ", columns.Select(c => Sqlize(c.Value, provider: DbProvider.Oracle))) + ");";
                     break;
                 default:
-                    throw new ArgumentException("This method requires a non-neutral DB platform.");
+                    throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
             }
 
             journal.AddAndWriteEntry("sql.statement", statement);
@@ -844,7 +960,7 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to insert a row into a table and get the resulting identity.
+        /// Builds a provider-specific statement to insert a row into a table and get the resulting identity.
         /// </summary>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
@@ -861,7 +977,7 @@ namespace Horseshoe.NET.Db
             // data stuff
             try
             {
-                return BuildInsertAndGetIdentityStatements(DbSettings.DefaultPlatform ?? DbPlatform.Neutral, tableName, columns, getIdentitySql: getIdentitySql, journal: journal);
+                return BuildInsertAndGetIdentityStatements(DbSettings.DefaultProvider, tableName, columns, getIdentitySql: getIdentitySql, journal: journal);
             }
             finally
             {
@@ -871,23 +987,23 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to insert a row into a table and get the resulting identity.
+        /// Builds a provider-specific statement to insert a row into a table and get the resulting identity.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
         /// <param name="getIdentitySql">An optional SELECT statement for retrieving the identity of the inserted row.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildInsertAndGetIdentityStatements(DbPlatform platform, string tableName, IEnumerable<DbParameter> columns, string getIdentitySql = null, TraceJournal journal = null)
+        public static string BuildInsertAndGetIdentityStatements(DbProvider provider, string tableName, IEnumerable<DbParameter> columns, string getIdentitySql = null, TraceJournal journal = null)
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildInsertAndGetIdentityStatements(" + platform + ", \"" + tableName + "\")");
+            journal.WriteEntry("DbUtil.BuildInsertAndGetIdentityStatements(" + provider + ", \"" + tableName + "\")");
             journal.Level++;
 
             // data stuff
-            string statement = BuildInsertStatement(platform, tableName, columns, journal: journal);
+            string statement = BuildInsertStatement(provider, tableName, columns, journal: journal);
 
             if (getIdentitySql != null)
             {
@@ -895,16 +1011,16 @@ namespace Horseshoe.NET.Db
             }
             else
             {
-                switch (platform)
+                switch (provider)
                 {
-                    case DbPlatform.SqlServer:
-                        statement += " SELECT " + SqlLiteral.Identity(DbPlatform.SqlServer);
+                    case DbProvider.SqlServer:
+                        statement += " SELECT " + SqlLiteral.Identity(DbProvider.SqlServer);
                         break;
-                    case DbPlatform.Oracle:
-                        statement += " SELECT " + SqlLiteral.Identity(DbPlatform.Oracle) + ";";
+                    case DbProvider.Oracle:
+                        statement += " SELECT " + SqlLiteral.Identity(DbProvider.Oracle) + ";";
                         break;
                     default:
-                        throw new ArgumentException("This method requires a non-neutral DB platform.");
+                        throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
                 }
             }
 
@@ -916,7 +1032,7 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to update one or more rows in a table.
+        /// Builds a provider-specific statement to update one or more rows in a table.
         /// </summary>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
@@ -933,7 +1049,7 @@ namespace Horseshoe.NET.Db
             // data stuff
             try
             {
-                return BuildUpdateStatement(DbSettings.DefaultPlatform ?? DbPlatform.Neutral, tableName, columns, where, journal: journal);
+                return BuildUpdateStatement(DbSettings.DefaultProvider, tableName, columns, where, journal: journal);
             }
             finally
             {
@@ -943,40 +1059,40 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to update one or more rows in a table.
+        /// Builds a provider-specific statement to update one or more rows in a table.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
         /// <param name="where">A filter indicating which rows to update.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildUpdateStatement(DbPlatform platform, string tableName, IEnumerable<DbParameter> columns, IFilter where, TraceJournal journal = null)
+        public static string BuildUpdateStatement(DbProvider provider, string tableName, IEnumerable<DbParameter> columns, IFilter where, TraceJournal journal = null)
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildUpdateStatement(" + platform + ", \"" + tableName + "\")");
+            journal.WriteEntry("DbUtil.BuildUpdateStatement(" + provider + ", \"" + tableName + "\")");
             journal.Level++;
 
             // data stuff
             string statement;
-            journal.WriteEntry("platform = " + platform);
+            journal.WriteEntry("provider = " + provider);
 
-            switch (platform)
+            switch (provider)
             {
-                case DbPlatform.SqlServer:
-                    statement = "UPDATE " + tableName + "SET " + string.Join(", ", columns.Select(c => c.ToDMLString(platform: DbPlatform.SqlServer)));
+                case DbProvider.SqlServer:
+                    statement = "UPDATE " + tableName + "SET " + string.Join(", ", columns.Select(c => c.ToDMLString(provider: DbProvider.SqlServer)));
                     if (where != null)
-                        statement += " WHERE " + where.Render(DbPlatform.SqlServer);
+                        statement += " WHERE " + where.Render(DbProvider.SqlServer);
                     break;
-                case DbPlatform.Oracle:
-                    statement = "UPDATE " + tableName + "SET " + string.Join(", ", columns.Select(c => c.ToDMLString(platform: DbPlatform.Oracle)));
+                case DbProvider.Oracle:
+                    statement = "UPDATE " + tableName + "SET " + string.Join(", ", columns.Select(c => c.ToDMLString(provider: DbProvider.Oracle)));
                     if (where != null)
-                        statement += " WHERE " + where.Render(DbPlatform.Oracle);
+                        statement += " WHERE " + where.Render(DbProvider.Oracle);
                     statement += ";";
                     break;
                 default:
-                    throw new ArgumentException("This method requires a non-neutral DB platform.");
+                    throw new ArgumentException("This method requires a non-neutral DB provider.");
             }
 
             journal.AddAndWriteEntry("sql.statement", statement);
@@ -987,7 +1103,7 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to call a function.
+        /// Builds a provider-specific statement to call a function.
         /// </summary>
         /// <param name="functionName">A function name.</param>
         /// <param name="parameters">Optional parameter(s) to pass into the function.</param>
@@ -1002,7 +1118,7 @@ namespace Horseshoe.NET.Db
 
             try
             {
-                return BuildFunctionStatement(DbSettings.DefaultPlatform ?? DbPlatform.Neutral, functionName, parameters: parameters, journal: journal);
+                return BuildFunctionStatement(DbSettings.DefaultProvider, functionName, parameters: parameters, journal: journal);
             }
             finally
             {
@@ -1012,48 +1128,48 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a platform-specific statement to call a function.
+        /// Builds a provider-specific statement to call a function.
         /// </summary>
-        /// <param name="platform">A DB platform lends hints about how to render SQL expressions or entire SQL statements.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="functionName">A function name.</param>
         /// <param name="parameters">Optional parameter(s) to pass into the function.</param>
         /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildFunctionStatement(DbPlatform platform, string functionName, IEnumerable<DbParameter> parameters = null, TraceJournal journal = null)
+        public static string BuildFunctionStatement(DbProvider provider, string functionName, IEnumerable<DbParameter> parameters = null, TraceJournal journal = null)
         {
             // journaling
             journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildFunctionStatement(" + platform + ", \"" + functionName + "\")");
+            journal.WriteEntry("DbUtil.BuildFunctionStatement(" + provider + ", \"" + functionName + "\")");
             journal.Level++;
 
             // data stuff
             string statement;
-            journal.WriteEntry("platform = " + platform);
+            journal.WriteEntry("provider = " + provider);
 
-            switch (platform)
+            switch (provider)
             {
-                case DbPlatform.SqlServer:
+                case DbProvider.SqlServer:
                     if (parameters == null)
                     {
                         statement = "SELECT * FROM " + functionName + "()";
                     }
                     else
                     {
-                        statement = "SELECT * FROM " + functionName + "(" + string.Join(", ", parameters.Select(p => Sqlize(p.Value, platform: DbPlatform.SqlServer))) + ")";
+                        statement = "SELECT * FROM " + functionName + "(" + string.Join(", ", parameters.Select(p => Sqlize(p.Value, provider: DbProvider.SqlServer))) + ")";
                     }
                     break;
-                case DbPlatform.Oracle:
+                case DbProvider.Oracle:
                     if (parameters == null)
                     {
                         statement = "SELECT * FROM TABLE(" + functionName + "());";
                     }
                     else
                     {
-                        statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => Sqlize(p.Value, platform: DbPlatform.Oracle))) + "));";
+                        statement = "SELECT * FROM TABLE(" + functionName + "(" + string.Join(", ", parameters.Select(p => Sqlize(p.Value, provider: DbProvider.Oracle))) + "));";
                     }
                     break;
                 default:
-                    throw new ArgumentException("This method requires a non-neutral DB platform.");
+                    throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
             }
 
             journal.AddAndWriteEntry("sql.statement", statement);
@@ -1061,6 +1177,61 @@ namespace Horseshoe.NET.Db
             //finalize
             journal.Level--;
             return statement;
+        }
+
+        /// <summary>
+        /// Use this method to build a <c>Credential</c> dynamically and for any use.
+        /// </summary>
+        /// <param name="userId">A user name or ID</param>
+        /// <param name="password">A password</param>
+        /// <param name="isEncryptedPassword">If <c>true</c>, instructs the system to decrypt the password (if supplied).  Default is <c>false</c>.</param>
+        /// <param name="cryptoOptions">Optional symmetric algorithm properties used to decrypt passwords</param>
+        /// <returns>A <c>Credential</c></returns>
+        public static Credential? BuildCredentials(string userId, string password, bool isEncryptedPassword = false, CryptoOptions cryptoOptions = null)
+        {
+            if (userId == null)
+                return null;
+            if (password != null && isEncryptedPassword)
+                return new Credential(userId, Decrypt.SecureString(password, options: cryptoOptions));
+            return Credential.Build(userId, password);
+        }
+
+        /// <summary>
+        /// Applies <c>AutoTruncate</c> on scalar query results replacing <c>DBNull</c> with <c>null</c>.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="autoTrunc"></param>
+        /// <returns></returns>
+        public static object ProcessScalarResult(object result, AutoTruncate autoTrunc = default)
+        {
+            if (ObjectUtil.IsNull(result))
+                return null;
+            if (result is string stringValue)
+            {
+                if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
+                {
+                    if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
+                    {
+                        if (string.IsNullOrWhiteSpace(stringValue))
+                        {
+                            if (stringValue.Length == 0)
+                                return null;
+                        }
+                        else
+                            stringValue = stringValue.Trim();
+                    }
+                    else
+                    {
+                        stringValue = stringValue.Trim();
+                        if (stringValue.Length == 0)
+                            return null;
+                    }
+                }
+                else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
+                    stringValue = stringValue.Trim();
+                return stringValue;
+            }
+            return result;
         }
     }
 }

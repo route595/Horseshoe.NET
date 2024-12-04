@@ -21,9 +21,9 @@ namespace TestConsole
             routine.AutoAppendExitRoutineMenuItem = true;
         };
 
-        public override Action<string> OnMainMenuSelecting => (menuObjectText) =>
+        public override Action<MenuSelection<MenuObject>> OnMainMenuSelection => (menuSelection) =>
         {
-            Console.WriteLine("Selected => " + menuObjectText);
+            Console.WriteLine("Selected => [" + menuSelection.SelectedIndex + "] " + menuSelection.SelectedItem.Text);
         };
 
         public override StringValues WelcomeMessage => DefaultWelcomeValues;

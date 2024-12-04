@@ -64,6 +64,28 @@ namespace Horseshoe.NET
         }
 
         /// <summary>
+        /// Increments the indent level.  Equivalent to the following.
+        /// <code>
+        /// journal.Level++;
+        /// </code>
+        /// </summary>
+        public void IncrementLevel()
+        {
+            Level++;
+        }
+
+        /// <summary>
+        /// Decrements the indent level.  Equivalent to the following.
+        /// <code>
+        /// journal.Level--;
+        /// </code>
+        /// </summary>
+        public void DecrementLevel()
+        {
+            Level++;
+        }
+
+        /// <summary>
         /// Adds an entry to the journal and invokes <c></c>writeEntryAction' (if applicable).
         /// </summary>
         /// <param name="message">A journal entry.</param>

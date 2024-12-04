@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Horseshoe.NET.Crypto;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET
@@ -245,156 +246,102 @@ namespace Horseshoe.NET
             : null;
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this byte? inValue, out byte value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this short? inValue, out short value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this int? inValue, out int value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this long? inValue, out long value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this float? inValue, out float value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this double? inValue, out double value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable numerics.
+        /// An easy-to-use value sniffing method for nullable numerics.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this decimal? inValue, out decimal value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable date/times.
+        /// An easy-to-use value sniffing method for nullable date/times.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this DateTime? inValue, out DateTime value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
 
         /// <summary>
-        /// A easy-to-use value sniffing method for nullable Booleans.
+        /// An easy-to-use value sniffing method for nullable Booleans.
         /// </summary>
         /// <param name="inValue">The nullable value.</param>
         /// <param name="value">The non-nullable value, if any.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool TryHasValue(this bool? inValue, out bool value)
         {
-            if (inValue.HasValue)
-            {
-                value = inValue.Value;
-                return true;
-            }
-            value = default;
-            return false;
+            return ValueUtil.TryHasValue(inValue, out value);
         }
     }
 }

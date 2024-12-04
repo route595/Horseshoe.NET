@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.OracleDb.Meta;
 using Horseshoe.NET.Text;
 using Oracle.ManagedDataAccess.Client;
@@ -33,7 +34,7 @@ namespace Horseshoe.NET.OracleDb
                 // basic style                                    // e.g. Data Source=MY_ORA_SERVER[:1234]
                 sb.Append(dataSource.DataSource);                 //      Data Source=MY_TNS_ALIAS
             }
-            else
+            else 
             {
                 // data source continued - EZ connect style       // e.g. Data Source=//MY_ORA_SERVER[:1234]//MY_INSTANCE
                 sb.Append("//").Append(dataSource.DataSource);    //      Data Source=//MY_ORA_SERVER[:1234]/MY_SERVICE/MY_INSTANCE
@@ -79,50 +80,65 @@ namespace Horseshoe.NET.OracleDb
             return BuildConnectionString(OracleDbSettings.DefaultDataSource, OracleDbSettings.DefaultCredentials.HasValue, additionalConnectionAttributes: OracleDbSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OracleDbSettings.DefaultConnectionTimeout);
         }
 
+        /// <summary>
+        /// Creates an open DB connection ready to send queries, updates, etc.
+        /// </summary>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="journal"></param>
+        /// <returns>A new DB connection</returns>
         public static OracleConnection LaunchConnection
         (
             OracleDbConnectionInfo connectionInfo = null,
+            Action<OracleConnection> peekConnection = null,
             TraceJournal journal = null
         )
         {
-            connectionInfo = DbUtil.LoadConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal);
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
             var conn = connectionInfo.OracleCredentials != null
                 ? new OracleConnection(connectionInfo.ConnectionString, connectionInfo.OracleCredentials)
-                : new OracleConnection(connectionInfo.ConnectionString);
+                : new OracleConnection
+                  (
+                      connectionInfo.IsEncryptedPassword
+                        ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: OracleDbSettings.CryptoOptions)
+                        : connectionInfo.ConnectionString
+                  );
             conn.Open();
             if (connectionInfo.AutoClearConnectionPool || OracleDbSettings.AutoClearConnectionPool)
             {
                 // ref: https://stackoverflow.com/questions/54373754/oracle-managed-dataaccess-connection-object-is-keeping-the-connection-open
                 OracleConnection.ClearPool(conn);   // will clear on close
             }
+            peekConnection?.Invoke(conn);
             return conn;
         }
 
-        public static OracleConnection LaunchConnection
-        (
-            OracleConnection conn,
-            bool autoClearConnectionPool = false
-        )
-        {
-            conn = conn.Credential != null
-                ? new OracleConnection(conn.ConnectionString, conn.Credential)
-                : new OracleConnection(conn.ConnectionString);
-            conn.Open();
-            if (autoClearConnectionPool || OracleDbSettings.AutoClearConnectionPool)
-            {
-                // ref: https://stackoverflow.com/questions/54373754/oracle-managed-dataaccess-connection-object-is-keeping-the-connection-open
-                OracleConnection.ClearPool(conn);   // will clear on close
-            }
-            return conn;
-        }
+        //public static OracleConnection LaunchConnection
+        //(
+        //    OracleConnection conn,
+        //    bool autoClearConnectionPool = false
+        //)
+        //{
+        //    conn = conn.Credential != null
+        //        ? new OracleConnection(conn.ConnectionString, conn.Credential)
+        //        : new OracleConnection(conn.ConnectionString);
+        //    conn.Open();
+        //    if (autoClearConnectionPool || OracleDbSettings.AutoClearConnectionPool)
+        //    {
+        //        // ref: https://stackoverflow.com/questions/54373754/oracle-managed-dataaccess-connection-object-is-keeping-the-connection-open
+        //        OracleConnection.ClearPool(conn);   // will clear on close
+        //    }
+        //    return conn;
+        //}
 
         internal static OracleCommand BuildTextCommand
         (
             OracleConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OracleTransaction transaction,
             int? commandTimeout,
-            Action<OracleCommand> alterCommand
+            Action<OracleCommand> peekCommand
         )
         {
             return BuildCommand
@@ -130,9 +146,10 @@ namespace Horseshoe.NET.OracleDb
                 conn,
                 CommandType.Text,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction: transaction,
+                commandTimeout: commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
@@ -141,8 +158,9 @@ namespace Horseshoe.NET.OracleDb
             OracleConnection conn,
             string commandText,
             IEnumerable<DbParameter> parameters,
+            OracleTransaction transaction,
             int? commandTimeout,
-            Action<OracleCommand> alterCommand
+            Action<OracleCommand> peekCommand
         )
         {
             return BuildCommand
@@ -150,9 +168,10 @@ namespace Horseshoe.NET.OracleDb
                 conn,
                 CommandType.StoredProcedure,
                 commandText,
-                parameters,
-                commandTimeout,
-                alterCommand
+                parameters: parameters,
+                transaction : transaction,
+                commandTimeout : commandTimeout,
+                peekCommand: peekCommand
             );
         }
 
@@ -162,15 +181,17 @@ namespace Horseshoe.NET.OracleDb
             CommandType commandType,
             string commandText,
             IEnumerable<DbParameter> parameters = null,
+            OracleTransaction transaction = null,
             int? commandTimeout = null,
-            Action<OracleCommand> modifyCommand = null
+            Action<OracleCommand> peekCommand = null
         )
         {
             var cmd = new OracleCommand
             {
                 Connection = conn,
                 CommandType = commandType,
-                CommandText = commandText
+                CommandText = commandText,
+                Transaction = transaction
             };
             if (parameters != null)
             {
@@ -186,11 +207,11 @@ namespace Horseshoe.NET.OracleDb
                     }
                 }
             }
-            if (commandTimeout.TryHasValue(out int value))
+            if (ValueUtil.TryHasValue(commandTimeout, out int value))
             {
                 cmd.CommandTimeout = value;
             }
-            modifyCommand?.Invoke(cmd);
+            peekCommand?.Invoke(cmd);
             return cmd;
         }
 
@@ -292,9 +313,9 @@ namespace Horseshoe.NET.OracleDb
         /// to their common equivalents, e.g. <c>OracleString</c> to <c>string</c>, etc.
         /// </summary>
         /// <param name="reader">An oben data reader.</param>
-        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
         public static IEnumerable<object[]> ReadAsObjects(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
@@ -324,9 +345,9 @@ namespace Horseshoe.NET.OracleDb
         /// to their common equivalents, e.g. <c>OracleString</c> to <c>string</c>, etc.
         /// </summary>
         /// <param name="reader">An oben data reader.</param>
-        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
         public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
@@ -355,9 +376,9 @@ namespace Horseshoe.NET.OracleDb
         /// Reads data from a reader and returns the raw objects. Instances of <c>DBNull</c> are returned as <c>null</c>.
         /// </summary>
         /// <param name="command">An open DB command.</param>
-        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
         public static IEnumerable<object[]> ReadAsObjects(IDbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {
@@ -386,9 +407,9 @@ namespace Horseshoe.NET.OracleDb
         /// Reads data from a reader and returns the raw objects. Instances of <c>DBNull</c> are returned as <c>null</c>.
         /// </summary>
         /// <param name="command">An open DB command.</param>
-        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+        /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
         public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(IDbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
         {

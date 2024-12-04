@@ -6,7 +6,7 @@ using System.Security;
 using System.Text;
 
 using Horseshoe.NET.Collections;
-using Horseshoe.NET.ObjectsAndTypes;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
@@ -1604,7 +1604,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
         /// <param name="allowArbitraryInput">allow arbitrary text in addition to menu item selection</param>
         /// <param name="allowMultipleSelection">allow entry of multiple list items such as: 1-3, 5, etc.</param>
-        /// <param name="onMenuSelecting">an action to perform when user enters a menu selection</param>
+        /// <param name="onMenuIndexSelecting">an action to perform when user enters a menu index</param>
         /// <param name="onMenuSelection">an action to perfrom after menu selection is complete</param>
         /// <param name="onRoutineAutoRunComplete">an action to perform after selection and autorun of a routine</param>
         /// <param name="onRoutineAutoRunError">an action to perform after an autorun routine throws an exception</param>
@@ -1624,7 +1624,7 @@ namespace Horseshoe.NET.ConsoleX
             Action<TextGrid> configureTextGrid = null,
             bool allowArbitraryInput = false,
             bool allowMultipleSelection = false,
-            Action<string> onMenuSelecting = null,
+            Action<string> onMenuIndexSelecting = null,
             Action<MenuSelection<T>> onMenuSelection = null,
             Action<RoutineX> onRoutineAutoRunComplete = null,
             Action<RoutineX, Exception> onRoutineAutoRunError = null
@@ -1656,7 +1656,7 @@ namespace Horseshoe.NET.ConsoleX
             while (true)
             {
                 var input = String(null, promptType: PromptType.MenuOrList, padAfter: padAfter);
-                onMenuSelecting?.Invoke(input);
+                onMenuIndexSelecting?.Invoke(input);
 
                 // selection type 1 of 4 - custom menu items
                 var customMenuItems = CollectionUtil.Combine(customItemsToPrepend, customItemsToAppend)

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Db;
-using Horseshoe.NET.ObjectsAndTypes;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.SqlDb
@@ -30,14 +29,15 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
@@ -48,7 +48,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -58,9 +59,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsCollection(conn, statement, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection(conn, statement, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -74,14 +75,15 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process can be logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
@@ -92,7 +94,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -102,9 +105,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsCollectionAsync(conn, statement, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync(conn, statement, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -119,24 +122,26 @@ namespace Horseshoe.NET.SqlDb
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -149,6 +154,7 @@ namespace Horseshoe.NET.SqlDb
                 var result = BuildList
                 (
                     conn,
+                    transaction,
                     statement,
                     null,
                     dbCapture,
@@ -156,7 +162,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -172,24 +178,26 @@ namespace Horseshoe.NET.SqlDb
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -202,6 +210,7 @@ namespace Horseshoe.NET.SqlDb
                 var result = await BuildListAsync
                 (
                     conn,
+                    transaction,
                     statement,
                     null,
                     dbCapture,
@@ -209,7 +218,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -223,12 +232,13 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
@@ -237,7 +247,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -247,9 +258,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsObjects(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsObjects(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -262,12 +273,13 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
@@ -276,7 +288,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -286,9 +299,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsObjectsAsync(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsObjectsAsync(conn, statement, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -302,20 +315,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -325,7 +340,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = AsDataReader(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = AsDataReader(conn, statement, transaction: transaction, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -341,20 +356,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -364,7 +381,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = await AsDataReaderAsync(conn, statement, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = await AsDataReaderAsync(conn, statement, transaction: transaction, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -379,11 +396,12 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
@@ -391,7 +409,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -401,9 +420,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsScalar(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsScalar(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -416,11 +435,12 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
@@ -428,7 +448,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -438,9 +459,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsScalarAsync(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsScalarAsync(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -454,18 +475,20 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -475,37 +498,11 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))
                 {
                     var result = command.ExecuteScalar();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(result))
-                        return null;
-                    if (result is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
                     return result;
                 }
             }
@@ -516,18 +513,20 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -537,37 +536,11 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))
                 {
                     var result = await command.ExecuteScalarAsync();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(result))
-                        return null;
-                    if (result is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
                     return result;
                 }
             }
@@ -577,12 +550,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
@@ -591,7 +565,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -601,8 +576,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -614,12 +589,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
@@ -628,7 +604,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -638,8 +615,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = await AsDataReaderAsync(conn, statement, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = await AsDataReaderAsync(conn, statement, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -652,20 +629,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -675,7 +654,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand);
                 var result = keepOpen
                     ? command.ExecuteReader(CommandBehavior.Default)
                     : command.ExecuteReader(CommandBehavior.CloseConnection);
@@ -700,20 +679,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -723,7 +704,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand);
                 var result = keepOpen
                     ? await command.ExecuteReaderAsync(CommandBehavior.Default)
                     : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
@@ -747,11 +728,12 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the data as a <see cref="DataTable"/>.
             /// </summary>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             public static DataTable AsDataTable
             (
@@ -759,7 +741,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -769,9 +752,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsDataTable(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsDataTable(conn, statement, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -785,19 +768,21 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="statement">Typically a SQL 'select' statement</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             /// <exception cref="ValidationException"></exception>
             public static DataTable AsDataTable
             (
                 SqlConnection conn,
                 string statement,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -808,7 +793,7 @@ namespace Horseshoe.NET.SqlDb
 
                 // data stuff
                 var result = new DataTable();
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))
                 {
                     using (var adapter = new SqlDataAdapter(command))
                     {
@@ -839,18 +824,19 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
@@ -865,7 +851,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -875,9 +862,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsCollection(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -891,18 +878,19 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
@@ -917,7 +905,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -927,9 +916,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsCollectionAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -948,13 +937,14 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
@@ -964,12 +954,13 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -992,6 +983,7 @@ namespace Horseshoe.NET.SqlDb
                 var result = BuildList
                 (
                     conn,
+                    transaction,
                     statement,
                     null,
                     dbCapture,
@@ -999,7 +991,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -1019,13 +1011,14 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
@@ -1035,12 +1028,13 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1063,6 +1057,7 @@ namespace Horseshoe.NET.SqlDb
                 var result = await BuildListAsync
                 (
                     conn,
+                    transaction,
                     statement,
                     null,
                     dbCapture,
@@ -1070,7 +1065,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -1084,16 +1079,17 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
@@ -1106,7 +1102,8 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1116,9 +1113,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsObjects(conn, tableName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsObjects(conn, tableName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1131,16 +1128,17 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
@@ -1153,7 +1151,8 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1163,9 +1162,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsObjectsAsync(conn, tableName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsObjectsAsync(conn, tableName, dbCapture: dbCapture, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1179,20 +1178,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 SqlConnection conn,
                 string tableName,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 IEnumerable<string> columns = null,
                 IFilter where = null,
@@ -1200,7 +1201,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1210,7 +1211,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, transaction: transaction, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -1226,20 +1227,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 SqlConnection conn,
                 string tableName,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 IEnumerable<string> columns = null,
                 IFilter where = null,
@@ -1247,7 +1250,7 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1257,7 +1260,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, transaction: transaction, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -1272,15 +1275,16 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="column">The column in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
@@ -1292,7 +1296,8 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1302,9 +1307,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsScalar(conn, tableName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsScalar(conn, tableName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1317,15 +1322,16 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="column">The column in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
@@ -1337,7 +1343,8 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1347,9 +1354,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsScalarAsync(conn, tableName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, commandTimeout: commandTimeout, autoTrunc: autoTrunc, alterCommand: alterCommand, journal: journal);
+                    var result = await AsScalarAsync(conn, tableName, column: column, where: where, groupBy: groupBy, orderBy: orderBy, commandTimeout: commandTimeout, autoTrunc: autoTrunc, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1367,10 +1374,11 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
@@ -1380,9 +1388,10 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1402,37 +1411,11 @@ namespace Horseshoe.NET.SqlDb
                     journal
                 );
 
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))
                 {
                     var result = command.ExecuteScalar();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(result))
-                        return null;
-                    if (result is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
                     return result;
                 }
             }
@@ -1447,10 +1430,11 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
@@ -1460,9 +1444,10 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1482,37 +1467,11 @@ namespace Horseshoe.NET.SqlDb
                     journal
                 );
 
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))
                 {
                     var result = await command.ExecuteScalarAsync();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(result))
-                        return null;
-                    if (result is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
                     return result;
                 }
             }
@@ -1522,16 +1481,17 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
@@ -1544,7 +1504,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1554,8 +1515,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = AsDataReader(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -1567,16 +1528,17 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
@@ -1589,7 +1551,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1599,8 +1562,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = await AsDataReaderAsync(conn, tableName, columns: columns, where: where, groupBy: groupBy, orderBy: orderBy, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -1617,11 +1580,12 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
@@ -1631,10 +1595,11 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1654,7 +1619,7 @@ namespace Horseshoe.NET.SqlDb
                     journal
                 );
 
-                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand);
                 var result = keepOpen
                     ? command.ExecuteReader(CommandBehavior.Default)
                     : command.ExecuteReader(CommandBehavior.CloseConnection);
@@ -1683,11 +1648,12 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
@@ -1697,10 +1663,11 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1720,7 +1687,7 @@ namespace Horseshoe.NET.SqlDb
                     journal
                 );
 
-                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);
+                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand);
                 var result = keepOpen
                     ? await command.ExecuteReaderAsync(CommandBehavior.Default)
                     : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
@@ -1744,15 +1711,16 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the data as a <see cref="DataTable"/>.
             /// </summary>
             /// <param name="tableName">Typically a table or view to query.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
             /// <param name="columns">The columns in the table or view to return in the result.</param>
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             public static DataTable AsDataTable
             (
@@ -1764,7 +1732,8 @@ namespace Horseshoe.NET.SqlDb
                 IEnumerable<string> orderBy = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1774,9 +1743,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsDataTable(conn, tableName, columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsDataTable(conn, tableName, columns, where: where, groupBy: groupBy, orderBy: orderBy, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1794,10 +1763,11 @@ namespace Horseshoe.NET.SqlDb
             /// <param name="where">A filter which renders to a SQL 'where' clause.</param>
             /// <param name="groupBy">A column name or names to render to a SQL 'group by' clause.</param>
             /// <param name="orderBy">A column name or names to render to a SQL 'order by' clause for server-side row ordering.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             /// <exception cref="ValidationException"></exception>
             public static DataTable AsDataTable
@@ -1808,9 +1778,10 @@ namespace Horseshoe.NET.SqlDb
                 IFilter where = null,
                 IEnumerable<string> groupBy = null,
                 IEnumerable<string> orderBy = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1831,7 +1802,7 @@ namespace Horseshoe.NET.SqlDb
                     journal
                 );
 
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))
                 {
                     using (var adapter = new SqlDataAdapter(command))
                     {
@@ -1904,15 +1875,16 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
@@ -1924,7 +1896,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1934,9 +1907,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsCollection<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1950,15 +1923,16 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
@@ -1970,7 +1944,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -1980,9 +1955,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsCollectionAsync<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync<T>(conn, procedureName, dbCapture: dbCapture, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -1997,26 +1972,28 @@ namespace Horseshoe.NET.SqlDb
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2029,6 +2006,7 @@ namespace Horseshoe.NET.SqlDb
                 var result = BuildList
                 (
                     conn,
+                    transaction,
                     procedureName,
                     parameters ?? Enumerable.Empty<DbParameter>(),
                     dbCapture,
@@ -2036,7 +2014,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -2052,26 +2030,28 @@ namespace Horseshoe.NET.SqlDb
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2084,6 +2064,7 @@ namespace Horseshoe.NET.SqlDb
                 var result = await BuildListAsync
                 (
                     conn,
+                    transaction,
                     procedureName,
                     parameters ?? Enumerable.Empty<DbParameter>(),
                     dbCapture,
@@ -2091,7 +2072,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -2105,13 +2086,14 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
@@ -2121,7 +2103,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2131,9 +2114,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsObjects(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsObjects(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2146,13 +2129,14 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
@@ -2162,7 +2146,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2172,9 +2157,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsObjectsAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsObjectsAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2188,22 +2173,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2213,7 +2200,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = AsDataReader(conn, procedureName, parameters: parameters, transaction: transaction, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -2229,22 +2216,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2254,7 +2243,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = await AsDataReaderAsync(conn, procedureName, parameters: parameters, transaction: transaction, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -2269,12 +2258,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
@@ -2283,7 +2273,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2293,9 +2284,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsScalar(conn, procedureName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsScalar(conn, procedureName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2308,12 +2299,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
@@ -2322,7 +2314,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2332,9 +2325,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsScalarAsync(conn, procedureName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsScalarAsync(conn, procedureName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2348,20 +2341,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2371,38 +2366,12 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand))
                 {
-                    var obj = command.ExecuteScalar();
+                    var result = command.ExecuteScalar();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
-                    return obj;
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
+                    return result;
                 }
             }
 
@@ -2412,20 +2381,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2435,38 +2406,12 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand))
                 {
-                    var obj = await command.ExecuteScalarAsync();
+                    var result = await command.ExecuteScalarAsync();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
-                    return obj;
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
+                    return result;
                 }
             }
 
@@ -2475,13 +2420,14 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
@@ -2491,7 +2437,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2501,8 +2448,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = AsDataReader(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -2514,13 +2461,14 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
@@ -2530,7 +2478,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2540,8 +2489,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = await AsDataReaderAsync(conn, procedureName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -2554,22 +2503,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2579,7 +2530,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand);
+                var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand);
                 var result = keepOpen
                     ? command.ExecuteReader(CommandBehavior.Default)
                     : command.ExecuteReader(CommandBehavior.CloseConnection);
@@ -2604,22 +2555,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2629,7 +2582,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand);
+                var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand);
                 var result = keepOpen
                     ? await command.ExecuteReaderAsync(CommandBehavior.Default)
                     : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
@@ -2653,13 +2606,14 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the data as a <see cref="DataTable"/>.
             /// </summary>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             public static DataTable AsDataTable
             (
@@ -2669,7 +2623,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2679,9 +2634,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsDataTable(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsDataTable(conn, procedureName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2695,12 +2650,13 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="procedureName">The name of the stored procedure being queried.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             /// <exception cref="UtilityException"></exception>
             public static DataTable AsDataTable
@@ -2708,10 +2664,11 @@ namespace Horseshoe.NET.SqlDb
                 SqlConnection conn,
                 string procedureName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2722,7 +2679,7 @@ namespace Horseshoe.NET.SqlDb
 
                 // data stuff
                 var result = new DataTable(procedureName);
-                using (var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, commandTimeout, alterCommand))
+                using (var command = SqlDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand))
                 {
                     if (dbCapture != null)
                     {
@@ -2760,14 +2717,15 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
@@ -2778,7 +2736,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2788,9 +2747,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsCollection<T>(conn, functionName, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsCollection<T>(conn, functionName, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2804,14 +2763,15 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
@@ -2822,7 +2782,8 @@ namespace Horseshoe.NET.SqlDb
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2832,9 +2793,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsCollectionAsync<T>(conn, functionName, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsCollectionAsync<T>(conn, functionName, parameters: parameters, rowParser: rowParser, sorter: sorter, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2849,24 +2810,26 @@ namespace Horseshoe.NET.SqlDb
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static IEnumerable<T> AsCollection<T>
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2876,10 +2839,11 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
                 var result = BuildList
                 (
                     conn,
+                    transaction,
                     statement,
                     null,
                     null,
@@ -2887,7 +2851,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -2903,24 +2867,26 @@ namespace Horseshoe.NET.SqlDb
             /// <typeparam name="T">The type of items to return in the collection.</typeparam>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="rowParser">Builds an instance of <c>T</c> from row data.</param>
-            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="rowParser">Builds an instance of <c>T</c> from row data</param>
+            /// <param name="sorter">A mechanism for sorting instances of <c>T</c> before returning them to the caller</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as a colletion of <c>T</c>.</returns>
             public static async Task<IEnumerable<T>> AsCollectionAsync<T>
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 RowParser<T> rowParser = null,
                 ListSorter<T> sorter = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2930,10 +2896,11 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
                 var result = await BuildListAsync
                 (
                     conn,
+                    transaction,
                     statement,
                     null,
                     null,
@@ -2941,7 +2908,7 @@ namespace Horseshoe.NET.SqlDb
                     sorter,
                     autoTrunc,
                     commandTimeout,
-                    alterCommand,
+                    peekCommand,
                     journal
                 );
 
@@ -2955,13 +2922,14 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
@@ -2971,7 +2939,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -2981,9 +2950,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsObjects(conn, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsObjects(conn, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -2996,13 +2965,14 @@ namespace Horseshoe.NET.SqlDb
             /// Data is presented as plain <c>object[]</c>s.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
@@ -3012,7 +2982,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3022,9 +2993,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsObjectsAsync(conn, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsObjectsAsync(conn, functionName, parameters: parameters, dbCapture: dbCapture, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3038,22 +3009,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static IEnumerable<object[]> AsObjects
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3063,7 +3036,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = AsDataReader(conn, functionName, parameters: parameters, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = AsDataReader(conn, functionName, parameters: parameters, transaction: transaction, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -3079,22 +3052,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The data as <c>object[]</c>s.</returns>
             public static async Task<IEnumerable<object[]>> AsObjectsAsync
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3104,7 +3079,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var reader = await AsDataReaderAsync(conn, functionName, parameters: parameters, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                using (var reader = await AsDataReaderAsync(conn, functionName, parameters: parameters, transaction: transaction, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                 {
                     var result = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
 
@@ -3119,12 +3094,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
@@ -3133,7 +3109,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3143,9 +3120,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsScalar(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsScalar(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3158,12 +3135,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the selected datum or the first field of the first row of the result set.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
@@ -3172,7 +3150,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3182,9 +3161,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = await AsScalarAsync(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = await AsScalarAsync(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3198,20 +3177,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static object AsScalar
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3221,39 +3202,13 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))  // not including parameters here due to already embedded in the SQL statement
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))  // not including parameters here due to already embedded in the SQL statement
                 {
-                    var obj = command.ExecuteScalar();
+                    var result = command.ExecuteScalar();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
-                    return obj;
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
+                    return result;
                 }
             }
 
@@ -3263,20 +3218,22 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The first field of the first row of the result set.</returns>
             public static async Task<object> AsScalarAsync
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3286,39 +3243,13 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))  // not including parameters here due to already embedded in the SQL statement
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))  // not including parameters here due to already embedded in the SQL statement
                 {
-                    var obj = await command.ExecuteScalarAsync();
+                    var result = await command.ExecuteScalarAsync();
                     journal.Level--;  // finalize
-                    if (ObjectUtil.IsNull(obj))
-                        return null;
-                    if (obj is string stringValue)
-                    {
-                        if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
-                        {
-                            if ((autoTrunc & AutoTruncate.EmptyStringsOnly) == AutoTruncate.EmptyStringsOnly)
-                            {
-                                if (string.IsNullOrWhiteSpace(stringValue))
-                                {
-                                    if (stringValue.Length == 0)
-                                        stringValue = null;
-                                }
-                                else
-                                    stringValue = stringValue.Trim();
-                            }
-                            else
-                            {
-                                stringValue = stringValue.Trim();
-                                if (stringValue.Length == 0)
-                                    stringValue = null;
-                            }
-                        }
-                        else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
-                            stringValue = stringValue.Trim();
-                        return stringValue;
-                    }
-                    return obj;
+                    result = DbUtil.ProcessScalarResult(result, autoTrunc: autoTrunc);
+                    return result;
                 }
             }
 
@@ -3327,13 +3258,14 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
@@ -3343,7 +3275,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3353,8 +3286,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = AsDataReader(conn, functionName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = AsDataReader(conn, functionName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -3366,13 +3299,14 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the raw data reader.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
@@ -3382,7 +3316,8 @@ namespace Horseshoe.NET.SqlDb
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3392,8 +3327,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal);
-                var result = await AsDataReaderAsync(conn, functionName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal);
+                var result = await AsDataReaderAsync(conn, functionName, parameters: parameters, dbCapture: dbCapture, keepOpen: keepOpen, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                 // finalize
                 journal.Level--;
@@ -3406,22 +3341,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static DbDataReader AsDataReader
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3431,8 +3368,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
-                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);  // not including parameters here due to already embedded in the SQL statement
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
+                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand);  // not including parameters here due to already embedded in the SQL statement
                 var result = keepOpen
                     ? command.ExecuteReader(CommandBehavior.Default)
                     : command.ExecuteReader(CommandBehavior.CloseConnection);
@@ -3457,22 +3394,24 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller.</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
+            /// <param name="keepOpen">Whether to keep a live connection open after exposing the reader to the caller</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>The raw data reader</returns>
             public static async Task<DbDataReader> AsDataReaderAsync
             (
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 DbCapture dbCapture = null,
                 bool keepOpen = false,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3482,8 +3421,8 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
-                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand);  // not including parameters here due to already embedded in the SQL statement
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
+                var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand);  // not including parameters here due to already embedded in the SQL statement
                 var result = keepOpen
                     ? await command.ExecuteReaderAsync(CommandBehavior.Default)
                     : await command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
@@ -3507,12 +3446,13 @@ namespace Horseshoe.NET.SqlDb
             /// Returns the data as a <see cref="DataTable"/>.
             /// </summary>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             public static DataTable AsDataTable
             (
@@ -3521,7 +3461,8 @@ namespace Horseshoe.NET.SqlDb
                 SqlDbConnectionInfo connectionInfo = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlConnection> peekConnection = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3531,9 +3472,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, journal: journal))
+                using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
                 {
-                    var result = AsDataTable(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal);
+                    var result = AsDataTable(conn, functionName, parameters: parameters, autoTrunc: autoTrunc, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
 
                     // finalize
                     journal.Level--;
@@ -3547,11 +3488,12 @@ namespace Horseshoe.NET.SqlDb
             /// </summary>
             /// <param name="conn">An open DB connection.</param>
             /// <param name="functionName">The name of the function being called.</param>
-            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call.</param>
-            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
-            /// <param name="alterCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+            /// <param name="parameters">An optional collection of <c>DbParamerter</c>s to inject into the statement or pass separately into the call</param>
+            /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
+            /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings)</param>
+            /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
+            /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
+            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>A <see cref="DataTable"/></returns>
             /// <exception cref="UtilityException"></exception>
             public static DataTable AsDataTable
@@ -3559,9 +3501,10 @@ namespace Horseshoe.NET.SqlDb
                 SqlConnection conn,
                 string functionName,
                 IEnumerable<DbParameter> parameters = null,
+                SqlTransaction transaction = null,
                 AutoTruncate autoTrunc = default,
                 int? commandTimeout = null,
-                Action<SqlCommand> alterCommand = null,
+                Action<SqlCommand> peekCommand = null,
                 TraceJournal journal = null
             )
             {
@@ -3571,9 +3514,9 @@ namespace Horseshoe.NET.SqlDb
                 journal.Level++;
 
                 // data stuff
-                var statement = DbUtil.BuildFunctionStatement(DbPlatform.SqlServer, functionName, parameters: parameters, journal: journal);
+                var statement = DbUtil.BuildFunctionStatement(DbProvider.SqlServer, functionName, parameters: parameters, journal: journal);
                 var result = new DataTable(functionName);
-                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, commandTimeout, alterCommand))  // not including parameters here due to already embedded in the SQL statement
+                using (var command = SqlDbUtil.BuildTextCommand(conn, statement, null, transaction, commandTimeout, peekCommand))  // not including parameters here due to already embedded in the SQL statement
                 {
                     using (var adapter = new SqlDataAdapter(command))
                     {
@@ -3596,6 +3539,7 @@ namespace Horseshoe.NET.SqlDb
         internal static List<T> BuildList<T>
         (
             SqlConnection conn,
+            SqlTransaction transaction,
             string statement,
             IEnumerable<DbParameter> parameters,
             DbCapture dbCapture,
@@ -3603,7 +3547,7 @@ namespace Horseshoe.NET.SqlDb
             ListSorter<T> sorter,
             AutoTruncate autoTrunc,
             int? commandTimeout,
-            Action<SqlCommand> alterCommand,
+            Action<SqlCommand> peekCommand,
             TraceJournal journal
         )
         {
@@ -3619,15 +3563,16 @@ namespace Horseshoe.NET.SqlDb
                 journal.WriteEntry("rowParser.IsObjectParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
+                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, transaction, commandTimeout, peekCommand))
                     {
+                        command.Transaction = transaction;
                         var objectArrays = DbUtil.ReadAsObjects(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
                     }
                 }
                 else
                 {
-                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                    using (var reader = SQL.AsDataReader(conn, statement, transaction: transaction, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                     {
                         var objectArrays = DbUtil.ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
@@ -3639,14 +3584,14 @@ namespace Horseshoe.NET.SqlDb
                 journal.WriteEntry("rowParser.IsReaderParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
+                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, transaction, commandTimeout, peekCommand))
                     {
                         list.AddRange(DbUtil.ParseRows(command, rowParser.ReaderParser, dbCapture: dbCapture, journal: journal));
                     }
                 }
                 else
                 {
-                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                    using (var reader = SQL.AsDataReader(conn, statement, transaction: transaction, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                     {
                         while (reader.Read())
                         {
@@ -3672,6 +3617,7 @@ namespace Horseshoe.NET.SqlDb
         internal static async Task<List<T>> BuildListAsync<T>
         (
             SqlConnection conn,
+            SqlTransaction transaction,
             string statement,
             IEnumerable<DbParameter> parameters,
             DbCapture dbCapture,
@@ -3679,7 +3625,7 @@ namespace Horseshoe.NET.SqlDb
             ListSorter<T> sorter,
             AutoTruncate autoTrunc,
             int? commandTimeout,
-            Action<SqlCommand> alterCommand,
+            Action<SqlCommand> peekCommand,
             TraceJournal journal
         )
         {
@@ -3695,7 +3641,7 @@ namespace Horseshoe.NET.SqlDb
                 journal.WriteEntry("rowParser.IsObjectParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
+                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, transaction, commandTimeout, peekCommand))
                     {
                         var objectArrays = await DbUtil.ReadAsObjectsAsync(command, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
@@ -3703,7 +3649,7 @@ namespace Horseshoe.NET.SqlDb
                 }
                 else
                 {
-                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                    using (var reader = SQL.AsDataReader(conn, statement, transaction: transaction, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                     {
                         var objectArrays = await DbUtil.ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
                         list.AddRange(objectArrays.Select(objs => rowParser.Parse(objs)));
@@ -3715,14 +3661,14 @@ namespace Horseshoe.NET.SqlDb
                 journal.WriteEntry("rowParser.IsReaderParser" + (fromStoredProc ? " fromStoredProc" : ""));
                 if (fromStoredProc)
                 {
-                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, commandTimeout, alterCommand))
+                    using (var command = SqlDbUtil.BuildProcedureCommand(conn, statement, parameters, transaction, commandTimeout, peekCommand))
                     {
                         list.AddRange(await DbUtil.ParseRowsAsync(command, rowParser.ReaderParser, dbCapture: dbCapture, journal: journal));
                     }
                 }
                 else
                 {
-                    using (var reader = SQL.AsDataReader(conn, statement, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, alterCommand: alterCommand, journal: journal))
+                    using (var reader = SQL.AsDataReader(conn, statement, transaction: transaction, dbCapture: dbCapture, keepOpen: true, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal))
                     {
                         while (reader.Read())
                         {
