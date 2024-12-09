@@ -159,6 +159,7 @@
     <Compile Include="Iterator\ContinueNextException.cs" />
     <Compile Include="Iterator\ExitIterationException.cs" />
     <Compile Include="Iterator\IteratorMetadata.cs" />
+    <Compile Include="RelayMessage\IIndentedMessageRelay.cs" />
     <Compile Include="RelayProgress\IProgressRelay.cs" />
     <Compile Include="RelayMessage\IMessageRelay.cs" />
     <Compile Include="RelayProgress\RelayProgressBase.cs" />

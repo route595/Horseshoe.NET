@@ -8,17 +8,9 @@ namespace Horseshoe.NET.RelayMessage
     /// may or may not support it.  By default, exceptions reset indentation but this behavior 
     /// is easily modified (see <c>IndentExceptionsInlineWithMessages</c>).
     /// </summary>
-    public abstract class RelayIndentedMessagesBase : IMessageRelay
+    public abstract class RelayIndentedMessagesBase : IIndentedMessageRelay
     {
-        /// <summary>
-        /// Indicates how many spaces of indentation to render.
-        /// </summary>
-        public int IndentLevel { get; set; }
-
-        /// <summary>
-        /// Indicates how many spaces to increment or decrement, default by convention is 2.
-        /// </summary>
-        public int IndentInterval { get; set; }
+        private int? LastIndentLevel { get; set; }
 
         /// <inheritdoc cref="IMessageRelay.GroupFilter"/>
         public Func<string, bool> GroupFilter { get; set; }
@@ -29,10 +21,13 @@ namespace Horseshoe.NET.RelayMessage
         /// <inheritdoc cref="IMessageRelay.ExceptionTrailingIndicator"/>
         public string ExceptionTrailingIndicator { get; }
 
-        /// <summary>
-        /// If <c>true</c>, indents exceptions at the same level as the last relayed message.
-        /// Default is <c>false</c>.
-        /// </summary>
+        /// <inheritdoc cref="IIndentedMessageRelay.IndentLevel"/>
+        public int IndentLevel { get; set; }
+
+        /// <inheritdoc cref="IIndentedMessageRelay.IndentInterval"/>
+        public int IndentInterval { get; set; }
+
+        /// <inheritdoc cref="IIndentedMessageRelay.IndentExceptionsInlineWithMessages"/>
         public bool IndentExceptionsInlineWithMessages { get; set; }
 
         /// <summary>
@@ -52,39 +47,38 @@ namespace Horseshoe.NET.RelayMessage
             // process indentation requests
             if (indent.HasValue)
             {
-                IndentLevel = indent.Value;
+                SetIndentation(indent.Value);
             }
             else if (indentHint.HasValue)
             {
                 switch (indentHint.Value)
                 {
                     case IndentHint.Reset:
-                        IndentLevel = 0;
+                        ResetIndentation();
                         break;
                     case IndentHint.Increment:
-                        IndentLevel += IndentInterval;
+                        IncrementIndentation();
                         break;
                     case IndentHint.Decrement:
-                        IndentLevel -= IndentInterval;
-                        if (IndentLevel < 0)
-                            IndentLevel = 0;
+                        DecrementIndentation();
+                        break;
+                    case IndentHint.Restore:
+                        RestoreIndentation();
                         break;
                 }
             }
 
-            RenderToOutput(message, id: id);
+            RenderToOutput(message ?? "[null-message]", id: id);
 
             if (indentHint.HasValue)
             {
                 switch (indentHint.Value)
                 {
                     case IndentHint.IncrementNext:
-                        IndentLevel += IndentInterval;
+                        IncrementIndentation();
                         break;
                     case IndentHint.DecrementNext:
-                        IndentLevel -= IndentInterval;
-                        if (IndentLevel < 0)
-                            IndentLevel = 0;
+                        DecrementIndentation();
                         break;
                 }
             }
@@ -93,7 +87,7 @@ namespace Horseshoe.NET.RelayMessage
         /// <inheritdoc cref="IMessageRelay.Exception"/>
         public RelayerOfExceptions Exception => (exception, group) =>
         {
-            var renderedException = (ExceptionLeadingIndicator ?? "") + exception.GetType().FullName + ": " + exception.Message + (ExceptionTrailingIndicator ?? "");
+            var renderedException = (ExceptionLeadingIndicator ?? "") + (exception != null ? exception.GetType().FullName + ": " + exception.Message : "[null-exception]") + (ExceptionTrailingIndicator ?? "");
             
             if (IndentExceptionsInlineWithMessages)
             {
@@ -105,8 +99,39 @@ namespace Horseshoe.NET.RelayMessage
             if (GroupFilter != null && !GroupFilter.Invoke(group))
                 return;
 
-            IndentLevel = 0;
+            ResetIndentation();
             RenderToOutput(renderedException);
         };
+
+        /// <inheritdoc cref="IIndentedMessageRelay.SetIndentation"/>
+        public void SetIndentation(int indentLevel)
+        {
+            IndentLevel = indentLevel < 0 ? 0 : indentLevel;
+            LastIndentLevel = IndentLevel;
+        }
+
+        /// <inheritdoc cref="IIndentedMessageRelay.IncrementIndentation"/>
+        public void IncrementIndentation()
+        {
+            IndentLevel += IndentInterval;
+        }
+
+        /// <inheritdoc cref="IIndentedMessageRelay.DecrementIndentation"/>
+        public void DecrementIndentation()
+        {
+            IndentLevel -= IndentInterval;
+            if (IndentLevel < 0)
+                IndentLevel = 0;
+        }
+
+        /// <inheritdoc cref="IIndentedMessageRelay.RestoreIndentation"/>
+        public void RestoreIndentation()
+        {
+            if (LastIndentLevel.HasValue)
+                IndentLevel = LastIndentLevel.Value;
+        }
+
+        /// <inheritdoc cref="IIndentedMessageRelay.ResetIndentation"/>
+        public void ResetIndentation() => SetIndentation(0);
     }
 }

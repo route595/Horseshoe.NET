@@ -5,11 +5,14 @@ using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Compare;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.Primitives;
+using Horseshoe.NET.Crypto;
 
 namespace TestConsole.DbTests
 {
     class DBTests : RoutineX
     {
+        private CryptoOptions Base64Options { get; } = new CryptoOptions { IsCiphertextBase64Encoded = true };
+
         public override IList<MenuObject> Menu => new[]
         {
             BuildMenuRoutine
@@ -45,6 +48,47 @@ namespace TestConsole.DbTests
                         {
                             Console.WriteLine(ex.Message + " (" + ex.GetType().Name + ")");
                         }
+                    }
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Decrypt Inline Passwords",
+                () =>
+                {
+                    var encrypted = Encrypt.String("BOB", options: Base64Options);
+                    Console.WriteLine("Encrypting:");
+                    Console.WriteLine("    BOB -> " + encrypted);
+                    var connStrs = new []
+                    {
+                        "Data Source=SERVER;Intial Catalog=DATABASE;User ID=BILLY;Password=" + encrypted,
+                        "Data Source=SERVER;Intial Catalog=DATABASE;Password=" + encrypted + ";User ID=BILLY",
+                        "SERVER=SERVER;DATABASE=DATABASE;UID=BILLY;PWD=" + encrypted,
+                        "SERVER=SERVER;DATABASE=DATABASE;PWD=" + encrypted + ";UID=BILLY"
+                    };
+                    Console.WriteLine("Decrypting:");
+                    foreach (var connStr in connStrs)
+                    {
+                        Console.WriteLine("    ..." + connStr.Substring(30).PadRight(62) + "  ->  ..." + DbUtil.DecryptInlinePassword(connStr, cryptoOptions: Base64Options).Substring(30));
+                    }
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Hide Inline Passwords",
+                () =>
+                {
+                    var connStrs = new []
+                    {
+                        "Data Source=SERVER;Intial Catalog=DATABASE;User ID=BILLY;Password=BOB",
+                        "Data Source=SERVER;Intial Catalog=DATABASE;Password=BOB;User ID=BILLY",
+                        "SERVER=SERVER;DATABASE=DATABASE;UID=BILLY;PWD=BOB",
+                        "SERVER=SERVER;DATABASE=DATABASE;PWD=BOB;UID=BILLY"
+                    };
+                    Console.WriteLine("Hiding password \"BOB\"");
+                    foreach (var connStr in connStrs) 
+                    {
+                        Console.WriteLine(DbUtil.HideInlinePassword(connStr));
                     }
                 }
             )

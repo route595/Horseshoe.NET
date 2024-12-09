@@ -734,95 +734,47 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
-        /// Displays the object arrays in <c>string</c> format.
+        /// Dumps a collection to a single line of text with the specified separator optionally rendering only the
+        /// first <c>n</c> items and terminating the result with a remaining count indicator, e.g. "14 more...".
         /// </summary>
-        /// <param name="objectArrays">A collection of <c>object[]</c>.</param>
-        /// <param name="columnNames">Optional. The names of the corresponding columns.</param>
-        /// <returns>A <c>string</c> representation of the collection.</returns>
-        /// <exception cref="UtilityException"></exception>
-        public static string Dump(IEnumerable<object[]> objectArrays, string[] columnNames = null)
+        /// <typeparam name="T">The item type</typeparam>
+        /// <param name="collection">A collection</param>
+        /// <param name="separator">The text that seperates items in the rendered <c>string</c>, default is ", ".</param>
+        /// <param name="n">
+        /// The max number of items to render.  If <c>n &lt;= 0</c> all items are rendered.  
+        /// If <c>n &lt; collection.Count()</c> the output will end with a remaining count indicator, e.g. "14 more...".
+        /// </param>
+        /// <param name="renderer">An optional way to render each item.  
+        /// <para>
+        /// For example...
+        /// <code>
+        /// var dates = new List&lt;DateTime&gt;{ DateTime.MinValue, DateTime.Today, DateTime.MaxValue };
+        /// Console.WriteLine(dates.StringDump(renderer: (d) => d.ToString("yyyy-MM-dd")));
+        /// // same as
+        /// Console.WriteLine(string.Join(", ", dates.Select(d => d.ToString("yyyy-MM-dd"))));
+        /// </code>
+        /// </para>
+        /// </param>
+        /// <returns>A single-line <c>string</c> representation of a colleciton</returns>
+        public static string StringDump<T>(IEnumerable<T> collection, string separator = ", ", int n = 0, Func<T, string> renderer = null)
         {
-            var sb = new StringBuilder();
-            var colWidths = new int[objectArrays.Max(a => a?.Length ?? 0)];
-            int _width;
-
-            if (columnNames != null)
+            if (collection == null)
+                return "[null]";
+            if (!collection.Any())
+                return "[empty]";
+            if (n > 0)
             {
-                if (columnNames.Length > colWidths.Length)
+                var partialList = collection.Take(n);
+                var strb = new StringBuilder(string.Join(separator, partialList.Select(t => renderer != null ? renderer.Invoke(t) : t?.ToString())));
+                if (collection.Count() > n)
                 {
-                    throw new UtilityException("The supplied columns exceed the width of the data: " + columnNames.Length + " / " + colWidths.Length);
+                    strb.Append(separator)
+                        .Append(collection.Count() - n)
+                        .Append(" more...");
                 }
-
-                // prep widths - column names
-                for (int i = 0; i < columnNames.Length; i++)
-                {
-                    colWidths[i] = columnNames[i].Length;
-                }
+                return strb.ToString();
             }
-
-            // prep widths - data values
-            foreach (var array in objectArrays)
-            {
-                if (array == null)
-                {
-                    continue;
-                }
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    _width = TextUtil.DumpDatum(array[i]).Length;
-                    if (_width > colWidths[i])
-                    {
-                        colWidths[i] = _width;
-                    }
-                }
-            }
-
-            if (columnNames != null)
-            {
-                // build column headers
-                for (int i = 0; i < colWidths.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append(columnNames[i].PadRight(colWidths[i]));
-                }
-                sb.AppendLine();
-
-                // build separators
-                for (int i = 0; i < colWidths.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append("".PadRight(colWidths[i], '-'));
-                }
-                sb.AppendLine();
-            }
-
-            // build data rows
-            foreach (var array in objectArrays)
-            {
-                if (array == null)
-                {
-                    sb.AppendLine();
-                    continue;
-                }
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.Append(" ");
-                    }
-                    sb.Append(TextUtil.DumpDatum(array[i]).PadRight(colWidths[i]));
-                }
-                sb.AppendLine();
-            }
-            return sb.ToString();
+            return string.Join(separator, collection.Select(t => renderer != null ? renderer.Invoke(t) : t?.ToString()));
         }
     }
 }

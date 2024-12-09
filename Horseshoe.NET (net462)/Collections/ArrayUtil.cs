@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Text;
+
+using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Collections
 {
@@ -383,6 +385,98 @@ namespace Horseshoe.NET.Collections
         public static T[] ScoopOffTheEnd<T>(ref T[] array, int length)
         {
             return Scoop(ref array, array.Length - length);
+        }
+
+        /// <summary>
+        /// Displays the object arrays in <c>string</c> format.
+        /// </summary>
+        /// <param name="objectArrays">A collection of <c>object[]</c>.</param>
+        /// <param name="columnNames">Optional. The names of the corresponding columns.</param>
+        /// <returns>A <c>string</c> representation of the collection.</returns>
+        /// <exception cref="UtilityException"></exception>
+        public static string StringDump(IEnumerable<object[]> objectArrays, string[] columnNames = null)
+        {
+            var sb = new StringBuilder();
+            var colWidths = new int[objectArrays.Max(a => a?.Length ?? 0)];
+            int _width;
+
+            if (columnNames != null)
+            {
+                if (columnNames.Length > colWidths.Length)
+                {
+                    throw new UtilityException("The supplied columns exceed the width of the data: " + columnNames.Length + " / " + colWidths.Length);
+                }
+
+                // prep widths - column names
+                for (int i = 0; i < columnNames.Length; i++)
+                {
+                    colWidths[i] = columnNames[i].Length;
+                }
+            }
+
+            // prep widths - data values
+            foreach (var array in objectArrays)
+            {
+                if (array == null)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    _width = TextUtil.DumpDatum(array[i]).Length;
+                    if (_width > colWidths[i])
+                    {
+                        colWidths[i] = _width;
+                    }
+                }
+            }
+
+            if (columnNames != null)
+            {
+                // build column headers
+                for (int i = 0; i < colWidths.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(" ");
+                    }
+                    sb.Append(columnNames[i].PadRight(colWidths[i]));
+                }
+                sb.AppendLine();
+
+                // build separators
+                for (int i = 0; i < colWidths.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(" ");
+                    }
+                    sb.Append("".PadRight(colWidths[i], '-'));
+                }
+                sb.AppendLine();
+            }
+
+            // build data rows
+            foreach (var array in objectArrays)
+            {
+                if (array == null)
+                {
+                    sb.AppendLine();
+                    continue;
+                }
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(" ");
+                    }
+                    sb.Append(TextUtil.DumpDatum(array[i]).PadRight(colWidths[i]));
+                }
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
     }
 }

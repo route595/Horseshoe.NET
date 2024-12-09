@@ -290,13 +290,47 @@ namespace Horseshoe.NET.Db
         /// <returns>A sensitive connection string i.e. may contain user id and password.</returns>
         public static string DecryptInlinePassword(string connectionString, CryptoOptions cryptoOptions = null)
         {
-            var cipherText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
-            if (cipherText == null)
-                return connectionString;
-            var plainText = Decrypt.String(cipherText, options: cryptoOptions);
-            var sensitiveConnectionString = connectionString.Replace(cipherText, plainText);
-            return sensitiveConnectionString;
+            if (connectionString == null)
+                return string.Empty;
+            var prestart = Math.Max
+            (
+                connectionString.IndexOf(";password=", StringComparison.OrdinalIgnoreCase),
+                connectionString.IndexOf(";pwd=", StringComparison.OrdinalIgnoreCase)
+            );
+            if (prestart > -1)
+            {
+                var start = connectionString.IndexOf("=", prestart) + 1;
+                var nextIdx = connectionString.IndexOf(";", start);
+                if (nextIdx > -1)  // mid connstr e.g. ";password=1234567;next=element"
+                {
+                    return connectionString.Substring(0, start) +
+                        Decrypt.String(connectionString.Substring(start, nextIdx - start), options: cryptoOptions) +
+                        connectionString.Substring(nextIdx);
+                }
+                else  // connstr end
+                {
+                    return connectionString.Substring(0, start) +
+                        Decrypt.String(connectionString.Substring(start), options: cryptoOptions);
+                }
+            }
+            return connectionString;
         }
+
+        ///// <summary>
+        ///// Utility method for inline decrypting the password in a connection string
+        ///// </summary>
+        ///// <param name="connectionString">A connection string potentially with an encrypted password</param>
+        ///// <param name="cryptoOptions">Optional cryptographic properties used to decrypt database passwords</param>
+        ///// <returns>A sensitive connection string i.e. may contain user id and password.</returns>
+        //public static string DecryptInlinePassword(string connectionString, CryptoOptions cryptoOptions = null)
+        //{
+        //    var cipherText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
+        //    if (cipherText == null)
+        //        return connectionString;
+        //    var plainText = Decrypt.String(cipherText, options: cryptoOptions);
+        //    var sensitiveConnectionString = connectionString.Replace(cipherText, plainText);
+        //    return sensitiveConnectionString;
+        //}
 
         /// <summary>
         /// Utility method for inline encrypting the password in a connection string
@@ -305,12 +339,44 @@ namespace Horseshoe.NET.Db
         /// <returns>A version of the connection string with the password redatcted.</returns>
         public static string HideInlinePassword(string connectionString)
         {
-            var passwordText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
-            if (passwordText == null) 
-                return connectionString;
-            var safeConnectionString = connectionString.Replace(passwordText, "******");
-            return safeConnectionString;
+            if (connectionString == null)
+                return string.Empty;
+            var prestart = Math.Max
+            (
+                connectionString.IndexOf(";password=", StringComparison.OrdinalIgnoreCase),
+                connectionString.IndexOf(";pwd=", StringComparison.OrdinalIgnoreCase)
+            );
+            if (prestart > -1)
+            {
+                var start = connectionString.IndexOf("=", prestart) + 1;
+                var nextIdx = connectionString.IndexOf(";", start);
+                if (nextIdx > -1)  // mid connstr e.g. ";password=1234567;next=element"
+                {
+                    return connectionString.Substring(0, start) +
+                        new string('*', nextIdx - start) +
+                        connectionString.Substring(nextIdx);
+                }
+                else  // connstr end
+                {
+                    return connectionString.Substring(0, start) + new string('*', connectionString.Length - start);
+                }
+            }
+            return connectionString;
         }
+
+        ///// <summary>
+        ///// Utility method for inline encrypting the password in a connection string (another version)
+        ///// </summary>
+        ///// <param name="connectionString">A connection string potentially with an encrypted password</param>
+        ///// <returns>A version of the connection string with the password redatcted.</returns>
+        //public static string HideInlinePassword(string connectionString)
+        //{
+        //    var passwordText = ParseConnectionStringValue(ConnectionStringPart.Password, connectionString);
+        //    if (passwordText == null) 
+        //        return connectionString;
+        //    var safeConnectionString = connectionString.Replace(passwordText, new string('*', passwordText.Length));
+        //    return safeConnectionString;
+        //}
 
         /// <summary>
         /// Extract a connection string element's value

@@ -13,6 +13,8 @@ namespace TestConsole
 {
     class CryptoTests : RoutineX
     {
+        private CryptoOptions Base64Options { get; } = new CryptoOptions { IsCiphertextBase64Encoded = true };
+
         public override IList<MenuObject> Menu => new[]
         {
             BuildMenuRoutine
@@ -143,7 +145,7 @@ namespace TestConsole
                 () =>
                 {
                     var passwordToEncrypt = PromptX.Value<string>("Enter password to encrypt");
-                    var encryptedPassword = Encrypt.Base64String(passwordToEncrypt);
+                    var encryptedPassword = Encrypt.String(passwordToEncrypt, options: Base64Options);
                     Console.WriteLine("Encrypted password (len=" + encryptedPassword.Length + "): " + encryptedPassword);
                 }
             ),

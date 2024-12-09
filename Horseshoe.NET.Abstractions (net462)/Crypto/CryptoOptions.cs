@@ -57,5 +57,11 @@ namespace Horseshoe.NET.Crypto
         /// A character encoding
         /// </summary>
         public Encoding Encoding { get; set; }
+
+        /// <summary>
+        /// If <c>true</c>, the ciphertext must be base 64 decoded to bytes which then get decrypted.
+        /// Default is <c>false</c>, meaning cipher bytes are achieved by encoding ciphertext via <c>Encoding.GetBytes()</c>, for example.
+        /// </summary>
+        public bool IsCiphertextBase64Encoded { get; set; }
     }
 }

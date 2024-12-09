@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 
 using Horseshoe.NET.Collections;
@@ -12,11 +13,11 @@ namespace Horseshoe.NET.Crypto
     public static class Encrypt
     {
         /// <summary>
-        /// Encrypts source bytes to cipher bytes
+        /// Encrypts plaintext bytes
         /// </summary>
-        /// <param name="plainBytes">source <c>byte[]</c></param>
-        /// <param name="options">crypto options</param>
-        /// <returns>cipher <c>byte[]</c></returns>
+        /// <param name="plainBytes">A <c>byte[]</c> to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>byte[]</c></returns>
         public static byte[] Bytes(byte[] plainBytes, CryptoOptions options = null)
         {
             options = options ?? new CryptoOptions();
@@ -50,11 +51,11 @@ namespace Horseshoe.NET.Crypto
         }
 
         /// <summary>
-        /// Encrypts source text to cipher bytes
+        /// Encrypts a plaintext <c>string</c> to a <c>byte[]</c>
         /// </summary>
-        /// <param name="plaintext">source plaintext</param>
-        /// <param name="options"></param>
-        /// <returns>cipher <c>byte[]</c></returns>
+        /// <param name="plaintext">A <c>string</c> to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>byte[]</c></returns>
         public static byte[] Bytes(string plaintext, CryptoOptions options = null)
         {
             var plainBytes = (options?.Encoding ?? CryptoSettings.DefaultEncoding).GetBytes(plaintext);
@@ -62,11 +63,11 @@ namespace Horseshoe.NET.Crypto
         }
 
         /// <summary>
-        /// Encrypts source stream to cipher bytes
+        /// Encrypts a plaintext <c>Stream</c> to a <c>byte[]</c>
         /// </summary>
-        /// <param name="inputStream">input stream</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>cipher <c>byte[]</c></returns>
+        /// <param name="inputStream">A <c>Stream</c> to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>byte[]</c></returns>
         public static byte[] Bytes(Stream inputStream, CryptoOptions options = null)
         {
             var plainBytes = inputStream.ReadAllBytes();
@@ -75,11 +76,11 @@ namespace Horseshoe.NET.Crypto
         }
 
         /// <summary>
-        /// Encrypts source file contents to cipher bytes
+        /// Encrypts a plaintext file to a <c>byte[]</c>
         /// </summary>
-        /// <param name="file">source file</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>cipher <c>byte[]</c></returns>
+        /// <param name="file">A file to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>byte[]</c></returns>
         public static byte[] Bytes(FilePath file, CryptoOptions options = null)
         {
             using (var stream = file.OpenRead())
@@ -88,117 +89,56 @@ namespace Horseshoe.NET.Crypto
             }
         }
 
-        //public static void BytesToStream(byte[] plainBytes, Stream outputStream, CryptoOptions options = null)
-        //{
-        //    var cipherBytes = Bytes(plainBytes, options: options);
-        //    outputStream.Write(cipherBytes, 0, cipherBytes.Length);
-        //    outputStream.Flush();
-        //    outputStream.Close();
-        //}
-
         /// <summary>
-        /// Encrypt source <c>string</c> to cipher <c>string</c>
+        /// Encrypts a <c>string</c>
         /// </summary>
-        /// <param name="plaintext">source plaintext</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
+        /// <param name="plaintext">A <c>string</c> to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>string</c></returns>
         public static string String(string plaintext, CryptoOptions options = null)
         {
             var cipherBytes = Bytes(plaintext, options: options);
-            var ciphertext = (options?.Encoding ?? CryptoSettings.DefaultEncoding).GetString(cipherBytes);
+            var ciphertext = CryptoUtil.EncodeCiphertext(cipherBytes, options);
             return ciphertext;
         }
 
         /// <summary>
-        /// Encrypt source bytes to <c>string</c>
+        /// Encrypts a <c>byte[]</c> as a <c>string</c>
         /// </summary>
-        /// <param name="plainBytes">source byte[]</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
+        /// <param name="plainBytes">A <c>byte[]</c> to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>string</c></returns>
         public static string String(byte[] plainBytes, CryptoOptions options = null)
         {
             var cipherBytes = Bytes(plainBytes, options: options);
-            var ciphertext = (options?.Encoding ?? CryptoSettings.DefaultEncoding).GetString(cipherBytes);
+            var ciphertext = CryptoUtil.EncodeCiphertext(cipherBytes, options);
             return ciphertext;
         }
 
         /// <summary>
-        /// Encrypts source stream to cipher <c>string</c>
+        /// Encrypts a <c>Stream</c> as a <c>string</c>
         /// </summary>
-        /// <param name="inputStream">a stream</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
+        /// <param name="inputStream">A <c>Stream</c> to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>string</c></returns>
         public static string String(Stream inputStream, CryptoOptions options = null)
         {
             var cipherBytes = Bytes(inputStream, options: options);
-            var ciphertext = (options?.Encoding ?? CryptoSettings.DefaultEncoding).GetString(cipherBytes);
+            var ciphertext = CryptoUtil.EncodeCiphertext(cipherBytes, options);
             return ciphertext;
         }
 
         /// <summary>
-        /// Encrypts source file to cipher <c>string</c>
+        /// Encrypts a file as a <c>string</c>
         /// </summary>
-        /// <param name="file">a file</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
+        /// <param name="file">A file to encrypt</param>
+        /// <param name="options">Optional options for the encode/decode and encrypt/decrypt steps of these methods</param>
+        /// <returns>An encrypted <c>string</c></returns>
         public static string String(FilePath file, CryptoOptions options = null)
         {
             using (var stream = file.OpenRead())
             {
                 return String(stream, options: options);
-            }
-        }
-
-        /// <summary>
-        /// Encrypt source bytes to Base64 encoded cipher <c>string</c>
-        /// </summary>
-        /// <param name="plainBytes">source byte[]</param>
-        /// <param name="options">crypto options</param>
-        /// <returns></returns>
-        public static string Base64String(byte[] plainBytes, CryptoOptions options = null)
-        {
-            var cipherBytes = Bytes(plainBytes, options: options);
-            var ciphertext = Encode.Base64.String(cipherBytes);
-            return ciphertext;
-        }
-
-        /// <summary>
-        /// Encrypt source <c>string</c> to Base64 encoded cipher <c>string</c>
-        /// </summary>
-        /// <param name="plaintext">source plaintext</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
-        public static string Base64String(string plaintext, CryptoOptions options = null)
-        {
-            var cipherBytes = Bytes(plaintext, options: options);
-            var ciphertext = Encode.Base64.String(cipherBytes);
-            return ciphertext;
-        }
-
-        /// <summary>
-        /// Encrypts source stream to Base64 encoded cipher <c>string</c>
-        /// </summary>
-        /// <param name="inputStream">a stream</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
-        public static string Base64String(Stream inputStream, CryptoOptions options = null)
-        {
-            var cipherBytes = Bytes(inputStream, options: options);
-            var ciphertext = Encode.Base64.String(cipherBytes);
-            return ciphertext;
-        }
-
-        /// <summary>
-        /// Encrypts source file to Base64 encoded cipher <c>string</c>
-        /// </summary>
-        /// <param name="file">a file</param>
-        /// <param name="options">crypto options</param>
-        /// <returns>ciphertext</returns>
-        public static string Base64String(FilePath file, CryptoOptions options = null)
-        {
-            using (var stream = file.OpenRead())
-            {
-                return Base64String(stream, options: options);
             }
         }
     }

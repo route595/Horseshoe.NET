@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Text.RegularExpressions;
+
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Db

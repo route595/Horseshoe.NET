@@ -11,25 +11,42 @@
         Reset,
 
         /// <summary>
-        /// Increase indentation (recommendation is 2 spaces).  Implementations should apply 
+        /// Increase indentation (default convention is 2 spaces).  Implementations should apply 
         /// the same indentation to subsequent messages.
         /// </summary>
         Increment,
 
         /// <summary>
-        /// Increase indentation for subsequent messages (recommendation is 2 spaces). 
+        /// Increase indentation for subsequent messages (default convention is 2 spaces). 
         /// </summary>
         IncrementNext,
 
         /// <summary>
-        /// Decrease indentation (recommendation is 2 spaces).  Implementations should apply 
+        /// Decrease indentation (default convention is 2 spaces).  Implementations should apply 
         /// the same indentation to subsequent messages.
         /// </summary>
         Decrement,
 
         /// <summary>
-        /// Decrease indentation for subsequent messages (recommendation is 2 spaces). 
+        /// Decrease indentation for subsequent messages (default convention is 2 spaces). 
         /// </summary>
-        DecrementNext
+        DecrementNext,
+
+        /// <summary>
+        /// Restore indentation to last explicitly set level
+        /// <example>
+        /// <code>
+        /// // Example
+        /// relay.Message("Indented 6 spaces", indent: 6);
+        /// relay.Message("Indented > 6 spaces", indentHint: IndentHint.Increment);
+        /// relay.Message("Indented 6 spaces", indentHint: IndentHint.Restore);
+        /// 
+        /// relay.Message("Indented 0 spaces", indentHint: IndentHint.Reset);
+        /// relay.Message("Indented > 0 spaces", indentHint: IndentHint.Increment);
+        /// relay.Message("Indented 0 spaces", indentHint: IndentHint.Restore);
+        /// </code>
+        /// </example>
+        /// </summary>
+        Restore
     }
 }

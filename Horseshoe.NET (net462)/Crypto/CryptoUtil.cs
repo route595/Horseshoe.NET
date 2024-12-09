@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -193,6 +194,26 @@ namespace Horseshoe.NET.Crypto
         public static byte[] KeyFromText(string key, Encoding encoding = null)
         {
             return (encoding ?? CryptoSettings.DefaultEncoding).GetBytes(key);
+        }
+
+        internal static string EncodeCiphertext(byte[] cipherbytes, CryptoOptions options)
+        {
+            string ciphertext;
+            if (options != null && options.IsCiphertextBase64Encoded)
+                ciphertext = Convert.ToBase64String(cipherbytes);
+            else
+                ciphertext = (options?.Encoding ?? CryptoSettings.DefaultEncoding).GetString(cipherbytes);
+            return ciphertext;
+        }
+
+        internal static byte[] DecodeCipherbytes(string ciphertext, CryptoOptions options)
+        {
+            byte[] cipherbytes;
+            if (options != null && options.IsCiphertextBase64Encoded)
+                cipherbytes = Convert.FromBase64String(ciphertext);
+            else
+                cipherbytes = (options?.Encoding ?? CryptoSettings.DefaultEncoding).GetBytes(ciphertext);
+            return cipherbytes;
         }
     }
 }
