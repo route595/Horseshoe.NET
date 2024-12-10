@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
-using Horseshoe.NET.Collections;
 using Horseshoe.NET.ConsoleX;
-using Horseshoe.NET.RelayMessage;
-using Horseshoe.NET.Text.TextGrid;
+using Horseshoe.NET.RelayMessages;
 
 namespace TestConsole
 {

@@ -1,4 +1,4 @@
-﻿namespace Horseshoe.NET.RelayMessage
+﻿namespace Horseshoe.NET.RelayMessages
 {
     /// <summary>
     /// A way for code to suggest indentation of relayed messages

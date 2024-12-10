@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Horseshoe.NET.Text
 {
@@ -25,6 +26,11 @@ namespace Horseshoe.NET.Text
         /// If the input <c>string</c> is whitespace, display this.  This property is customizable.
         /// </summary>
         public string ValueIfWhitespace { get; set; } = "[whitespace]";
+
+        /// <summary>
+        /// 1 for single quotes, 2 for double quotes.  Default is 0.
+        /// </summary>
+        public int StringQuotationLevel { get; set; }
         
         /* * * * * * * * * * * * * * * * * * *
          *           CHAR VALUES
@@ -73,6 +79,11 @@ namespace Horseshoe.NET.Text
         /// Category(ies) of <c>char</c>s to reveal.
         /// </summary>
         public CharCategory CharCategory { get; set; }
+
+        /// <summary>
+        /// Returns <c>true</c> if <c>CharsToReveal</c> contains any items or if <c>CharCategory</c> is anything other then <c>None</c>.
+        /// </summary>
+        public bool IsRevealingChars => (CharsToReveal != null && CharsToReveal.Any()) || CharCategory != CharCategory.None;
 
         /// <summary>
         /// When combined with <c>CharRevealPolicy.OtherWhitespaces</c> renders actual new lines.

@@ -1,4 +1,4 @@
-﻿using Horseshoe.NET.RelayMessage;
+﻿using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.RelayProgress
 {

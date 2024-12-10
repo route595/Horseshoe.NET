@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using Horseshoe.NET.IO;
 
-namespace Horseshoe.NET.RelayMessage
+namespace Horseshoe.NET.RelayMessages
 {
     /// <summary>
     /// Base utility class for bundling <c>RelayMessage</c> and <c>RelayException</c> instances
@@ -139,6 +140,11 @@ namespace Horseshoe.NET.RelayMessage
         private bool Optimized { get; set; }
 
         /// <summary>
+        /// If <c>true</c>, also outputs messages to the console. Default is <c>false</c>.
+        /// </summary>
+        public bool AlsoOutputToConsole { get; set; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="fileOrPath">The file to which relayed messages should be written.</param>
@@ -149,8 +155,11 @@ namespace Horseshoe.NET.RelayMessage
         /// If <c>true</c>, indents exceptions at the same level as the last relayed message.
         /// Default is <c>false</c>.
         /// </param>
+        /// <param name="alsoOutputToConsole">
+        /// If <c>true</c>, also outputs messages to the console. Default is <c>false</c>.
+        /// </param>
         /// <param name="suppressExceptions">If <c>true</c>, silently ignores IO exceptions.  Default is <c>false</c>.</param>
-        public RelayToFile(FilePath fileOrPath, bool append = false, int indentInterval = 2, int msgIdPad = 100, bool indentExceptionsInlineWithMessages = false, bool suppressExceptions = false)
+        public RelayToFile(FilePath fileOrPath, bool append = false, int indentInterval = 2, int msgIdPad = 100, bool indentExceptionsInlineWithMessages = false, bool alsoOutputToConsole = false, bool suppressExceptions = false)
         {
             FileOrPath = fileOrPath;
             if (!append)
@@ -169,6 +178,7 @@ namespace Horseshoe.NET.RelayMessage
             IndentInterval = indentInterval;
             MsgIdPad = msgIdPad;
             IndentExceptionsInlineWithMessages = indentExceptionsInlineWithMessages;
+            AlsoOutputToConsole = alsoOutputToConsole;
             SuppressExceptions = suppressExceptions;
         }
 
@@ -182,6 +192,7 @@ namespace Horseshoe.NET.RelayMessage
             {
                 message = message.PadRight(MsgIdPad - 1) + " [msgID: " + id + "]";
             }
+
             try
             {
                 if (Optimized)  // Writer is not null
@@ -194,6 +205,11 @@ namespace Horseshoe.NET.RelayMessage
                     {
                         Writer.WriteLine(message);
                     }
+                }
+
+                if (AlsoOutputToConsole)
+                {
+                    Console.WriteLine(message);
                 }
             }
             catch(IOException)

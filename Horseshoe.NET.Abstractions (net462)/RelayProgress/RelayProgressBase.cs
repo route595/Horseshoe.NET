@@ -1,4 +1,4 @@
-﻿using Horseshoe.NET.RelayMessage;
+﻿using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.RelayProgress
 {
@@ -22,12 +22,6 @@ namespace Horseshoe.NET.RelayProgress
 
         /// <inheritdoc cref="IMessageRelay.ExceptionTrailingIndicator"/>
         public string ExceptionTrailingIndicator { get; }
-
-        /// <summary>
-        /// If <c>true</c>, indents exceptions at the same level as the last relayed message.
-        /// Default is <c>false</c>.
-        /// </summary>
-        public bool IndentExceptionsInlineWithMessages { get; set; }
 
         /// <summary>
         /// Inheriting classes must specify how / where to render the relayed progress.
@@ -106,15 +100,9 @@ namespace Horseshoe.NET.RelayProgress
         };
 
         /// <inheritdoc cref="IMessageRelay.Exception"/>
-        public RelayerOfExceptions Exception => (exception, group) =>
+        public RelayerOfExceptions Exception => (exception, group, inlineWithMessages) =>
         {
             var renderedException = (ExceptionLeadingIndicator ?? "") + exception.GetType().FullName + ": " + exception.Message + (ExceptionTrailingIndicator ?? "");
-
-            if (IndentExceptionsInlineWithMessages)
-            {
-                Message(renderedException, group);
-                return;
-            }
 
             RenderMessage(renderedException);
         };

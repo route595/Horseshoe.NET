@@ -269,10 +269,17 @@ namespace Horseshoe.NET.Text
                 var sb = new StringBuilder();
                 ReadOnlySpan<char> span = text.AsSpan();
 
-                // bulk reveal chars
-                foreach (var c in span)
+                if (options.IsRevealingChars)
                 {
-                    sb.Append(RevealChar(c, options));
+                    // bulk reveal chars
+                    foreach (var c in span)
+                    {
+                        sb.Append(RevealChar(c, options));
+                    }
+                }
+                else
+                {
+                    sb.Append(text);
                 }
 
                 // handle new-lines
@@ -284,6 +291,18 @@ namespace Horseshoe.NET.Text
                         sb.Replace(options.ValueIfLf, options.ValueIfLf + "\n");
                         sb.Replace(options.ValueIfCrLf, options.ValueIfCrLf + "\r\n");
                     }
+                }
+
+                // append quotes, if applicable
+                if (options.StringQuotationLevel >= 2)
+                {
+                    sb.Insert(0, '\"');
+                    sb.Append('\"');
+                }
+                else if (options.StringQuotationLevel == 1)
+                {
+                    sb.Insert(0, '\'');
+                    sb.Append('\'');
                 }
 
                 return sb.ToString();

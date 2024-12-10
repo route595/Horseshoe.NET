@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Horseshoe.NET.RelayMessage
+namespace Horseshoe.NET.RelayMessages
 {
     /// <summary>
     /// Base utility class for bundling <c>RelayMessage</c> and <c>RelayException</c> instances
@@ -85,11 +85,11 @@ namespace Horseshoe.NET.RelayMessage
         };
 
         /// <inheritdoc cref="IMessageRelay.Exception"/>
-        public RelayerOfExceptions Exception => (exception, group) =>
+        public RelayerOfExceptions Exception => (exception, group, inlineWithMessages) =>
         {
             var renderedException = (ExceptionLeadingIndicator ?? "") + (exception != null ? exception.GetType().FullName + ": " + exception.Message : "[null-exception]") + (ExceptionTrailingIndicator ?? "");
             
-            if (IndentExceptionsInlineWithMessages)
+            if (inlineWithMessages || IndentExceptionsInlineWithMessages)
             {
                 Message(renderedException, group: group);
                 return;

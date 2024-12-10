@@ -1,4 +1,4 @@
-﻿namespace Horseshoe.NET.RelayMessage
+﻿namespace Horseshoe.NET.RelayMessages
 {
     /// <summary>
     /// The base delegate for relaying messages. Use case: code library sends messages which calling code outputs to Console 

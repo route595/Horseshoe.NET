@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Horseshoe.NET.RelayMessage
+namespace Horseshoe.NET.RelayMessages
 {
     /// <summary>
     /// Base utility class for bundling <c>RelayMessage</c> and <c>RelayException</c> instances
