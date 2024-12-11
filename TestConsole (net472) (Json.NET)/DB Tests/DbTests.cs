@@ -53,6 +53,23 @@ namespace TestConsole.DbTests
             ),
             BuildMenuRoutine
             (
+                "Parse attribute values",
+                () =>
+                {
+                    var connStr = "Data Source=SERVER;Initial Catalog=DATABASE;User ID=BILLY;Password=BOB";
+                    Console.WriteLine(connStr);
+                    DbUtil.ParseConnectionStringAttribute(connStr, "Data Source", out _, out string attributeValue, ignoreCase: true);
+                    Console.WriteLine("Data Source = " + attributeValue);
+                    DbUtil.ParseConnectionStringAttribute(connStr, "Initial Catalog", out _, out attributeValue, ignoreCase: true);
+                    Console.WriteLine("Initial Catalog = " + attributeValue);
+                    DbUtil.ParseConnectionStringAttribute(connStr, "User ID", out _, out attributeValue, ignoreCase: true);
+                    Console.WriteLine("User ID = " + attributeValue);
+                    DbUtil.ParseConnectionStringAttribute(connStr, "Password", out _, out attributeValue, ignoreCase: true);
+                    Console.WriteLine("Password = " + attributeValue);
+                }
+            ),
+            BuildMenuRoutine
+            (
                 "Decrypt Inline Passwords",
                 () =>
                 {

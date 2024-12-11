@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Crypto;
@@ -286,35 +288,164 @@ namespace Horseshoe.NET.Db
         /// Utility method for inline decrypting the password in a connection string
         /// </summary>
         /// <param name="connectionString">A connection string potentially with an encrypted password</param>
-        /// <param name="cryptoOptions">Optional cryptographic properties used to decrypt database passwords</param>
+        /// <param name="cryptoOptions">Optional cryptographic properties used in the decryption process</param>
+        /// <param name="altPasswordAttributeNameVariations">Optionally override the attribute name variations searched for in the connection string e.g. "Password" or new[] { "Password", "PWD" }.  Default is the example array.</param>
+        /// <param name="ignoreCase">If <c>true</c> (recommended), ignores the title case when searching for <c>altPasswordAttributeNameVariations</c>, default is <c>false</c>.</param>
         /// <returns>A sensitive connection string i.e. may contain user id and password.</returns>
-        public static string DecryptInlinePassword(string connectionString, CryptoOptions cryptoOptions = null)
+        public static string DecryptInlinePassword(string connectionString, CryptoOptions cryptoOptions = null, StringValues? altPasswordAttributeNameVariations = null, bool ignoreCase = false)
+        {
+            ParseConnectionStringAttribute(connectionString, altPasswordAttributeNameVariations ?? new[] { "Password", "PWD" }, out int attributeValuePosition, out string attributeValue, ignoreCase: !altPasswordAttributeNameVariations.HasValue || ignoreCase);
+            
+            if (attributeValuePosition == -1)
+                return connectionString ?? string.Empty;
+
+            if (connectionString.Length > attributeValuePosition + attributeValue.Length)  // mid connstr e.g. "...;password=123456;next=element..."
+            {
+                return connectionString.Substring(0, attributeValuePosition) +
+                    Decrypt.String(attributeValue.Trim(), options: cryptoOptions) +
+                    connectionString.Substring(attributeValuePosition + attributeValue.Length);
+            }
+            else  // connstr end e.g. "...;password=123456"
+            {
+                return connectionString.Substring(0, attributeValuePosition) +
+                    Decrypt.String(attributeValue.Trim(), options: cryptoOptions);
+            }
+        }
+
+        /// <summary>
+        /// Utility method for inline encrypting the password in a connection string
+        /// </summary>
+        /// <param name="connectionString">A connection string potentially with an encrypted password</param>
+        /// <param name="altPasswordAttributeNameVariations">Optionally override the attribute name variations searched for in the connection string e.g. "Password" or new[] { "Password", "PWD" }.  Default is the example array.</param>
+        /// <param name="ignoreCase">If <c>true</c> (recommended), ignores the title case when searching for <c>altPasswordAttributeNameVariations</c>, default is <c>false</c>.</param>
+        /// <returns>A version of the connection string with the password redatcted.</returns>
+        public static string HideInlinePassword(string connectionString, StringValues? altPasswordAttributeNameVariations = null, bool ignoreCase = false)
+        {
+            ParseConnectionStringAttribute(connectionString, altPasswordAttributeNameVariations ?? new[] { "Password", "PWD" }, out int attributeValuePosition, out string attributeValue, ignoreCase: !altPasswordAttributeNameVariations.HasValue || ignoreCase);
+
+            if (attributeValuePosition == -1)
+                return connectionString ?? string.Empty;
+
+            if (connectionString.Length > attributeValuePosition + attributeValue.Length)  // mid connstr e.g. "...;password=123456;next=element..."
+            {
+                return connectionString.Substring(0, attributeValuePosition) +
+                    new string('*', attributeValue.Trim().Length) +
+                    connectionString.Substring(attributeValuePosition + attributeValue.Length);
+            }
+            else  // connstr end e.g. "...;password=123456"
+            {
+                return connectionString.Substring(0, attributeValuePosition) +
+                    new string('*', attributeValue.Trim().Length);
+            }
+        }
+
+        /// <summary>
+        /// Pass in a connection string and the desired attribute name variation(s).
+        /// Method returns (via out parameters) the attribute value and its position in the connection string.
+        /// <example>
+        /// <para>
+        /// Example 1
+        /// </para>
+        /// <code>
+        /// connStr = "Datasource=MyDB;UID=Bob;xPWD=th3;PWD=Bui1d3r";
+        /// attributeNameVariations = new[] { "Password", "PWD" };
+        /// ParseConnectionStringAttribute(connStr, attributeNameVariations, out int attributeValuePosition, out string attributeValue, ignoreCase: true);
+        /// </code>
+        /// <para>
+        /// Steps:
+        /// 1 - connection string searched for occurrences of "Password", -1 (not found)
+        /// 2 - connection string searched for occurrences of "PWD"...
+        /// 3 - match found in "xPWD=th3"; then rejected (set to -1) when the "x" is scanned
+        /// 4 - match found in "PWD=Bui1d3r"; accepted
+        /// 5 - method returns 37, "Bui1d3r"
+        /// </para>
+        /// </example>
+        /// </summary>
+        /// <param name="connectionString">A connection string</param>
+        /// <param name="attributeNameVariations">One or more attribue name variations (e.g. "ConnectionTimeout" or new[] { "Password", "PWD" })</param>
+        /// <param name="attributeValuePosition">The matching attribute's value's position in the connection string is returned here.</param>
+        /// <param name="attributeValue">The matching attribute's untrimmed value is returned here.</param>
+        /// <param name="ignoreCase">If <c>true</c> (recommended), ignores the title case when searching for attribute name variations, default is <c>false</c>.</param>
+        /// <exception cref="ValidationException"></exception>
+        public static void ParseConnectionStringAttribute(string connectionString, StringValues attributeNameVariations, out int attributeValuePosition, out string attributeValue, bool ignoreCase = false)
         {
             if (connectionString == null)
-                return string.Empty;
-            var prestart = Math.Max
-            (
-                connectionString.IndexOf(";password=", StringComparison.OrdinalIgnoreCase),
-                connectionString.IndexOf(";pwd=", StringComparison.OrdinalIgnoreCase)
-            );
-            if (prestart > -1)
             {
-                var start = connectionString.IndexOf("=", prestart) + 1;
-                var nextIdx = connectionString.IndexOf(";", start);
-                if (nextIdx > -1)  // mid connstr e.g. ";password=1234567;next=element"
-                {
-                    return connectionString.Substring(0, start) +
-                        Decrypt.String(connectionString.Substring(start, nextIdx - start), options: cryptoOptions) +
-                        connectionString.Substring(nextIdx);
-                }
-                else  // connstr end
-                {
-                    return connectionString.Substring(0, start) +
-                        Decrypt.String(connectionString.Substring(start), options: cryptoOptions);
-                }
+                attributeValuePosition = -1;
+                attributeValue = null;
+                return;
             }
-            return connectionString;
+
+            if (!attributeNameVariations.Any())
+                throw new ValidationException("No connection string attribute name variations were supplied");
+
+            if (attributeNameVariations.Any(str => string.IsNullOrWhiteSpace(str)))
+                throw new ValidationException("Connection string attribute name variations cannot be null or blank");
+
+            int anvPos = -1;  // attribute name variation position
+            char c;
+
+            foreach (var attributeNameVariation in attributeNameVariations)
+            {
+                // get position of attribute name variation, in the while loop this position will either be accepted or rejected
+                anvPos = connectionString.IndexOf(attributeNameVariation + "=", ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+
+                while (anvPos > -1)
+                {
+                    // scan previous chars until ';' or beginning of string is reached
+                    for (int j = anvPos - 1; j >= 0; j--) // simply won't loop if -1 (not found); simple and efficient algorithm
+                    {
+                        c = connectionString[j];
+                        if (c == ' ')           // ignore if space (' ') and continue scanning
+                            continue;
+                        if (c != ';')           // char found that is not space (' ') or semicolon (';')
+                            anvPos = -1;        // reject attribute name variation
+                        break;                  // in either case stop scanning
+                    }
+
+                    // scan next chars until '=' or end of string is reached
+                    if (anvPos > -1)
+                    {
+                        for (int j = anvPos + attributeNameVariation.Length; j < connectionString.Length; j++)
+                        {
+                            c = connectionString[j];
+                            if (c == ' ')       // ignore if space (' ') and continue scanning
+                                continue;
+                            if (c != '=')       // char found that is not space (' ') or equals sign ('=')
+                                anvPos = -1;    // reject attribute name variation
+                            break;              // in either case stop scanning
+                        }
+                    }
+
+                    if (anvPos > -1)            // attribute name variation accepted
+                        break;                  // exit inner loop a.k.a. skip any other occurrences of current variation
+
+                    // attribute name variation rejected, search for next occurrence
+                    anvPos = connectionString.IndexOf(attributeNameVariation + "=", anvPos, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+                }
+                if (anvPos > -1)                // attribute name variation found
+                    break;                      // exit inner loop a.k.a. skip any other variations
+            }
+
+            if (anvPos == -1)                   // attribute name variation(s) not found
+            {
+                attributeValuePosition = -1;
+                attributeValue = null;
+                return;
+            }
+
+            attributeValuePosition = connectionString.IndexOf("=", anvPos) + 1;
+            var attributeValueEndPos = connectionString.IndexOf(";", attributeValuePosition);  // it doesn't matter if ';' not found and valueEndPos == -2
+            if (attributeValueEndPos > 0)  // mid connstr e.g. "...;attribute=VALUE;nextAttribute=nextValue..."
+            {
+                attributeValue = connectionString.Substring(attributeValuePosition, attributeValueEndPos - attributeValuePosition);
+            }
+            else  // connstr end "...;attribute=VALUE"
+            {
+                attributeValue = connectionString.Substring(attributeValuePosition);
+            }
         }
+
 
         ///// <summary>
         ///// Utility method for inline decrypting the password in a connection string
@@ -331,38 +462,6 @@ namespace Horseshoe.NET.Db
         //    var sensitiveConnectionString = connectionString.Replace(cipherText, plainText);
         //    return sensitiveConnectionString;
         //}
-
-        /// <summary>
-        /// Utility method for inline encrypting the password in a connection string
-        /// </summary>
-        /// <param name="connectionString">A connection string potentially with an encrypted password</param>
-        /// <returns>A version of the connection string with the password redatcted.</returns>
-        public static string HideInlinePassword(string connectionString)
-        {
-            if (connectionString == null)
-                return string.Empty;
-            var prestart = Math.Max
-            (
-                connectionString.IndexOf(";password=", StringComparison.OrdinalIgnoreCase),
-                connectionString.IndexOf(";pwd=", StringComparison.OrdinalIgnoreCase)
-            );
-            if (prestart > -1)
-            {
-                var start = connectionString.IndexOf("=", prestart) + 1;
-                var nextIdx = connectionString.IndexOf(";", start);
-                if (nextIdx > -1)  // mid connstr e.g. ";password=1234567;next=element"
-                {
-                    return connectionString.Substring(0, start) +
-                        new string('*', nextIdx - start) +
-                        connectionString.Substring(nextIdx);
-                }
-                else  // connstr end
-                {
-                    return connectionString.Substring(0, start) + new string('*', connectionString.Length - start);
-                }
-            }
-            return connectionString;
-        }
 
         ///// <summary>
         ///// Utility method for inline encrypting the password in a connection string (another version)

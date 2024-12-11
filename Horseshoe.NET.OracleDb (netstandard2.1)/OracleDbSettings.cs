@@ -69,7 +69,7 @@ namespace Horseshoe.NET.OracleDb
         {
             if (connectionString == null) return null;
             return isEncryptedPassword
-                ? DbUtil.DecryptInlinePassword(connectionString)
+                ? DbUtil.DecryptInlinePassword(connectionString, cryptoOptions: CryptoOptions)
                 : connectionString;
         }
 

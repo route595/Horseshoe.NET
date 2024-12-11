@@ -155,7 +155,7 @@ namespace TestConsole
                 () =>
                 {
                     var bytesToDecrypt = Decode.Base64.Bytes(PromptX.Value<string>("Enter password to decrypt"));
-                    var decryptedPassword = Decrypt.String(bytesToDecrypt);
+                    var decryptedPassword = Decrypt.String(bytesToDecrypt, options : Base64Options);
                     Console.WriteLine("Decrypted password: " + decryptedPassword);
                 }
             ),
