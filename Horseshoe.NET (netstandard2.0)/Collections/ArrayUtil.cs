@@ -21,6 +21,43 @@ namespace Horseshoe.NET.Collections
             CollectionUtil.ToArray(collection);
 
         /// <summary>
+        /// Picks out only the non-<c>null</c> items in an array, which itself may be <c>null</c>.  
+        /// Returns a non-<c>null</c> array, possibly with 0 elements.
+        /// <example>
+        /// <para>Example</para>
+        /// <code>
+        /// IEnumerable&lt;string&gt; stringCollection = GetArbitraryStringCollection();
+        /// string[] prunedStrings = ArrayUtil.Prune(stringCollection);
+        /// </code>
+        /// </example>
+        /// </summary>
+        /// <typeparam name="T">Type of element</typeparam>
+        /// <param name="collection">A collection, e.g. an array</param>
+        /// <returns>A non-<c>null</c> array, possibly with 0 elements</returns>
+        public static T[] Prune<T>(IEnumerable<T> collection)
+        {
+            return CollectionUtil.Prune<T>(collection).ToArray();
+        }
+
+        /// <summary>
+        /// Picks out only the non-<c>null</c>, non-blank and non-whitespace <c>string</c>s in a collection, which itself may be <c>null</c>.  
+        /// Returns a non-<c>null</c> array, possibly with 0 elements.
+        /// <example>
+        /// <para>Example</para>
+        /// <code>
+        /// IEnumerable&lt;string&gt; stringCollection = GetArbitraryStringCollection();
+        /// string[] zappedStrings = ArrayUtil.Zap(stringCollection);
+        /// </code>
+        /// </example>
+        /// </summary>
+        /// <param name="collection">A collection</param>
+        /// <returns>A non-<c>null</c> array, possibly with 0 elements</returns>
+        public static string[] Zap(IEnumerable<string> collection)
+        {
+            return CollectionUtil.Zap(collection).ToArray();
+        }
+
+        /// <summary>
         /// Inflates an array to the desired target size by padding items at the indicated boundary
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>

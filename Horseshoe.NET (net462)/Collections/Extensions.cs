@@ -752,39 +752,29 @@ namespace Horseshoe.NET.Collections
         public static bool Extract<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, out TValue item) =>
             DictionaryUtil.Extract(dictionary, key, out item);
 
-        /// <summary>
-        /// Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
-        /// </summary>
-        /// <typeparam name="TKey">Type of key</typeparam>
-        /// <typeparam name="TValue">Type of value</typeparam>
-        /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionariesToAppend">Dictionaries to append</param>
-        /// <returns></returns>
-        public static IDictionary<TKey, TValue> Append<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
-            DictionaryUtil.Append(dictionary, dictionariesToAppend);
+        /// <inheritdoc cref="DictionaryUtil.Append{TKey, TValue}(IDictionary{TKey, TValue}, IEnumerable{IDictionary{TKey, TValue}}, MergeOptions{TKey, TValue})"/>
+        public static IDictionary<TKey, TValue> Append<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue>[] dictionariesToAppend, MergeOptions<TKey, TValue> options = null) =>
+            DictionaryUtil.Append(dictionary, dictionariesToAppend, options: options);
 
-        /// <summary>
-        /// Combines multiple dictionaries into one, merges identical keys right-to-left (right-most replaces left-most)
-        /// </summary>
-        /// <typeparam name="TKey">Type of key</typeparam>
-        /// <typeparam name="TValue">Type of value</typeparam>
-        /// <param name="dictionary">A dictionary</param>
-        /// <param name="mergeFunc">The function that merges left/right values when identical keys are encountered</param>
-        /// <param name="dictionariesToAppend">Dictionaries to append</param>
-        /// <returns></returns>
-        public static IDictionary<TKey, TValue> Append<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, Func<TValue, TValue, TValue> mergeFunc, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
-            DictionaryUtil.Append(mergeFunc, dictionary, dictionariesToAppend);
+        /// <inheritdoc cref="DictionaryUtil.AppendLTR{TKey, TValue}(IDictionary{TKey, TValue}, IDictionary{TKey, TValue}[])"/>
+        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
+            DictionaryUtil.AppendLTR(dictionary, dictionariesToAppend);
 
-        /// <summary>
-        /// Appends zero or more dictionaries to a bas, merges identical keys left-to-right (left-most replaces right-most)
-        /// </summary>
-        /// <typeparam name="TKey">Type of key</typeparam>
-        /// <typeparam name="TValue">Type of value</typeparam>
-        /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionariesToAppend">Dictionaries to append</param>
-        /// <returns></returns>
-        public static IDictionary<TKey, TValue> AppendMergeLeftToRight<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
-            DictionaryUtil.AppendMergeLeftToRight(dictionary, dictionariesToAppend);
+        /// <inheritdoc cref="DictionaryUtil.AppendRTL{TKey, TValue}(IDictionary{TKey, TValue}, IDictionary{TKey, TValue}[])"/>
+        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
+            DictionaryUtil.AppendRTL(dictionary, dictionariesToAppend);
+
+        /// <inheritdoc cref="DictionaryUtil.Append{TKey, TValue}(IDictionary{TKey, TValue}, IDictionary{TKey, TValue}, MergeOptions{TKey, TValue})"/>
+        public static IDictionary<TKey, TValue> Append<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend, MergeOptions<TKey, TValue> options = null) =>
+            DictionaryUtil.Append(dictionary, dictionaryToAppend, options: options);
+
+        /// <inheritdoc cref="DictionaryUtil.AppendLTR{TKey, TValue}(IDictionary{TKey, TValue}, IDictionary{TKey, TValue})"/>
+        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend) =>
+            DictionaryUtil.AppendLTR(dictionary, dictionaryToAppend);
+
+        /// <inheritdoc cref="DictionaryUtil.AppendRTL{TKey, TValue}(IDictionary{TKey, TValue}, IDictionary{TKey, TValue})"/>
+        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend) =>
+            DictionaryUtil.AppendRTL(dictionary, dictionaryToAppend);
 
         /// <summary>
         /// Dumps a collection to a single line of text with the specified separator optionally rendering only the
@@ -864,33 +854,6 @@ namespace Horseshoe.NET.Collections
                 col2.Add(kvp.Value);
             }
             return textGrid.Render();
-        }
-
-        /// <summary>
-        /// Adds all supplied key/value pairs to a dictionary, with merging
-        /// </summary>
-        /// <typeparam name="TKey">Type of key</typeparam>
-        /// <typeparam name="TValue">Type of value</typeparam>
-        /// <param name="dictionary">A dictionary</param>
-        /// <param name="keyValuePairs">The key/value pairs to add</param>
-        /// <param name="mergeFunc">The function that merges left/right values when identical keys are encountered</param>
-        public static void AddAll<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> keyValuePairs, Func<TValue, TValue, TValue> mergeFunc = null)
-        {
-            if (keyValuePairs != null)
-            {
-                foreach (var kvp in keyValuePairs)
-                {
-                    if (dictionary.ContainsKey(kvp.Key))
-                    {
-                        //dictionary[kvp.Key] = kvp.Value;
-                        dictionary[kvp.Key] = (mergeFunc ?? ((leftVal, rightVal) => rightVal)).Invoke(dictionary[kvp.Key], kvp.Value);
-                    }
-                    else
-                    {
-                        dictionary.Add(kvp.Key, kvp.Value);
-                    }
-                }
-            }
         }
 
         /// <summary>

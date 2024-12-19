@@ -31,12 +31,12 @@ namespace TestConsole
                     };
                     Console.WriteLine(dict1.StringDump());
                     Console.WriteLine(dict2.StringDump());
-                    Console.WriteLine("combine: " + DictionaryUtil.Combine(dict1, dict2).StringDump());
-                    Console.WriteLine("combine: " + DictionaryUtil.CombineMergeLeftToRight(dict1, dict2).StringDump());
-                    Console.WriteLine("combine: " + DictionaryUtil.Combine((leftVal, rightVal) => leftVal + "/" + rightVal, dict1, dict2).StringDump());
-                    Console.WriteLine("append: " + dict1.Append(dict2).StringDump());
-                    Console.WriteLine("append: " + dict1.AppendMergeLeftToRight(dict2).StringDump());
-                    Console.WriteLine("append: " + dict1.Append((leftVal, rightVal) => leftVal + "/" + rightVal, dict2).StringDump());
+                    Console.WriteLine("combine: " + DictionaryUtil.CombineRTL(dict1, dict2).StringDump());
+                    Console.WriteLine("combine: " + DictionaryUtil.CombineLTR(dict1, dict2).StringDump());
+                    Console.WriteLine("combine: " + DictionaryUtil.Combine(new[] { dict1, dict2 }, options: new MergeOptions<string, string>{ Merge = (leftDict, rightDict, key) => leftDict[key] + "/" + rightDict[key] }).StringDump());
+                    Console.WriteLine("append: " + dict1.AppendRTL(dict2).StringDump());
+                    Console.WriteLine("append: " + dict1.AppendLTR(dict2).StringDump());
+                    Console.WriteLine("append: " + dict1.Append(dict2, options: new MergeOptions<string, string>{ Merge = (leftDict, rightDict, key) => leftDict[key] + "/" + rightDict[key] }).StringDump());
                 }
             ),
             BuildMenuRoutine

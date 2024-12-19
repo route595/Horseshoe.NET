@@ -4,6 +4,7 @@ using System.Reflection;
 using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Compare;
+using System.Collections.Generic;
 
 namespace Horseshoe.NET.ObjectsTypesAndValues
 {
@@ -125,6 +126,44 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
             if (memberValue == null)
                 return null;
             return new PropertyValue<T>(memberValue.Property, memberValue.Value);
+        }
+
+        /// <summary>
+        /// Creates a dictionary from an object's properties.
+        /// </summary>
+        /// <param name="obj">An object</param>
+        /// <returns>A dictionary</returns>
+        public static Dictionary<string, object> DumpToDictionary(object obj)
+        {
+            var dict = new Dictionary<string, object>();
+
+            if (obj == null)
+                return dict;
+
+            foreach (var property in obj.GetType().GetProperties())
+            {
+                dict.Add(property.Name, property.GetValue(obj, null));
+            }
+            return dict;
+        }
+
+        /// <summary>
+        /// Creates a dictionary from an object's properties.
+        /// </summary>
+        /// <param name="obj">An object</param>
+        /// <returns>A string dictionary</returns>
+        public static Dictionary<string, string> DumpToStringDictionary(object obj)
+        {
+            var dict = new Dictionary<string, string>();
+
+            if (obj == null)
+                return dict;
+
+            foreach (var property in obj.GetType().GetProperties())
+            {
+                dict.Add(property.Name, property.GetValue(obj, null)?.ToString());
+            }
+            return dict;
         }
     }
 }

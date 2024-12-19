@@ -37,6 +37,49 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
+        /// Picks out only the non-<c>null</c> items in a collection, which itself may be <c>null</c>.  
+        /// Returns a non-<c>null</c> collection, possibly with 0 elements and/or a filter which has not yet been executed.
+        /// <example>
+        /// <para>Example</para>
+        /// <code>
+        /// IEnumerable&lt;string&gt; stringCollection = GetArbitraryStringCollection();
+        /// List&lt;string&gt; prunedStrings = CollectionUtil.Prune(stringCollection).ToList();
+        /// </code>
+        /// </example>
+        /// </summary>
+        /// <typeparam name="T">Type of element</typeparam>
+        /// <param name="collection">A collection</param>
+        /// <returns>A non-<c>null</c> collection, possibly with 0 elements</returns>
+        public static IEnumerable<T> Prune<T>(IEnumerable<T> collection)
+        {
+            if (collection == null)
+                return Enumerable.Empty<T>();
+            return collection
+                .Where(a => a != null);
+        }
+
+        /// <summary>
+        /// Picks out only the non-<c>null</c>, non-blank and non-whitespace <c>string</c>s in a collection, which itself may be <c>null</c>.  
+        /// Returns a non-<c>null</c> collection, possibly with 0 elements and/or a filter which has not yet been executed.
+        /// <example>
+        /// <para>Example</para>
+        /// <code>
+        /// IEnumerable&lt;string&gt; stringCollection = GetArbitraryStringCollection();
+        /// List&lt;string&gt; zappedStrings = CollectionUtil.Zap(stringCollection).ToList();
+        /// </code>
+        /// </example>
+        /// </summary>
+        /// <param name="collection">A collection</param>
+        /// <returns>A non-<c>null</c> collection, possibly with 0 elements</returns>
+        public static IEnumerable<string> Zap(IEnumerable<string> collection)
+        {
+            if (collection == null)
+                return Enumerable.Empty<string>();
+            return collection
+                .Where(s => Horseshoe.NET.Zap.String(s) != null);
+        }
+
+        /// <summary>
         /// Inflates a list to the desired target size by padding items at the indicated boundary
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>

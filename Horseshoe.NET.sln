@@ -89,6 +89,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Finance (nets
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Excel (netstandard2.1)", "Horseshoe.NET.Excel (netstandard2.1)\Horseshoe.NET.Excel (netstandard2.1).csproj", "{4E84366A-2C5E-40B5-9055-05F72FB5A94C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.ApplicationInsights (net462)", "Horseshoe.NET.ApplicationInsights (net462)\Horseshoe.NET.ApplicationInsights (net462).csproj", "{5F61E8C6-6245-4C7E-9161-C963E00ACF88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,6 +257,10 @@ Global
 		{4E84366A-2C5E-40B5-9055-05F72FB5A94C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E84366A-2C5E-40B5-9055-05F72FB5A94C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E84366A-2C5E-40B5-9055-05F72FB5A94C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

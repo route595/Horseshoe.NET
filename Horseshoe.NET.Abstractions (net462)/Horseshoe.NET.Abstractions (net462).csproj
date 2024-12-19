@@ -76,12 +76,15 @@
     <Compile Include="Bootstrap\ExceptionRenderingPolicy.cs" />
     <Compile Include="Bootstrap\v3\AlertType.cs" />
     <Compile Include="Bootstrap\v4\AlertType.cs" />
+    <Compile Include="Collections\DictionaryMergeMode.cs" />
+    <Compile Include="Collections\DictionaryMerge.cs" />
     <Compile Include="Collections\ListSorter.cs" />
     <Compile Include="Collections\CollectionBoundary.cs" />
     <Compile Include="Collections\CollectionUtilAbstractions.cs" />
     <Compile Include="Collections\CollectionUtilMessage.cs" />
     <Compile Include="Collections\DictionaryUtilAbstractions.cs" />
     <Compile Include="Collections\ImmutableDictionary.cs" />
+    <Compile Include="Collections\MergeOptions.cs" />
     <Compile Include="Compare\Criterinator.cs" />
     <Compile Include="Compare\Comparator.cs" />
     <Compile Include="Compare\CompareException.cs" />
