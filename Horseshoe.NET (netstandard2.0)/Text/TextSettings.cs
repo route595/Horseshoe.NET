@@ -1,4 +1,6 @@
-﻿namespace Horseshoe.NET.Text
+﻿using Horseshoe.NET.Configuration;
+
+namespace Horseshoe.NET.Text
 {
     /// <summary>
     /// Configuration-based settings.
@@ -16,8 +18,7 @@
             {
                 if (!_jsonProvider.HasValue)
                 {
-                    _jsonProvider = _Config.Get<JsonProvider?>("Horseshoe.NET:Text:JsonProvider")
-                        ?? OrganizationalDefaultSettings.Get<JsonProvider?>("Text.JsonProvider")
+                    _jsonProvider = Config.Get<JsonProvider?>("Horseshoe.NET:Text:JsonProvider")
                         ?? (Assemblies.Get("Newtonsoft.Json", suppressErrors: true) != null ? JsonProvider.NewtonsoftJson as JsonProvider? : null)
                         ?? (Assemblies.Get("System.Text.Json", suppressErrors: true) != null ? JsonProvider.SystemTextJson as JsonProvider? : null)
                         ?? JsonProvider.None;

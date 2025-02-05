@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Text;
 
 using Horseshoe.NET.Collections;
+using Horseshoe.NET.Dotnet;
 using Horseshoe.NET.ObjectsTypesAndValues;
+using Horseshoe.NET.RelayMessages;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
 
@@ -17,28 +20,24 @@ namespace Horseshoe.NET.ConsoleX
     /// </summary>
     public static class PromptX
     {
-        private static string _Keystrokes(char? mask, object quickValue, TraceJournal journal)
+        private static readonly string MessageRelayGroup = typeof(PromptX).Namespace;
+
+        private static int tryAgainCount = 0;
+
+        private static string _Keystrokes(char? mask/*, object quickValue, bool suppressEcho*/)
         {
-            // journaling
-            journal.WriteEntry("PromptX._KeyStrokes()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
-            string bufferedKeystrokes = string.Join("", _BufferedKeystrokes(mask, quickValue, journal));
-            journal.WriteEntry(nameof(bufferedKeystrokes) + " = \"" + bufferedKeystrokes + "\"");
-
-            // finalize
-            journal.Level--;
+            string bufferedKeystrokes = string.Join("", _BufferedKeystrokes(mask/*, quickValue, suppressEcho*/));
+            //SystemMessageRelay.RelayMessage(nameof(bufferedKeystrokes) + " = \"" + bufferedKeystrokes + "\"", group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             return bufferedKeystrokes;
         }
 
-        private static IList<char> _BufferedKeystrokes(char? mask, object quickValue, TraceJournal journal)
+        private static IList<char> _BufferedKeystrokes(char? mask/*, object quickValue, bool suppressEcho*/)
         {
-            // journaling
-            journal.WriteEntry("PromptX._BufferedKeyStrokes()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
             var buf = new List<char>();
             //var treatControlCAsInput = Console.TreatControlCAsInput;
             ConsoleKeyInfo info;
@@ -46,6 +45,7 @@ namespace Horseshoe.NET.ConsoleX
             bool alt;
             bool ctrl;
             bool shift;
+            var strbInputsToRelay = new StringBuilder();
             while (inputting)
             {
                 //Console.TreatControlCAsInput = true;
@@ -67,20 +67,21 @@ namespace Horseshoe.NET.ConsoleX
                 alt = (info.Modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt;
                 ctrl = (info.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control;
                 shift = (info.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift;
-                journal.WriteEntry((ctrl ? "Ctrl+" : "") + (alt ? "Alt+" : "") + (shift ? "Shift+" : "") + TextUtil.Reveal(info.KeyChar, RevealOptions.All));
+                strbInputsToRelay
+                    .AppendIf(ctrl, "Ctrl+")
+                    .AppendIf(alt, "Alt+")
+                    .AppendIf(shift, "Shift+")
+                    .Append(info.Key)
+                    .Append(' ');
                 switch (info.Key)
                 {
                     case ConsoleKey.Escape:
-                        // finalize
-                        journal.Level--;
                         ConsoleNavigation.CancelInputPrompt();
                         break;
                     case ConsoleKey.Enter:
-                        journal.AppendLastEntry("<-" + ConsoleKey.Enter);
                         inputting = false;
                         break;
                     case ConsoleKey.Backspace:
-                        journal.AppendLastEntry("<-" + ConsoleKey.Backspace);
                         if (buf.Count > 0)
                         {
                             buf.RemoveAt(buf.Count - 1);
@@ -94,10 +95,6 @@ namespace Horseshoe.NET.ConsoleX
                     default:
                         if (info.KeyChar < 32)
                         {
-                            if (info.KeyChar == 0)
-                            {
-                                journal.AppendLastEntry("<-" + info.Key);
-                            }
                             Console.Beep();
                         }
                         else if (ctrl)
@@ -130,36 +127,40 @@ namespace Horseshoe.NET.ConsoleX
                 }
                 //Console.TreatControlCAsInput = treatControlCAsInput;
             }
+            //if (quickValue != null && !buf.Any(c => !char.IsWhiteSpace(c)))
+            //{
+            //    // quickValue does not become the input value until Value<T>()
+            //    buf.Clear();
+            //    SystemMessageRelay.RelayMessage("quick value: " + ValueUtil.Display(quickValue), group: MessageRelayGroup);
+            //    if (!suppressEcho)
+            //    {
+            //        Console.WriteLine(quickValue);
+            //    }
+            //}
             Console.WriteLine();
-            if (quickValue != null && !buf.Any(c => !char.IsWhiteSpace(c)))
-            {
-                buf.Clear();
-                Console.WriteLine(quickValue);
-            }
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: "char list (buffer): length = " + buf.Count, group: MessageRelayGroup);
+
             return buf;
         }
 
-        private static string _ConsoleLine(object quickValue, bool suppressEcho, TraceJournal journal)
+        private static string _ConsoleLine(/*object quickValue, bool suppressEcho*/)
         {
-            // journaling
-            journal.WriteEntry("PromptX._ConsoleLine()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
             var rawLine = Console.ReadLine();
-            journal.WriteEntry(nameof(rawLine) + " = \"" + rawLine + "\"");
 
-            if (quickValue != null && string.IsNullOrWhiteSpace(rawLine) && !suppressEcho)
-            {
-                journal.WriteEntry("user selected quick value: " + quickValue);
-                Console.WriteLine(quickValue);
-            }
+            //if (quickValue != null && string.IsNullOrWhiteSpace(rawLine))
+            //{
+            //    // quickValue does not become the input value until Value<T>()
+            //    SystemMessageRelay.RelayMessage("quick value: " + ValueUtil.Display(quickValue), group: MessageRelayGroup);
+            //    if (!suppressEcho)
+            //    {
+            //        Console.WriteLine(quickValue);
+            //    }
+            //}
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(rawLine, group: MessageRelayGroup);
             return rawLine;
         }
 
@@ -167,16 +168,13 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">Value to apply by pressing 'Enter', suggested before the prompt.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="requiredMessage">The alert to display if a required input is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The exact text entered by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutine"></exception>
         public static string RawConsoleInput
@@ -187,69 +185,44 @@ namespace Horseshoe.NET.ConsoleX
             object quickValue = null,
             object defaultValue = null,
             bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            string requiredMessage = "Input is required.",
+            //bool suppressEcho = false,
+            //string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.RawConsoleInput()");
-            journal.Level++;
-
-            // do work
-            string input;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             RenderX.Pad(padBefore);
+            RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt, quickValue: quickValue, defaultValue: defaultValue);
 
-            //if (quickText != null)
+            var input = _ConsoleLine();
+            //while (input.Length == 0 && required && quickValue == null)
             //{
-            //    Console.WriteLine("(Press 'Enter' to input \"" + quickText + "\")");
+            //    RenderX.Alert(requiredMessage);
+            //    RenderX.Prompt(prompt, required: !suppressRequiredPrompt);
+            //    //input = _KeyStrokes(mask, quickText, journal);
+            //    input = _ConsoleLine(quickValue, suppressEcho);
             //}
 
-            try
-            {
-                RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt, quickValue: quickValue, defaultValue: defaultValue);
-                //input = _KeyStrokes(mask, quickText, journal);
-                input = _ConsoleLine(quickValue, suppressEcho, journal);
-                while (input.Length == 0 && required && quickValue == null)
-                {
-                    RenderX.Alert(requiredMessage);
-                    RenderX.Prompt(prompt, required: !suppressRequiredPrompt);
-                    //input = _KeyStrokes(mask, quickText, journal);
-                    input = _ConsoleLine(quickValue, suppressEcho, journal);
-                }
-            }
-            //catch (ConsoleNavigation.CtrlCException)
-            //{
-            //    throw;
-            //}
-            finally
-            {
-                // finalize
-                journal.Level--;
-                RenderX.Pad(padAfter);
-            }
+            RenderX.Pad(padAfter);
+
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
 
             return input;
         }
 
         /// <summary>
-        /// Prompts for input, accepts free text with no string trimming.  Command recognition: 'exit'.
+        /// Prompts for input, accepts free text with no string trimming.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
         /// <param name="mask">An optional character to display instead of the typed key.</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="quickValue">Value to apply by pressing 'Enter'.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="requiredMessage">The alert to display if a required input is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The exact text entered by the user.</returns>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static string RawKeystrokeInput
         (
             string prompt,
@@ -257,83 +230,136 @@ namespace Horseshoe.NET.ConsoleX
             bool required = false,
             object quickValue = null,
             bool suppressRequiredPrompt = false,
-            string requiredMessage = "Input is required.",
+            //string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.RawKeystrokeInput()");
-            journal.Level++;
-
-            // do work
-            string input;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             RenderX.Pad(padBefore);
+            RenderX.Prompt(prompt, required: required && !suppressRequiredPrompt, quickValue: quickValue);
 
-            //if (quickText != null)
+            string input = _Keystrokes(mask/*, quickValue*/);
+            //while (input.Length == 0 && required && quickValue == null)
             //{
-            //    Console.WriteLine("(Press 'Enter' to input \"" + quickText + "\")");
+            //    RenderX.Alert(TextUtil.Reveal(requiredMessage));
+            //    RenderX.Prompt(prompt, required: !suppressRequiredPrompt);
+            //    input = _Keystrokes(mask/*, quickValue*/);
+            //    //input = _ConsoleLine(quickValue, suppressEcho, journal);
             //}
 
-            try
-            {
-                RenderX.Prompt(prompt, required: required && !suppressRequiredPrompt, quickValue: quickValue);
-                input = _Keystrokes(mask, quickValue, journal);
-                //input = _ConsoleLine(quickValue, suppressEcho, journal);
-                while (input.Length == 0 && required && quickValue == null)
-                {
-                    RenderX.Alert(TextUtil.Reveal(requiredMessage));
-                    RenderX.Prompt(prompt, required: !suppressRequiredPrompt);
-                    input = _Keystrokes(mask, quickValue, journal);
-                    //input = _ConsoleLine(quickValue, suppressEcho, journal);
-                }
-            }
-            //catch (ConsoleNavigation.CtrlCException)
-            //{
-            //    throw;
-            //}
-            finally
-            {
-                // finalize
-                journal.Level--;
-                RenderX.Pad(padAfter);
-            }
+            RenderX.Pad(padAfter);
+
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
 
             return input;
         }
 
         /// <summary>
-        /// Prompts for console input of type <c>T</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// Strings are trimmed. (whitespace trimmed and then blank converts to <c>null</c>).
+        /// Prompts for console input.  Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Leading and trailing whitespace is trimmed and blanks are converted to <c>null</c>.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        /// <exception cref="ConversionException"></exception>
+        private static string _String
+        (
+            string prompt,
+            PromptType promptType,
+            bool required,
+            string requiredMessage,
+            bool suppressRequiredPrompt,
+            bool suppressCommands,
+            int padBefore,
+            int padAfter
+        ) 
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            string input;
+
+            while (true)
+            {
+                input = Zap.String(RawConsoleInput
+                (
+                    prompt,
+                    promptType: promptType,
+                    required: required,
+                    suppressRequiredPrompt: suppressRequiredPrompt,
+                    padBefore: padBefore,
+                    padAfter: padAfter
+                ));
+
+                if (input == null)
+                {
+                    // complain and retry if input is required
+                    if (required)
+                    {
+                        SystemMessageRelay.RelayMessage("required and null, retrying...", group: MessageRelayGroup);
+                        RenderX.Alert(requiredMessage);
+                        continue;
+                    }
+                    return null;
+                }
+
+                // process commands, if applicable
+                if (!suppressCommands)
+                {
+                    if (input.Equals("/exit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        SystemMessageRelay.RelayMessage("command: \"/exit\"", group: MessageRelayGroup);
+                        Environment.Exit(0);
+                    }
+                    if (input.Equals("/back", StringComparison.OrdinalIgnoreCase))
+                    {
+                        SystemMessageRelay.RelayMessage("command: \"/back\"", group: MessageRelayGroup, indent: Indent.DecrementNext);
+                        ConsoleNavigation.BackoutRoutine();
+                    }
+                }
+
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return input;
+            }
+        }
+
+        /// <summary>
+        /// Prompts for console input of a value type (e.g. <c>int</c>).  
+        /// Accepts certain commands by default i.e. '/exit' and '/back'.
+        /// Leading and trailing whitespace is trimmed before converting to <c>T</c> and blanks are converted to <c>null</c>s.
         /// Client code may wrap this call in try-block to handle <see cref="ConsoleNavigation.CancelInputPromptException" />.
         /// </summary>
         /// <typeparam name="T">A runtime type.</typeparam>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="parser">A required text-to-value converter.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="parser">A required text-to-value converter.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="dateTimeStyle">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="dateTimeStyle">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
+        /// <param name="dateFormat">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the exact date/time format.</param>
         /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
         /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
         /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
         /// <param name="encoding">Applies to <c>To&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
-        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
         /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
-        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.  Must throw <c>AssertionFailedException</c> if validation fails.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
         /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
         /// <exception cref="ConversionException"></exception>
@@ -341,18 +367,18 @@ namespace Horseshoe.NET.ConsoleX
         (
             string prompt,
             PromptType promptType = PromptType.Auto,
-            Func<string,T> parser = null,
             bool required = false,
-            T quickValue = default,
+            Func<string, T> parser = null,
+            T? quickValue = null,
             T defaultValue = default,
-            DateTimeStyles? dateTimeStyle = null,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
+            DateTimeStyles? dateTimeStyle = null,
+            string dateFormat = null,
             string locale = null,
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
             Encoding encoding = null,
-            Type inheritedType = null,
             bool ignoreCase = false,
             Action<T> validator = null,
             bool suppressRequiredPrompt = false,
@@ -360,92 +386,378 @@ namespace Horseshoe.NET.ConsoleX
             bool suppressCommands = false,
             string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
+            int padAfter = 0
+        ) where T : struct
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.Value<T>()");
-            journal.Level++;
-
-            // do stuff
-            string input;
-            T value;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             while (true)
             {
-                input = RawConsoleInput
+                var input = _String
                 (
                     prompt,
-                    promptType: promptType,
-                    required: required,
-                    quickValue: quickValue,
-                    defaultValue: defaultValue,
-                    suppressRequiredPrompt: suppressRequiredPrompt,
-                    suppressEcho: suppressEcho,
-                    requiredMessage: requiredMessage,
-                    padBefore: padBefore,
-                    padAfter: padAfter,
-                    journal: journal
-                ).Trim();
+                    promptType,
+                    required,
+                    requiredMessage,
+                    suppressRequiredPrompt,
+                    suppressCommands,
+                    padBefore,
+                    padAfter
+                );
 
-                // use quick value or return null, if applicable
-                if (input.Length == 0) // if required, and no quick value was supplied, length will not equal 0
-                {
-                    // finalize
-                    journal.Level--;
+                T value;
 
-                    return quickValue;  // quick value or, simply, null
-                }
-
-                // process commands, if applicable
-                if (!suppressCommands)
-                {
-                    if (input.Trim().Equals("/exit", StringComparison.CurrentCultureIgnoreCase))
-                        Environment.Exit(0);
-                    if (input.Trim().Equals("/back", StringComparison.CurrentCultureIgnoreCase))
-                        ConsoleNavigation.BackoutRoutine();
-                }
-
-                // parse
-                value = parser != null
-                    ? parser.Invoke(input)
-                    : Zap.To<T>(input, dateTimeStyle: dateTimeStyle, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
-
-                // validate input, if applicable
                 try
                 {
-                    validator?.Invoke(value);
-                    break;
+                    if (input == null)
+                    {
+                        // use quick value, if applicable
+                        if (quickValue.HasValue)
+                        {
+                            SystemMessageRelay.RelayMessage("applying quick value: " + ValueUtil.Display(quickValue), group: MessageRelayGroup);
+                            if (!suppressEcho)
+                            {
+                                Console.WriteLine(quickValue);
+                            }
+                            return quickValue.Value;
+                        }
+
+                        if (required)
+                        {
+                            throw new ThisShouldNeverHappenException("This required input is null");
+                        }
+
+                        // fall back to default value (will run through the validator)
+                        value = defaultValue;
+                    }
+                    else
+                    {
+                        // parse value
+                        value = parser != null
+                            ? parser.Invoke(input)
+                            : Zap.To<T>(input, numberStyle: numberStyle, provider: provider, dateTimeStyle: dateTimeStyle, dateFormat: dateFormat, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, ignoreCase: ignoreCase);
+                    }
+
+                    // validate input, if applicable
+                    if (validator != null)
+                    {
+                        SystemMessageRelay.RelayMessage("validating...", group: MessageRelayGroup);
+                        validator.Invoke(value);
+                        SystemMessageRelay.RelayMessage("validation successful", group: MessageRelayGroup);
+                    }
+
+                    SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+                    return value;
+                }
+                catch (ConversionException ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    RenderX.Alert(ex.Message);
+                    throw;
                 }
                 catch (AssertionFailedException ex)
                 {
-                    RenderX.Alert(ex.Message.Replace(AssertionFailedException.MESSAGE_PREFIX + ": ", ""));
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    SystemMessageRelay.RelayMessage("retrying...", group: MessageRelayGroup);
+                    RenderX.Alert(ex.Message.Replace(AssertionConstants.EXCEPTION_MESSAGE_PREFIX, ""));
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    SystemMessageRelay.RelayMessage("retrying...", group: MessageRelayGroup);
+                    RenderX.Alert(ex.Message);
+                    continue;
                 }
             }
-
-            // finalize
-            journal.Level--;
-            return value;
         }
 
         /// <summary>
-        /// Prompts for console input of type <c>string</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// Strings are zapped (whitespace trimmed and then blank converts to <c>null</c>).
+        /// Prompts for console input of a nullable value type (e.g. <c>int?</c>).  
+        /// Accepts certain commands by default i.e. '/exit' and '/back'.
+        /// Leading and trailing whitespace is trimmed before converting to <c>T?</c> and blanks are converted to <c>null</c>s.
+        /// Validators are not executed when the return value is <c>null</c>.
+        /// Client code may wrap this call in try-block to handle <see cref="ConsoleNavigation.CancelInputPromptException" />.
         /// </summary>
+        /// <typeparam name="T">A value type.</typeparam>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
-        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="parser">A required text-to-value converter.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="dateTimeStyle">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
+        /// <param name="dateFormat">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the exact date/time format.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
+        /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
+        /// <param name="encoding">Applies to <c>To&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
+        /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.  Must throw <c>AssertionFailedException</c> if validation fails.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
         /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        /// <exception cref="ConversionException"></exception>
+        public static T? NValue<T>
+        (
+            string prompt,
+            PromptType promptType = PromptType.Auto,
+            bool required = false,
+            Func<string, T> parser = null,
+            T? quickValue = null,
+            T? defaultValue = default,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            DateTimeStyles? dateTimeStyle = null,
+            string dateFormat = null,
+            string locale = null,
+            string trueValues = "y|yes|t|true|1",
+            string falseValues = "n|no|f|false|0",
+            Encoding encoding = null,
+            bool ignoreCase = false,
+            Action<T> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        ) where T : struct
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            while (true)
+            {
+                var input = _String
+                (
+                    prompt,
+                    promptType,
+                    required,
+                    requiredMessage,
+                    suppressRequiredPrompt,
+                    suppressCommands,
+                    padBefore,
+                    padAfter
+                );
+
+                T value;
+
+                try
+                {
+                    if (input == null)
+                    {
+                        // use quick value, if applicable
+                        if (quickValue.HasValue)
+                        {
+                            SystemMessageRelay.RelayMessage("applying quick value: " + ValueUtil.Display(quickValue), group: MessageRelayGroup);
+                            if (!suppressEcho)
+                            {
+                                Console.WriteLine(quickValue);
+                            }
+                            return quickValue.Value;
+                        }
+
+                        if (required)
+                        {
+                            throw new ThisShouldNeverHappenException("This required input is null");
+                        }
+
+                        // fall back to default value, which may be null (otherwise will run through the validator)
+                        if (!defaultValue.HasValue)
+                            return null;
+                        value = defaultValue.Value;
+                    }
+                    else
+                    {
+                        // parse value
+                        value = parser != null
+                            ? parser.Invoke(input)
+                            : Zap.To<T>(input, numberStyle: numberStyle, provider: provider, dateTimeStyle: dateTimeStyle, dateFormat: dateFormat, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, ignoreCase: ignoreCase);
+                    }
+
+                    // validate input, if applicable
+                    if (validator != null)
+                    {
+                        SystemMessageRelay.RelayMessage("validating...", group: MessageRelayGroup);
+                        validator.Invoke(value);
+                        SystemMessageRelay.RelayMessage("validation successful", group: MessageRelayGroup);
+                    }
+
+                    SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+                    return value;
+                }
+                catch (ConversionException ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    RenderX.Alert(ex.Message);
+                    throw;
+                }
+                catch (AssertionFailedException ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    SystemMessageRelay.RelayMessage("retrying...", group: MessageRelayGroup);
+                    RenderX.Alert(ex.Message.Replace(AssertionConstants.EXCEPTION_MESSAGE_PREFIX, ""));
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    SystemMessageRelay.RelayMessage("retrying...", group: MessageRelayGroup);
+                    RenderX.Alert(ex.Message);
+                    continue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prompts for console input of a reference type (e.g. <c>string</c>).  
+        /// Accepts certain commands by default i.e. '/exit' and '/back'.
+        /// Leading and trailing whitespace is trimmed before converting to <c>T</c> and blanks are converted to <c>null</c>s.
+        /// Validators are not executed when the return value is <c>null</c>.
+        /// Client code may wrap this call in try-block to handle <see cref="ConsoleNavigation.CancelInputPromptException" />.
+        /// </summary>
+        /// <typeparam name="T">A reference type.</typeparam>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="parser">A required text-to-value converter.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.  Must throw <c>AssertionFailedException</c> if validation fails.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        /// <exception cref="ConversionException"></exception>
+        public static T Value<T>
+        (
+            string prompt,
+            PromptType promptType = PromptType.Auto,
+            bool required = false,
+            Func<string, T> parser = null,
+            T quickValue = null,
+            T defaultValue = null,
+            Action<T> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        ) where T : class
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            while (true)
+            {
+                var input = _String
+                (
+                    prompt,
+                    promptType,
+                    required,
+                    requiredMessage,
+                    suppressRequiredPrompt,
+                    suppressCommands,
+                    padBefore,
+                    padAfter
+                );
+
+                T value;
+
+                try
+                {
+                    if (input == null)
+                    {
+                        // use quick value, if applicable
+                        if (quickValue != null)
+                        {
+                            SystemMessageRelay.RelayMessage("applying quick value: " + ValueUtil.Display(quickValue), group: MessageRelayGroup);
+                            if (!suppressEcho)
+                            {
+                                Console.WriteLine(quickValue);
+                            }
+                            return quickValue;
+                        }
+
+                        if (required)
+                        {
+                            throw new ThisShouldNeverHappenException("This required input is null");
+                        }
+
+                        // fall back to default value, which may be null (otherwise will run through the validator)
+                        if (defaultValue == null)
+                            return null;
+                        value = defaultValue;
+                    }
+                    else
+                    {
+                        // parse value
+                        value = parser != null
+                            ? parser.Invoke(input)
+                            : Zap.To<T>(input);
+                    }
+
+                    // validate input, if applicable
+                    if (validator != null)
+                    {
+                        SystemMessageRelay.RelayMessage("validating...", group: MessageRelayGroup);
+                        validator.Invoke(value);
+                        SystemMessageRelay.RelayMessage("validation successful", group: MessageRelayGroup);
+                    }
+
+                    SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+                    return value;
+                }
+                catch (ConversionException ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    RenderX.Alert(ex.Message);
+                    throw;
+                }
+                catch (AssertionFailedException ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    SystemMessageRelay.RelayMessage("retrying...", group: MessageRelayGroup);
+                    RenderX.Alert(ex.Message.Replace(AssertionConstants.EXCEPTION_MESSAGE_PREFIX, ""));
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                    SystemMessageRelay.RelayMessage("retrying...", group: MessageRelayGroup);
+                    RenderX.Alert(ex.Message);
+                    continue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prompts for console input of type <c>string</c> (shortcut for <c>Value&lt;string&gt;()</c>).
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Strings are zapped (whitespace trimmed and then blank converts to <c>null</c>).
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
         public static string String
@@ -453,23 +765,18 @@ namespace Horseshoe.NET.ConsoleX
             string prompt,
             PromptType promptType = PromptType.Auto,
             bool required = false,
+            string requiredMessage = "Input is required.",
             string quickValue = null,
             Action<string> validator = null,
             bool suppressRequiredPrompt = false,
             bool suppressEcho = false,
             bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.String()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
             var value = Value
             (
                 prompt,
@@ -482,33 +789,32 @@ namespace Horseshoe.NET.ConsoleX
                 suppressCommands: suppressCommands,
                 requiredMessage: requiredMessage,
                 padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
+                padAfter: padAfter
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
             return value;
         }
 
         /// <summary>
-        /// Prompts for console input of type <c>int?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Prompts for console input of type <c>int?</c> (shortcut for <c>NValue&lt;int&gt;()</c>).
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input, default is <c>null</c>.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
         /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
         /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
         /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
         public static int? NInt
@@ -517,77 +823,7 @@ namespace Horseshoe.NET.ConsoleX
             PromptType promptType = PromptType.Auto,
             bool required = false,
             int? quickValue = null,
-            NumberStyles? numberStyle = null,
-            IFormatProvider provider = null,
-            string locale = null,
-            Action<int?> validator = null,
-            bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
-            int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.NInt()");
-            journal.Level++;
-
-            // do stuff
-            var value = Value
-            (
-                prompt,
-                promptType: promptType,
-                required: required,
-                quickValue: quickValue,
-                numberStyle: numberStyle,  // numeric formatting
-                provider: provider,        // numeric formatting
-                locale: locale,            // numeric formatting
-                validator: validator,
-                suppressEcho: suppressEcho,
-                suppressRequiredPrompt: suppressRequiredPrompt,
-                suppressCommands: suppressCommands,
-                requiredMessage: requiredMessage,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
-
-            // finalize
-            journal.Level--;
-            return value;
-        }
-
-        /// <summary>
-        /// Prompts for console input of type <c>int</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// </summary>
-        /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
-        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
-        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
-        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
-        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
-        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
-        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
-        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <returns>The value input by the user.</returns>
-        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static int Int
-        (
-            string prompt,
-            PromptType promptType = PromptType.Auto,
-            bool required = false,
-            int defaultValue = default,
-            int? quickValue = null,
+            int? defaultValue = null,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
             string locale = null,
@@ -597,67 +833,118 @@ namespace Horseshoe.NET.ConsoleX
             bool suppressCommands = false,
             string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.Int()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
-            var nValue = NInt
+            var value = NValue
             (
                 prompt,
                 promptType: promptType,
                 required: required,
                 quickValue: quickValue,
+                defaultValue: defaultValue,
                 numberStyle: numberStyle,  // numeric formatting
                 provider: provider,        // numeric formatting
                 locale: locale,            // numeric formatting
-                validator: convertValidator(validator),
+                validator: validator,
                 suppressEcho: suppressEcho,
                 suppressRequiredPrompt: suppressRequiredPrompt,
                 suppressCommands: suppressCommands,
                 requiredMessage: requiredMessage,
                 padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
+                padAfter: padAfter
             );
 
-            Action<int?> convertValidator(Action<int> _validator)
-            {
-                if(_validator != null)
-                {
-                    return (nNum) => _validator.Invoke(nNum ?? defaultValue);
-                }
-                return null;
-            }
-
-            // finalize
-            journal.Level--;
-            return nValue ?? defaultValue;
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
         }
 
         /// <summary>
-        /// Prompts for console input of type <c>double?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Prompts for console input of type <c>int</c> (shortcut for <c>Value&lt;int&gt;()</c>). 
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
         /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
         /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
         /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static int Int
+        (
+            string prompt,
+            PromptType promptType = PromptType.Auto,
+            bool required = false,
+            int? quickValue = null,
+            int defaultValue = default,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            Action<int> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var value = Value
+            (
+                prompt,
+                promptType: promptType,
+                required: required,
+                quickValue: quickValue,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
+                suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                suppressCommands: suppressCommands,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
+        }
+
+        /// <summary>
+        /// Prompts for console input of type <c>double?</c> (shortcut for <c>NValue&lt;double&gt;()</c>).
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input, default is <c>null</c>.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
         public static double? NDouble
@@ -666,77 +953,7 @@ namespace Horseshoe.NET.ConsoleX
             PromptType promptType = PromptType.Auto,
             bool required = false,
             double? quickValue = null,
-            NumberStyles? numberStyle = null,
-            IFormatProvider provider = null,
-            string locale = null,
-            Action<double?> validator = null,
-            bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
-            int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.NDouble()");
-            journal.Level++;
-
-            // do stuff
-            var value = Value
-            (
-                prompt,
-                promptType: promptType,
-                required: required,
-                quickValue: quickValue,
-                numberStyle: numberStyle,  // numeric formatting
-                provider: provider,        // numeric formatting
-                locale: locale,            // numeric formatting
-                validator: validator,
-                suppressRequiredPrompt: suppressRequiredPrompt,
-                suppressEcho: suppressEcho,
-                suppressCommands: suppressCommands,
-                requiredMessage: requiredMessage,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
-
-            // finalize
-            journal.Level--;
-            return value;
-        }
-
-        /// <summary>
-        /// Prompts for console input of type <c>double</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// </summary>
-        /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
-        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
-        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
-        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
-        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
-        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
-        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
-        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <returns>The value input by the user.</returns>
-        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static double Double
-        (
-            string prompt,
-            PromptType promptType = PromptType.Auto,
-            bool required = false,
-            double defaultValue = default,
-            double? quickValue = null,
+            double? defaultValue = null,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
             string locale = null,
@@ -746,67 +963,118 @@ namespace Horseshoe.NET.ConsoleX
             bool suppressCommands = false,
             string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.Double()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
-            var nValue = NDouble
+            var value = NValue
             (
                 prompt,
                 promptType: promptType,
                 required: required,
                 quickValue: quickValue,
+                defaultValue: defaultValue,
                 numberStyle: numberStyle,  // numeric formatting
                 provider: provider,        // numeric formatting
                 locale: locale,            // numeric formatting
-                validator: convertValidator(validator),
-                suppressRequiredPrompt: suppressRequiredPrompt,
+                validator: validator,
                 suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
                 suppressCommands: suppressCommands,
                 requiredMessage: requiredMessage,
                 padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
+                padAfter: padAfter
             );
 
-            Action<double?> convertValidator(Action<double> _validator)
-            {
-                if (_validator != null)
-                {
-                    return (nNum) => _validator.Invoke(nNum ?? defaultValue);
-                }
-                return null;
-            }
-
-            // finalize
-            journal.Level--;
-            return nValue ?? defaultValue;
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
         }
 
         /// <summary>
-        /// Prompts for console input of type <c>decimal?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Prompts for console input of type <c>double</c> (shortcut for <c>Value&lt;double&gt;()</c>). 
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
         /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
         /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
         /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static double Double
+        (
+            string prompt,
+            PromptType promptType = PromptType.Auto,
+            bool required = false,
+            double? quickValue = null,
+            double defaultValue = default,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            Action<double> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var value = Value
+            (
+                prompt,
+                promptType: promptType,
+                required: required,
+                quickValue: quickValue,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
+                suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                suppressCommands: suppressCommands,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
+        }
+
+        /// <summary>
+        /// Prompts for console input of type <c>decimal?</c> (shortcut for <c>NValue&lt;decimal&gt;()</c>).
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input, default is <c>null</c>.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
         public static decimal? NDecimal
@@ -815,77 +1083,7 @@ namespace Horseshoe.NET.ConsoleX
             PromptType promptType = PromptType.Auto,
             bool required = false,
             decimal? quickValue = null,
-            NumberStyles? numberStyle = null,
-            IFormatProvider provider = null,
-            string locale = null,
-            Action<decimal?> validator = null,
-            bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
-            int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.NDecimal()");
-            journal.Level++;
-
-            // do stuff
-            var value = Value
-            (
-                prompt,
-                promptType: promptType,
-                required: required,
-                quickValue: quickValue,
-                numberStyle: numberStyle,  // numeric formatting
-                provider: provider,        // numeric formatting
-                locale: locale,            // numeric formatting
-                validator: validator,
-                suppressRequiredPrompt: suppressRequiredPrompt,
-                suppressEcho: suppressEcho,
-                suppressCommands: suppressCommands,
-                requiredMessage: requiredMessage,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
-
-            // finalize
-            journal.Level--;
-            return value;
-        }
-
-        /// <summary>
-        /// Prompts for console input of type <c>decimal</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// </summary>
-        /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
-        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
-        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
-        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
-        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
-        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
-        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
-        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <returns>The value input by the user.</returns>
-        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static decimal Decimal
-        (
-            string prompt,
-            PromptType promptType = PromptType.Auto,
-            bool required = false,
-            decimal defaultValue = default,
-            decimal? quickValue = null,
+            decimal? defaultValue = null,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
             string locale = null,
@@ -895,199 +1093,118 @@ namespace Horseshoe.NET.ConsoleX
             bool suppressCommands = false,
             string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.Decimal()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
-            var nValue = NDecimal
+            var value = NValue
             (
                 prompt,
                 promptType: promptType,
                 required: required,
                 quickValue: quickValue,
+                defaultValue: defaultValue,
                 numberStyle: numberStyle,  // numeric formatting
                 provider: provider,        // numeric formatting
                 locale: locale,            // numeric formatting
-                validator: convertValidator(validator),
-                suppressRequiredPrompt: suppressRequiredPrompt,
+                validator: validator,
                 suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
                 suppressCommands: suppressCommands,
                 requiredMessage: requiredMessage,
                 padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
+                padAfter: padAfter
             );
 
-            Action<decimal?> convertValidator(Action<decimal> _validator)
-            {
-                if (_validator != null)
-                {
-                    return (nInt) => _validator.Invoke(nInt ?? defaultValue);
-                }
-                return null;
-            }
-
-            // finalize
-            journal.Level--;
-            return nValue ?? defaultValue;
-        }
-
-        /// <summary>
-        /// Prompts for console input of type <c>bool?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// </summary>
-        /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
-        /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
-        /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
-        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
-        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
-        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <returns>The value input by the user.</returns>
-        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static bool? NBool
-        (
-            string prompt,
-            PromptType promptType = PromptType.Bool,
-            bool required = false,
-             //bool? quickValue = null,
-            bool? defaultValue = null,
-            string trueValues = "y|yes|t|true|1",
-            string falseValues = "n|no|f|false|0",
-            bool ignoreCase = false,
-            bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
-            int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.NBool()");
-            journal.Level++;
-
-            // do stuff
-            var value = Value
-            (
-                prompt,
-                promptType: promptType,
-                required: required,
-                defaultValue: defaultValue,
-                trueValues: trueValues,
-                falseValues: falseValues,
-                ignoreCase: ignoreCase,
-                suppressRequiredPrompt: suppressRequiredPrompt,
-                suppressEcho: suppressEcho,
-                suppressCommands: suppressCommands,
-                requiredMessage: requiredMessage,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
-
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
             return value;
         }
 
         /// <summary>
-        /// Prompts for console input of type <c>bool</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Prompts for console input of type <c>decimal</c> (shortcut for <c>Value&lt;decimal&gt;()</c>). 
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
         /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
-        /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
-        /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
-        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
-        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
-        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <returns>The value input by the user.</returns>
-        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static bool Bool
-        (
-            string prompt,
-            PromptType promptType = PromptType.Bool,
-            bool required = false,
-            bool defaultValue = default,
-            string trueValues = "y|yes|t|true|1",
-            string falseValues = "n|no|f|false|0",
-            bool ignoreCase = false,
-            bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
-            int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.Bool()");
-            journal.Level++;
-
-            // do stuff
-            var nValue = NBool
-            (
-                prompt,
-                promptType: promptType,
-                required: required,
-                defaultValue: defaultValue,
-                trueValues: trueValues,
-                falseValues: falseValues,
-                ignoreCase: ignoreCase,
-                suppressRequiredPrompt: suppressRequiredPrompt,
-                suppressEcho: suppressEcho,
-                suppressCommands: suppressCommands,
-                requiredMessage: requiredMessage,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
-
-            // finalize
-            journal.Level--;
-            return nValue ?? defaultValue;
-        }
-
-        /// <summary>
-        /// Prompts for console input of type <c>DateTime?</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// </summary>
-        /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
         /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
         /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
         /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static decimal Decimal
+        (
+            string prompt,
+            PromptType promptType = PromptType.Auto,
+            bool required = false,
+            decimal? quickValue = null,
+            decimal defaultValue = default,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            Action<decimal> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var value = Value
+            (
+                prompt,
+                promptType: promptType,
+                required: required,
+                quickValue: quickValue,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
+                suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                suppressCommands: suppressCommands,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
+        }
+
+        /// <summary>
+        /// Prompts for console input of type <c>DateTime?</c> (shortcut for <c>NValue&lt;DateTime&gt;()</c>).
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input, default is <c>null</c>.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
         /// <returns>The value input by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
         public static DateTime? NDateTime
@@ -1096,74 +1213,8 @@ namespace Horseshoe.NET.ConsoleX
             PromptType promptType = PromptType.Auto,
             bool required = false,
             DateTime? quickValue = null,
-            IFormatProvider provider = null,
-            string locale = null,
-            Action<DateTime?> validator = null,
-            bool suppressRequiredPrompt = false,
-            bool suppressEcho = false,
-            bool suppressCommands = false,
-            string requiredMessage = "Input is required.",
-            int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
-        )
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.NDateTime()");
-            journal.Level++;
-
-            // do stuff
-            var value = Value
-            (
-                prompt,
-                promptType: promptType,
-                required: required,
-                quickValue: quickValue,
-                provider: provider,        // date formatting
-                locale: locale,            // date formatting
-                validator: validator,
-                suppressRequiredPrompt: suppressRequiredPrompt,
-                suppressEcho: suppressEcho,
-                suppressCommands: suppressCommands,
-                requiredMessage: requiredMessage,
-                padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
-            );
-
-            // finalize
-            journal.Level--;
-            return value;
-        }
-
-        /// <summary>
-        /// Prompts for console input of type <c>DateTime</c>.  Accepts certain commands i.e. '/exit' and '/back' by default.
-        /// </summary>
-        /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="defaultValue">The value to use in case of blank input.</param>
-        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter' or 'Return'.</param>
-        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
-        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
-        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
-        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
-        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
-        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like 'exit'.</param>
-        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
-        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
-        /// <returns>The value input by the user.</returns>
-        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static DateTime DateTime
-        (
-            string prompt,
-            PromptType promptType = PromptType.Auto,
-            bool required = false,
-            DateTime defaultValue = default,
-            DateTime? quickValue = null,
+            DateTime? defaultValue = null,
+            NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
             string locale = null,
             Action<DateTime> validator = null,
@@ -1172,50 +1223,270 @@ namespace Horseshoe.NET.ConsoleX
             bool suppressCommands = false,
             string requiredMessage = "Input is required.",
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.DateTime()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
-            var nValue = NDateTime
+            var value = NValue
             (
                 prompt,
                 promptType: promptType,
                 required: required,
                 quickValue: quickValue,
-                provider: provider,        // date formatting
-                locale: locale,            // date formatting
-                validator: convertValidator(validator),
-                suppressRequiredPrompt: suppressRequiredPrompt,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
                 suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
                 suppressCommands: suppressCommands,
                 requiredMessage: requiredMessage,
                 padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
+                padAfter: padAfter
             );
 
-            Action<DateTime?> convertValidator(Action<DateTime> _validator)
-            {
-                if (_validator != null)
-                {
-                    return (nDate) => _validator.Invoke(nDate ?? defaultValue);
-                }
-                return null;
-            }
-
-            // finalize
-            journal.Level--;
-            return nValue ?? defaultValue;
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
         }
 
         /// <summary>
-        /// Prompts for <c>enum</c> value. Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// Prompts for console input of type <c>DateTime</c> (shortcut for <c>Value&lt;DateTime&gt;()</c>). 
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static DateTime DateTime
+        (
+            string prompt,
+            PromptType promptType = PromptType.Auto,
+            bool required = false,
+            DateTime? quickValue = null,
+            DateTime defaultValue = default,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            Action<DateTime> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var value = Value
+            (
+                prompt,
+                promptType: promptType,
+                required: required,
+                quickValue: quickValue,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
+                suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                suppressCommands: suppressCommands,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
+        }
+
+        /// <summary>
+        /// Prompts for console input of type <c>bool?</c> (shortcut for <c>NValue&lt;bool&gt;()</c>).
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input, default is <c>null</c>.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static bool? NBool
+        (
+            string prompt,
+            PromptType promptType = PromptType.Bool,
+            bool required = false,
+            bool? quickValue = null,
+            bool? defaultValue = null,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            Action<bool> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var value = NValue
+            (
+                prompt,
+                promptType: promptType,
+                required: required,
+                quickValue: quickValue,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
+                suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                suppressCommands: suppressCommands,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
+        }
+
+        /// <summary>
+        /// Prompts for console input of type <c>bool</c> (shortcut for <c>Value&lt;bool&gt;()</c>). 
+        /// Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <param name="prompt">The text to render at the prompt.</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="quickValue">An optional common or predictive value that may be entered by the user simply pressing 'Enter'.</param>
+        /// <param name="defaultValue">The value to use in case of blank input.</param>
+        /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
+        /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="validator">An optional validation routine to be run on the parsed input value.</param>
+        /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
+        /// <param name="suppressEcho">Instructs the console to not print the quick value if selected.</param>
+        /// <param name="suppressCommands">Instucts the console to ignore, rather than process, commands like '/exit'.</param>
+        /// <param name="requiredMessage">The alert to display if a required value is not supplied.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The value input by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static bool Bool
+        (
+            string prompt,
+            PromptType promptType = PromptType.Bool,
+            bool required = false,
+            bool? quickValue = null,
+            bool defaultValue = default,
+            NumberStyles? numberStyle = null,
+            IFormatProvider provider = null,
+            string locale = null,
+            Action<bool> validator = null,
+            bool suppressRequiredPrompt = false,
+            bool suppressEcho = false,
+            bool suppressCommands = false,
+            string requiredMessage = "Input is required.",
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var value = Value
+            (
+                prompt,
+                promptType: promptType,
+                required: required,
+                quickValue: quickValue,
+                defaultValue: defaultValue,
+                numberStyle: numberStyle,  // numeric formatting
+                provider: provider,        // numeric formatting
+                locale: locale,            // numeric formatting
+                validator: validator,
+                suppressEcho: suppressEcho,
+                suppressRequiredPrompt: suppressRequiredPrompt,
+                suppressCommands: suppressCommands,
+                requiredMessage: requiredMessage,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+
+            SystemMessageRelay.RelayMethodReturnValue(value, group: MessageRelayGroup);
+            return value;
+        }
+
+        /// <summary>
+        /// Prompts for an <c>enum</c> value. Accepts certain commands i.e. '/exit' and '/back' by default.
+        /// </summary>
+        /// <typeparam name="T">An enum type.</typeparam>
+        /// <param name="defaultValue">An optional default value to use if <c>null</c> selection since this method cannot return <c>null</c>.</param>
+        /// <param name="title">An optional list title.</param>
+        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="only">Restrict the list of choices to these <c>enum</c> values, if supplied.</param>
+        /// <param name="except">Omit these <c>enum</c> values from the list of choices.</param>
+        /// <param name="padBefore">The number of new lines to render before the prompt.</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The <c>enum</c> selected by the user.</returns>
+        /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
+        public static T Enum<T>
+        (
+            T defaultValue = default,
+            Title? title = null,
+            bool required = false,
+            IEnumerable<T> only = null,
+            IEnumerable<T> except = null,
+            int padBefore = 0,
+            int padAfter = 0
+        ) where T : struct, Enum
+        {
+            var selection = NEnumInternal
+            (
+                title: title,
+                required: required,
+                nullable: false,
+                only: only,
+                except: except,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+            if (selection == null)
+                return defaultValue;
+            return (T)selection;
+        }
+
+        /// <summary>
+        /// Prompts for a nullable <c>enum</c> value. Accepts certain commands i.e. '/exit' and '/back' by default.
         /// </summary>
         /// <typeparam name="T">An enum type.</typeparam>
         /// <param name="title">An optional list title.</param>
@@ -1224,59 +1495,111 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="except">Omit these <c>enum</c> values from the list of choices.</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <returns>The value selected by the user.</returns>
+        /// <returns>The nullable <c>enum</c> selected by the user.</returns>
         /// <exception cref="ConsoleNavigation.BackoutRoutineException"></exception>
-        public static T Enum<T>
+        public static T? NEnum<T>
         (
-            Title? title = null, 
+            Title? title = null,
             bool required = false,
             IEnumerable<T> only = null,
             IEnumerable<T> except = null,
-            int padBefore = 0, 
+            int padBefore = 0,
             int padAfter = 0
-        )
+        ) where T : struct, Enum
         {
-            // validation
-            if (!typeof(T).IsEnumType())
-                throw new ValidationException("Not an enum type: " + typeof(T).FullName);
+            return NEnumInternal
+            (
+                title: title,
+                required: required,
+                nullable: true,
+                only: only,
+                except: except,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
+        }
 
-            // transform to non-nullable
-            Type enumTypeForList = typeof(T);
-            if (typeof(T).TryGetUnderlyingType(out Type underlyingType))
-                enumTypeForList = underlyingType;
+        private static T? NEnumInternal<T>
+        (
+            Title? title,
+            bool required,
+            bool nullable,
+            IEnumerable<T> only,
+            IEnumerable<T> except,
+            int padBefore,
+            int padAfter
+        ) where T : struct, Enum
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // prepare variables
-            T choice = default;
-            var enumValues = System.Enum.GetValues(enumTypeForList)
-                .Cast<T>();
-            if (only != null)
-                enumValues = enumValues.Where(e => e.In(only));
-            else if (except != null)
-                enumValues = enumValues.Where(e => !e.In(except));
+            Type type = typeof(T);
+
+            //// handle nullable - not relevant when type constraints include struct
+            //bool nullable = false;
+            //if (type.TryGetUnderlyingType(out Type underlyingType))
+            //{
+            //    nullable = true;
+            //    type = underlyingType;
+            //}
+
+            SystemMessageRelay.RelayMethodParams
+            (
+                DictionaryUtil.From<string, object>("T", DotnetUtil.GetSourceCodeFormattedName(type))
+                    .AppendRTL(nameof(title), title)
+                    .AppendRTL(nameof(required), required),
+                group: MessageRelayGroup
+            );
+
+            //// validation - not needed if type constraints include Enum
+            //if (!typeof(T).IsEnumType())
+            //{
+            //    var vex = new ValidationException("Not an enum type: " + typeof(T).FullName);
+            //    SystemMessageRelay.RelayException(vex, group: MessageRelayGroup);
+            //    throw vex;
+            //}
 
             // create / configure custom menu
             if (title == null)
             {
-                title = enumTypeForList.Name + (required ? " (required)" : "");
+                title = type.Name;
             }
-            else if (required)
+            if (required)
             {
                 title += " (required)";
             }
 
-            // create / customize menu
-            var customItems = enumValues
-                .Select(e => RoutineX.BuildCustomRoutine(e.ToString(), () => choice = e, ((int)(object)e).ToString()) as MenuObject)
-                .ToList();
+            // prepare variables
+            T? choice = null;
+            var enumValues = only != null && only.Any() 
+                ? only 
+                : System.Enum.GetValues(type).Cast<T>();
+            if (except != null)
+                enumValues = enumValues.Where(e => !e.In(except));
 
-            if (underlyingType != null)
-            {
-                customItems.Insert(0, RoutineX.BuildCustomRoutine("Press 'Enter' for null...", () => { }));
-            }
+            // create / customize menu
+            var customMenuItems = ListUtil.AppendIf
+            (
+                enumValues.Select(e => RoutineX.BuildCustomRoutine
+                (
+                    e.ToString() + (Equals(e, default(T)) ? " (default)" : ""), 
+                    () => choice = e, 
+                    command: ((int)(object)e).ToString()) as MenuObject
+                ),
+                nullable && !required, 
+                RoutineX.BuildCustomRoutine(TextConstants.Null, () => { /* do nothing - choice remains null */ }, command: "N")
+            );
 
             // prompt custom menu for choice selection
-            var menuSelection = Menu(null as IEnumerable<T>, customItemsToAppend: customItems, title: title, padBefore: padBefore, padAfter: padAfter);
+            var menuSelection = Menu
+            (
+                null as IEnumerable<T>,
+                customItemsToAppend: customMenuItems,
+                title: title,
+                padBefore: padBefore,
+                padAfter: padAfter
+            );
 
+            SystemMessageRelay.RelayMethodReturnValue(choice, group: MessageRelayGroup);
             return choice;
         }
 
@@ -1319,48 +1642,47 @@ namespace Horseshoe.NET.ConsoleX
         /// <summary>
         /// Prompts a user to securely enter a password.
         /// </summary>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static string Password
         (
             PromptType promptType = PromptType.Auto,
             bool required = false,
             bool suppressRequiredPrompt = false,
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            return Password
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var password = Password
             (
                 "password",
                 promptType: promptType,
                 required: required,
                 suppressRequiredPrompt: suppressRequiredPrompt,
                 padBefore: padBefore,
-                padAfter: padAfter,
-                journal: journal
+                padAfter: padAfter
             );
+
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+            return password;
         }
 
         /// <summary>
         /// Prompts a user to securely enter a password.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static string Password
         (
             string prompt,
@@ -1368,26 +1690,19 @@ namespace Horseshoe.NET.ConsoleX
             bool required = false,
             bool suppressRequiredPrompt = false,
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.Password()");
-            journal.Level++;
-
-            // do stuff
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             RenderX.Pad(padBefore);
 
             RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt);
-            var password = _Keystrokes('*', null, journal);
+            var password = _Keystrokes('*');
 
             RenderX.Pad(padAfter);
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(new string('*', password.Length), group: MessageRelayGroup);
             return password;
         }
 
@@ -1395,14 +1710,12 @@ namespace Horseshoe.NET.ConsoleX
         /// Prompts a user to securely enter a secure password.
         /// </summary>
         /// <param name="prompt">The text to render at the prompt.</param>
-        /// <param name="promptType">Ways <c>ConsoleX</c> can render an input prompt</param>
+        /// <param name="promptType">How<c>ConsoleX</c> should render the input prompt</param>
         /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
         /// <param name="suppressRequiredPrompt">Instructs the console to not label the prompt as "(required)".</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <param name="journal">A trace journal to which steps within complex methods can be logged.</param>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static SecureString SecurePassword
         (
             string prompt,
@@ -1410,129 +1723,39 @@ namespace Horseshoe.NET.ConsoleX
             bool required = false,
             bool suppressRequiredPrompt = false,
             int padBefore = 0,
-            int padAfter = 0,
-            TraceJournal journal = null
+            int padAfter = 0
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("PromptX.SecurePassword()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // do stuff
             var secureString = new SecureString();
 
             RenderX.Pad(padBefore);
 
             RenderX.Prompt(prompt, promptType: promptType, required: required && !suppressRequiredPrompt);
-            var buf = _BufferedKeystrokes('*', null, journal);
+            var buf = _BufferedKeystrokes('*');
             for (int i = 0; i < buf.Count; i++)
             {
                 secureString.AppendChar(buf[i]);
-                buf[i] = '\0';
+                buf[i] = '\0';   // zero out the buffer as the secure string is built
             }
             secureString.MakeReadOnly();
 
             RenderX.Pad(padAfter);
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(new string('*', buf.Count), group: MessageRelayGroup);
             return secureString;
         }
 
         /// <summary>
-        /// Prompts a user to choose from a collection of items.
-        /// </summary>
-        /// <typeparam name="T">A runtime type.</typeparam>
-        /// <param name="collection">A collection.</param>
-        /// <param name="title">A collection title.</param>
-        /// <param name="indexPolicy">Whether to display an index and whether it is 0-based.</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="renderer">An alternative to <c>object.ToString()</c> for displaying collection items.</param>
-        /// <param name="columns">The number of columns with which to render the list.</param>
-        /// <param name="padBefore">The number of new lines to render before the collection.</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <returns>The value selected by the user</returns>
-        /// <remarks><seealso cref="Enum"/></remarks>
-        /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
-        public static ListSelection<T> List<T>
-        (
-            IEnumerable<T> collection,
-            Title? title = null,
-            ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
-            bool required = false,
-            Func<T, string> renderer = null,
-            int columns = 1,
-            int padBefore = 0,
-            int padAfter = 0
-        )
-        {
-            return List
-            (
-                collection?.ToList(),
-                title: title,
-                indexPolicy: indexPolicy,
-                required: required,
-                renderer: renderer,
-                columns: columns,
-                padBefore: padBefore,
-                padAfter: padAfter
-            );
-        }
-
-        /// <summary>
-        /// Prompt a user to choose from a list of items
+        /// Prompt a user to choose from a list of items.  By default the index style is 1-based.
         /// </summary>
         /// <typeparam name="T">type of item</typeparam>
-        /// <param name="list">a list</param>
+        /// <param name="collection">a collection</param>
         /// <param name="title">a list title</param>
-        /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
+        /// <param name="indexStyle">Whether the displayed index and the index input by the user is 0 or 1-based (default is 1-based).</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
-        /// <param name="columns">The number of columns with which to render the list.</param>
-        /// <param name="padBefore">The number of new lines to render before the list</param>
-        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
-        /// <returns>The value selected by the user</returns>
-        /// <remarks><seealso cref="Enum"/></remarks>
-        /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
-        public static ListSelection<T> List<T>
-        (
-            IList<T> list,
-            Title? title = null,
-            ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
-            bool required = false,
-            Func<T, string> renderer = null,
-            int columns = 1,
-            int padBefore = 0,
-            int padAfter = 0
-        )
-        {
-            return List
-            (
-                list,
-                out _,
-                title: title,
-                indexPolicy: indexPolicy,
-                required: required,
-                renderer: renderer,
-                columns: columns,
-                padBefore: padBefore,
-                padAfter: padAfter
-            );
-        }
-
-        /// <summary>
-        /// Prompt a user to choose from a list of items
-        /// </summary>
-        /// <typeparam name="T">type of item</typeparam>
-        /// <param name="list">a list</param>
-        /// <param name="selectedIndex">returns the index selected by the user</param>
-        /// <param name="title">a list title</param>
-        /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
-        /// <param name="required">If <c>true</c>, forces non-blank input, default is <c>false</c>.</param>
-        /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
+        /// <param name="selectionMode">Defines whether an input is required and whether to enable syntax for multiselection.</param>
         /// <param name="columns">The number of columns with which to render the list.</param>
         /// <param name="padBefore">The number of new lines to render before the list</param>
         /// <param name="padAfter">The number of new lines to render after the prompt.</param>
@@ -1540,53 +1763,166 @@ namespace Horseshoe.NET.ConsoleX
         /// <remarks><seealso cref="Enum"/></remarks>
         /// <exception cref="ValidationException"></exception>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static ListSelection<T> List<T>
         (
-            IList<T> list,
-            out int selectedIndex,
+            IEnumerable<T> collection,
             Title? title = null,
-            ListIndexPolicy indexPolicy = ListIndexPolicy.DisplayOneBased,
-            bool required = false,
             Func<T, string> renderer = null,
+            ListIndexStyle indexStyle = ListIndexStyle.OneBased,
+            ListSelectionMode selectionMode = default,
             int columns = 1,
             int padBefore = 0,
             int padAfter = 0
         )
         {
-            if (indexPolicy != ListIndexPolicy.DisplayZeroBased && indexPolicy != ListIndexPolicy.DisplayOneBased)
-            {
-                throw new ValidationException("Invalid indexPolicy: " + indexPolicy);
-            }
+            if (indexStyle != ListIndexStyle.ZeroBased && indexStyle != ListIndexStyle.OneBased)
+                throw new ValidationException("Invalid indexStyle: " + indexStyle);
 
-            T choice;
-
+            var list = CollectionUtil.ToList(collection, optimize: Optimization.ReuseCollection);
+            var listSelection = new ListSelection<T>();
             var listConfigurator = new MenuAndListRealtimeConfigurator();
-            RenderX.List(list, title: title, indexPolicy: indexPolicy, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: 0);
+
+            RenderX.List(list, title: title, indexStyle: indexStyle, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: 0);
 
             if (listConfigurator.IsNotSelectable)
             {
-                selectedIndex = -1;
                 RenderX.Alert("Selection canceled (list not selectable).");
                 Continue();
-                return new ListSelection<T> { SelectedIndex = -1 };
+                return listSelection; // nothing selected -> selected index = -1
             }
 
-            var index = Int
+            var input = String
             (
                 null,
                 promptType: PromptType.MenuOrList,
-                required: required,
-                suppressRequiredPrompt: true,
+                required: selectionMode == ListSelectionMode.ExactlyOne || selectionMode == ListSelectionMode.OneOrMore,
                 requiredMessage: "A selection is required.",
-                validator: (i) => Assert.InRange(i, 0 + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : 1), list.Count + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? -1 : 0))
+                suppressRequiredPrompt: true
             );
-            RenderX.Pad(padAfter);
 
-            choice = list[index + (indexPolicy == ListIndexPolicy.DisplayZeroBased ? 0 : -1)];
-            selectedIndex = index;
+            if (selectionMode == ListSelectionMode.ZeroOrOne || selectionMode == ListSelectionMode.ExactlyOne)  // not multiple
+            {
+                try
+                {
+                    if (input != null)
+                    {
+                        var index = int.Parse(input);
+                        AssertValue.InRange(index, indexStyle == ListIndexStyle.ZeroBased ? 0 : 1, list.Count - (indexStyle == ListIndexStyle.ZeroBased ? 1 : 0));
+                        listSelection.Selection.Add(index, list[index - (indexStyle == ListIndexStyle.ZeroBased ? 0 : 1)]);
+                    }
+                    RenderX.Pad(padAfter);
+                    tryAgainCount = 0;
+                    return listSelection;
+                }
+                catch (Exception afex)
+                {
+                    RenderX.Alert(afex.Message.Replace(AssertionConstants.EXCEPTION_MESSAGE_PREFIX, ""));
+                    Continue(prompt: "Press any key to try again..." + (++tryAgainCount > 2 ? "  (you can enter '/back' at the prompt to exit the routine)" : ""));
+                    return List(collection, title: title, renderer: renderer, indexStyle: indexStyle, selectionMode: selectionMode, columns: columns, padBefore: padBefore, padAfter: padAfter);
+                }
+            }
 
-            return new ListSelection<T> { SelectedItem = choice, SelectedIndex = selectedIndex };
+            try
+            {
+                var selectedIndices = UserInputUtil.ParseMultipleIndices(input, list.Count, indexStyle: indexStyle); 
+                listSelection.Selection.Append(selectedIndices.Select(i => new KeyValuePair<int, T>(i, list[i - (indexStyle == ListIndexStyle.ZeroBased ? 0 : 1)])));
+                RenderX.Pad(padAfter);
+                tryAgainCount = 0;
+                return listSelection;
+            }
+            catch (Exception ex)
+            {
+                RenderX.Alert(ex.Message);
+                Continue(prompt: "Press any key to try again..." + (++tryAgainCount > 2 ? "  indexStyle: indexStyle, (you can enter '/back' at the prompt to exit the routine)" : ""));
+                return List(collection, title: title, renderer: renderer, selectionMode: selectionMode, columns: columns, padBefore: padBefore, padAfter: padAfter);
+            }
+        }
+
+        /// <summary>
+        /// Prompt a user to choose from a list of items
+        /// </summary>
+        /// <typeparam name="T">type of item</typeparam>
+        /// <param name="mappings">a list of key/value pairs</param>
+        /// <param name="title">a list title</param>
+        /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
+        /// <param name="selectionMode">Defines whether an input is required and whether to enable syntax for multiselection.</param>
+        /// <param name="columns">The number of columns with which to render the list.</param>
+        /// <param name="padBefore">The number of new lines to render before the list</param>
+        /// <param name="padAfter">The number of new lines to render after the prompt.</param>
+        /// <returns>The value selected by the user</returns>
+        /// <remarks><seealso cref="Enum"/></remarks>
+        /// <exception cref="ValidationException"></exception>
+        /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
+        /// <exception cref="ValidationException"></exception>
+        public static ListSelection<T> List<T>
+        (
+            IEnumerable<KeyValuePair<int,T>> mappings,
+            Title? title = null,
+            Func<T, string> renderer = null,
+            ListSelectionMode selectionMode = default,
+            int columns = 1,
+            int padBefore = 0,
+            int padAfter = 0
+        )
+        {
+            var dict = DictionaryUtil.From(mappings, optimize: Optimization.ReuseCollection);
+            var listSelection = new ListSelection<T>();
+            var listConfigurator = new MenuAndListRealtimeConfigurator();
+
+            RenderX.List(dict, title: title, indexStyle: ListIndexStyle.OneBased, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: 0);
+
+            if (listConfigurator.IsNotSelectable)
+            {
+                RenderX.Alert("Selection canceled (list not selectable).");
+                Continue();
+                return listSelection; // nothing selected -> selected index = -1
+            }
+
+            var input = String
+            (
+                null,
+                promptType: PromptType.MenuOrList,
+                required: selectionMode == ListSelectionMode.ExactlyOne || selectionMode == ListSelectionMode.OneOrMore,
+                requiredMessage: "A selection is required.",
+                suppressRequiredPrompt: true
+            );
+
+            if (selectionMode == ListSelectionMode.ZeroOrOne || selectionMode == ListSelectionMode.ExactlyOne)  // not multiple
+            {
+                try
+                {
+                    if (input != null)
+                    {
+                        var index = int.Parse(input);
+                        AssertValue.InSet(index, dict.Keys);
+                        listSelection.Selection.Add(index, dict[index]);
+                    }
+                    RenderX.Pad(padAfter);
+                    tryAgainCount = 0;
+                    return listSelection;
+                }
+                catch (Exception afex)
+                {
+                    RenderX.Alert(afex.Message.Replace(AssertionConstants.EXCEPTION_MESSAGE_PREFIX, ""));
+                    Continue(prompt: "Press any key to try again..." + (++tryAgainCount > 2 ? "  (you can enter '/back' at the prompt to exit the routine)" : ""));
+                    return List(dict, title: title, renderer: renderer, selectionMode: selectionMode, columns: columns, padBefore: padBefore, padAfter: padAfter);
+                }
+            }
+
+            try
+            {
+                var selectedIndices = UserInputUtil.ParseMultipleIndices(input, dict.Keys);
+                listSelection.Selection.Append(dict.Where(kvp => selectedIndices.Contains(kvp.Key)));
+                RenderX.Pad(padAfter);
+                tryAgainCount = 0;
+                return listSelection;
+            }
+            catch (Exception ex)
+            {
+                RenderX.Alert(ex.Message);
+                Continue(prompt: "Press any key to try again..." + (++tryAgainCount > 2 ? "  (you can enter '/back' at the prompt to exit the routine)" : ""));
+                return List(dict, title: title, renderer: renderer, selectionMode: selectionMode, columns: columns, padBefore: padBefore, padAfter: padAfter);
+            }
         }
 
         /// <summary>
@@ -1596,6 +1932,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="menuItems">a collection items, special treatment of <c>MenuItem</c>s</param>
         /// <param name="customItemsToPrepend">custom items to list before the regular menu items</param>
         /// <param name="customItemsToAppend">custom items to list after the regular menu items</param>
+        /// <param name="selectDefault">Optional logic for selecting an item when no selection is made (e.g. input is blank)</param>
         /// <param name="renderer">an alternative to <c>object.ToString()</c> for displaying list items</param>
         /// <param name="title">a title</param>
         /// <param name="padBefore">The number of new lines to render before the prompt.</param>
@@ -1604,18 +1941,17 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
         /// <param name="allowArbitraryInput">allow arbitrary text in addition to menu item selection</param>
         /// <param name="allowMultipleSelection">allow entry of multiple list items such as: 1-3, 5, etc.</param>
-        /// <param name="onMenuIndexSelecting">an action to perform when user enters a menu index</param>
         /// <param name="onMenuSelection">an action to perfrom after menu selection is complete</param>
         /// <param name="onRoutineAutoRunComplete">an action to perform after selection and autorun of a routine</param>
         /// <param name="onRoutineAutoRunError">an action to perform after an autorun routine throws an exception</param>
         /// <returns>The selected menu selection(s)</returns>
         /// <exception cref="ConsoleNavigation.CancelInputPromptException"></exception>
-        /// <exception cref="ConsoleNavigation.CtrlCException"></exception>
         public static MenuSelection<T> Menu<T>
         (
             IEnumerable<T> menuItems,
             IList<MenuObject> customItemsToPrepend = null,
             IList<MenuObject> customItemsToAppend = null,
+            Func<T> selectDefault = null,
             Func<T, string> renderer = null,
             Title? title = null,
             int padBefore = 0,
@@ -1624,12 +1960,14 @@ namespace Horseshoe.NET.ConsoleX
             Action<TextGrid> configureTextGrid = null,
             bool allowArbitraryInput = false,
             bool allowMultipleSelection = false,
-            Action<string> onMenuIndexSelecting = null,
             Action<MenuSelection<T>> onMenuSelection = null,
             Action<RoutineX> onRoutineAutoRunComplete = null,
             Action<RoutineX, Exception> onRoutineAutoRunError = null
         )
         {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            var menuSelection = new MenuSelection<T>();
             var listConfigurator = new MenuAndListRealtimeConfigurator();
             RenderX.Menu
             (
@@ -1648,17 +1986,26 @@ namespace Horseshoe.NET.ConsoleX
             {
                 RenderX.Alert("Selection canceled (menu not selectable).");
                 Continue();
-                return new MenuSelection<T> { SelectedIndex = -1 };
+                return menuSelection; // nothing selected -> selected index = -1
             }
-
-            MenuSelection<T> menuSelection = null;
 
             while (true)
             {
                 var input = String(null, promptType: PromptType.MenuOrList, padAfter: padAfter);
-                onMenuIndexSelecting?.Invoke(input);
 
-                // selection type 1 of 4 - custom menu items
+                // selection type 1 of 5 - no input
+                if (input == null)
+                {
+                    if (selectDefault != null)
+                    {
+                        menuSelection.Selection.Add(default, selectDefault());
+                        SystemMessageRelay.RelayMessage("selection type: no input", group: MessageRelayGroup);
+                        break;
+                    }
+                    input = "";
+                }
+
+                // selection type 2 of 5 - custom menu items
                 var customMenuItems = CollectionUtil.Combine(customItemsToPrepend, customItemsToAppend)
                     .Where(mo => mo is RoutineX)
                     .Select(mo => (RoutineX)mo);
@@ -1673,11 +2020,12 @@ namespace Horseshoe.NET.ConsoleX
                 }
                 if (selectedCustomMenuItem != null)
                 {
-                    menuSelection = new MenuSelection<T> { CustomMenuItem = selectedCustomMenuItem };
+                    menuSelection.CustomMenuItem = selectedCustomMenuItem;
+                    SystemMessageRelay.RelayMessage("selection type: custom menu item", group: MessageRelayGroup);
                     break;
                 }
 
-                // selection type 2 of 4 - menu items
+                // selection type 3 of 5 - menu items
                 if (menuItems != null && menuItems.Any())
                 {
                     var nonHeaderMenuItems = menuItems
@@ -1685,37 +2033,29 @@ namespace Horseshoe.NET.ConsoleX
                         .ToList();
                     if (int.TryParse(input, out int index))
                     {
-                        if (!Assert.TryInRange(index, 1, nonHeaderMenuItems.Count, out string message))
+                        if (!AssertValue.TryInRange(index, 1, nonHeaderMenuItems.Count, out string message))
                         {
                             RenderX.Alert(message);
                             continue;
                         }
-                        menuSelection = new MenuSelection<T>
-                        {
-                            SelectedItem = nonHeaderMenuItems[index - 1],  // index is 1-based
-                            SelectedIndex = index
-                        };
+                        menuSelection.Selection.Add(index, nonHeaderMenuItems[index - 1]);  // menu indices is 1-based
+                        SystemMessageRelay.RelayMessage("selection type: menu item", group: MessageRelayGroup);
                         break;
                     }
                 }
 
-                // selection type 3 of 4 - multiple selections
+                // selection type 4 of 5 - multiple selections
                 if (allowMultipleSelection && input.Length != 0)
                 {
+                    SystemMessageRelay.RelayMessage("selection type: multiple selections", group: MessageRelayGroup);
                     try
                     {
                         var _menuItems = new List<T>(menuItems);
-                        var selectedIndices = MenuSelection.ParseMultipleIndexes(input, _menuItems.Count, out bool all);   // 1-based indices
-                        var dict = new Dictionary<int, T>();
+                        var selectedIndices = UserInputUtil.ParseMultipleIndices(input, _menuItems.Count);   // 1-based indices default
                         foreach (var selIndex in selectedIndices)
                         {
-                            dict.Add(selIndex, _menuItems[selIndex - 1]);
+                            menuSelection.Selection.Add(selIndex, _menuItems[selIndex - 1]);
                         }
-                        menuSelection = new MenuSelection<T>
-                        {
-                            MultipleSelection = dict,
-                            SelectedAll = all
-                        };
                         break;
                     }
                     catch (BenignException ex)
@@ -1725,10 +2065,11 @@ namespace Horseshoe.NET.ConsoleX
                     }
                 }
 
-                // selection type 4 of 4 - arbitrary input
+                // selection type 5 of 5 - arbitrary input
                 if (allowArbitraryInput)
                 {
-                    menuSelection = new MenuSelection<T> { ArbitraryInput = input };
+                    menuSelection.ArbitraryInput = input;
+                    SystemMessageRelay.RelayMessage("selection type: arbitrary input", group: MessageRelayGroup);
                     break;
                 }
 
@@ -1736,37 +2077,44 @@ namespace Horseshoe.NET.ConsoleX
             }
 
             // process menu selection
-            if (menuSelection != null)
+            onMenuSelection?.Invoke(menuSelection);
+            RenderX.Pad(padAfter);
+            if (menuSelection.SelectedRoutine != null)
             {
-                onMenuSelection?.Invoke(menuSelection);
-                RenderX.Pad(padAfter);
-                if (menuSelection.SelectedRoutine != null)
+                bool autoRunComplete;
+                try
                 {
-                    bool autoRunComplete;
-                    try
+                    SystemMessageRelay.RelayMessage("auto run routine \"" + menuSelection.SelectedRoutine.Text + "\"...", group: MessageRelayGroup);
+                    menuSelection.SelectedRoutine.Run();
+                    autoRunComplete = true;
+                    SystemMessageRelay.RelayMessage("auto run complete", group: MessageRelayGroup);
+                }
+                catch (ConsoleNavigation cn)  // e.g. exit, back
+                {
+                    SystemMessageRelay.RelayMessage(cn.Message, group: MessageRelayGroup, indent: Indent.DecrementNext);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    autoRunComplete = false;
+                    if (onRoutineAutoRunError != null)
                     {
-                        menuSelection.SelectedRoutine.Run();
-                        autoRunComplete = true;
+                        SystemMessageRelay.RelayException(ex, group: MessageRelayGroup, inlineWithMessages: true);
+                        onRoutineAutoRunError.Invoke(menuSelection.SelectedRoutine, ex);
                     }
-                    catch (ConsoleNavigation)
+                    else
                     {
+                        SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
                         throw;
                     }
-                    catch (Exception ex)
-                    {
-                        autoRunComplete = false;
-                        if (onRoutineAutoRunError != null)
-                        {
-                            onRoutineAutoRunError.Invoke(menuSelection.SelectedRoutine, ex);
-                        }
-                        else throw;
-                    }
-                    if (autoRunComplete)
-                    {
-                        onRoutineAutoRunComplete?.Invoke(menuSelection.SelectedRoutine);
-                    }
+                }
+                if (autoRunComplete)
+                {
+                    onRoutineAutoRunComplete?.Invoke(menuSelection.SelectedRoutine);
                 }
             }
+
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             return menuSelection;
         }
     }

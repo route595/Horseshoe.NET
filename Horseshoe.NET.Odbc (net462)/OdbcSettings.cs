@@ -37,8 +37,7 @@ namespace Horseshoe.NET.Odbc
             get
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
-                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:Odbc:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("Odbc.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("Odbc.IsEncryptedPassword"));
+                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:Odbc:IsEncryptedPassword"));
             }
         }
         
@@ -69,8 +68,7 @@ namespace Horseshoe.NET.Odbc
             get
             {
                 return _defaultDataSource     // e.g. DBSVR01
-                    ?? Config.Get("Horseshoe.NET:Odbc:DataSource") 
-                    ?? OrganizationalDefaultSettings.Get<string>("Odbc.DataSource");
+                    ?? Config.Get("Horseshoe.NET:Odbc:DataSource");
             }
             set
             {
@@ -96,8 +94,7 @@ namespace Horseshoe.NET.Odbc
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
                         : Credential.Build(configUserName, configPassword)
-                    )
-                    ?? OrganizationalDefaultSettings.Get<Credential?>("Odbc.Credentials");
+                    );
             }
             set
             {
@@ -115,8 +112,7 @@ namespace Horseshoe.NET.Odbc
             get
             {
                 return _defaultAdditionalConnectionAttributes      // e.g. Integrated Security=SSQI|Attribute1=Value1
-                    ?? Config.Get("Horseshoe.NET:Odbc:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw))
-                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("Odbc.AdditionalConnectionAttributes"));
+                    ?? Config.Get("Horseshoe.NET:Odbc:AdditionalConnectionAttributes", parser: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw));
             }
             set
             {
@@ -134,8 +130,7 @@ namespace Horseshoe.NET.Odbc
             get
             {
                 return _defaultConnectionTimeout       // e.g. 30 (Microsoft default)
-                    ?? Config.Get<int?>("Horseshoe.NET:Odbc:ConnectionTimeout")
-                    ?? OrganizationalDefaultSettings.Get<int?>("Odbc.ConnectionTimeout");
+                    ?? Config.Get<int?>("Horseshoe.NET:Odbc:ConnectionTimeout");
             }
             set
             {

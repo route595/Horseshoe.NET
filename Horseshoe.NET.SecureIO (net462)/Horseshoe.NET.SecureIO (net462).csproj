@@ -44,8 +44,8 @@
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.1\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Renci.SshNet, Version=2024.2.0.1, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <HintPath>..\packages\SSH.NET.2024.2.0\lib\net462\Renci.SshNet.dll</HintPath>
@@ -92,10 +92,6 @@
     <ProjectReference Include="..\Horseshoe.NET %28net462%29\Horseshoe.NET %28net462%29.csproj">
       <Project>{109113d1-c040-4265-896d-c949f9c60569}</Project>
       <Name>Horseshoe.NET %28net462%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions %28net462%29\Horseshoe.NET.Abstractions %28net462%29.csproj">
-      <Project>{ad82cbaa-fd68-40b0-ab19-57f255505efb}</Project>
-      <Name>Horseshoe.NET.Abstractions %28net462%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Configuration %28net462%29\Horseshoe.NET.Configuration %28net462%29.csproj">
       <Project>{b30f21c3-d24d-4726-af26-779728c339b3}</Project>

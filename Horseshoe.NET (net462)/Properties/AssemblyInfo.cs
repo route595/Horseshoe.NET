@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Horseshoe.NET")]
-[assembly: AssemblyDescription("A suite of .NET utilities with a dual purpose: simplify coding tasks and offer a variety of new and unique features")]
+[assembly: AssemblyDescription("A suite of .NET utilities with a dual purpose: simplify coding tasks and offer a variety of exciting new features to .NET developers.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET")]
-[assembly: AssemblyCopyright("Copyright © 2020-2024 Route 595")]
+[assembly: AssemblyCopyright("Copyright © 2020-2025 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.1.6.5")]
-[assembly: AssemblyFileVersion("3.1.6.5")]
+[assembly: AssemblyVersion("4.0.0.0")]
+[assembly: AssemblyFileVersion("4.0.0.0")]

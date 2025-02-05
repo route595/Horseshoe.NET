@@ -51,7 +51,6 @@ namespace Horseshoe.NET
         /// <param name="trueValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
         /// <param name="falseValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
         /// <param name="encoding">Applies to <c>Get&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
-        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
         /// <param name="ignoreCase">Applies to <c>Get&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <returns>An instance of <c>T</c>.</returns>
         /// <exception cref="ConversionException"></exception>
@@ -66,14 +65,13 @@ namespace Horseshoe.NET
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
             Encoding encoding = null,
-            Type inheritedType = null,
             bool ignoreCase = false
         )
         {
             var value = Get(varName, required: required);
             if (parseFunc != null)
                 return parseFunc.Invoke(value);
-            return Zap.To<T>(value, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
+            return Zap.To<T>(value, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, ignoreCase: ignoreCase);
         }
     }
 }

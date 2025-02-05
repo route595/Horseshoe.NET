@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Reflection;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.RelayMessages;
 using Oracle.ManagedDataAccess.Client;
 
 namespace Horseshoe.NET.OracleDb
@@ -11,6 +11,8 @@ namespace Horseshoe.NET.OracleDb
     /// </summary>
     public static class Delete
     {
+        private static string MessageRelayGroup => OracleDbConstants.MessageRelayGroup;
+
         /// <summary>
         /// Creates a connection and deletes some or all of the rows in a table with option to drop.
         /// </summary>
@@ -22,7 +24,6 @@ namespace Horseshoe.NET.OracleDb
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
         /// <param name="peekCommand">Allows access to the underlying DB command prior to execution</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of rows deleted</returns>
         public static int Table
         (
@@ -33,22 +34,16 @@ namespace Horseshoe.NET.OracleDb
             bool purge = false,
             int? commandTimeout = null,
             Action<OracleConnection> peekConnection = null,
-            Action<OracleCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            using (var conn = OracleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
+            using (var conn = OracleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection))
             {
-                var result = Table(conn, tableName, where, drop: drop, purge: purge, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+                var result = Table(conn, tableName, where, drop: drop, purge: purge, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return result;
             }
         }
@@ -75,21 +70,15 @@ namespace Horseshoe.NET.OracleDb
             bool drop = false,
             bool purge = false,
             int? commandTimeout = null,
-            Action<OracleCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OracleCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            var statement = DbUtil.BuildDeleteStatement(DbProvider.Oracle, tableName, where, drop: drop, purge: purge, journal: journal);
-            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+            var statement = DbUtil.BuildDeleteStatement(tableName, where, drop: drop, purge: purge, provider: DbProvider.Oracle);
+            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: (!(drop || purge) ? "rows deleted: " : "result: ") + result, group: MessageRelayGroup);
             return result;
         }
     }

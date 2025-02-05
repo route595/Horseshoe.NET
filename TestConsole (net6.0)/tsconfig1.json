@@ -1,28 +1,36 @@
 {
-  "MyPlanet": {
+  "myPlanet": {
+    "name": "Alderon",
     "diameter": "4567.89",
     "color": "burnt orange",
     "moons": [
-      "Plankton",
-      "Cronos"
+      { "name": "Plankton" },
+      { "name": "Cronos" }
     ]
   },
-  "MySolarSystem": [
+  "mySolarSystem": [
     {
+      "name": "Death Star",
       "diameter": "1234.56",
       "color": "dark maroon"
     },
     {
+      "name": "Degobah",
       "diameter": "2345.67",
       "color": "deep purple",
       "moons": [
-        "Baconator"
+        { "name": "Endor" }
       ]
     },
     {
+      "name": "Tatuin",
       "diameter": "3456.78",
       "color": "slate gray",
       "moons": []
     }
-  ]
+  ],
+  "myInt": "90",
+  "myHexInt": "5a",
+  "myInt_Annotation": "5a[hex]",
+  "myInt_Format": "0x5a"
 }

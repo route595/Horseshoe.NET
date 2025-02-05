@@ -34,12 +34,12 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <summary>
         /// The alignment of the title.
         /// </summary>
-        public virtual HorizontalPosition TitleAlign { get; set; }
+        public virtual HorizontalAlign TitleAlign { get; set; }
 
         /// <summary>
         /// The alignment of the data items.
         /// </summary>
-        public virtual HorizontalPosition ItemAlign { get; set; }
+        public virtual HorizontalAlign ItemAlign { get; set; }
 
         /// <summary>
         /// The desired width of the column.
@@ -205,16 +205,16 @@ namespace Horseshoe.NET.Text.TextGrid
             return list.ToArray();
         }
 
-        private string Pad(string text, HorizontalPosition align)
+        private string Pad(string text, HorizontalAlign align)
         {
             switch (align)
             {
-                case HorizontalPosition.Left:
+                case HorizontalAlign.Left:
                 default:
                     return text.PadRight(WidthToRender);
-                case HorizontalPosition.Center:
+                case HorizontalAlign.Center:
                     return TextUtil.Pad(text, WidthToRender, HorizontalPosition.Center);
-                case HorizontalPosition.Right:
+                case HorizontalAlign.Right:
                     return text.PadLeft(WidthToRender);
             }
         }

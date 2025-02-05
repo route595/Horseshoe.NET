@@ -31,7 +31,7 @@ namespace TestConsole
                     {
                         relay.Exception(ex);
                     }
-                    relay.Message("end time: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), indentHint: IndentHint.Reset);
+                    relay.Message("end time: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), indent: Indent.Reset);
                 }
             ),
             BuildMenuRoutine
@@ -53,7 +53,7 @@ namespace TestConsole
 
         public void Go(bool throwExceptionInTask3 = false)
         {
-            Relay?.Message("LibWRelay.Go()", indentHint: IndentHint.IncrementNext);
+            Relay?.Message("LibWRelay.Go()", indent: Indent.IncrementNext);
             Relay?.Message("Task 1");
             Thread.Sleep(500);
             Relay?.Message("result: Success");
@@ -65,7 +65,7 @@ namespace TestConsole
             if (throwExceptionInTask3)
                 throw new Exception("Exception in Task 3");
             Relay?.Message("result: Success");
-            Relay?.Message("end", indentHint: IndentHint.Decrement);
+            Relay?.Message("end", indent: Indent.Decrement);
         }
     }
 }

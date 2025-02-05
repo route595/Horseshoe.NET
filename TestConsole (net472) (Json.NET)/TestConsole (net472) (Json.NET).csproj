@@ -41,8 +41,8 @@
     <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.7.0.0\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.1\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -106,7 +106,7 @@
     <Compile Include="AppCacheTests.cs" />
     <Compile Include="AppTests.cs" />
     <Compile Include="CollectionTests.cs" />
-    <Compile Include="ConfigTests.cs" />
+    <Compile Include="ConfigTests[net4x].cs" />
     <Compile Include="ConsoleTests.cs" />
     <Compile Include="CryptoTests.cs" />
     <Compile Include="CSharp Tests\AssemblyTests.cs" />
@@ -152,10 +152,6 @@
     <ProjectReference Include="..\Horseshoe.NET %28net462%29\Horseshoe.NET %28net462%29.csproj">
       <Project>{109113d1-c040-4265-896d-c949f9c60569}</Project>
       <Name>Horseshoe.NET %28net462%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions %28net462%29\Horseshoe.NET.Abstractions %28net462%29.csproj">
-      <Project>{ad82cbaa-fd68-40b0-ab19-57f255505efb}</Project>
-      <Name>Horseshoe.NET.Abstractions %28net462%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.ActiveDirectory %28net462%29\Horseshoe.NET.ActiveDirectory %28net462%29.csproj">
       <Project>{6e9721de-1308-47eb-a5b4-7cb8fb48168b}</Project>

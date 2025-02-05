@@ -5,7 +5,7 @@ using System.Linq;
 using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.IO;
-using Horseshoe.NET.XmlDoc;
+using Horseshoe.NET.Xml;
 
 namespace TestConsole
 {
@@ -24,8 +24,7 @@ namespace TestConsole
                     XmlDoc.Fill
                     (
                         "Horseshoe.NET.xml",
-                        fillInMissingTypes: true,
-                        journal: new TraceJournal((entry) => Console.WriteLine((entry.Level >= 0 ? new string(' ', entry.Level * 2) : "<") + entry))
+                        fillInMissingTypes: true
                     );
                     Console.WriteLine();
                     Console.WriteLine("Namespaces");

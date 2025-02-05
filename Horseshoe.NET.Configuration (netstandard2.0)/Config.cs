@@ -5,22 +5,58 @@ using Microsoft.Extensions.Configuration;
 
 namespace Horseshoe.NET.Configuration
 {
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Note on annotations:
+     * 
+     * Keys and values may both be annotated to imply formatting / 
+     * parsing directives, etc.  Annotations are always case-sensitive.
+     * 
+     * Value annotations examples...
+     * 
+     * Example 1 - w/out annotations
+     * 
+     * [c#]
+     * config.Get<int>("red", numberStyle: NumberStyles.HexNumber);
+     * 
+     * [appsettings.json]
+     * {
+     *   "alpha": "0.5",
+     *   "red": "66",
+     *   "green": "a6",
+     *   "blue": "51"
+     * }
+     * 
+     * Example 2 - key and value annotations
+     * 
+     * [c#]
+     * config.Get<int>("red[hex]");  // "66"       -- key annotation
+     * config.Get<int>("green");     // "a6[hex]"  -- value annotation
+     * config.Get<int>("blue");      // "0x51"     -- value native directive
+     * 
+     * [appsettings.json]
+     * {
+     *   "alpha": "0.5",
+     *   "red": "66",
+     *   "green": "a6[hex]",
+     *   "blue": "0x51"
+     * }
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
     public static class Config
     {
-        private static IConfiguration configuration;
+        private static IConfiguration configurationService;
 
-        public static IConfiguration Configuration =>
-            ConfigurationAccessor?.Invoke() ?? configuration;
+        public static IConfiguration Configuration => configurationService ?? ConfigurationAccessor?.Invoke();
 
         public static Func<IConfiguration> ConfigurationAccessor { get; set; }
 
         /// <summary>
-        /// Loads an <c>IConfiguration</c> instance into Horseshoe.NET
+        /// Loads an <c>IConfiguration</c> service instance into Horseshoe.NET
         /// </summary>
         /// <param name="configuration"></param>
         public static void Load(IConfiguration configuration)
         {
-            Config.configuration = configuration;
+            configurationService = configuration;
         }
 
         /// <summary>
@@ -36,187 +72,138 @@ namespace Horseshoe.NET.Configuration
         /// Tests if a configuration value exists
         /// </summary>
         /// <param name="key">configuration key</param>
-        /// <returns>bool</returns>
+        /// <returns><c>true</c> if the configuration services is loaded and the key is associated with a value.</returns>
         public static bool Has(string key)
         {
-            return Get(key, required: false) != null;
+            if (!IsLoaded())
+                return false;
+            return Configuration.Get(key) == null;  // required = false
         }
 
-        /// <summary>
-        /// Gets a configuration value
-        /// </summary>
-        /// <param name="key">configuration key</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration instance or key is not found</param>
-        /// <returns>a <c>string</c> value</returns>
+        /// <inheritdoc cref="Extensions.Get(IConfiguration, string, bool)"/>
         public static string Get(string key, bool required = false)
         {
-            try
+            if (!IsLoaded())
             {
-                return Configuration.Get(key, required: required);
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return null;
             }
-            catch (NoConfigurationException)
-            {
-                throw new NoConfigurationException("Configuration service not loaded: try Config.Load(<configuration>) or Config.ConfigurationAccessor = () => <configuration>");
-            }
+            return Configuration.Get(key, required: required);
         }
 
-        /// <summary>
-        /// Gets a configuration value and parses it to a <c>string[]</c>
-        /// </summary>
-        /// <param name="key">configuration key</param>
-        /// <param name="required">if true, throws error if configuration key not found</param>
-        /// <returns>configuration value</returns>
-        public static string[] GetArray(string key, bool required = false)
-        {
-            return GetArray(key, delimiter: new[] { ',' }, required: required);
-        }
-
-        /// <summary>
-        /// Gets a configuration value and parses it to a <c>string[]</c>
-        /// </summary>
-        /// <param name="key">configuration key</param>
-        /// <param name="required">if true, throws error if configuration key not found</param>
-        /// <returns>configuration value</returns>
-        public static string[] GetArray(string key, char delimiter, bool required = false)
-        {
-            var rawArray = Get(key, required: required);
-            if (rawArray == null)
-                return Array.Empty<string>();
-            return Zap.Strings(rawArray.Split(delimiter));
-        }
-
-        /// <summary>
-        /// Gets a configuration value and parses it to a <c>string[]</c>
-        /// </summary>
-        /// <param name="key">configuration key</param>
-        /// <param name="required">if true, throws error if configuration key not found</param>
-        /// <returns>configuration value</returns>
-        public static string[] GetArray(string key, char[] delimiter, bool required = false)
-        {
-            var rawArray = Get(key, required: required);
-            if (rawArray == null)
-                return Array.Empty<string>();
-            return Zap.Strings(rawArray.Split(delimiter));
-        }
-
-        /// <summary>
-        /// Gets a configuration value as an instance of a fully qualified class name (expected value).
-        /// </summary>
-        /// <param name="key">configuration key</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration instance or key is not found</param>
-        /// <param name="strict">If a <c>Type</c> matching <c>className</c> cannot be found then <c>strict == true</c> causes an exception to be thrown, default is <c>false</c>.</param>
-        /// <returns></returns>
-        public static object GetInstance(string key, bool required = false, bool strict = false)
-        {
-            try
-            {
-                return Configuration.GetInstance(key, required: required, strict: strict);
-            }
-            catch (NoConfigurationException)
-            {
-                throw new NoConfigurationException("Configuration service not loaded: try Config.Load(<configuration>) or Config.ConfigurationAccessor = () => <configuration>");
-            }
-        }
-
-        /// <summary>
-        /// Gets a configuration value as an instance of the specified type.  
-        /// You may need to supply a <c>parseFunc</c> for custom / complex types.
-        /// </summary>
-        /// <typeparam name="T">type parameter</typeparam>
-        /// <param name="key">A configuration key.</param>
-        /// <param name="required">If <c>true</c>, throws error if configuration key not found.</param>
-        /// <param name="parseFunc">A custom parsing function.</param>
-        /// <param name="dateTimeStyle">Applies to <c>Get&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
-        /// <param name="numberStyle">Applies to <c>Get&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
-        /// <param name="provider">Applies to <c>Get&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
-        /// <param name="locale">Applies to <c>Get&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
-        /// <param name="trueValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
-        /// <param name="falseValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
-        /// <param name="encoding">Applies to <c>Get&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
-        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
-        /// <param name="ignoreCase">Applies to <c>Get&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
-        /// <returns></returns>
+        /// <inheritdoc cref="Extensions.Get{T}(IConfiguration, string, bool, Func{string, T}, NumberStyles?, IFormatProvider, DateTimeStyles?, string, string, string, string, Encoding, bool)"/>
         public static T Get<T>
         (
             string key,
             bool required = false,
-            Func<string, T> parseFunc = null,
-            DateTimeStyles? dateTimeStyle = null,
+            Func<string, T> parser = null,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
+            DateTimeStyles? dateTimeStyle = null,
+            string dateFormat = null,
             string locale = null,
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
             Encoding encoding = null,
-            Type inheritedType = null,
             bool ignoreCase = false
         )
         {
-            try
+            if (!IsLoaded())
             {
-                return Configuration.Get<T>(key, required: required, parseFunc: parseFunc, dateTimeStyle: dateTimeStyle, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return default;
             }
-            catch (NoConfigurationException)
-            {
-                throw new NoConfigurationException("Configuration service not loaded: try Config.Load(<configuration>) or Config.ConfigurationAccessor = () => <configuration>");
-            }
+            return Configuration.Get<T>
+            (
+                key, 
+                required: required, 
+                parser: parser,
+                numberStyle: numberStyle, 
+                provider: provider, 
+                dateTimeStyle: dateTimeStyle, 
+                dateFormat: dateFormat,
+                locale: locale, 
+                trueValues: trueValues, 
+                falseValues: falseValues, 
+                encoding: encoding, 
+                ignoreCase: ignoreCase
+            );
         }
 
-
         /// <summary>
-        /// Gets a configuration section
+        /// <para>
+        /// Extracts the value with the specified key and converts it to type <c>T</c>.
+        /// </para>
+        /// <para>
+        /// This uses the .NET provided <c>GetValue&lt;T&gt;()</c>.
+        /// Alternatively, use <c>Get&lt;T&gt;()</c> for the Horseshoe.NET provided functionality.
+        /// </para>
         /// </summary>
-        /// <typeparam name="T">type parameter</typeparam>
-        /// <param name="path">configuration path</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration instance or section is not found</param>
-        /// <returns>instance loaded from config section</returns>
+        /// <typeparam name="T">A runtime type.</typeparam>
+        /// <param name="key">The key of the configuration section's value to convert.</param>
+        /// <param name="required">If <c>true</c> throws error if configuration service or key is not found, default is <c>false</c>.</param>
+        /// <param name="defaultValue">The value to use when not required and not supplied.</param>
+        /// <returns>The converted value.</returns>
+        /// <exception cref="NoConfigurationServiceException"></exception>
+        public static T GetValue<T>(string key, bool required = false, T defaultValue = default)
+        {
+            if (!IsLoaded())
+            {
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return defaultValue;
+            }
+            return Configuration.GetValue<T>(key, defaultValue);
+        }
+
+        /// <inheritdoc cref="Extensions.GetInstance(IConfiguration, string, bool, bool, bool, bool)"/>
+        public static object GetInstance(string key, bool required = false, bool nonPublic = false, bool strict = false, bool ignoreCase = false)
+        {
+            if (!IsLoaded())
+            {
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return null;
+            }
+            return Configuration.GetInstance(key, required: required, nonPublic: nonPublic, strict: strict, ignoreCase: ignoreCase);
+        }
+
+        /// <inheritdoc cref="Extensions.ParseSection{T}(IConfiguration, string, bool)"/>
         public static T ParseSection<T>(string path, bool required = false) where T : class
         {
-            try
+            if (!IsLoaded())
             {
-                return Configuration.ParseSection<T>(path, required: required);
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return null;
             }
-            catch (NoConfigurationException)
-            {
-                throw new NoConfigurationException("Configuration service not loaded: try Config.Load(<configuration>) or Config.ConfigurationAccessor = () => <configuration>");
-            }
+            return Configuration.ParseSection<T>(path, required: required);
         }
 
-        /// <summary>
-        /// Gets a configuration value array
-        /// </summary>
-        /// <typeparam name="T">subclass of <c>System.Configuration.ConfigurationSection</c></typeparam>
-        /// <param name="path">configuration path</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration instance or section is not found</param>
-        /// <returns></returns>
+        /// <inheritdoc cref="Extensions.GetArray{T}(IConfiguration, string, bool)"/>
         public static T[] GetArray<T>(string path, bool required = false)
         {
-            try
+            if (!IsLoaded())
             {
-                return Configuration.GetArray<T>(path, required: required);
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return null;
             }
-            catch (NoConfigurationException)
-            {
-                throw new NoConfigurationException("Configuration service not loaded: try Config.Load(<configuration>) or Config.ConfigurationAccessor = () => <configuration>");
-            }
+            return Configuration.GetArray<T>(path, required: required);
         }
 
-        /// <summary>
-        /// Gets a configured connection string
-        /// </summary>
-        /// <param name="name">connection string name</param>
-        /// <param name="required">if <c>true</c>, throws error if configuration instance or connection string is not found</param>
-        /// <returns></returns>
+        /// <inheritdoc cref="Extensions.GetConnectionString(IConfiguration, string, bool)"/>
         public static string GetConnectionString(string name, bool required = false)
         {
-            try
+            if (!IsLoaded())
             {
-                return Configuration.GetConnectionString(name, required: required);
+                if (required)
+                    throw new NoConfigurationServiceException();
+                return null;
             }
-            catch (NoConfigurationException)
-            {
-                throw new NoConfigurationException("Configuration service not loaded: try Config.Load(<configuration>) or Config.ConfigurationAccessor = () => <configuration>");
-            }
+            return Configuration.GetConnectionString(name, required: required);
         }
     }
 }

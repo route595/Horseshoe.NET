@@ -45,10 +45,10 @@ namespace TestConsole
                     var phrase = "Å¢t Øñę\u0000";
                     Console.WriteLine("phrase: " + phrase);
                     Console.WriteLine("to ASCII: " + TextClean.ToAsciiPrintable(phrase));
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                     Console.WriteLine();
                     Console.WriteLine("to xtd ASCII: " + TextClean.ToAsciiPrintable(phrase));
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine

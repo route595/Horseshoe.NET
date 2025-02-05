@@ -73,12 +73,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestRESTApi (net6.0)", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Excel (net472)", "Horseshoe.NET.Excel (net472)\Horseshoe.NET.Excel (net472).csproj", "{02332B12-2B0B-400B-AB0C-22D467F73CC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Abstractions (net462)", "Horseshoe.NET.Abstractions (net462)\Horseshoe.NET.Abstractions (net462).csproj", "{AD82CBAA-FD68-40B0-AB19-57F255505EFB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Abstractions (netstandard2.0)", "Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj", "{575B320D-C207-4CB8-8892-90E862519790}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt (net7.0)", "Horseshoe.NET.Jwt (net7.0)\Horseshoe.NET.Jwt (net7.0).csproj", "{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt (net8.0)", "Horseshoe.NET.Jwt (net8.0)\Horseshoe.NET.Jwt (net8.0).csproj", "{89A1E3E2-F35D-44E7-907D-329DE5C7C322}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.OracleDb (net472)", "Horseshoe.NET.OracleDb (net472)\Horseshoe.NET.OracleDb (net472).csproj", "{AC824526-E040-4E55-9EDD-14A49FF04EAC}"
@@ -90,6 +84,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Excel (netstandard2.1)", "Horseshoe.NET.Excel (netstandard2.1)\Horseshoe.NET.Excel (netstandard2.1).csproj", "{4E84366A-2C5E-40B5-9055-05F72FB5A94C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.ApplicationInsights (net462)", "Horseshoe.NET.ApplicationInsights (net462)\Horseshoe.NET.ApplicationInsights (net462).csproj", "{5F61E8C6-6245-4C7E-9161-C963E00ACF88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.ApplicationInsights (netstandard2.0)", "Horseshoe.NET.ApplicationInsights (netstandard2.0)\Horseshoe.NET.ApplicationInsights (netstandard2.0).csproj", "{AF6989D4-149D-4B11-8F36-7BC1BC66858F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Jwt (net9.0)", "Horseshoe.NET.Jwt (net9.0)\Horseshoe.NET.Jwt (net9.0).csproj", "{721B4028-5BBC-48EE-999D-350DF6EF4463}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -225,18 +223,6 @@ Global
 		{02332B12-2B0B-400B-AB0C-22D467F73CC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02332B12-2B0B-400B-AB0C-22D467F73CC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02332B12-2B0B-400B-AB0C-22D467F73CC4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD82CBAA-FD68-40B0-AB19-57F255505EFB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{575B320D-C207-4CB8-8892-90E862519790}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{575B320D-C207-4CB8-8892-90E862519790}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{575B320D-C207-4CB8-8892-90E862519790}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{575B320D-C207-4CB8-8892-90E862519790}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DBC33DB0-7948-4C3E-938C-9C67187DD9FA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89A1E3E2-F35D-44E7-907D-329DE5C7C322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89A1E3E2-F35D-44E7-907D-329DE5C7C322}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89A1E3E2-F35D-44E7-907D-329DE5C7C322}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -261,6 +247,14 @@ Global
 		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F61E8C6-6245-4C7E-9161-C963E00ACF88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF6989D4-149D-4B11-8F36-7BC1BC66858F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF6989D4-149D-4B11-8F36-7BC1BC66858F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF6989D4-149D-4B11-8F36-7BC1BC66858F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF6989D4-149D-4B11-8F36-7BC1BC66858F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{721B4028-5BBC-48EE-999D-350DF6EF4463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{721B4028-5BBC-48EE-999D-350DF6EF4463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{721B4028-5BBC-48EE-999D-350DF6EF4463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{721B4028-5BBC-48EE-999D-350DF6EF4463}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

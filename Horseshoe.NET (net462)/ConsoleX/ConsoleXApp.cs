@@ -53,7 +53,7 @@ namespace Horseshoe.NET.ConsoleX
         /// <typeparam name="T">Subclass of <c>ConsoleXApp</c> (typically Program.cs)</typeparam>
         public static void StartConsoleApp<T>() where T : ConsoleXApp
         {
-            StartConsoleApp(TypeUtil.GetDefaultInstance<T>());
+            StartConsoleApp(TypeUtil.GetInstance<T>());
         }
 
         //static ConsoleXApp()
@@ -171,13 +171,6 @@ namespace Horseshoe.NET.ConsoleX
                     title: MainMenuTitle,
                     columns: MainMenuColumns,
                     configureTextGrid: ConfigureTextGrid,
-                    onMenuIndexSelecting: LoopMode == LoopMode.ClearScreen
-                        ? (menuSelection) =>
-                        {
-                            Console.Clear();
-                            OnMainMenuIndexSelecting?.Invoke(menuSelection);
-                        }
-                        : OnMainMenuIndexSelecting,
                     onMenuSelection: LoopMode == LoopMode.ClearScreen
                         ? (menuSelection) =>
                         {

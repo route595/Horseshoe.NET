@@ -206,7 +206,7 @@ namespace TestConsole.HTTPTests
                         docUrl,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(text.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(text, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -222,7 +222,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.WriteLine((int)response.StatusCode + " (" + response.StatusCode + ")"); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -258,7 +258,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -274,7 +274,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -290,7 +290,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -306,7 +306,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -322,7 +322,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             ),
             BuildMenuRoutine
@@ -338,7 +338,7 @@ namespace TestConsole.HTTPTests
                         proxyCredentials: ProxyUser != null ? new Credential(ProxyUser, ProxyPassword) : null as Credential?,
                         handleResponse: (response, consumerResponse) => { Console.Write(response.StatusCode + " "); }
                     );
-                    Console.WriteLine(html.Crop(500, truncateMarker: TruncateMarker.LongEllipsis));
+                    Console.WriteLine(TextUtil.Crop(html, 500, truncateMarker: TruncateMarker.LongEllipsis));
                 }
             )
         };

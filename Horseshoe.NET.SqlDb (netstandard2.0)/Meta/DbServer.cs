@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Horseshoe.NET.Collections;
+
 namespace Horseshoe.NET.SqlDb.Meta
 {
     public class DbServer : DbObjectBase, IEquatable<DbServer>
@@ -56,7 +58,7 @@ namespace Horseshoe.NET.SqlDb.Meta
         public static IEnumerable<DbServer> ParseList(string rawList)
         {
             if (string.IsNullOrEmpty(rawList)) return null;
-            var rawServers = Zap.Strings(rawList.Split('|'), prunePolicy: PrunePolicy.All);
+            var rawServers = Zap.Strings(rawList.Split('|'), pruneOptions: PruneOptions.All);
             try
             {
                 var servers = rawServers
@@ -83,7 +85,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                 raw = raw.Replace("'" + name + "'", "");
             }
 
-            var parts = Zap.Strings(raw.Split(';'), prunePolicy: PrunePolicy.Trailing);
+            var parts = Zap.Strings(raw.Split(';'), pruneOptions: PruneOptions.Trailing);
 
             if (parts.Length > 0 && parts.Length <= 2)
             {

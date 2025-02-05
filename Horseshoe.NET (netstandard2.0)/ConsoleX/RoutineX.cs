@@ -191,7 +191,6 @@ namespace Horseshoe.NET.ConsoleX
                         customItemsToAppend: BuildCustomMenuItems(CustomMenuItemsToAppend, AutoAppendExitRoutineMenuItem),
                         columns: MenuColumns,
                         configureTextGrid: ConfigureTextGrid,
-                        onMenuIndexSelecting: OnMenuIndexSelecting,
                         onMenuSelection: OnMenuSelection,
                         onRoutineAutoRunComplete: OnRoutineAutoRunComplete
                     );

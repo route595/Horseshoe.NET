@@ -1,4 +1,6 @@
-﻿namespace Horseshoe.NET.Db
+﻿using Horseshoe.NET.Configuration;
+
+namespace Horseshoe.NET.Db
 {
     /// <summary>
     /// Configuration settings used across DB implementations.
@@ -15,8 +17,7 @@
             get
             {
                 return _defaultProvider
-                    ?? _Config.Get<DbProvider?>("Horseshoe.NET:Db:Provider")
-                    ?? OrganizationalDefaultSettings.Get<DbProvider?>("Db.Provider")
+                    ?? Config.Get<DbProvider?>("Horseshoe.NET:Db:Provider")
                     ?? DbProvider.Neutral;
             }
             set

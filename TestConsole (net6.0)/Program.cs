@@ -9,6 +9,8 @@ namespace TestConsole;
 
 class Program : ConsoleXApp
 {
+    public const string CONFIG_FILE_NAME = "tsconfig1.json";
+
     static Program()
     {
         RenderX.ExceptionRendering.IncludeStackTrace = true;
@@ -67,7 +69,7 @@ class Program : ConsoleXApp
     static void Main(string[] args)
     {
         var configuration = new ConfigurationBuilder()
-            .AddJsonFile("tsconfig1.json")
+            .AddJsonFile(CONFIG_FILE_NAME)
             .Build();
         Config.Load(configuration);
         StartConsoleApp<Program>();

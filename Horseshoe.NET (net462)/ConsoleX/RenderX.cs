@@ -51,7 +51,7 @@ namespace Horseshoe.NET.ConsoleX
             Console.WriteLine(" »║" + "".PadLeft(ConsoleWidth - 4, ' ') + "║«");
             foreach (var line in list)
             {
-                Console.WriteLine(" »║" + line.PadCenter(ConsoleWidth - 4) + "║«");
+                Console.WriteLine(" »║" + TextUtil.Pad(line, ConsoleWidth - 4, position: HorizontalPosition.Center) + "║«");
             }
             Console.WriteLine(" »║" + "".PadLeft(ConsoleWidth - 4, ' ') + "║«");
             Console.WriteLine(" »╚" + "".PadLeft(ConsoleWidth - 4, '═') + "╝«");
@@ -68,17 +68,17 @@ namespace Horseshoe.NET.ConsoleX
         {
             Pad(padBefore);
             Console.WriteLine(" ╔" + "".PadLeft(ConsoleWidth - 2, '═') + "╗");
-            Console.WriteLine(" ║" + title.ToString().PadCenter(ConsoleWidth - 2) + '║');
+            Console.WriteLine(" ║" + TextUtil.Pad(title.ToString(), ConsoleWidth - 2, position: HorizontalPosition.Center) + '║');
             Console.WriteLine(" ╚" + "".PadLeft(ConsoleWidth - 2, '═') + "╝");
             Pad(padAfter);
         }
 
         /// <summary>
-        /// Render the specified number of new lines
+        /// Renders the specified number of new lines
         /// </summary>
-        /// <param name="pad">the number of new lines to render</param>
-        /// <param name="altText">an optional alternate string to render on each newline in the pad</param>
-        public static void Pad(int pad, string altText = null)
+        /// <param name="pad">the number of new lines to render, default is 1</param>
+        /// <param name="altText">an optional, alternate string to render on each new line in the pad</param>
+        public static void Pad(int pad = 1, string altText = null)
         {
             for (int i = 0; i < pad; i++)
             {
@@ -107,12 +107,12 @@ namespace Horseshoe.NET.ConsoleX
         }
 
         /// <summary>
-        /// Render a collection of items to the console with or without indexes based on <c>indexPolicy</c>
+        /// Render a collection of items to the console with or without indexes based on <c>indexStyle</c>
         /// </summary>
         /// <typeparam name="T">type of item</typeparam>
         /// <param name="list">a collection of items</param>
         /// <param name="title"><c>Title</c> or text</param>
-        /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
+        /// <param name="indexStyle">whether to display an index and whether it is 0-based</param>
         /// <param name="renderer">alternative to <c>ToString()</c></param>
         /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
         /// <param name="columns">the number of columns in which to render the collection</param>
@@ -123,7 +123,7 @@ namespace Horseshoe.NET.ConsoleX
         (
             IEnumerable<T> list,
             Title? title = null,
-            ListIndexPolicy indexPolicy = default,
+            ListIndexStyle indexStyle = default,
             Func<T, string> renderer = null,
             MenuAndListRealtimeConfigurator listConfigurator = null,
             int columns = 1,
@@ -132,16 +132,16 @@ namespace Horseshoe.NET.ConsoleX
             Action<TextGrid> configureTextGrid = null
         )
         {
-            List(list?.ToList(), title: title, indexPolicy: indexPolicy, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: padAfter, configureTextGrid: configureTextGrid);
+            List(CollectionUtil.ToList(list, optimize: Optimization.ReuseCollection), title: title, indexStyle: indexStyle, renderer: renderer, listConfigurator: listConfigurator, columns: columns, padBefore: padBefore, padAfter: padAfter, configureTextGrid: configureTextGrid);
         }
 
         /// <summary>
-        /// Render a list of items to the console with or without indexes based on <c>indexPolicy</c>
+        /// Render a list of items to the console with or without indexes based on <c>indexStyle</c>
         /// </summary>
         /// <typeparam name="T">type of item</typeparam>
         /// <param name="list">a list of items</param>
         /// <param name="title"><c>Title</c> or text</param>
-        /// <param name="indexPolicy">whether to display an index and whether it is 0-based</param>
+        /// <param name="indexStyle">whether to display an index and whether it is 0-based</param>
         /// <param name="renderer">alternative to <c>ToString()</c></param>
         /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
         /// <param name="columns">The number of columns with which to render the list.</param>
@@ -152,7 +152,7 @@ namespace Horseshoe.NET.ConsoleX
         (
             IList<T> list,
             Title? title = null,
-            ListIndexPolicy indexPolicy = default,
+            ListIndexStyle indexStyle = default,
             Func<T, string> renderer = null,
             MenuAndListRealtimeConfigurator listConfigurator = null,
             int columns = 1,
@@ -178,7 +178,7 @@ namespace Horseshoe.NET.ConsoleX
                 var count = list.Count();
                 var strb = new StringBuilder();
                 var renderedList = new List<string>();
-                var indexSize = (count + (indexPolicy == ListIndexPolicy.DisplayOneBased ? 1 : 0)).ToString().Length;
+                var indexSize = (count + (indexStyle == ListIndexStyle.OneBased ? 1 : 0)).ToString().Length;
 
                 string renderListItem(string index, T item)
                 {
@@ -200,16 +200,95 @@ namespace Horseshoe.NET.ConsoleX
                 for (int i = 0; i < count; i++)
                 {
                     string index = null;
-                    switch (indexPolicy)
+                    switch (indexStyle)
                     {
-                        case ListIndexPolicy.DisplayZeroBased:  // e.g.  [0] First Item
+                        case ListIndexStyle.ZeroBased:  // e.g.  [0] First Item
                             index = i.ToString();
                             break;
-                        case ListIndexPolicy.DisplayOneBased:   // e.g.  [1] First Item
+                        case ListIndexStyle.OneBased:   // e.g.  [1] First Item
                             index = (i + 1).ToString();
                             break;
                     }
                     renderedList.Add(renderListItem(index, list[i]));
+                }
+
+                // build and render text grid
+                var textGrid = new TextGrid(renderedList, columns: columns);
+                configureTextGrid?.Invoke(textGrid);
+                Console.Write(textGrid.Render());
+            }
+            Pad(padAfter);
+        }
+
+        /// <summary>
+        /// Render a list of items to the console with or without indexes based on <c>indexStyle</c>
+        /// </summary>
+        /// <typeparam name="T">type of item</typeparam>
+        /// <param name="list">a list of items</param>
+        /// <param name="title"><c>Title</c> or text</param>
+        /// <param name="indexStyle">whether to display an index and whether it is 0-based</param>
+        /// <param name="renderer">alternative to <c>ToString()</c></param>
+        /// <param name="listConfigurator">internal mechanism for preventing prompt deadlock</param>
+        /// <param name="columns">The number of columns with which to render the list.</param>
+        /// <param name="padBefore">the number of new lines to render before the list</param>
+        /// <param name="padAfter">the number of new lines to render after the list</param>
+        /// <param name="configureTextGrid">exposes a reference to the underlying <c>TextGrid</c> for further configuration</param>
+        /// <exception cref="ValidationException"></exception>
+        public static void List<T>
+        (
+            IEnumerable<KeyValuePair<int, T>> list,
+            Title? title = null,
+            ListIndexStyle indexStyle = default,
+            Func<T, string> renderer = null,
+            MenuAndListRealtimeConfigurator listConfigurator = null,
+            int columns = 1,
+            int padBefore = 0,
+            int padAfter = 0,
+            Action<TextGrid> configureTextGrid = null
+        )
+        {
+            if (indexStyle != ListIndexStyle.ZeroBased)
+                throw new ValidationException("Invalid indexStyle: " + indexStyle);
+
+            Pad(padBefore);
+            ListTitle(title: title, padBefore: 0, padAfter: 0);
+            if (list == null)
+            {
+                Console.WriteLine("[null list]");
+                listConfigurator?.SetNotSelectable();
+            }
+            else if (!list.Any())
+            {
+                Console.WriteLine("[empty list]");
+                listConfigurator?.SetNotSelectable();
+            }
+            else
+            {
+                var count = list.Count();
+                var strb = new StringBuilder();
+                var indexSize = list.Max(_kvp => _kvp.Key).ToString().Length;
+
+                string renderListItem(string index, T item)
+                {
+                    strb.Clear();
+                    if (index != null)
+                    {
+                        strb.Append("[" + index.PadLeft(indexSize) + "] ");
+                    }
+                    strb.Append
+                    (
+                        renderer != null
+                            ? renderer.Invoke(item)
+                            : item?.ToString() ?? "[null]"
+                    );
+                    return strb.ToString();
+                }
+
+                // build intermediate lists
+                var renderedList = new List<string>();
+                foreach (var kvp in list)
+                {
+                    renderedList.Add(renderListItem(kvp.Key.ToString(), kvp.Value));
                 }
 
                 // build and render text grid
@@ -236,10 +315,10 @@ namespace Horseshoe.NET.ConsoleX
         /// <param name="padAfter">the number of new lines to render after the list</param>
         public static void Menu<T>
         (
-            IList<T> menuItems,
+            IEnumerable<T> menuItems,
             Title? title = null,
-            IList<MenuObject> customItemsToPrepend = null,
-            IList<MenuObject> customItemsToAppend = null,
+            IEnumerable<MenuObject> customItemsToPrepend = null,
+            IEnumerable<MenuObject> customItemsToAppend = null,
             int columns = 1,
             Action<TextGrid> configureTextGrid = null,
             Func<T, string> renderer = null,
@@ -426,7 +505,7 @@ namespace Horseshoe.NET.ConsoleX
             message = "** " + (message?.Trim() ?? "Alert!") + " **";
             if (centered)
             {
-                message = message.PadCenter(ConsoleWidth);
+                message = TextUtil.Pad(message, ConsoleWidth, position: HorizontalPosition.Center);
             }
             Pad(padBefore);
             Console.WriteLine(message);

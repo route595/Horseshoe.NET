@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Text;
-
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.SqlDb.Meta;
@@ -63,16 +63,16 @@ namespace Horseshoe.NET.SqlDb
         /// </summary>
         /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
-        /// <param name="journal"></param>
+        /// <param name="cryptoOptions"></param>
         /// <returns>A new DB connection</returns>
         public static SqlConnection LaunchConnection
         (
             SqlDbConnectionInfo connectionInfo = null,
             Action<SqlConnection> peekConnection = null,
-            TraceJournal journal = null
+            CryptoOptions cryptoOptions = null
         )
         {
-            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), cryptoOptions: cryptoOptions);
             var conn = connectionInfo.SqlCredentials != null
                 ? new SqlConnection(connectionInfo.ConnectionString, connectionInfo.SqlCredentials)
                 : new SqlConnection
@@ -99,8 +99,8 @@ namespace Horseshoe.NET.SqlDb
             return BuildCommand
             (
                 conn,
-                CommandType.Text,
                 commandText,
+                CommandType.Text,
                 parameters: parameters,
                 transaction: transaction,
                 commandTimeout: commandTimeout,
@@ -121,8 +121,8 @@ namespace Horseshoe.NET.SqlDb
             return BuildCommand
             (
                 conn,
-                CommandType.StoredProcedure,
                 prodecureName,
+                CommandType.StoredProcedure,
                 parameters: parameters,
                 transaction: transaction,
                 commandTimeout: commandTimeout,
@@ -133,8 +133,8 @@ namespace Horseshoe.NET.SqlDb
         public static SqlCommand BuildCommand
         (
             SqlConnection conn,
-            CommandType commandType,
             string commandText,
+            CommandType commandType,
             IEnumerable<DbParameter> parameters = null,
             SqlTransaction transaction = null,
             int? commandTimeout = null,
@@ -144,8 +144,8 @@ namespace Horseshoe.NET.SqlDb
             var cmd = new SqlCommand
             {
                 Connection = conn,
-                CommandType = commandType,
                 CommandText = commandText,
+                CommandType = commandType,
                 Transaction = transaction
             };
             if (parameters != null)

@@ -6,9 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.OracleDb.Meta;
+using Horseshoe.NET.RelayMessages;
 using Horseshoe.NET.Text;
 using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
@@ -17,6 +19,8 @@ namespace Horseshoe.NET.OracleDb
 {
     public static class OracleDbUtil
     {
+        private static string MessageRelayGroup => OracleDbConstants.MessageRelayGroup;
+
         //private static Regex dbServerPattern = new Regex("^[a-z0-9-_]+(\\.[a-z0-9-_]+)*$", RegexOptions.IgnoreCase);
         //private static Regex dbServerPortPattern = new Regex("^[a-z0-9-_]+(\\.[a-z0-9-_]+)*[:][0-9]+$", RegexOptions.IgnoreCase);
 
@@ -91,10 +95,10 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleDbConnectionInfo connectionInfo = null,
             Action<OracleConnection> peekConnection = null,
-            TraceJournal journal = null
+            CryptoOptions cryptoOptions = null
         )
         {
-            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), cryptoOptions: cryptoOptions);
             var conn = connectionInfo.OracleCredentials != null
                 ? new OracleConnection(connectionInfo.ConnectionString, connectionInfo.OracleCredentials)
                 : new OracleConnection
@@ -144,8 +148,8 @@ namespace Horseshoe.NET.OracleDb
             return BuildCommand
             (
                 conn,
-                CommandType.Text,
                 commandText,
+                CommandType.Text,
                 parameters: parameters,
                 transaction: transaction,
                 commandTimeout: commandTimeout,
@@ -166,8 +170,8 @@ namespace Horseshoe.NET.OracleDb
             return BuildCommand
             (
                 conn,
-                CommandType.StoredProcedure,
                 commandText,
+                CommandType.StoredProcedure,
                 parameters: parameters,
                 transaction : transaction,
                 commandTimeout : commandTimeout,
@@ -178,8 +182,8 @@ namespace Horseshoe.NET.OracleDb
         public static OracleCommand BuildCommand
         (
             OracleConnection conn,
-            CommandType commandType,
             string commandText,
+            CommandType commandType,
             IEnumerable<DbParameter> parameters = null,
             OracleTransaction transaction = null,
             int? commandTimeout = null,
@@ -189,8 +193,8 @@ namespace Horseshoe.NET.OracleDb
             var cmd = new OracleCommand
             {
                 Connection = conn,
-                CommandType = commandType,
                 CommandText = commandText,
+                CommandType = commandType,
                 Transaction = transaction
             };
             if (parameters != null)
@@ -315,16 +319,11 @@ namespace Horseshoe.NET.OracleDb
         /// <param name="reader">An oben data reader.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static IEnumerable<object[]> ReadAsObjects(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static IEnumerable<object[]> ReadAsObjects(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("OracleDbUtil.ReadAsObjects(reader)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             var list = new List<object[]>();
             var cols = reader.GetDataColumns();
             if (dbCapture != null)
@@ -335,8 +334,7 @@ namespace Horseshoe.NET.OracleDb
                 list.Add(objects);
             }
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: "list count: " + list.Count, group: MessageRelayGroup);
             return list;
         }
 
@@ -347,16 +345,11 @@ namespace Horseshoe.NET.OracleDb
         /// <param name="reader">An oben data reader.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("OracleDbUtil.ReadAsObjectsAsync(reader)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             var list = new List<object[]>();
             var cols = reader.GetDataColumns();
             if (dbCapture != null)
@@ -367,8 +360,7 @@ namespace Horseshoe.NET.OracleDb
                 list.Add(objects);
             }
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: "list count: " + list.Count, group: MessageRelayGroup);
             return list;
         }
 
@@ -380,25 +372,20 @@ namespace Horseshoe.NET.OracleDb
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
         /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static IEnumerable<object[]> ReadAsObjects(IDbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static IEnumerable<object[]> ReadAsObjects(IDbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("OracleDbUtil.ReadAsObjects(command)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             using (var reader = command.ExecuteReader())
             {
-                var list = ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                var list = ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
                 if (dbCapture != null)
                     dbCapture.OutputParameters = command.Parameters
                         .Cast<DbParameter>()
                         .Where(p => p.Direction == ParameterDirection.Output)
                         .ToArray();
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
         }
@@ -411,25 +398,20 @@ namespace Horseshoe.NET.OracleDb
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
         /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(IDbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(IDbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("OracleDbUtil.ReadAsObjectsAsync(command)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             using (var reader = await ((DbCommand)command).ExecuteReaderAsync())
             {
-                var list = await ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                var list = await ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
                 if (dbCapture != null)
                     dbCapture.OutputParameters = command.Parameters
                         .Cast<DbParameter>()
                         .Where(p => p.Direction == ParameterDirection.Output)
                         .ToArray();
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
         }

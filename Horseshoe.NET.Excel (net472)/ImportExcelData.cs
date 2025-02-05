@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+
 using Horseshoe.NET.DataImport;
 using Horseshoe.NET.IO;
+using Horseshoe.NET.RelayMessages;
 using Horseshoe.NET.Text;
 using NPOI.HSSF.UserModel;
 using NPOI.POIFS.FileSystem;
@@ -12,6 +14,8 @@ namespace Horseshoe.NET.Excel
 {
     public static class ImportExcelData
     {
+        private static string MessageRelayGroup => ExcelImportConstants.MessageRelayGroup;
+
         public static class Xls
         {
             /// <summary>
@@ -25,21 +29,16 @@ namespace Horseshoe.NET.Excel
             /// <param name="blankRowPolicy"></param>
             /// <param name="errorHandlingPolicy"></param>
             /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
             /// <returns></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportExcelData.Xls.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
-                return dataImport.ExportToStringArrays();
+                var arrays = dataImport.ExportToStringArrays();
+                SystemMessageRelay.RelayMethodReturn(returnDescription: "array count: " + arrays.Count(), group: MessageRelayGroup);
+                return arrays;
             }
 
             /// <summary>
@@ -53,21 +52,16 @@ namespace Horseshoe.NET.Excel
             /// <param name="blankRowPolicy"></param>
             /// <param name="errorHandlingPolicy"></param>
             /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
             /// <returns></returns>
-            public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportExcelData.Xls.AsObjects()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
-                return dataImport.ExportToObjectArrays();
+                var arrays = dataImport.ExportToObjectArrays();
+                SystemMessageRelay.RelayMethodReturn(returnDescription: "array count: " + arrays.Count(), group: MessageRelayGroup);
+                return arrays;
             }
 
             /// <summary>
@@ -81,16 +75,11 @@ namespace Horseshoe.NET.Excel
             /// <param name="blankRowPolicy"></param>
             /// <param name="errorHandlingPolicy"></param>
             /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
             /// <returns></returns>
-            public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportExcelData.Xls.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
                 var dataImport = new ExcelDataImport(columns, enforceColumnCount: enforceColumnCount)
                 {
                     BlankRowPolicy = blankRowPolicy,
@@ -119,8 +108,8 @@ namespace Horseshoe.NET.Excel
                 }
                 while (excelRow != null)
                 {
-                    journal.WriteEntry("reading Excel row " + dataImport.NextRow);
-                    ReadExcelRow(rawValues, excelRow, autoTrunc, errorHandlingPolicy, journal);
+                    SystemMessageRelay.RelayMessage("reading Excel row " + dataImport.NextRow, group: MessageRelayGroup);
+                    ReadExcelRow(rawValues, excelRow, autoTrunc, errorHandlingPolicy);
                     try
                     {
                         dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -138,7 +127,7 @@ namespace Horseshoe.NET.Excel
 
                 // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataImport;
             }
         }
@@ -156,20 +145,14 @@ namespace Horseshoe.NET.Excel
             /// <param name="blankRowPolicy"></param>
             /// <param name="errorHandlingPolicy"></param>
             /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
             /// <returns></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportExcelData.Xlsx.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -184,20 +167,14 @@ namespace Horseshoe.NET.Excel
             /// <param name="blankRowPolicy"></param>
             /// <param name="errorHandlingPolicy"></param>
             /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
             /// <returns></returns>
-            public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportExcelData.Xlsx.AsObjects()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -212,16 +189,11 @@ namespace Horseshoe.NET.Excel
             /// <param name="blankRowPolicy"></param>
             /// <param name="errorHandlingPolicy"></param>
             /// <param name="autoTrunc"></param>
-            /// <param name="journal"></param>
             /// <returns></returns>
-            public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportExcelData.Xlsx.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
                 var dataImport = new ExcelDataImport(columns, enforceColumnCount: enforceColumnCount)
                 {
                     BlankRowPolicy = blankRowPolicy,
@@ -250,8 +222,8 @@ namespace Horseshoe.NET.Excel
                 }
                 while (excelRow != null)
                 {
-                    journal.WriteEntry("reading Excel row " + dataImport.NextRow);
-                    ReadExcelRow(rawValues, excelRow, autoTrunc, errorHandlingPolicy, journal);
+                    SystemMessageRelay.RelayMessage("reading Excel row " + dataImport.NextRow, group: MessageRelayGroup);
+                    ReadExcelRow(rawValues, excelRow, autoTrunc, errorHandlingPolicy);
                     try
                     {
                         dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -267,9 +239,8 @@ namespace Horseshoe.NET.Excel
                     excelRow = excelWorksheet.GetRow(++rowNum);
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataImport;
             }
         }
@@ -285,21 +256,16 @@ namespace Horseshoe.NET.Excel
         /// <param name="blankRowPolicy"></param>
         /// <param name="errorHandlingPolicy"></param>
         /// <param name="autoTrunc"></param>
-        /// <param name="journal"></param>
         /// <returns></returns>
-        public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+        public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ImportExcelData.AsStrings()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // variable declaration
-            var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+            var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-            // finalize
-            journal.Level--;
-            return dataImport.ExportToStringArrays();
+            var arrays = dataImport.ExportToStringArrays();
+            SystemMessageRelay.RelayMethodReturn(returnDescription: "array count: " + arrays.Count(), group: MessageRelayGroup);
+            return arrays;
         }
 
         /// <summary>
@@ -313,21 +279,16 @@ namespace Horseshoe.NET.Excel
         /// <param name="blankRowPolicy"></param>
         /// <param name="errorHandlingPolicy"></param>
         /// <param name="autoTrunc"></param>
-        /// <param name="journal"></param>
         /// <returns></returns>
-        public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+        public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ImportExcelData.AsObjects()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // variable declaration
-            var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+            var dataImport = AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-            // finalize
-            journal.Level--;
-            return dataImport.ExportToObjectArrays();
+            var arrays = dataImport.ExportToObjectArrays(); 
+            SystemMessageRelay.RelayMethodReturn(returnDescription: "array count: " + arrays.Count(), group: MessageRelayGroup);
+            return arrays;
         }
 
         /// <summary>
@@ -341,39 +302,35 @@ namespace Horseshoe.NET.Excel
         /// <param name="blankRowPolicy"></param>
         /// <param name="errorHandlingPolicy"></param>
         /// <param name="autoTrunc"></param>
-        /// <param name="journal"></param>
         /// <returns></returns>
-        public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+        public static ExcelDataImport AsDataImport(FilePath file, IEnumerable<Column> columns = null, bool enforceColumnCount = false, int sheetNum = 0, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ImportExcelData.AsDataImport()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // variable declaration
             ExcelDataImport dataImport;
 
             switch (file.Extension.ToLower())
             {
                 case ".xls":
-                    dataImport = Xls.AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                    dataImport = Xls.AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
                     break;
                 case ".xlsx":
-                    dataImport = Xlsx.AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                    dataImport = Xlsx.AsDataImport(file, columns: columns, enforceColumnCount: enforceColumnCount, sheetNum: sheetNum, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
                     break;
                 default:
                     throw new DataImportException("Only .xls and .xlsx files are supported at this time");
             }
 
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             return dataImport;
         }
 
-        static void ReadExcelRow(List<object> rawValues, IRow row, AutoTruncate autoTrunc, DataErrorHandlingPolicy dataErrorHandling, TraceJournal journal)
+        static void ReadExcelRow(List<object> rawValues, IRow row, AutoTruncate autoTrunc, DataErrorHandlingPolicy dataErrorHandling)
         {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
             if (row.IsBlank())
             {
-                journal.WriteEntry("encountered blank row");
+                SystemMessageRelay.RelayMessage("encountered blank row", group: MessageRelayGroup);
             }
             else
             {
@@ -390,7 +347,7 @@ namespace Horseshoe.NET.Excel
                     if (cell == null)
                     {
                         value = null;
-                        journal.WriteEntry("blank cell " + cellAddress + " -> [null]");
+                        SystemMessageRelay.RelayMessage("blank cell " + cellAddress + " -> [null]", group: MessageRelayGroup);
                     }
                     else
                     {
@@ -412,15 +369,15 @@ namespace Horseshoe.NET.Excel
                                         value = cell.StringCellValue;
                                         break;
                                 }
-                                journal.WriteEntry("string cell " + cellAddress + " -> " + TextUtil.Reveal(value));
+                                SystemMessageRelay.RelayMessage("string cell " + cellAddress + " -> " + TextUtil.Reveal(value), group: MessageRelayGroup);
                                 break;
                             case CellType.Numeric:
                                 value = cell.NumericCellValue;
-                                journal.WriteEntry("numeric cell " + cellAddress + " -> " + value);
+                                SystemMessageRelay.RelayMessage("numeric cell " + cellAddress + " -> " + value, group: MessageRelayGroup);
                                 break;
                             case CellType.Boolean:
                                 value = cell.BooleanCellValue;
-                                journal.WriteEntry("boolean cell " + cellAddress + " -> " + value);
+                                SystemMessageRelay.RelayMessage("boolean cell " + cellAddress + " -> " + value, group: MessageRelayGroup);
                                 break;
                             case CellType.Error:
                                 switch (dataErrorHandling)
@@ -430,11 +387,11 @@ namespace Horseshoe.NET.Excel
                                         throw new DataImportException("Cell error: " + cellAddress + " (code = " + cell.ErrorCellValue + ")");
                                     case DataErrorHandlingPolicy.Embed:
                                         value = new DataError("Cell error: " + cellAddress + " (code = " + cell.ErrorCellValue + ")");
-                                        journal.WriteEntry("error cell " + cellAddress + " (code = " + cell.ErrorCellValue + ") -> " + TextUtil.Reveal(value));
+                                        SystemMessageRelay.RelayMessage("error cell " + cellAddress + " (code = " + cell.ErrorCellValue + ") -> " + TextUtil.Reveal(value), group: MessageRelayGroup);
                                         break;
                                     case DataErrorHandlingPolicy.IgnoreAndUseDefaultValue:
                                         value = autoTrunc == AutoTruncate.Zap ? null : "";
-                                        journal.WriteEntry("error cell " + cellAddress + " (code = " + cell.ErrorCellValue + ") -> " + TextUtil.Reveal(value));
+                                        SystemMessageRelay.RelayMessage("error cell " + cellAddress + " (code = " + cell.ErrorCellValue + ") -> " + TextUtil.Reveal(value), group: MessageRelayGroup);
                                         break;
                                 }
                                 break;
@@ -458,6 +415,7 @@ namespace Horseshoe.NET.Excel
                     rawValues.Add(value);
                 }
             }
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
         }
     }
 }

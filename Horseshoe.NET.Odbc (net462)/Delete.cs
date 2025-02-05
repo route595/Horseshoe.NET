@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Data.Odbc;
-using System.Reflection;
 
-using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
+using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.Odbc
 {
@@ -12,6 +11,8 @@ namespace Horseshoe.NET.Odbc
     /// </summary>
     public static class Delete
     {
+        private static string MessageRelayGroup => OdbcConstants.MessageRelayGroup;
+
         /// <summary>
         /// Creates a connection and deletes some or all of the rows in a table with option to drop.
         /// </summary>
@@ -24,35 +25,28 @@ namespace Horseshoe.NET.Odbc
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of rows deleted.</returns>
         public static int Table
         (
             string tableName,
-            Filter where,
+            IFilter where,
             DbProvider provider = default,
             OdbcConnectionInfo connectionInfo = null,
             bool drop = false,
             bool purge = false,
             int? commandTimeout = null,
             Action<OdbcConnection> peekConnection = null,
-            Action<OdbcCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OdbcCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
+            using (var conn = OdbcUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection))
             {
-                var result = Table(conn, tableName, where, provider, drop: drop, purge: purge, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+                var rowsDeleted = Table(conn, tableName, where, provider: provider, drop: drop, purge: purge, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-                // finalize
-                journal.Level--;
-                return result;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return rowsDeleted;
             }
         }
 
@@ -68,33 +62,26 @@ namespace Horseshoe.NET.Odbc
         /// <param name="purge">Oracle DB only. If <c>true</c> and if <c>drop == true</c>, deletes the table database object (rather than just delete rows) and releases the space associated with it in a single step, default is <c>false</c>.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of rows deleted.</returns>
         public static int Table
         (
             OdbcConnection conn,
             string tableName,
-            Filter where,
+            IFilter where,
             DbProvider provider = default,
             OdbcTransaction transaction = null,
             bool drop = false,
             bool purge = false,
             int? commandTimeout = null,
-            Action<OdbcCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OdbcCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            var statement = DbUtil.BuildDeleteStatement(provider, tableName, where, drop: drop, purge: purge, journal: journal);
-            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+            var statement = DbUtil.BuildDeleteStatement(tableName, where, drop: drop, purge: purge, provider: provider);
+            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: (!(drop || purge) ? "rows deleted: " : "result: ") + result, group: MessageRelayGroup);
             return result;
         }
     }

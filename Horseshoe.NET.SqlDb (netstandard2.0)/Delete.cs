@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.Reflection;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.SqlDb
 {
@@ -11,6 +11,8 @@ namespace Horseshoe.NET.SqlDb
     /// </summary>
     public static class Delete
     {
+        private static string MessageRelayGroup => SqlDbConstants.MessageRelayGroup;
+
         /// <summary>
         /// Creates a connection and deletes some or all of the rows in a table with option to drop.
         /// </summary>
@@ -22,7 +24,6 @@ namespace Horseshoe.NET.SqlDb
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of rows deleted</returns>
         public static int Table
         (
@@ -33,23 +34,17 @@ namespace Horseshoe.NET.SqlDb
             bool purge = false,
             int? commandTimeout = null,
             Action<SqlConnection> peekConnection = null,
-            Action<SqlCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<SqlCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
+            using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection))
             {
-                var result = Table(conn, tableName, where, drop: drop, purge: purge, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+                var rowsDeleted = Table(conn, tableName, where, drop: drop, purge: purge, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-                // finalize
-                journal.Level--;
-                return result;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return rowsDeleted;
             }
         }
 
@@ -64,7 +59,6 @@ namespace Horseshoe.NET.SqlDb
         /// <param name="purge">Sql DB only. If <c>true</c> and if <c>drop == true</c>, deletes the table database object (rather than just delete rows) and releases the space associated with it in a single step, default is <c>false</c>.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of rows deleted</returns>
         public static int Table
         (
@@ -75,21 +69,15 @@ namespace Horseshoe.NET.SqlDb
             bool drop = false,
             bool purge = false,
             int? commandTimeout = null,
-            Action<SqlCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<SqlCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            var statement = DbUtil.BuildDeleteStatement(DbProvider.SqlServer, tableName, where, drop: drop, purge: purge, journal: journal);
-            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+            var statement = DbUtil.BuildDeleteStatement(tableName, where, drop: drop, purge: purge, DbProvider.SqlServer);
+            var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: (!(drop || purge) ? "rows deleted: " : "result: ") + result, group: MessageRelayGroup);
             return result;
         }
     }

@@ -60,8 +60,7 @@ namespace Horseshoe.NET.OracleDb
             get
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
-                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:OracleDb:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("OracleDb.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("OracleDb.IsEncryptedPassword"));
+                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:OracleDb:IsEncryptedPassword"));
             }
         }
 
@@ -94,8 +93,7 @@ namespace Horseshoe.NET.OracleDb
                 if (_defaultDataSource == null)
                 {
                     _defaultDataSource =      // e.g. ORADBSVR01 or 'NAME'11.22.33.44:9999;SERVICE1 or ORADBSVR02:9999;SERVICE1;INSTANCE1
-                        Config.Get("Horseshoe.NET:OracleDb:DataSource", parseFunc: (raw) => OraServer.Parse(raw)) ??
-                        OrganizationalDefaultSettings.Get<OraServer>("OracleDb.DataSource"); 
+                        Config.Get("Horseshoe.NET:OracleDb:DataSource", parser: (raw) => OraServer.Parse(raw)); 
                 }
                 return _defaultDataSource;
             }
@@ -136,7 +134,6 @@ namespace Horseshoe.NET.OracleDb
             {
                 return _defaultServiceName     // e.g. MYDATABASE
                     ?? Config.Get("Horseshoe.NET:OracleDb:ServiceName")
-                    ?? OrganizationalDefaultSettings.Get<string>("OracleDb.ServiceName")
                     ?? DefaultDataSource?.DataSource;
             }
             set
@@ -163,8 +160,7 @@ namespace Horseshoe.NET.OracleDb
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
                         : Credential.Build(configUserName, configPassword)
-                    )
-                    ?? OrganizationalDefaultSettings.Get<Credential?>("OracleDb.Credentials");
+                    );
             }
             set
             {
@@ -182,8 +178,7 @@ namespace Horseshoe.NET.OracleDb
             get
             {
                 return _defaultAdditionalConnectionAttributes         // e.g. Integrated Security=SSQI|Attribute1=Value1
-                    ?? Config.Get("Horseshoe.NET:OracleDb:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw))
-                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("OracleDb.AdditionalConnectionAttributes"));
+                    ?? Config.Get("Horseshoe.NET:OracleDb:AdditionalConnectionAttributes", parser: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw));
             }
             set
             {
@@ -201,8 +196,7 @@ namespace Horseshoe.NET.OracleDb
             get
             {
                 return _defaultConnectionTimeout
-                    ?? Config.Get<int?>("Horseshoe.NET:OracleDb:ConnectionTimeout")
-                    ?? OrganizationalDefaultSettings.Get<int?>("OracleDb.ConnectionTimeout");
+                    ?? Config.Get<int?>("Horseshoe.NET:OracleDb:ConnectionTimeout");
             }
             set
             {
@@ -221,7 +215,6 @@ namespace Horseshoe.NET.OracleDb
             {
                 return _reattemptInterval
                     ?? Config.Get<int?>("Horseshoe.NET:OracleDb:ReattemptInterval")
-                    ?? OrganizationalDefaultSettings.Get<int?>("OracleDb.ReattemptInterval")
                     ?? 500;
             }
             set
@@ -241,9 +234,7 @@ namespace Horseshoe.NET.OracleDb
             get
             {
                 return _defaultAutoClearConnectionPool
-                    ?? Config.Get<bool?>("Horseshoe.NET:OracleDb:AutoClearConnectionPool")
-                    ?? OrganizationalDefaultSettings.Get<bool?>("OracleDb.AutoClearConnectionPool")
-                    ?? false;
+                    ?? Config.Get<bool>("Horseshoe.NET:OracleDb:AutoClearConnectionPool");
             }
             set
             {
@@ -263,8 +254,7 @@ namespace Horseshoe.NET.OracleDb
                 if (_serverList == null)
                 {
                     _serverList =      // e.g. ORADBSVR01|'NAME'11.22.33.44:9999;SERVICE1|ORADBSVR02:9999;SERVICE1;INSTANCE1
-                        Config.Get("Horseshoe.NET:OracleDb:ServerList", parseFunc: (raw) => OraServer.ParseList(raw)) ??
-                        OraServer.ParseList(OrganizationalDefaultSettings.Get<string>("OracleDb.ServerList"));
+                        Config.Get("Horseshoe.NET:OracleDb:ServerList", parser: (raw) => OraServer.ParseList(raw));
                 }
                 return _serverList;
             }

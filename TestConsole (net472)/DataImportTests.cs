@@ -150,10 +150,10 @@ Katia,27,12/2/1995
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -180,10 +180,10 @@ Katia,27,12/2/1995
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -209,10 +209,10 @@ Katia     002719951202
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -245,10 +245,10 @@ Katia     0_2719951202
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -268,10 +268,10 @@ Katia     0_2719951202
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -291,10 +291,10 @@ Katia     0_2719951202
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -321,10 +321,10 @@ Katia     0_2719951202
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -351,10 +351,10 @@ Katia     0_2719951202
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             )
         };

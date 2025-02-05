@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Reflection;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.SqlDb
 {
@@ -13,6 +13,8 @@ namespace Horseshoe.NET.SqlDb
     /// </summary>
     public static class Update
     {
+        private static string MessageRelayGroup => SqlDbConstants.MessageRelayGroup;
+
         /// <summary>
         /// Creates a connection and updates a database table.
         /// </summary>
@@ -23,7 +25,6 @@ namespace Horseshoe.NET.SqlDb
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of updated rows.</returns>
         public static int Table
         (
@@ -33,22 +34,16 @@ namespace Horseshoe.NET.SqlDb
             SqlDbConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
             Action<SqlConnection> peekConnection = null,
-            Action<SqlCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<SqlCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
+            using (var conn = SqlDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection))
             {
-                var result = Table(conn, tableName, columns, where, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+                var result = Table(conn, tableName, columns, where, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return result;
             }
         }
@@ -62,7 +57,6 @@ namespace Horseshoe.NET.SqlDb
         /// <param name="where">A filter indicating which rows to update.</param>
         /// <param name="transaction">An optional SQL transaction which bundles together multiple data calls over a single connection and commits or rolls back all of them</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged</param>
         /// <returns>The number of updated rows.</returns>
         public static int Table
         (
@@ -72,21 +66,15 @@ namespace Horseshoe.NET.SqlDb
             Filter where,
             SqlTransaction transaction = null,
             int? commandTimeout = null,
-            Action<SqlCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<SqlCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            var statement = DbUtil.BuildUpdateStatement(DbProvider.SqlServer, tableName, columns, where, journal: journal);
+            var statement = DbUtil.BuildUpdateStatement(tableName, columns, where, provider: DbProvider.SqlServer);
             var result = Execute.SQL(conn, statement, transaction: transaction, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             return result;
         }
     }

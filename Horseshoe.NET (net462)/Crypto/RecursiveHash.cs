@@ -19,7 +19,6 @@ namespace Horseshoe.NET.Crypto
         /// <param name="options">Hash options</param>
         /// <param name="onDirectoryHello">Hash options</param>
         /// <param name="onDirectoryGoodbye">Hash options</param>
-        /// <param name="onDirectorySkipping">Hash options</param>
         /// <param name="onDirectorySkipped">Hash options</param>
         /// <param name="onFileHello">Hash options</param>
         /// <param name="onFileSkipped">Hash options</param>

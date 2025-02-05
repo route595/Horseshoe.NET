@@ -15,7 +15,6 @@ namespace Horseshoe.NET.Caching
             {
                 return _defaultCacheDuration
                     ?? Config.Get<int?>("Horseshoe.NET:Caching:CacheDuration") 
-                    ?? OrganizationalDefaultSettings.Get<int?>("Caching.CacheDuration")
                     ?? CacheConstants.DefaultCacheDurationInSeconds;
             }
             set

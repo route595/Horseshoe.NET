@@ -42,7 +42,7 @@ namespace TestConsole.DbTests
                     using (var conn = OracleDbUtil.LaunchConnection(MyConnectInfo))
                     {
                         Console.Write("SYSDATE - DataTable (via adapter): ");
-                        using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, sysdateStatement))
+                        using (var cmd = OracleDbUtil.BuildCommand(conn, sysdateStatement, CommandType.Text))
                         {
                             var dataTable = new DataTable();
                             var adapter = new OracleDataAdapter(cmd);
@@ -50,7 +50,7 @@ namespace TestConsole.DbTests
                             Console.WriteLine(dataTable.Rows[0][0].GetType().Name);
                         }
                         Console.Write("SYSDATE - ExecuteReader(): ");
-                        using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, sysdateStatement))
+                        using (var cmd = OracleDbUtil.BuildCommand(conn, sysdateStatement, CommandType.Text))
                         {
                             using (var reader = cmd.ExecuteReader())
                             {
@@ -59,13 +59,13 @@ namespace TestConsole.DbTests
                             }
                         }
                         Console.Write("SYSDATE - ExecuteScalar(): ");
-                        using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, sysdateStatement))
+                        using (var cmd = OracleDbUtil.BuildCommand(conn, sysdateStatement, CommandType.Text))
                         {
                             var result = cmd.ExecuteScalar();
                             Console.WriteLine(result.GetType().Name);
                         }
                         Console.Write("Chars - DataTable (via adapter): ");
-                        using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, charStatement))
+                        using (var cmd = OracleDbUtil.BuildCommand(conn, charStatement, CommandType.Text))
                         {
                             var dataTable = new DataTable();
                             var adapter = new OracleDataAdapter(cmd);
@@ -73,7 +73,7 @@ namespace TestConsole.DbTests
                             Console.WriteLine(dataTable.Rows[0][0].GetType().Name);
                         }
                         Console.Write("Chars - ExecuteReader(): ");
-                        using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, charStatement))
+                        using (var cmd = OracleDbUtil.BuildCommand(conn, charStatement, CommandType.Text))
                         {
                             using (var reader = cmd.ExecuteReader())
                             {
@@ -82,7 +82,7 @@ namespace TestConsole.DbTests
                             }
                         }
                         Console.Write("Chars - ExecuteScalar(): ");
-                        using (var cmd = OracleDbUtil.BuildCommand(conn, CommandType.Text, charStatement))
+                        using (var cmd = OracleDbUtil.BuildCommand(conn, charStatement, CommandType.Text))
                         {
                             var result = cmd.ExecuteScalar();
                             Console.WriteLine(result.GetType().Name);

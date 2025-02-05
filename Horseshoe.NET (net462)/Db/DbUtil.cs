@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -10,8 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Collections;
+using Horseshoe.NET.Configuration;
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.ObjectsTypesAndValues;
+using Horseshoe.NET.RelayMessages;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Db
@@ -21,6 +22,8 @@ namespace Horseshoe.NET.Db
     /// </summary>
     public static class DbUtil
     {
+        private static readonly string MessageRelayGroup = typeof(DbUtil).Namespace;
+
         /* * * * * * * * * * * * * * * * * * * * * 
          *   CONNECTION STRINGS + CREDENTIALS    *
          * * * * * * * * * * * * * * * * * * * * */
@@ -34,10 +37,10 @@ namespace Horseshoe.NET.Db
         ///// <param name="buildConnectionStringFromConfig">an optional function for building a provider-specific connection string from <c>app|web.config</c> or <c>appsettings.json</c></param>
         ///// <param name="cryptoOptions">Optional options for the crypto engine to decrypt the connection string password. Source should be DB settings.</param>
         ///// <param name="getConnectionStringSource">Sends the connection string source to any listening client</param>
-        ///// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        //
         ///// <returns>A new <c>ConnectionInfo</c> object whose <c>ConnectionString</c> should be used to build connections.</returns>
         ///// <exception cref="ValidationException"></exception>
-        //public static T LoadConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, CryptoOptions cryptoOptions = null, Func<string> getConnectionStringSource = null, TraceJournal journal = null) where T : ConnectionInfo, new()
+        //public static T LoadConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, CryptoOptions cryptoOptions = null, Func<string> getConnectionStringSource = null) where T : ConnectionInfo, new()
         //{
         //    // journaling
         //    journal = journal ?? new TraceJournal();
@@ -182,20 +185,16 @@ namespace Horseshoe.NET.Db
 
         /// <summary>
         /// Internal use only.  Scans all possible sources for the connection string.  Client code
-        /// can listen to <c>getConnectionStringSource</c> to get the connection string source.
+        /// can listen to <c>SystemMessageRelay</c> to get details including the connection string source.
         /// </summary>
         /// <param name="connectionInfo">The <c>ConnectionInfo</c> supplied to the database method, can be <c>null</c></param>
         /// <param name="buildConnectionStringFromConfig">A provider specific function for building a connection string from configuration file</param>
         /// <param name="cryptoOptions">Optional options for the crypto engine to decrypt the connection string password. Source should be DB settings.</param>
-        /// <param name="revealConnectionStringSource">Sends the connection string source to any listening client</param>
-        /// <param name="journal">An optional trace journal to which each step of the process is logged.</param>
         /// <returns>A new <c>ConnectionInfo</c> object whose <c>ConnectionString</c> should be used to build connections.</returns>
-        /// <exception cref="ValidationException"></exception>
-        public static T LoadFinalConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, CryptoOptions cryptoOptions = null, Action<string> revealConnectionStringSource = null, TraceJournal journal = null) where T : ConnectionInfo, new()
+        /// <exception cref="DbException"></exception>
+        public static T LoadFinalConnectionInfo<T>(T connectionInfo, Func<string> buildConnectionStringFromConfig, CryptoOptions cryptoOptions = null) where T : ConnectionInfo, new()
         {
-            // journaling
-            journal?.WriteEntry("DbUtil.LoadFinalConnectionInfo()  =>  T = " + typeof(T).FullName);
-            journal?.IncrementLevel();
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             string connStr = null;
             string connStrSource = null;
@@ -214,7 +213,7 @@ namespace Horseshoe.NET.Db
                     connStrSource = "client-supplied-connection-string";
                 }
                 // then check connection string name
-                else if (connectionInfo.ConnectionStringName is string connStrName && !string.IsNullOrEmpty(connStrName) && _Config.GetConnectionString(connStrName) is string _connStrN && !string.IsNullOrEmpty(_connStrN))
+                else if (connectionInfo.ConnectionStringName is string connStrName && !string.IsNullOrEmpty(connStrName) && Config.GetConnectionString(connStrName) is string _connStrN && !string.IsNullOrEmpty(_connStrN))
                 {
                     connStr = _connStrN;
                     connStrSource = "client-supplied-connection-string-name";
@@ -226,6 +225,10 @@ namespace Horseshoe.NET.Db
                     connStrSource = "client-supplied-datasource";
                 }
 
+                // decrypt connection string password
+                if (connectionInfo.IsEncryptedPassword)
+                    connStr = DecryptInlinePassword(connStr, cryptoOptions: cryptoOptions ?? connectionInfo.CryptoOptions);
+
                 if (connStr != null)
                 {
                     var finalConnectionInfo = new T
@@ -233,10 +236,10 @@ namespace Horseshoe.NET.Db
                         ConnectionString = connStr,
                         Credentials = connectionInfo.Credentials
                     };
-                    journal?.AddAndWriteEntry("connectionstring", HideInlinePassword(connStr));
-                    journal?.AddAndWriteEntry("connectionstring.source", connStrSource);
-                    revealConnectionStringSource?.Invoke(connStrSource);
-                    journal?.DecrementLevel();
+                    SystemMessageRelay.RelayMessage("Connection string: " + HideInlinePassword(connStr), group: MessageRelayGroup, id: DbConstants.MessageRelay.GENERATED_CONNECTION_STRING);
+                    SystemMessageRelay.RelayMessage("Connection string source: " + connStrSource, group: MessageRelayGroup, id: DbConstants.MessageRelay.CONNECTION_STRING_SOURCE);
+                    SystemMessageRelay.RelayMessage("Credentials: " + TextUtil.Reveal(finalConnectionInfo.Credentials?.UserName), group: MessageRelayGroup);
+                    SystemMessageRelay.RelayMethodReturn(returnDescription: nameof(finalConnectionInfo), group: MessageRelayGroup);
                     return finalConnectionInfo;
                 }
             }
@@ -244,13 +247,13 @@ namespace Horseshoe.NET.Db
             // finally, check config
 
             // check config connection string
-            if (_Config.Get("Horseshoe.NET:" + configPart + ":ConnectionString") is string _connStrC && !string.IsNullOrEmpty(_connStrC))
+            if (Config.Get("Horseshoe.NET:" + configPart + ":ConnectionString") is string _connStrC && !string.IsNullOrEmpty(_connStrC))
             {
                 connStr = _connStrC;
                 connStrSource = "config-connection-string";
             }
             // then check config connection string name
-            else if (_Config.Get("Horseshoe.NET:" + configPart + ":ConnectionStringName") is string connStrName && !string.IsNullOrEmpty(connStrName) && _Config.GetConnectionString(connStrName) is string _connStrN && !string.IsNullOrEmpty(_connStrN))
+            else if (Config.Get("Horseshoe.NET:" + configPart + ":ConnectionStringName") is string connStrName && !string.IsNullOrEmpty(connStrName) && Config.GetConnectionString(connStrName) is string _connStrN && !string.IsNullOrEmpty(_connStrN))
             {
                 connStr = _connStrN;
                 connStrSource = "config-connection-string-name";
@@ -262,26 +265,31 @@ namespace Horseshoe.NET.Db
                 connStrSource = "config-datasource";
             }
 
+            // decrypt connection string password
+            if (Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword"))
+                connStr = DecryptInlinePassword(connStr, cryptoOptions: cryptoOptions);
+
             if (connStr != null)
             {
                 var finalConnectionInfo = new T
                 {
                     ConnectionString = connStr,
-                    Credentials = BuildCredentials(_Config.Get("Horseshoe.NET:" + configPart + ":UserID"),
-                                                   _Config.Get("Horseshoe.NET:" + configPart + ":Password"),
-                                                   _Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword"),
+                    Credentials = BuildCredentials(Config.Get("Horseshoe.NET:" + configPart + ":UserID"),
+                                                   Config.Get("Horseshoe.NET:" + configPart + ":Password"),
+                                                   Config.Get<bool>("Horseshoe.NET:" + configPart + ":IsEncryptedPassword"),
                                                    cryptoOptions: cryptoOptions)
                 };
-                journal?.AddAndWriteEntry("connectionstring", HideInlinePassword(connStr));
-                journal?.AddAndWriteEntry("connectionstring.source", connStrSource);
-                revealConnectionStringSource?.Invoke(connStrSource);
-                journal?.DecrementLevel();
+                SystemMessageRelay.RelayMessage("Connection string: " + HideInlinePassword(connStr), group: MessageRelayGroup, id: DbConstants.MessageRelay.GENERATED_CONNECTION_STRING);
+                SystemMessageRelay.RelayMessage("Connection string source: " + connStrSource, group: MessageRelayGroup, id: DbConstants.MessageRelay.CONNECTION_STRING_SOURCE);
+                SystemMessageRelay.RelayMessage("Credentials: " + TextUtil.Reveal(finalConnectionInfo.Credentials?.UserName), group: MessageRelayGroup);
+                SystemMessageRelay.RelayMethodReturn(returnDescription: nameof(finalConnectionInfo), group: MessageRelayGroup);
+                //revealConnectionStringSource?.Invoke(connStrSource);
                 return finalConnectionInfo;
             }
 
-            var msg = string.Concat("No connection info could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", ".");
-            journal?.WriteEntry("ValidationException: " + msg);
-            throw new ValidationException(msg);
+            var ex = new DbException(string.Concat("No connection info could be found", Assemblies.Find("Horseshoe.NET.Configuration") == null ? " perhaps due to Horseshoe.NET.Configuration is not installed" : "", "."));
+            SystemMessageRelay.RelayException(ex);
+            throw ex;
         }
 
         /// <summary>
@@ -366,7 +374,7 @@ namespace Horseshoe.NET.Db
         /// <param name="attributeValuePosition">The matching attribute's value's position in the connection string is returned here.</param>
         /// <param name="attributeValue">The matching attribute's untrimmed value is returned here.</param>
         /// <param name="ignoreCase">If <c>true</c> (recommended), ignores the title case when searching for attribute name variations, default is <c>false</c>.</param>
-        /// <exception cref="ValidationException"></exception>
+        /// <exception cref="DbException"></exception>
         public static void ParseConnectionStringAttribute(string connectionString, StringValues attributeNameVariations, out int attributeValuePosition, out string attributeValue, bool ignoreCase = false)
         {
             if (connectionString == null)
@@ -377,10 +385,10 @@ namespace Horseshoe.NET.Db
             }
 
             if (!attributeNameVariations.Any())
-                throw new ValidationException("No connection string attribute name variations were supplied");
+                throw new DbException("No connection string attribute name variations were supplied");
 
             if (attributeNameVariations.Any(str => string.IsNullOrWhiteSpace(str)))
-                throw new ValidationException("Connection string attribute name variations cannot be null or blank");
+                throw new DbException("Connection string attribute name variations cannot be null or blank");
 
             int anvPos = -1;  // attribute name variation position
             char c;
@@ -446,7 +454,6 @@ namespace Horseshoe.NET.Db
             }
         }
 
-
         ///// <summary>
         ///// Utility method for inline decrypting the password in a connection string
         ///// </summary>
@@ -495,7 +502,6 @@ namespace Horseshoe.NET.Db
         /// <param name="part">Analagous to the key in <see cref="ParseConnectionStringValue(string,string)"/></param>
         /// <param name="connectionString">a connection string</param>
         /// <returns></returns>
-        /// <exception cref="ValidationException"></exception>
         public static string ParseConnectionStringValue(ConnectionStringPart part, string connectionString)
         {
             switch (part)
@@ -517,23 +523,23 @@ namespace Horseshoe.NET.Db
         /// </summary>
         /// <param name="text">the pipe delimited text value from configuration</param>
         /// <returns></returns>
-        /// <exception cref="ValidationException"></exception>
+        /// <exception cref="DbException"></exception>
         public static IDictionary<string, string> ParseAdditionalConnectionAttributes(string text)
         {
             var dict = new Dictionary<string, string>();
             if (string.IsNullOrEmpty(text))
                 return dict;
-            var list = Zap.Strings(text.Split('|'), prunePolicy: PrunePolicy.All);
+            var list = Zap.Strings(text.Split('|'), pruneOptions: PruneOptions.All);
             foreach (var attr in list)
             {
-                var attrParts = attr.Split('=').Trim();
+                var attrParts = attr.Split('=').TrimAll();
                 if (attrParts.Length == 2)
                 {
                     dict.Add(attrParts[0], attrParts[1]);
                 }
                 else
                 {
-                    throw new ValidationException("Invalid additional connection string attribute: " + attr);
+                    throw new DbException("Invalid additional connection string attribute: " + attr);
                 }
             }
             return dict;
@@ -551,32 +557,19 @@ namespace Horseshoe.NET.Db
         /// <param name="parameter">a parameter</param>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
-        /// <exception cref="ValidationException"></exception>
+        /// <exception cref="DbException"></exception>
         public static string RenderColumnName(DbParameter parameter, DbProvider provider = default)
         {
             if (Zap.String(parameter.ParameterName) == null)
-                throw new ValidationException("column name cannot be null");
+                throw new DbException("column name cannot be null");
             return RenderColumnName(parameter.ParameterName, provider: provider);
-        }
-
-        /// <summary>
-        /// When generating the SQL for parameters or in other situations it may be 
-        /// necessary to 'fix' a column name in C# to be valid in SQL, e.g. adding quotes or square brackets 
-        /// around the column name especially if it contains spaces or other non-word characters.
-        /// </summary>
-        /// <param name="columnName">a column name</param>
-        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
-        /// <returns></returns>
-        public static string RenderColumnName(string columnName, DbProvider provider = default)
-        {
-            return DbUtilAbstractions.RenderColumnName(columnName, provider: provider);
         }
 
         /// <summary>
         /// Iterates through a data table and trims each <c>string</c>
         /// </summary>
         /// <param name="dataTable">a data table</param>
-        /// <exception cref="ValidationException"></exception>
+        /// <exception cref="DbException"></exception>
         public static void TrimDataTable(DataTable dataTable)
         {
             var fieldTypes = dataTable.Columns
@@ -587,7 +580,7 @@ namespace Horseshoe.NET.Db
             {
                 if (dataRow.ItemArray.Length != fieldTypes.Length)
                 {
-                    throw new ValidationException("Row items do not match field types: " + dataRow.ItemArray.Length + ", " + fieldTypes.Length);
+                    throw new DbException("Row items do not match field types: " + dataRow.ItemArray.Length + ", " + fieldTypes.Length);
                 }
                 for (int i = 0; i < dataRow.ItemArray.Length; i++)
                 {
@@ -695,16 +688,12 @@ namespace Horseshoe.NET.Db
         /// <param name="reader">An oben DB data reader.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static IEnumerable<object[]> ReadAsObjects(DbDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static IList<object[]> ReadAsObjects(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.ReadAsObjects(reader)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             var list = new List<object[]>();
             var cols = reader.GetDataColumns();
             if (dbCapture != null)
@@ -715,8 +704,7 @@ namespace Horseshoe.NET.Db
                 list.Add(objects);
             }
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: cols.Length + " cols x " + list.Count + " rows", group: MessageRelayGroup);
             return list;
         }
 
@@ -726,27 +714,33 @@ namespace Horseshoe.NET.Db
         /// <param name="reader">An oben DB data reader.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(DbDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static async Task<IList<object[]>> ReadAsObjectsAsync(IDataReader reader, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.ReadAsObjectsAsync(reader)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             var list = new List<object[]>();
+            var cols = reader.GetDataColumns();
             if (dbCapture != null)
-                dbCapture.DataColumns = reader.GetDataColumns();
-            while (await reader.ReadAsync())
+                dbCapture.DataColumns = cols;
+            if (reader is DbDataReader dbDataReader)
             {
-                var objects = await GetAllRowValuesAsync(reader, autoTrunc: autoTrunc);
-                list.Add(objects);
+                while (await dbDataReader.ReadAsync())
+                {
+                    var objects = await GetAllRowValuesAsync(reader, autoTrunc: autoTrunc);
+                    list.Add(objects);
+                }
+            }
+            else
+            {
+                while (reader.Read())
+                {
+                    var objects = await GetAllRowValuesAsync(reader, autoTrunc: autoTrunc);
+                    list.Add(objects);
+                }
             }
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturn(returnDescription: cols.Length + " cols x " + list.Count + " rows", group: MessageRelayGroup);
             return list;
         }
 
@@ -756,27 +750,23 @@ namespace Horseshoe.NET.Db
         /// <param name="command">An open DB command.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static IEnumerable<object[]> ReadAsObjects(DbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static IList<object[]> ReadAsObjects(DbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.ReadAsObjects(command)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             using (var reader = command.ExecuteReader())
             {
-                var list = ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                var list = ReadAsObjects(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                var outParams = command.Parameters
+                    .Cast<DbParameter>()
+                    .Where(p => p.Direction == ParameterDirection.Output)
+                    .ToArray();
+                SystemMessageRelay.RelayMessage("out params: " + (outParams.Length != 0 ? string.Join(", " + outParams.Select(p => p.ParameterName + " = " + Sqlize(p.Value))) : "none"), group: MessageRelayGroup);
                 if (dbCapture != null)
-                    dbCapture.OutputParameters = command.Parameters
-                        .Cast<DbParameter>()
-                        .Where(p => p.Direction == ParameterDirection.Output)
-                        .ToArray();
+                    dbCapture.OutputParameters = outParams;
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: list.Count() + " rows", group: MessageRelayGroup);
                 return list;
             }
         }
@@ -787,27 +777,23 @@ namespace Horseshoe.NET.Db
         /// <param name="command">An open DB command.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="autoTrunc">A mechanism for handling raw string data (e.g. 'trim' or 'zap' which nullifies empty strings).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>Rows of data as <c>object[]</c>s.</returns>
-        public static async Task<IEnumerable<object[]>> ReadAsObjectsAsync(DbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+        public static async Task<IList<object[]>> ReadAsObjectsAsync(DbCommand command, DbCapture dbCapture = null, AutoTruncate autoTrunc = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.ReadAsObjectsAsync(command)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             using (var reader = await command.ExecuteReaderAsync())
             {
-                var list = await ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc, journal: journal);
+                var list = await ReadAsObjectsAsync(reader, dbCapture: dbCapture, autoTrunc: autoTrunc);
+                var outParams = command.Parameters
+                    .Cast<DbParameter>()
+                    .Where(p => p.Direction == ParameterDirection.Output)
+                    .ToArray();
+                SystemMessageRelay.RelayMessage("out params: " + (outParams.Length != 0 ? string.Join(", " + outParams.Select(p => p.ParameterName + " = " + Sqlize(p.Value))) : "none"), group: MessageRelayGroup);
                 if (dbCapture != null)
-                    dbCapture.OutputParameters = command.Parameters
-                        .Cast<DbParameter>()
-                        .Where(p => p.Direction == ParameterDirection.Output)
-                        .ToArray();
+                    dbCapture.OutputParameters = outParams;
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: "read " + list.Count() + " rows", group: MessageRelayGroup);
                 return list;
             }
         }
@@ -819,35 +805,34 @@ namespace Horseshoe.NET.Db
         /// <param name="command">An open DB command.</param>
         /// <param name="readerParser">A parser that reads directly from an open data reader.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>Parsed instances of <c>T</c>.</returns>
-        public static IEnumerable<T> ParseRows<T>(DbCommand command, Func<IDataReader, T> readerParser, DbCapture dbCapture = null, TraceJournal journal = null)
+        public static IList<T> ParseRows<T>(DbCommand command, Func<IDataReader, T> readerParser, DbCapture dbCapture = null)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.ParseRows(command)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             var list = new List<T>();
             using (var reader = command.ExecuteReader())
             {
+                var cols = reader.GetDataColumns();
+                var outParams = command.Parameters
+                    .Cast<DbParameter>()
+                    .Where(p => p.Direction == ParameterDirection.Output)
+                    .ToArray();
+
+                SystemMessageRelay.RelayMessage("out params: " + (outParams.Length != 0 ? string.Join(", " + outParams.Select(p => p.ParameterName + " = " + Sqlize(p.Value))) : "none"), group: MessageRelayGroup);
+                
                 if (dbCapture != null)
                 {
-                    dbCapture.DataColumns = reader.GetDataColumns();
-                    dbCapture.OutputParameters = command.Parameters
-                        .Cast<DbParameter>()
-                        .Where(p => p.Direction == ParameterDirection.Output)
-                        .ToArray();
+                    dbCapture.DataColumns = cols;
+                    dbCapture.OutputParameters = outParams;
                 }
                 while (reader.Read())
                 {
                     list.Add(readerParser.Invoke(reader));
                 }
-            }
 
-            // finalize
-            journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: cols.Length + " cols x " + list.Count + " rows", group: MessageRelayGroup);
+            }
             return list;
         }
 
@@ -858,47 +843,127 @@ namespace Horseshoe.NET.Db
         /// <param name="command">An open DB command.</param>
         /// <param name="readerParser">A parser that reads directly from an open data reader.</param>
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>Parsed instances of <c>T</c>.</returns>
-        public static async Task<IEnumerable<T>> ParseRowsAsync<T>(DbCommand command, Func<IDataReader, T> readerParser, DbCapture dbCapture = null, TraceJournal journal = null)
+        public static async Task<IList<T>> ParseRowsAsync<T>(DbCommand command, Func<IDataReader, T> readerParser, DbCapture dbCapture = null)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.ParseRowsAsync(command)");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             var list = new List<T>();
             using (var reader = await command.ExecuteReaderAsync())
             {
+                var cols = reader.GetDataColumns();
+                var outParams = command.Parameters
+                    .Cast<DbParameter>()
+                    .Where(p => p.Direction == ParameterDirection.Output)
+                    .ToArray();
+
+                SystemMessageRelay.RelayMessage("out params: " + (outParams.Length != 0 ? string.Join(", " + outParams.Select(p => p.ParameterName + " = " + Sqlize(p.Value))) : "none"), group: MessageRelayGroup);
+
                 if (dbCapture != null)
                 {
-                    dbCapture.DataColumns = reader.GetDataColumns();
-                    dbCapture.OutputParameters = command.Parameters
-                        .Cast<DbParameter>()
-                        .Where(p => p.Direction == ParameterDirection.Output)
-                        .ToArray();
+                    dbCapture.DataColumns = cols;
+                    dbCapture.OutputParameters = outParams;
                 }
                 while (await reader.ReadAsync())
                 {
                     list.Add(readerParser.Invoke(reader));
                 }
+
+                SystemMessageRelay.RelayMethodReturn(returnDescription: cols.Length + " cols x " + list.Count + " rows", group: MessageRelayGroup);
             }
 
-            // finalize
-            journal.Level--;
             return list;
         }
 
+        private static Regex SimpleColumnNamePattern { get; } = new Regex("^[A-Z0-9_]+$", RegexOptions.IgnoreCase);
+
         /// <summary>
-        /// Prepare an object for insertion into a SQL statement.
+        /// When generating the SQL for parameters or in other situations it may be 
+        /// necessary to 'fix' a column name in C# to be valid in SQL, e.g. adding quotes or square brackets 
+        /// around the column name especially if it contains spaces or other non-word characters.
         /// </summary>
-        /// <param name="obj">An object.</param>
+        /// <param name="columnName">a column name</param>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns></returns>
+        public static string RenderColumnName(string columnName, DbProvider provider = default)
+        {
+            if (SimpleColumnNamePattern.IsMatch(columnName))
+                return columnName;
+            switch (provider)
+            {
+                case DbProvider.SqlServer:
+                    return "[" + columnName + "]";
+                case DbProvider.Oracle:
+                    return "\"" + columnName + "\"";
+                default:
+                    return columnName;
+            }
+        }
+
+        /// <summary>
+        /// Prepare a value for insertion into a SQL statement.
+        /// </summary>
+        /// <param name="obj">A value.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
+        /// <returns>A value as it might appear in a SQL expression</returns>
         public static string Sqlize(object obj, DbProvider provider = default)
         {
-            return DbUtilAbstractions.Sqlize(obj, provider: provider);
+            if (obj == null || obj is DBNull) return "NULL";
+            if (obj is bool boolValue) obj = boolValue ? 1 : 0;
+            if (obj is byte || obj is short || obj is int || obj is long || obj is float || obj is double || obj is decimal) return obj.ToString();
+            if (obj is DateTime dateTimeValue)
+            {
+                string dateTimeFormat;
+                switch (provider)
+                {
+                    case DbProvider.SqlServer:
+                        dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";  // format inspired by Microsoft SQL Server Managament Studio (SSMS)
+                        break;
+                    case DbProvider.Oracle:
+                        dateTimeFormat = "MM/dd/yyyy hh:mm:ss tt";   // format inspired by dbForge for Oracle
+                        var oracleDateFormat = "mm/dd/yyyy hh:mi:ss am";
+                        return "TO_DATE('" + dateTimeValue.ToString(dateTimeFormat) + "', '" + oracleDateFormat + "')";  // example: TO_DATE('02/02/2014 3:35:57 PM', 'mm/dd/yyyy hh:mi:ss am')
+                    default:
+                        dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+                        break;
+                }
+                return "'" + dateTimeValue.ToString(dateTimeFormat) + "'";
+            }
+            if (obj is SqlLiteral sqlLiteral)
+            {
+                return sqlLiteral.Render();
+            }
+            var returnValue = "'" + obj.ToString().Replace("'", "''") + "'";
+            if (provider == DbProvider.SqlServer && !TextUtil.IsAsciiPrintable(returnValue))
+            {
+                return "N" + returnValue;
+            }
+            return returnValue;
+        }
+
+        /* * * * * * * * * * * * * * * * * * * * 
+         *           MISCELLANEOUS             *
+         * * * * * * * * * * * * * * * * * * * */
+        internal static object WrangleParameterValue(object value)
+        {
+            if (value.GetType().IsEnum)
+                return value.ToString();
+            return value;
+        }
+
+        internal static DbType CalculateDbType(object value)
+        {
+            if (value is string) return DbType.String;
+            if (value is byte) return DbType.Byte;
+            if (value is short) return DbType.Int16;
+            if (value is int) return DbType.Int32;
+            if (value is long) return DbType.Int64;
+            if (value is decimal) return DbType.Decimal;
+            if (value is double) return DbType.Double;
+            if (value is bool) return DbType.Boolean;
+            if (value is DateTime) return DbType.DateTime;
+            if (value is Guid) return DbType.Guid;
+            return DbType.Object;
         }
 
         /// <summary>
@@ -923,7 +988,7 @@ namespace Horseshoe.NET.Db
             {
                 for (int i = 0; i < colWidths.Length; i++)
                 {
-                    _width = TextUtil.DumpDatum(row[i]).Length;
+                    _width = ValueUtil.Display(row[i]).Length;
                     if (_width > colWidths[i])
                     {
                         colWidths[i] = _width;
@@ -962,7 +1027,7 @@ namespace Horseshoe.NET.Db
                     {
                         sb.Append(" ");
                     }
-                    sb.Append(TextUtil.DumpDatum(row[i]).PadRight(colWidths[i]));
+                    sb.Append(ValueUtil.Display(row[i]).PadRight(colWidths[i]));
                 }
                 sb.AppendLine();
             }
@@ -970,53 +1035,32 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Builds a statement to delete one or more rows from a table or drop (truncate) the table based on the default provider.
-        /// </summary>
-        /// <param name="tableName">A table name.</param>
-        /// <param name="where">A filter indicating which rows to delete.</param>
-        /// <param name="drop">If <c>true</c>, returns a statement to delete the table database object (rather than just delete rows), default is <c>false</c>.</param>
-        /// <param name="purge">Oracle DB only. If <c>true</c> and if <c>drop == true</c>, returns a statement to delete the table database object (rather than just delete rows) and release the space associated with it in a single step, default is <c>false</c>.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns>The SQL statement.</returns>
-        public static string BuildDeleteStatement(string tableName, IFilter where, bool drop = false, bool purge = false, TraceJournal journal = null)
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildDeleteStatement(\"" + tableName + "\")");
-            journal.Level++;
-
-            // data stuff
-            try
-            {
-                return BuildDeleteStatement(DbSettings.DefaultProvider, tableName, where, drop: drop, purge: purge, journal: journal);
-            }
-            finally
-            {
-                //finalize
-                journal.Level--;
-            }
-        }
-
-        /// <summary>
         /// Builds a provider-specific statement to delete one or more rows from a table or drop (truncate) the table.
         /// </summary>
-        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="tableName">A table name.</param>
         /// <param name="where">A filter indicating which rows to delete.</param>
         /// <param name="drop">If <c>true</c>, returns a statement to delete the table database object (rather than just delete rows), default is <c>false</c>.</param>
         /// <param name="purge">Oracle DB only. If <c>true</c> and if <c>drop == true</c>, returns a statement to delete the table database object (rather than just delete rows) and release the space associated with it in a single step, default is <c>false</c>.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns>The SQL statement.</returns>
-        public static string BuildDeleteStatement(DbProvider provider, string tableName, IFilter where, bool drop = false, bool purge = false, TraceJournal journal = null)
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
+        /// <returns>A SQL "DELETE" statement.</returns>
+        /// <exception cref="DbException"></exception>
+        public static string BuildDeleteStatement(string tableName, IFilter where, bool drop = false, bool purge = false, DbProvider provider = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildDeleteStatement(" + provider + ", \"" + tableName + "\")");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                new Dictionary<string, object>
+                {
+                    { nameof(tableName), tableName },
+                    { nameof(where), where },
+                    { nameof(drop), drop },
+                    { nameof(purge), purge },
+                    { nameof(provider), provider }
+                },
+                group: MessageRelayGroup
+            );
 
-            // data stuff
             string statement;
-            journal.WriteEntry("provider = " + provider);
 
             switch (provider)
             {
@@ -1048,79 +1092,96 @@ namespace Horseshoe.NET.Db
                     statement += ";";
                     break;
                 default:
-                    throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
+                    var ex = new DbException("This method is currently compatible only with certain providers: SqlServer, Oracle");
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
+                    throw ex;
             }
 
-            journal.AddAndWriteEntry("sql.statement", statement);
+            SystemMessageRelay.RelayMethodReturnValue(statement, group: MessageRelayGroup);
 
-            //finalize
-            journal.Level--;
             return statement;
         }
 
         /// <summary>
-        /// Builds a statement to insert a row into a table based on the default provider.
+        /// Builds a provider-specific statement to select one or more rows from a table.
         /// </summary>
         /// <param name="tableName">A table name.</param>
-        /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns>The SQL statement.</returns>
-        public static string BuildInsertStatement(string tableName, IEnumerable<DbParameter> columns, TraceJournal journal = null)
+        /// <param name="columnNames">The column name(s).</param>
+        /// <param name="where">A filter indicating which rows to delete.</param>
+        /// <param name="groupBy">The column name(s) to group by.</param>
+        /// <param name="orderBy">The column name(s) to order by.</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
+        /// <returns>A SQL "SELECT" statement.</returns>
+        /// <exception cref="DbException"></exception>
+        public static string BuildSelectStatement(string tableName, StringValues columnNames = default, IFilter where = null, StringValues groupBy = default, StringValues orderBy = default, DbProvider provider = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildInsertStatement(\"" + tableName + "\")");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                new Dictionary<string, object>
+                {
+                    { nameof(tableName), tableName },
+                    { nameof(columnNames), columnNames },
+                    { nameof(where), where },
+                    { nameof(groupBy), groupBy },
+                    { nameof(orderBy), orderBy },
+                    { nameof(provider), provider }
+                },
+                group: MessageRelayGroup
+            );
 
-            // data stuff
-            try
-            {
-                return BuildInsertStatement(DbSettings.DefaultProvider, tableName, columns, journal: journal);
-            }
-            finally
-            {
-                //finalize
-                journal.Level--;
-            }
+            var strb = new StringBuilder("SELECT ")
+                .AppendIf
+                (
+                    columnNames.Any(),
+                    string.Join(", ", columnNames.Select(cn => RenderColumnName(cn, provider: provider))),
+                    "*"
+                )
+                .Append(" FROM " + tableName)
+                .AppendIf(where != null, () => " WHERE " + where.Render())
+                .AppendIf(groupBy.Any(), () => " GROUP BY " + groupBy)
+                .AppendIf(orderBy.Any(), () => " ORDER BY " + orderBy);
+
+            SystemMessageRelay.RelayMethodReturnValue(() => strb.ToString(), group: MessageRelayGroup);
+            return strb.ToString();
         }
 
         /// <summary>
         /// Builds a provider-specific statement to insert a row into a table.
         /// </summary>
-        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <param name="tableName">A table name.</param>
-        /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="columnNamesAndValues">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
+        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildInsertStatement(DbProvider provider, string tableName, IEnumerable<DbParameter> columns, TraceJournal journal = null)
+        /// <exception cref="DbException"></exception>
+        public static string BuildInsertStatement(string tableName, IEnumerable<DbParameter> columnNamesAndValues, DbProvider provider = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildInsertStatement(" + provider + ", \"" + tableName + "\")");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                DictionaryUtil.From<string, object>(nameof(tableName), tableName)
+                    .AppendRTL(columnNamesAndValues?.Select(c => new KeyValuePair<string, object>("[col]" + c.ParameterName, c.Value)))
+                    .AppendRTL(nameof(provider), provider),
+                group: MessageRelayGroup
+            );
 
-            // data stuff
             string statement;
-            journal.WriteEntry("provider = " + provider);
 
             switch (provider)
             {
                 case DbProvider.SqlServer:
-                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columns.Select(c => RenderColumnName(c, provider: DbProvider.SqlServer))) + ")";
-                    statement += " VALUES (" + string.Join(", ", columns.Select(c => Sqlize(c.Value, provider: DbProvider.SqlServer))) + ")";
+                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columnNamesAndValues.Select(c => RenderColumnName(c, provider: DbProvider.SqlServer))) + ")";
+                    statement += " VALUES (" + string.Join(", ", columnNamesAndValues.Select(c => Sqlize(c.Value, provider: DbProvider.SqlServer))) + ")";
                     break;
                 case DbProvider.Oracle:
-                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columns.Select(c => RenderColumnName(c, provider: DbProvider.Oracle))) + ")";
-                    statement += " VALUES (" + string.Join(", ", columns.Select(c => Sqlize(c.Value, provider: DbProvider.Oracle))) + ");";
+                    statement = "INSERT INTO " + tableName + " (" + string.Join(", ", columnNamesAndValues.Select(c => RenderColumnName(c, provider: DbProvider.Oracle))) + ")";
+                    statement += " VALUES (" + string.Join(", ", columnNamesAndValues.Select(c => Sqlize(c.Value, provider: DbProvider.Oracle))) + ");";
                     break;
                 default:
-                    throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
+                    throw new DbException("This method is currently compatible only with certain providers: SqlServer, Oracle");
             }
 
-            journal.AddAndWriteEntry("sql.statement", statement);
-
-            //finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(statement, group: MessageRelayGroup, id: DbConstants.MessageRelay.GENERATED_INSERT_STATEMENT);
             return statement;
         }
 
@@ -1129,71 +1190,46 @@ namespace Horseshoe.NET.Db
         /// </summary>
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
-        /// <param name="getIdentitySql">An optional SELECT statement for retrieving the identity of the inserted row.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns>The SQL statement.</returns>
-        public static string BuildInsertAndGetIdentityStatements(string tableName, IEnumerable<DbParameter> columns, string getIdentitySql = null, TraceJournal journal = null)
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildInsertAndGetIdentityStatements(\"" + tableName + "\")");
-            journal.Level++;
-
-            // data stuff
-            try
-            {
-                return BuildInsertAndGetIdentityStatements(DbSettings.DefaultProvider, tableName, columns, getIdentitySql: getIdentitySql, journal: journal);
-            }
-            finally
-            {
-                //finalize
-                journal.Level--;
-            }
-        }
-
-        /// <summary>
-        /// Builds a provider-specific statement to insert a row into a table and get the resulting identity.
-        /// </summary>
+        /// <param name="altGetIdentitySql">An optional alternate SELECT statement for retrieving the identity of the inserted row.</param>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
-        /// <param name="tableName">A table name.</param>
-        /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
-        /// <param name="getIdentitySql">An optional SELECT statement for retrieving the identity of the inserted row.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildInsertAndGetIdentityStatements(DbProvider provider, string tableName, IEnumerable<DbParameter> columns, string getIdentitySql = null, TraceJournal journal = null)
+        /// <exception cref="DbException"></exception>
+        public static string BuildInsertAndGetIdentityStatements(string tableName, IEnumerable<DbParameter> columns, string altGetIdentitySql = null, DbProvider provider = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildInsertAndGetIdentityStatements(" + provider + ", \"" + tableName + "\")");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                DictionaryUtil.From<string, object>(nameof(tableName), tableName)
+                    .AppendRTL(columns?.Select(c => new KeyValuePair<string, object>("[col]" + c.ParameterName, c.Value)))
+                    .AppendRTL(nameof(altGetIdentitySql), altGetIdentitySql)
+                    .AppendRTL(nameof(provider), provider),
+                group: MessageRelayGroup
+            );
 
-            // data stuff
-            string statement = BuildInsertStatement(provider, tableName, columns, journal: journal);
+            string statement = BuildInsertStatement(tableName, columns, provider: provider);
+            string getIdentityStatement;
 
-            if (getIdentitySql != null)
+            if (altGetIdentitySql != null)
             {
-                statement += " " + getIdentitySql;
+                getIdentityStatement = altGetIdentitySql;
             }
             else
             {
                 switch (provider)
                 {
                     case DbProvider.SqlServer:
-                        statement += " SELECT " + SqlLiteral.Identity(DbProvider.SqlServer);
+                        getIdentityStatement = "SELECT " + SqlLiteral.Identity(DbProvider.SqlServer);
                         break;
                     case DbProvider.Oracle:
-                        statement += " SELECT " + SqlLiteral.Identity(DbProvider.Oracle) + ";";
+                        getIdentityStatement = "SELECT " + SqlLiteral.Identity(DbProvider.Oracle) + ";";
                         break;
                     default:
-                        throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
+                        throw new DbException("This method is currently compatible only with certain providers: SqlServer, Oracle");
                 }
             }
 
-            journal.AddAndWriteEntry("sql.statement", statement);
-
-            //finalize
-            journal.Level--;
-            return statement;
+            SystemMessageRelay.RelayMethodReturnValue(getIdentityStatement, group: MessageRelayGroup, id: DbConstants.MessageRelay.GENERATED_INSERT_GET_IDENTIY_STATEMENT);
+            return statement + " " + getIdentityStatement;
         }
 
         /// <summary>
@@ -1202,46 +1238,22 @@ namespace Horseshoe.NET.Db
         /// <param name="tableName">A table name.</param>
         /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
         /// <param name="where">A filter indicating which rows to update.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns>The SQL statement.</returns>
-        public static string BuildUpdateStatement(string tableName, IEnumerable<DbParameter> columns, IFilter where, TraceJournal journal = null)
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildUpdateStatement(\"" + tableName + "\")");
-            journal.Level++;
-
-            // data stuff
-            try
-            {
-                return BuildUpdateStatement(DbSettings.DefaultProvider, tableName, columns, where, journal: journal);
-            }
-            finally
-            {
-                //finalize
-                journal.Level--;
-            }
-        }
-
-        /// <summary>
-        /// Builds a provider-specific statement to update one or more rows in a table.
-        /// </summary>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
-        /// <param name="tableName">A table name.</param>
-        /// <param name="columns">The table columns and values to insert (uses <c>DbParameter</c> as column info).</param>
-        /// <param name="where">A filter indicating which rows to update.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildUpdateStatement(DbProvider provider, string tableName, IEnumerable<DbParameter> columns, IFilter where, TraceJournal journal = null)
+        /// <exception cref="DbException"></exception>
+        public static string BuildUpdateStatement(string tableName, IEnumerable<DbParameter> columns, IFilter where, DbProvider provider = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildUpdateStatement(" + provider + ", \"" + tableName + "\")");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                DictionaryUtil.From<string, object>(nameof(tableName), tableName)
+                    .AppendRTL(columns?.Select(c => new KeyValuePair<string, object>("[col]" + c.ParameterName, c.Value)))
+                    .AppendRTL(nameof(where), where)
+                    .AppendRTL(nameof(provider), provider),
+                group: MessageRelayGroup
+            );
 
-            // data stuff
             string statement;
-            journal.WriteEntry("provider = " + provider);
 
             switch (provider)
             {
@@ -1257,13 +1269,10 @@ namespace Horseshoe.NET.Db
                     statement += ";";
                     break;
                 default:
-                    throw new ArgumentException("This method requires a non-neutral DB provider.");
+                    throw new DbException("This method requires a non-neutral DB provider.");
             }
 
-            journal.AddAndWriteEntry("sql.statement", statement);
-
-            //finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(statement, group: MessageRelayGroup, id: DbConstants.MessageRelay.GENERATED_UPDATE_STATEMENT);
             return statement;
         }
 
@@ -1272,44 +1281,21 @@ namespace Horseshoe.NET.Db
         /// </summary>
         /// <param name="functionName">A function name.</param>
         /// <param name="parameters">Optional parameter(s) to pass into the function.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
-        /// <returns>The SQL statement.</returns>
-        public static string BuildFunctionStatement(string functionName, IEnumerable<DbParameter> parameters = null, TraceJournal journal = null)
-        {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildFunctionStatement(\"" + functionName + "\")");
-            journal.Level++;
-
-            try
-            {
-                return BuildFunctionStatement(DbSettings.DefaultProvider, functionName, parameters: parameters, journal: journal);
-            }
-            finally
-            {
-                //finalize
-                journal.Level--;
-            }
-        }
-
-        /// <summary>
-        /// Builds a provider-specific statement to call a function.
-        /// </summary>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
-        /// <param name="functionName">A function name.</param>
-        /// <param name="parameters">Optional parameter(s) to pass into the function.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The SQL statement.</returns>
-        public static string BuildFunctionStatement(DbProvider provider, string functionName, IEnumerable<DbParameter> parameters = null, TraceJournal journal = null)
+        /// <exception cref="DbException"></exception>
+        public static string BuildFunctionStatement(string functionName, IEnumerable<DbParameter> parameters = null, DbProvider provider = default)
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("DbUtil.BuildFunctionStatement(" + provider + ", \"" + functionName + "\")");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                DictionaryUtil.From<string, object>(nameof(functionName), functionName)
+                    .AppendRTL(parameters?.Select(p => new KeyValuePair<string, object>("[param]" + p.ParameterName, p.Value)))
+                    .AppendRTL(nameof(provider), provider),
+                group: MessageRelayGroup
+            );
 
-            // data stuff
-            string statement;
-            journal.WriteEntry("provider = " + provider);
+            string statement; 
 
             switch (provider)
             {
@@ -1334,13 +1320,10 @@ namespace Horseshoe.NET.Db
                     }
                     break;
                 default:
-                    throw new ArgumentException("This method is currently compatible only with certain providers: SqlServer, Oracle");
+                    throw new DbException("This method is currently compatible only with certain providers: SqlServer, Oracle");
             }
 
-            journal.AddAndWriteEntry("sql.statement", statement);
-
-            //finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(statement, group: MessageRelayGroup, id: DbConstants.MessageRelay.GENERATED_FUNCTION_STATEMENT);
             return statement;
         }
 
@@ -1362,15 +1345,26 @@ namespace Horseshoe.NET.Db
         }
 
         /// <summary>
-        /// Applies <c>AutoTruncate</c> on scalar query results replacing <c>DBNull</c> with <c>null</c>.
+        /// Applies <c>AutoTruncate</c> on scalar query results e.g. replacing <c>DBNull</c> with <c>null</c>.
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="autoTrunc"></param>
+        /// <param name="result">A scalar query result</param>
+        /// <param name="autoTrunc">Instructs certain processes how to handle <c>string</c> data</param>
         /// <returns></returns>
         public static object ProcessScalarResult(object result, AutoTruncate autoTrunc = default)
         {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                DictionaryUtil.From<string, object>(nameof(result), result)
+                    .AppendRTL(nameof(autoTrunc), autoTrunc),
+                group: MessageRelayGroup
+            );
+
             if (ObjectUtil.IsNull(result))
+            {
+                SystemMessageRelay.RelayMethodReturnValue(null, group: MessageRelayGroup);
                 return null;
+            }
             if (result is string stringValue)
             {
                 if ((autoTrunc & AutoTruncate.Zap) == AutoTruncate.Zap)
@@ -1380,7 +1374,10 @@ namespace Horseshoe.NET.Db
                         if (string.IsNullOrWhiteSpace(stringValue))
                         {
                             if (stringValue.Length == 0)
+                            {
+                                SystemMessageRelay.RelayMethodReturnValue(null, group: MessageRelayGroup);
                                 return null;
+                            }
                         }
                         else
                             stringValue = stringValue.Trim();
@@ -1389,13 +1386,19 @@ namespace Horseshoe.NET.Db
                     {
                         stringValue = stringValue.Trim();
                         if (stringValue.Length == 0)
+                        {
+                            SystemMessageRelay.RelayMethodReturnValue(null, group: MessageRelayGroup);
                             return null;
+                        }
                     }
                 }
                 else if ((autoTrunc & AutoTruncate.Trim) == AutoTruncate.Trim)
                     stringValue = stringValue.Trim();
+
+                SystemMessageRelay.RelayMethodReturnValue(stringValue, group: MessageRelayGroup);
                 return stringValue;
             }
+            SystemMessageRelay.RelayMethodReturnValue(result, group: MessageRelayGroup);
             return result;
         }
     }

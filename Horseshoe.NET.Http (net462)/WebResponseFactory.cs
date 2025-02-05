@@ -1,64 +1,63 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+
 using Horseshoe.NET.IO;
+using Horseshoe.NET.RelayMessages;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Http
 {
     internal static class WebResponseFactory
     {
+        public static string MessageRelayGroup => HttpConstants.MessageRelayGroup;
+
         internal static string ProcessResponse
         (
             HttpWebRequest request, 
-            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse, 
-            TraceJournal journal
+            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse
         )
         {
-            journal.WriteEntry("WebResponseFactory.ProcessResponse()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
             WebResponse response;
             try
             {
-                journal.WriteEntry("WebResponse.GetResponse()");
+                SystemMessageRelay.RelayMessage("request.GetResponse()", group: MessageRelayGroup);
                 response = request.GetResponse();
-                journal.WriteEntry(" -> success");
+                SystemMessageRelay.RelayMessage("success", group: MessageRelayGroup);
             }
             catch (WebException wex)
             {
-                journal.WriteEntry(" -> error");
                 if (wex.Response is HttpWebResponse errorResponse)
                 {
-                    journal.WriteEntry("    HTTP " + (int)errorResponse.StatusCode + " (" + errorResponse.StatusDescription + ") - " + wex.Message);
+                    SystemMessageRelay.RelayMessage("error: HTTP " + (int)errorResponse.StatusCode + " (" + errorResponse.StatusDescription + ")", group: MessageRelayGroup);
                 }
                 else
                 {
-                    journal.WriteEntry("    " + wex.RenderMessage());
+                    SystemMessageRelay.RelayMessage("error: " + wex.RenderMessage(), group: MessageRelayGroup);
                 }
-                journal.Level--;
+                SystemMessageRelay.RelayException(wex, group: MessageRelayGroup);
                 throw;
             }
             catch (Exception ex)
             {
-                journal.WriteEntry(" -> error");
-                journal.WriteEntry("    " + ex.RenderMessage());
-                journal.Level--;
+                SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
                 throw;
             }
 
             // give client code the first stab at the response
             if (handleResponse != null)
             {
-                journal.WriteEntry("handleResponse.Invoke()");
+                SystemMessageRelay.RelayMessage("client is handling response...", group: MessageRelayGroup);
                 var consumerResponse = new ConsumerResponseEnvelope();
                 handleResponse.Invoke(response as HttpWebResponse, consumerResponse);
-                journal.WriteEntry(" -> { Flag = " + consumerResponse.Flag + " }");
+                SystemMessageRelay.RelayMessage("consumerResponse.Flag = " + consumerResponse.Flag, group: MessageRelayGroup);
                 if ((consumerResponse.Flag & ConsumerResponse.SuppressFurtherResponseHandling) == ConsumerResponse.SuppressFurtherResponseHandling)
                 {
-                    journal.Level--;
-                    return "";
+                    SystemMessageRelay.RelayMethodReturnValue(string.Empty, group: MessageRelayGroup);
+                    return string.Empty;
                 }
                 if ((consumerResponse.Flag & ConsumerResponse.ResetResponseStream) == ConsumerResponse.ResetResponseStream)
                 {
@@ -69,81 +68,73 @@ namespace Horseshoe.NET.Http
                     }
                     else
                     {
-                        journal.Level--;
-                        throw new Exception("Cannot seek non-seek stream");
+                        var ex = new Exception("Cannot seek non-seek stream");
+                        SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
+                        throw ex;
                     }
                 }
             }
 
             // process response stream
-            journal.WriteEntry("WebResponse.GetContentAsString()");
             try
             {
+                SystemMessageRelay.RelayMessage("response.GetContentAsString()", group: MessageRelayGroup);
                 var stringResult = response.GetContentAsString();
-                journal.WriteEntry(" -> size = " + FileUtil.GetDisplayFileSize(stringResult.Length));
+                SystemMessageRelay.RelayMethodReturn(returnDescription: FileUtil.GetDisplayFileSize(stringResult.Length), group: MessageRelayGroup);
                 return stringResult;
             }
             catch (Exception ex)
             {
-                journal.WriteEntry(" -> error");
-                journal.WriteEntry("    " + ex.RenderMessage());
+                SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
                 throw;
-            }
-            finally
-            {
-                journal.Level--;
             }
         }
 
         public static async Task<string> ProcessResponseAsync
         (
             HttpWebRequest request, 
-            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse,
-            TraceJournal journal
+            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse
         )
         {
-            journal.WriteEntry("WebResponseFactory.ProcessResponseAsync()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
             WebResponse response;
             try
             {
-                journal.WriteEntry("WebResponse.GetResponse()");
+                SystemMessageRelay.RelayMessage("request.GetResponse()", group: MessageRelayGroup);
                 response = request.GetResponse();
-                journal.WriteEntry(" -> success");
+                SystemMessageRelay.RelayMessage("success", group: MessageRelayGroup);
             }
             catch (WebException wex)
             {
-                journal.WriteEntry(" -> error");
                 if (wex.Response is HttpWebResponse errorResponse)
                 {
-                    journal.WriteEntry("    HTTP " + (int)errorResponse.StatusCode + " (" + errorResponse.StatusDescription + ") - " + wex.Message);
+                    SystemMessageRelay.RelayMessage("error: HTTP " + (int)errorResponse.StatusCode + " (" + errorResponse.StatusDescription + ")", group: MessageRelayGroup);
                 }
                 else
                 {
-                    journal.WriteEntry("    " + wex.RenderMessage());
+                    SystemMessageRelay.RelayMessage("error: " + wex.RenderMessage(), group: MessageRelayGroup);
                 }
-                journal.Level--;
+                SystemMessageRelay.RelayException(wex, group: MessageRelayGroup);
                 throw;
             }
             catch (Exception ex)
             {
-                journal.WriteEntry(" -> error");
-                journal.WriteEntry("    " + ex.RenderMessage());
-                journal.Level--;
+                SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
                 throw;
             }
 
             // give client code the first stab at the response
             if (handleResponse != null)
             {
-                journal.WriteEntry("handleResponse.Invoke()");
+                SystemMessageRelay.RelayMessage("client is handling response...", group: MessageRelayGroup);
                 var consumerResponse = new ConsumerResponseEnvelope();
                 handleResponse.Invoke(response as HttpWebResponse, consumerResponse);
-                journal.WriteEntry(" -> { Flag = " + consumerResponse.Flag + " }");
+                SystemMessageRelay.RelayMessage("consumerResponse.Flag = " + consumerResponse.Flag, group: MessageRelayGroup);
                 if ((consumerResponse.Flag & ConsumerResponse.SuppressFurtherResponseHandling) == ConsumerResponse.SuppressFurtherResponseHandling)
                 {
-                    journal.Level--;
-                    return "";
+                    SystemMessageRelay.RelayMethodReturnValue(string.Empty, group: MessageRelayGroup);
+                    return string.Empty;
                 }
                 if ((consumerResponse.Flag & ConsumerResponse.ResetResponseStream) == ConsumerResponse.ResetResponseStream)
                 {
@@ -154,29 +145,25 @@ namespace Horseshoe.NET.Http
                     }
                     else
                     {
-                        journal.Level--;
-                        throw new Exception("Cannot seek non-seek stream");
+                        var ex = new Exception("Cannot seek non-seek stream");
+                        SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
+                        throw ex;
                     }
                 }
             }
 
             // process response stream
-            journal.WriteEntry("WebResponse.GetContentAsString()");
             try
             {
+                SystemMessageRelay.RelayMessage("response.GetContentAsStringAsync()", group: MessageRelayGroup);
                 var stringResult = await response.GetContentAsStringAsync();
-                journal.WriteEntry(" -> size = " + FileUtil.GetDisplayFileSize(stringResult.Length));
+                SystemMessageRelay.RelayMethodReturn(returnDescription: FileUtil.GetDisplayFileSize(stringResult.Length), group: MessageRelayGroup);
                 return stringResult;
             }
             catch (Exception ex)
             {
-                journal.WriteEntry(" -> error");
-                journal.WriteEntry("    " + ex.RenderMessage());
+                SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
                 throw;
-            }
-            finally
-            {
-                journal.Level--;
             }
         }
 

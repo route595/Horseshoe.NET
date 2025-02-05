@@ -2,7 +2,25 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Horseshoe.NET.ApplicationInsights__netstandard2._0_</RootNamespace>
+    <RootNamespace>Horseshoe.NET.ApplicationInsights</RootNamespace>
+    <AssemblyName>Horseshoe.NET.ApplicationInsights</AssemblyName>
+    <Version>4.0.0</Version>
+    <Description>Easily add Application Insights to an app with these few shortcuts.</Description>
+    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Company>Route 595</Company>
+    <Authors>Carl Thomas</Authors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.22.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.1" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
+  </ItemGroup>
 
 </Project>

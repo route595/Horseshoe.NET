@@ -1,13 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using Horseshoe.NET.Collections;
+using Horseshoe.NET.RelayMessages;
+
 namespace Horseshoe.NET.Http
 {
     internal static class WebRequestFactory
     {
+        public static string MessageRelayGroup => HttpConstants.MessageRelayGroup;
+
         internal static HttpWebRequest GetWebRequest
         (
             UriString uri,
@@ -21,97 +27,106 @@ namespace Horseshoe.NET.Http
             UriString? proxyAddress,
             int? proxyPort,
             NetworkCredential proxyCredentials,
-            Action<HttpWebRequest> alterRequest,
-            TraceJournal journal
+            Action<HttpWebRequest> peekRequest
         )
         {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParams
+            (
+                new Dictionary<string, object> 
+                {
+                    { nameof(uri), uri },
+                    { nameof(content), content },
+                    { nameof(method), method },
+                    { nameof(contentType), contentType }
+                }
+                .AppendIfNotNullRTL(nameof(securityProtocol), securityProtocol)
+                .AppendIfNotNullRTL(nameof(proxyAddress), proxyAddress)
+                .AppendIfNotNullRTL(nameof(proxyPort), proxyPort),
+                group: MessageRelayGroup
+            );
+
             SecurityProtocolType _securityProtocol = default;
-            bool revertSecurityProtocolTypeToOriginalValue = false;
 
             // prepare request for https, if applicable
-            if (uri.IsHttps() && securityProtocol.HasValue)
+            if (uri.IsHttps())
             {
-                journal.WriteEntry("uri.IsHttps() => true");
-                _securityProtocol = ServicePointManager.SecurityProtocol;
-                ServicePointManager.SecurityProtocol = securityProtocol.Value;
-                revertSecurityProtocolTypeToOriginalValue = true;
+                SystemMessageRelay.RelayMessage("uri.IsHttps() = true", group: MessageRelayGroup);
                 if (securityProtocol.HasValue)
                 {
-                    journal.WriteEntry("  -> (" + securityProtocol.Value + ")");
+                    _securityProtocol = ServicePointManager.SecurityProtocol;
+                    SystemMessageRelay.RelayMessage("securityProtocol = " + securityProtocol, group: MessageRelayGroup);
+                    ServicePointManager.SecurityProtocol = securityProtocol.Value;
                 }
             }
             else
             {
-                journal.WriteEntry("uri.IsHttps() => false");
+                SystemMessageRelay.RelayMessage("uri.IsHttps() = false", group: MessageRelayGroup);
             }
 
             // build request
-            journal.WriteEntry("WebRequest.Create()");
+            SystemMessageRelay.RelayMessage("WebRequest.Create()", group: MessageRelayGroup);
             var request = (HttpWebRequest)WebRequest.Create(uri);
 
             // return original https setting, if applicable
-            if (revertSecurityProtocolTypeToOriginalValue)
+            if (uri.IsHttps() && securityProtocol.HasValue)
             {
                 ServicePointManager.SecurityProtocol = _securityProtocol;
             }
 
             // add request features
-            var strb = new StringBuilder();
-            journal.WriteEntry("processing web request features...");
+            SystemMessageRelay.RelayMessage("processing web request features...", group: MessageRelayGroup);
             request.Method = method ?? "GET";
-            strb.Append(request.Method);
             if (contentType != null)
             {
                 request.ContentType = contentType;
-                strb.Append(" > " + contentType);
             }
-            journal.WriteEntry(strb.ToString());
+            SystemMessageRelay.RelayMessage(request.Method + (request.ContentType != null ? "; content type = " + request.ContentType : ""), group: MessageRelayGroup);
             if (content != null)
             {
-                ProcessContent(request, content, contentSerializer, journal);
+                ProcessContent(request, content, contentSerializer);
             }
 
             // allow client to alter the headers
             if (alterHeaders != null)
             {
-                ProcessHeaders(request, alterHeaders, journal);
+                ProcessHeaders(request, alterHeaders);
             }
 
             credentials = credentials ?? HttpSettings.DefaultWebServiceCredentials;
             if (credentials != null)
             {
-                journal.WriteEntry("add network credentials (" + credentials.ToDisplayString() + " )");
+                SystemMessageRelay.RelayMessage("attaching network credentials (" + credentials.ToDisplayString() + " )", group: MessageRelayGroup);
                 request.Credentials = credentials;
             }
             if (proxyAddress.HasValue && proxyAddress.Value.Uri != null)
             {
-                ProcessProxy(request, proxyAddress, proxyPort, proxyCredentials, journal);
+                ProcessProxy(request, proxyAddress, proxyPort, proxyCredentials);
             }
 
             // allow client to further alter the request (e.g. set up NTLM authentication)
-            if (alterRequest != null)
+            if (peekRequest != null)
             {
-                journal.WriteEntry("alterRequest.Invoke()");
+                SystemMessageRelay.RelayMessage("client peekRequest()", group: MessageRelayGroup);
                 try
                 {
-                    alterRequest.Invoke(request);
-                    journal.WriteEntry("  -> done");
+                    peekRequest.Invoke(request);
+                    SystemMessageRelay.RelayMessage("done", group: MessageRelayGroup);
                 }
                 catch (Exception ex)
                 {
-                    journal.WriteEntry("  -> error");
-                    journal.WriteEntry("     " + ex.Message + " (" + ex.GetType().FullName + ")");
+                    SystemMessageRelay.RelayException(ex, group: MessageRelayGroup);
                     throw;
                 }
             }
 
-            // return completed request
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             return request;
         }
 
-        private static void ProcessContent(HttpWebRequest request, object content, Func<object, string> contentSerializer, TraceJournal journal)
+        private static void ProcessContent(HttpWebRequest request, object content, Func<object, string> contentSerializer)
         {
-            journal.WriteEntry("ProcessContent()");
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
             string _content;
             if (contentSerializer != null)
             {
@@ -127,17 +142,19 @@ namespace Horseshoe.NET.Http
                 streamWriter.Flush();
                 streamWriter.Close();
             }
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
         }
 
-        private static void ProcessHeaders(HttpWebRequest request, Action<WebHeaderCollection> alterHeaders, TraceJournal journal)
+        private static void ProcessHeaders(HttpWebRequest request, Action<WebHeaderCollection> alterHeaders)
         {
-            journal.WriteEntry("ProcessHeaders()");
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
             alterHeaders.Invoke(request.Headers);
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
         }
 
-        private static void ProcessProxy(HttpWebRequest request, UriString? proxyAddress, int? proxyPort, NetworkCredential proxyCredentials, TraceJournal journal)
+        private static void ProcessProxy(HttpWebRequest request, UriString? proxyAddress, int? proxyPort, NetworkCredential proxyCredentials)
         {
-            journal.WriteEntry("ProcessProxy()");
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
             if (proxyPort > 0)
             {
                 var hasPortMatch = Regex.Match(proxyAddress.ToString(), "[:]\\d+$");
@@ -154,10 +171,11 @@ namespace Horseshoe.NET.Http
                 var split = match.Value.Split(':');
                 proxyCredentials = new Credential(split[0], split[1]);
             }
-            journal.WriteEntry("  -> " + proxyAddress + (proxyCredentials != null ? " -> " + proxyCredentials.ToDisplayString() : ""));
+            SystemMessageRelay.RelayMethodReturn("  -> " + proxyAddress + (proxyCredentials != null ? " -> " + proxyCredentials.ToDisplayString() : ""), group: MessageRelayGroup);
             request.Proxy = proxyCredentials != null 
                 ? new WebProxy(proxyAddress, false, null, proxyCredentials)
                 : new WebProxy(proxyAddress, false, null);
+            SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
         }
     }
 }

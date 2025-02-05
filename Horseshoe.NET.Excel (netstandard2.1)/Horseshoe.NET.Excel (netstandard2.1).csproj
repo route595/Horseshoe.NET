@@ -5,22 +5,22 @@
     <RootNamespace>Horseshoe.NET.Excel</RootNamespace>
     <Nullable>enable</Nullable>
     <AssemblyName>Horseshoe.NET.Excel</AssemblyName>
-    <Version>3.1.6</Version>
+    <Version>4.0.0</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>An Excel file import utility for .NET (uses NPOI).</Description>
-    <Copyright>Copyright © 2020-2024 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.1" />
     <PackageReference Include="NPOI" Version="2.7.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
   </ItemGroup>
 
 </Project>

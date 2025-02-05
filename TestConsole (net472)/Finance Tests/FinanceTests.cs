@@ -47,13 +47,19 @@ namespace TestConsole.Finance
                         new CreditAccount { Name = "Line of Credit", APR = .0624m, Balance = 4000m, MinimumPaymentAmount = 150m },
                         new CreditAccount { Name = "My Store Card", APR = .1999m, Balance = 20000m, MinimumPaymentAmount = 350m, AltList = new[] { new AltCreditAccountPayoffInfo { StartDate = DateUtil.GetMonthStart(), EndDate = DateUtil.GetMonthStart().AddMonths(4), APR = 0m } } }
                     };
+                    accounts = PromptX.List
+                    (
+                        accounts, 
+                        renderer: act => act.Name + " " + act.Balance.ToString("C") + " " + act.APR.ToString("P2"),
+                        selectionMode: ListSelectionMode.OneOrMore
+                    ).SelectedItems;
                     var projections = new[]
                     {
                         FinanceEngine.GenerateCreditPayoffProjection(accounts),
                         FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true),
                         FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, snowballOrder : SnowballOrder.APR_Descending),
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m),
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m, snowballOrder : SnowballOrder.APR_Descending),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 100m),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 100m, snowballOrder : SnowballOrder.APR),
                     };
                     TextGrid textGrid = null;
                     var tempFilePath = Path.Combine(Path.GetTempPath(), "Horseshoe.NET.TestConsole.FinanceTest.output.txt");

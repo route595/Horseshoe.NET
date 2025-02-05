@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Horseshoe.NET.Configuration;
 
 namespace Horseshoe.NET.Bootstrap
 {
@@ -17,8 +17,7 @@ namespace Horseshoe.NET.Bootstrap
             get
             {
                 return _defaultExceptionRendering
-                    ?? _Config.Get<ExceptionRenderingPolicy?>("Horseshoe.NET:Bootstrap:ExceptionRendering")
-                    ?? OrganizationalDefaultSettings.Get<ExceptionRenderingPolicy?>("Bootstrap.ExceptionRendering")
+                    ?? Config.Get<ExceptionRenderingPolicy?>("Horseshoe.NET:Bootstrap:ExceptionRendering")
                     ?? default;
             }
             set
@@ -37,8 +36,7 @@ namespace Horseshoe.NET.Bootstrap
             get
             {
                 return _defaultAutoCloseableAlerts
-                    ?? _Config.Get<bool?>("Horseshoe.NET:Bootstrap:AutoCloseableAlerts")
-                    ?? OrganizationalDefaultSettings.Get<bool?>("Bootstrap.AutoCloseableAlerts")
+                    ?? Config.Get<bool?>("Horseshoe.NET:Bootstrap:AutoCloseableAlerts")
                     ?? false;
             }
             set

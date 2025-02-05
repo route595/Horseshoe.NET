@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-
+﻿using Horseshoe.NET.Configuration;
 using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Db;
+
+using System.Collections.Generic;
 
 namespace Horseshoe.NET.OleDb
 {
@@ -20,7 +21,7 @@ namespace Horseshoe.NET.OleDb
             get
             {
                 return _defaultConnectionStringName
-                    ?? _Config.Get("Horseshoe.NET:OleDb:ConnectionStringName");
+                    ?? Config.Get("Horseshoe.NET:OleDb:ConnectionStringName");
             }
             set
             {
@@ -39,8 +40,7 @@ namespace Horseshoe.NET.OleDb
             get
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
-                    ?? _GetConnectionString(_Config.GetConnectionString(DefaultConnectionStringName), _Config.Get<bool>("Horseshoe.NET:OleDb:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("OleDb.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("OleDb.IsEncryptedPassword"));
+                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:OleDb:IsEncryptedPassword"));
             }
         }
 
@@ -71,8 +71,7 @@ namespace Horseshoe.NET.OleDb
             get
             {
                 return _defaultDataSource       // e.g. DBSVR01
-                    ?? _Config.Get("Horseshoe.NET:OleDb:DataSource")
-                    ?? OrganizationalDefaultSettings.Get<string>("OleDb.DataSource");
+                    ?? Config.Get("Horseshoe.NET:OleDb:DataSource");
             }
             set
             {
@@ -89,17 +88,16 @@ namespace Horseshoe.NET.OleDb
         {
             get
             {
-                var configUserName = _Config.Get("Horseshoe.NET:OleDb:UserID");
-                var configPassword = _Config.Get("Horseshoe.NET:OleDb:Password");
-                var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:OleDb:IsEncryptedPassword");
+                var configUserName = Config.Get("Horseshoe.NET:OleDb:UserID");
+                var configPassword = Config.Get("Horseshoe.NET:OleDb:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:OleDb:IsEncryptedPassword");
                 return _defaultCredentials
                     ??
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName,() => Decrypt.String(configPassword))
                         : Credential.Build(configUserName, configPassword)
-                    )
-                    ?? OrganizationalDefaultSettings.Get<Credential?>("OleDb.Credentials");
+                    );
             }
             set
             {
@@ -117,8 +115,7 @@ namespace Horseshoe.NET.OleDb
             get
             {
                 return _defaultAdditionalConnectionAttributes        // e.g. Integrated Security=SSQI|Attribute1=Value1
-                    ?? DbUtil.ParseAdditionalConnectionAttributes(_Config.Get("Horseshoe.NET:OleDb:AdditionalConnectionAttributes"))
-                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("OleDb.AdditionalConnectionAttributes"));
+                    ?? DbUtil.ParseAdditionalConnectionAttributes(Config.Get("Horseshoe.NET:OleDb:AdditionalConnectionAttributes"));
             }
             set
             {
@@ -136,8 +133,7 @@ namespace Horseshoe.NET.OleDb
             get
             {
                 return _defaultConnectionTimeout           // e.g. 30 (Microsoft default)
-                    ?? _Config.Get<int?>("Horseshoe.NET:OleDb:ConnectionTimeout")
-                    ?? OrganizationalDefaultSettings.Get<int?>("OleDb.ConnectionTimeout");
+                    ?? Config.Get<int?>("Horseshoe.NET:OleDb:ConnectionTimeout");
             }
             set
             {

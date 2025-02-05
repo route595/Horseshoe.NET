@@ -56,12 +56,16 @@
     <Compile Include="ImportExcelData.cs" />
     <Compile Include="Interop\ConvertExcelFile.cs" />
     <Compile Include="Interop\ExcelFileTypeByExtension.cs" />
+    <Compile Include="ExcelImportConstants.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assembly-signing-key.snk" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Primitives">
+      <Version>9.0.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Office.Interop.Excel">
       <Version>15.0.4795.1001</Version>
     </PackageReference>
@@ -73,10 +77,6 @@
     <ProjectReference Include="..\Horseshoe.NET %28net462%29\Horseshoe.NET %28net462%29.csproj">
       <Project>{109113d1-c040-4265-896d-c949f9c60569}</Project>
       <Name>Horseshoe.NET %28net462%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions %28net462%29\Horseshoe.NET.Abstractions %28net462%29.csproj">
-      <Project>{ad82cbaa-fd68-40b0-ab19-57f255505efb}</Project>
-      <Name>Horseshoe.NET.Abstractions %28net462%29</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

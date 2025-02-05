@@ -67,7 +67,7 @@ namespace Horseshoe.NET.Db
         /// <param name="value">A value.</param>
         public void AddOrReplaceConnectionAttribute(string key, string value)
         {
-            DictionaryUtilAbstractions.AddOrReplace(AdditionalConnectionAttributes, key, value);
+            DictionaryUtil.AddOrReplace(AdditionalConnectionAttributes, key, value);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Horseshoe.NET.Db
         {
             foreach (var key in attrs.Keys)
             {
-                DictionaryUtilAbstractions.AddOrReplace(AdditionalConnectionAttributes, key, attrs[key]);
+                DictionaryUtil.AddOrReplace(AdditionalConnectionAttributes, key, attrs[key]);
             }
         }
 

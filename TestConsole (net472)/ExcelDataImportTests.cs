@@ -30,10 +30,10 @@ namespace TestConsole
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -59,10 +59,10 @@ namespace TestConsole
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -82,10 +82,10 @@ namespace TestConsole
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             ),
             BuildMenuRoutine
@@ -112,10 +112,10 @@ namespace TestConsole
                     Console.WriteLine("Skipped Rows: " + dataImport.SkippedRows);
                     Console.WriteLine("Next Row: " + dataImport.NextRow);
                     PrintDataErrors(dataImport);
-                    Console.WriteLine();
-                    Console.WriteLine("Journal");
-                    Console.WriteLine("-------");
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    //Console.WriteLine();
+                    //Console.WriteLine("Journal");
+                    //Console.WriteLine("-------");
+                    //Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
                 }
             )
         };

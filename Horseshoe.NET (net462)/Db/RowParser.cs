@@ -68,7 +68,7 @@ namespace Horseshoe.NET.Db
         /// </summary>
         /// <param name="reader">A data reader</param>
         /// <returns>An instance of <c>T</c></returns>
-        public T Parse(DbDataReader reader)
+        public T Parse(IDataReader reader)
         {
             return ReaderParser.Invoke(reader);
         }

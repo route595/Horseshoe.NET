@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 
@@ -23,8 +26,7 @@ namespace Horseshoe.NET.Text
                 return string.Empty;
             text = text.Trim().Replace("\r\n", "\n");
             var lines = text.Split('\n')
-                .Trim()
-                .ToArray();
+                .TrimAll();
             text = string.Join(Environment.NewLine, lines);
             return text;
         }
@@ -63,7 +65,7 @@ namespace Horseshoe.NET.Text
             if (allowOverflow)
                 return sb.ToString();
             return rtl
-                ? Crop(sb.ToString(), targetLength, direction: HorizontalPosition.Left)
+                ? Crop(sb.ToString(), targetLength, position: HorizontalPosition.Left)
                 : Crop(sb.ToString(), targetLength);
         }
 
@@ -71,51 +73,43 @@ namespace Horseshoe.NET.Text
         /// Creates a fixed-length <c>string</c> by adding <c>char</c>s to one or both ends of <c>text</c>.
         /// </summary>
         /// <param name="text">A text <c>string</c>.</param>
-        /// <param name="targetLength">The target length.</param>
-        /// <param name="direction">The padding direction.</param>
-        /// <param name="padding">The padding text.</param>
-        /// <param name="leftPadding">Left padding.</param>
-        /// <param name="cannotExceedTargetLength">If <c>true</c>, throws an exception if <c>text</c> is longer than <c>targetLength</c>, default is <c>false</c>.</param>
-        /// <returns>The new fixed-length <c>string</c>.</returns>
+        /// <param name="targetLength">
+        /// The number of characters in the resulting string, equal to the number
+        /// of original characters plus any additional padding characters.
+        /// </param>
+        /// <param name="position">Where in a <c>string</c> to pad.</param>
+        /// <param name="padChar">A Unicode padding character.</param>
+        /// <returns>A new fixed-length <c>string</c>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="ValidationException"></exception>
-        public static string Pad(string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Right, string padding = null, string leftPadding = null, bool cannotExceedTargetLength = false)
+        public static string Pad(string text, int targetLength, HorizontalPosition position = default, char? padChar = ' ')
         {
+            // validation
+            if (targetLength < 0)
+                throw new ValidationException("The target length must be a positive integer or zero");
+
+            // handle null and oversized text
             if (text == null)
                 text = string.Empty;
-            if (text.Length == targetLength) return text;
-            if (text.Length > targetLength)
-            {
-                if (cannotExceedTargetLength) throw new ValidationException("Text length (" + text.Length + ") cannot exceed target length (" + targetLength + ")");
+            else if (text.Length >= targetLength)
                 return text;
-            }
-            switch (padding = padding ?? string.Empty)
-            {
-                case "":
-                    padding = " ";
-                    break;
-            }
-            if (padding.Length > targetLength)
-                throw new ValidationException("Padding length (" + padding.Length + ") cannot exceed target length (" + targetLength + ")");
-            var rtl = leftPadding != null;  // todo: what?
-            leftPadding = leftPadding == null
-                ? padding
-                : (leftPadding.Length == 0 ? " " : leftPadding);
 
-            switch (direction)
+            switch (position)
             {
-                case HorizontalPosition.Left:
-                    return Fill(leftPadding, targetLength - text.Length) + text;
-                case HorizontalPosition.Center:
-                    var sb = new StringBuilder();
-                    int temp = (targetLength - text.Length) / 2;  // in case of uneven padding to left and right of text always prefer a smaller left
-                    sb.Append(Fill(leftPadding, temp, rtl: rtl));
-                    sb.Append(text);
-                    temp = targetLength - text.Length - temp;
-                    sb.Append(Fill(padding, temp));
-                    return sb.ToString();
                 case HorizontalPosition.Right:
                 default:
-                    return text + Fill(padding, targetLength - text.Length);
+                    return padChar.HasValue
+                        ? text.PadRight(targetLength, padChar.Value)
+                        : text.PadRight(targetLength);
+                case HorizontalPosition.Left:
+                    return padChar.HasValue
+                        ? text.PadLeft(targetLength, padChar.Value)
+                        : text.PadLeft(targetLength);
+                case HorizontalPosition.Center:
+                    var leftPad = (targetLength - text.Length) / 2;
+                    return padChar.HasValue
+                        ? text.PadLeft(text.Length + leftPad, padChar.Value).PadRight(targetLength, padChar.Value)
+                        : text.PadLeft(text.Length + leftPad).PadRight(targetLength);
             }
         }
 
@@ -124,34 +118,45 @@ namespace Horseshoe.NET.Text
         /// </summary>
         /// <param name="text">A text <c>string</c>.</param>
         /// <param name="targetLength">The target length.</param>
-        /// <param name="direction">The padding direction.</param>
+        /// <param name="position">Where in a <c>string</c> to crop.</param>
         /// <param name="truncateMarker">An optional truncation indicator, e.g. <c>"..."</c> or <c>TruncateMarker.Ellipsis</c>.</param>
-        /// <returns>The new fixed-length <c>string</c>.</returns>
+        /// <returns>A new fixed-length <c>string</c>.</returns>
         /// <exception cref="ValidationException"></exception>
-        public static string Crop(string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Right, string truncateMarker = null)
+        public static string Crop(string text, int targetLength, HorizontalPosition position = HorizontalPosition.Right, string truncateMarker = TruncateMarker.None)
         {
-            if (text == null || targetLength <= 0) return string.Empty;
-            if (text.Length <= targetLength) return text;
-            truncateMarker = truncateMarker ?? TruncateMarker.None;
-            if (truncateMarker.Length > targetLength) throw new ValidationException("Truncate marker length (" + truncateMarker.Length + ") cannot exceed target length (" + targetLength + ")");
-            if (truncateMarker.Length == targetLength) return truncateMarker;
+            // validation
+            if (targetLength < 0)
+                throw new ValidationException("The target length must be a positive integer or zero");
 
-            switch (direction)
+            if (truncateMarker == null)
+                truncateMarker = TruncateMarker.None;
+            else if (truncateMarker.Length > targetLength)
+                throw new ValidationException("Truncate marker length exceeds target length: " + truncateMarker.Length + " > " + targetLength);
+            else if (truncateMarker.Length == targetLength)
+                return truncateMarker;
+
+            // handle null and undersized text
+            if (text == null)
+                text = string.Empty;
+            else if (text.Length <= targetLength)
+                return text;
+
+            switch (position)
             {
-                case HorizontalPosition.Left:
-                    return truncateMarker + text.Substring(text.Length - targetLength + truncateMarker.Length);
-                case HorizontalPosition.Center:
-                    var sb = new StringBuilder();
-                    int temp = (targetLength - truncateMarker.Length) / 2;  // in case of uneven characters to left and right of marker always prefer a smaller left
-                    if (temp == 0) temp = 1;                        // except when left is 0 and right is 1 in which case switch
-                    sb.Append(text.Substring(0, temp));
-                    sb.Append(truncateMarker);
-                    temp = targetLength - temp - truncateMarker.Length;
-                    sb.Append(text.Substring(text.Length - temp));
-                    return sb.ToString();
                 case HorizontalPosition.Right:
                 default:
                     return text.Substring(0, targetLength - truncateMarker.Length) + truncateMarker;
+                case HorizontalPosition.Left:
+                    return truncateMarker + text.Substring(text.Length - targetLength + truncateMarker.Length);
+                case HorizontalPosition.Center:
+                    int leftChunk = (targetLength - truncateMarker.Length) / 2;
+                    if (leftChunk == 0)  // prefer smaller left pad when uneven except when left is 0
+                        leftChunk = 1;
+                    int rightChunk = targetLength - leftChunk - truncateMarker.Length;
+                    var strb = new StringBuilder(text.Substring(0, leftChunk))
+                        .Append(truncateMarker)
+                        .Append(text.Substring(text.Length - rightChunk));
+                    return strb.ToString();
             }
         }
 
@@ -160,47 +165,51 @@ namespace Horseshoe.NET.Text
         /// </summary>
         /// <param name="text">A text <c>string</c>.</param>
         /// <param name="targetLength">The target length.</param>
-        /// <param name="direction">The padding direction.</param>
-        /// <param name="padding">The padding text.</param>
-        /// <param name="leftPadding">Left padding.</param>
-        /// <param name="truncateDirection">The truncate direction.</param>
+        /// <param name="padPosition">Where in a <c>string</c> to pad.</param>
+        /// <param name="cropPosition">Where in a <c>string</c> to crop.</param>
+        /// <param name="padChar">A Unicode padding character.</param>
         /// <param name="truncateMarker">An optional truncation indicator, e.g. <c>"..."</c> or <c>TruncateMarker.Ellipsis</c>.</param>
-        /// <returns>The new fixed-length <c>string</c>.</returns>
-        public static string Fit(string text, int targetLength, HorizontalPosition direction = HorizontalPosition.Left, string padding = null, string leftPadding = null, HorizontalPosition? truncateDirection = null, string truncateMarker = null)
+        /// <returns>A new fixed-length <c>string</c>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ValidationException"></exception>
+        public static string Fit(string text, int targetLength, HorizontalPosition padPosition = default, char padChar = ' ', HorizontalPosition cropPosition = default, string truncateMarker = null)
         {
+            // handle null
             if (text == null)
                 text = string.Empty;
-            if (text.Length == targetLength) return text;
-            if (text.Length < targetLength) return Pad(text, targetLength, direction: FitSwitchPadDirection(direction), padding: padding, leftPadding: leftPadding);
-            return Crop(text, targetLength, direction: truncateDirection ?? FitSwitchTruncateDirection(direction), truncateMarker: truncateMarker);
+
+            if (text.Length < targetLength)
+                return Pad(text, targetLength, position: padPosition, padChar: padChar);
+            else
+                return Crop(text, targetLength, position: cropPosition, truncateMarker: truncateMarker);
         }
 
-        private static HorizontalPosition FitSwitchPadDirection(HorizontalPosition direction)
-        {
-            switch (direction)
-            {
-                case HorizontalPosition.Left:
-                    return HorizontalPosition.Right;
-                case HorizontalPosition.Center:
-                    return HorizontalPosition.Center;
-                case HorizontalPosition.Right:
-                default:
-                    return HorizontalPosition.Left;
-            }
-        }
+        //private static HorizontalPosition FitSwitchPadDirection(HorizontalPosition direction)
+        //{
+        //    switch (direction)
+        //    {
+        //        case HorizontalPosition.Left:
+        //            return HorizontalPosition.Right;
+        //        case HorizontalPosition.Center:
+        //            return HorizontalPosition.Center;
+        //        case HorizontalPosition.Right:
+        //        default:
+        //            return HorizontalPosition.Left;
+        //    }
+        //}
 
-        private static HorizontalPosition FitSwitchTruncateDirection(HorizontalPosition direction)
-        {
-            switch (direction)
-            {
-                case HorizontalPosition.Left:
-                case HorizontalPosition.Right:
-                default:
-                    return HorizontalPosition.Right;
-                case HorizontalPosition.Center:
-                    return HorizontalPosition.Center;
-            }
-        }
+        //private static HorizontalPosition FitSwitchTruncateDirection(HorizontalPosition direction)
+        //{
+        //    switch (direction)
+        //    {
+        //        case HorizontalPosition.Left:
+        //        case HorizontalPosition.Right:
+        //        default:
+        //            return HorizontalPosition.Right;
+        //        case HorizontalPosition.Center:
+        //            return HorizontalPosition.Center;
+        //    }
+        //}
 
         /// <summary>
         /// Create a <c>string</c> by repeating <c>text</c> a specific number of time.
@@ -314,7 +323,7 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Displays a <c>char</c> in <c>string</c> format.
+        /// Displays a <c>char</c> in <c>string</c> format including the <c>char</c> index, i.e. <c>'c' => ['c'-99]</c>.
         /// </summary>
         /// <param name="c">The <c>char</c> to reveal.</param>
         /// <param name="options">Options for revealing <c>char</c>s.</param>
@@ -322,10 +331,8 @@ namespace Horseshoe.NET.Text
         public static string RevealChar(char c, RevealOptions options = null)
         {
             var category = GetCharCategory(c);
-            if (options == null)
-            {
-                options = new RevealOptions { CharCategory = CharCategory.All };
-            }
+            
+            options = options ?? new RevealOptions { CharCategory = CharCategory.All };
 
             if (!(CollectionUtil.Contains(options.CharsToReveal, c) || (options.CharCategory & category) == category))
             {
@@ -447,10 +454,8 @@ namespace Horseshoe.NET.Text
         /// </summary>
         /// <param name="c">A <c>char</c></param>
         /// <returns>The <c>char</c>'s <c>CharCategory</c></returns>
-        public static CharCategory GetCharCategory(char c)
-        {
-            return GetCharCategoryByIndex((int)c);
-        }
+        public static CharCategory GetCharCategory(char c) =>
+            GetCharCategoryByIndex((int)c);
 
         /// <summary>
         /// Determines a <c>char</c>'s Horseshoe.NET category
@@ -648,16 +653,48 @@ namespace Horseshoe.NET.Text
             return sb.ToString();
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.ConvertToSecureString"/>
+        /// <summary>
+        /// Creates a <c>SecureString</c> instance from text.
+        /// </summary>
+        /// <param name="unsecureString">A text <c>string</c>.</param>
+        /// <returns>A <c>SecureString</c>.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static SecureString ConvertToSecureString(string unsecureString)
         {
-            return TextUtilAbstractions.ConvertToSecureString(unsecureString);
+            if (unsecureString == null) throw new ArgumentNullException(nameof(unsecureString));
+
+            var secureString = new SecureString();
+            foreach (char c in unsecureString)
+            {
+                secureString.AppendChar(c);
+            }
+            secureString.MakeReadOnly();
+            return secureString;
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.ConvertToUnsecureString"/>
+        /// <summary>
+        /// Restores a <c>string</c> from a <c>SecureString</c>.
+        /// </summary>
+        /// <param name="secureString">A <c>SecureString</c>.</param>
+        /// <returns>A <c>string</c>.</returns>
+        /// <remarks>
+        /// ref: https://blogs.msdn.microsoft.com/fpintos/2009/06/12/how-to-properly-convert-securestring-to-string/
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"></exception>
         public static string ConvertToUnsecureString(SecureString secureString)
         {
-            return TextUtilAbstractions.ConvertToUnsecureString(secureString);
+            if (secureString == null) throw new ArgumentNullException(nameof(secureString));
+
+            IntPtr unmanagedString = IntPtr.Zero;
+            try
+            {
+                unmanagedString = Marshal.SecureStringToGlobalAllocUnicode(secureString);
+                return Marshal.PtrToStringUni(unmanagedString);
+            }
+            finally
+            {
+                Marshal.ZeroFreeGlobalAllocUnicode(unmanagedString);
+            }
         }
 
         /// <summary>
@@ -673,28 +710,76 @@ namespace Horseshoe.NET.Text
             return html;
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.IsAsciiPrintable(char, bool, bool, bool)"/>
+        /// <summary>
+        /// Returns <c>true</c> if <c>c</c> represents a printable ASCII <c>char</c>.
+        /// </summary>
+        /// <param name="c">A char.</param>
+        /// <param name="excludeSpaces">If <c>true</c>, spaces do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeTabs">If <c>true</c>, tabs do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeNewlines">If <c>true</c>, newlines do not count as printable. Default is <c>false</c>.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsAsciiPrintable(char c, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
         {
-            return TextUtilAbstractions.IsAsciiPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+            if (c == 32)
+                return !excludeSpaces;
+            if (c == 9)
+                return !excludeTabs;
+            if (c == 10 || c == 13)
+                return !excludeNewlines;
+            return c <= 127 && !char.IsControl(c);
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.IsAsciiPrintable(string, bool, bool, bool)"/>
+        /// <summary>
+        /// Returns <c>true</c> if <c>text</c> contains only printable ASCII <c>char</c>s.
+        /// </summary>
+        /// <param name="text">A text string.</param>
+        /// <param name="excludeSpaces">If <c>true</c>, spaces do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeTabs">If <c>true</c>, tabs do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeNewlines">If <c>true</c>, newlines do not count as printable. Default is <c>false</c>.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsAsciiPrintable(string text, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
         {
-            return TextUtilAbstractions.IsAsciiPrintable(text, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+            return text.All(c => IsAsciiPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines));
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.IsPrintable(char, bool, bool, bool)"/>
+        /// <summary>
+        /// Returns <c>true</c> if <c>c</c> represents a printable <c>char</c>.
+        /// </summary>
+        /// <param name="c">a char</param>
+        /// <param name="excludeSpaces">If <c>true</c>, spaces do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeTabs">If <c>true</c>, tabs do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeNewlines">If <c>true</c>, newlines do not count as printable. Default is <c>false</c>.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsPrintable(char c, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
         {
-            return TextUtilAbstractions.IsPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+            if (c <= 127)
+                return IsAsciiPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+            if (c <= 159)
+                return false;
+            if (c == 160)
+                return !excludeSpaces;
+            /* 
+             * ByteOrderMark          '\uFEFF'   (65279)    
+             * UnicodeReplacementChar '\uFFFD' � (65533) 
+             * ------------------------------------
+             * Source: CharLib.cs > UnicodeNonprintables
+             */
+            if (c == '\uFEFF' || c == '\uFFFD')
+                return false;
+            return true;
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.IsPrintable(string, bool, bool, bool)"/>
+        /// <summary>
+        /// Returns <c>true</c> if <c>text</c> contains only printable <c>char</c>s.
+        /// </summary>
+        /// <param name="text">A text string.</param>
+        /// <param name="excludeSpaces">If <c>true</c>, spaces do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeTabs">If <c>true</c>, tabs do not count as printable. Default is <c>false</c>.</param>
+        /// <param name="excludeNewlines">If <c>true</c>, newlines do not count as printable. Default is <c>false</c>.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
         public static bool IsPrintable(string text, bool excludeSpaces = false, bool excludeTabs = false, bool excludeNewlines = false)
         {
-            return TextUtilAbstractions.IsPrintable(text, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines);
+            return text.All(c => IsPrintable(c, excludeSpaces: excludeSpaces, excludeTabs: excludeTabs, excludeNewlines: excludeNewlines));
         }
 
         /// <summary>
@@ -713,17 +798,67 @@ namespace Horseshoe.NET.Text
             return (c >= 0 && c <= 31) || c == 127;
         }
 
-        /// <inheritdoc cref="TextUtilAbstractions.GetProvider(IFormatProvider, string)"/>
+        /// <summary>
+        /// Used internally for determining which <c>IFormatProvider</c> to use in certain conversion operations.
+        /// </summary>
+        /// <param name="provider">An optional format provider.</param>
+        /// <param name="locale">An optional locale from which to derive a format provider if one has was not specified.</param>
+        /// <returns>A format provider, or <c>null</c>.</returns>
         public static IFormatProvider GetProvider(IFormatProvider provider, string locale)
         {
-            return TextUtilAbstractions.GetProvider(provider, locale);
+            if (provider != null)
+                return provider;
+            if (locale == null)
+                return null;
+            return CultureInfo.GetCultureInfo(locale);
         }
 
-        internal static string DumpDatum(object o)
+        /// <summary>
+        /// Inspired by SQL, determines if a string is found in a collection of strings.
+        /// </summary>
+        /// <param name="text">The <c>string</c> to search match.</param>
+        /// <param name="strings">A <c>string</c> collection to search.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool InIgnoreCase(string text, params string[] strings)
         {
-            if (o == null || o is DBNull) return "[null]";
-            if (o is string str) return "\"" + str + "\"";
-            return o.ToString();
+            return InIgnoreCase(text, strings as IEnumerable<string>);
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if a string is found in a collection of strings.
+        /// </summary>
+        /// <param name="text">The <c>string</c> to search match.</param>
+        /// <param name="strings">A <c>string</c> collection to search.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool InIgnoreCase(string text, IEnumerable<string> strings)
+        {
+            if (strings == null)
+                return false;
+            foreach (var s in strings)
+            {
+                if (string.Equals(s, text, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if a string is found in a collection of strings.
+        /// </summary>
+        /// <param name="char">The <c>char</c> to search match.</param>
+        /// <param name="chars">A <c>char</c> collection to search.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool InIgnoreCase(char @char, params char[] chars)
+        {
+            if (chars == null)
+                return false;
+            string charString = new string(@char, 1);
+            foreach (var c in chars)
+            {
+                if (string.Equals(new string(c, 1), charString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
     }
 }

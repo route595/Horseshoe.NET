@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Horseshoe.NET.ObjectsTypesAndValues;
+using Horseshoe.NET.RelayMessages;
+
 namespace Horseshoe.NET.Text.TextClean
 {
     /// <summary>
@@ -10,6 +13,8 @@ namespace Horseshoe.NET.Text.TextClean
     /// </summary>
     public static class TextClean
     {
+        private static readonly string MessageRelayGroup = typeof(TextClean).Namespace;
+
         /// <inheritdoc cref="TextCleanAbstractions.Remove(string, char[])"/>
         public static string Remove(string text, params char[] chars)
         {
@@ -65,22 +70,20 @@ namespace Horseshoe.NET.Text.TextClean
         /// Convert essentially any text to its closest ASCII representation.
         /// </summary>
         /// <param name="text">The source text to convert.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
+        /// <param name="charsToRemove">A set of <c>char</c>s to remove from <c>text</c>.</param>
         /// <param name="nonprintablesPolicy">Nonprintables display hint.</param>
         /// <param name="substitute">How to display non-printables (if <c>NonprintablesPolicy.Substitute</c>) and unknown <c>chars</c>.</param>
         /// <returns>An ASCII <c>string</c>.</returns>
-        public static string ToAsciiPrintable(string text, TraceJournal journal = null, NonprintablesPolicy nonprintablesPolicy = default, string substitute = "?")
+        public static string ToAsciiPrintable(string text, char[] charsToRemove = null, NonprintablesPolicy nonprintablesPolicy = default, string substitute = "?")
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("ToASCIIPrintable()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodParam(nameof(text), text, group: MessageRelayGroup);
 
-            // special case
-            if (text == null || text.Length == 0)
+            text = Remove(text, charsToRemove);
+
+            if (string.IsNullOrEmpty(text))
             {
-                journal.WriteEntry("-1, " + (text == null ? TextConstants.Null : TextConstants.Empty));
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturnValue(text, group: MessageRelayGroup);
                 return string.Empty;
             }
 
@@ -88,6 +91,9 @@ namespace Horseshoe.NET.Text.TextClean
             ReadOnlySpan<char> roSpan = text.AsSpan();
             var strb = new StringBuilder((int)(text.Length * 1.1));
             var revealOptions = new RevealOptions { CharCategory = CharCategory.AllWhitespaces | CharCategory.Nonprintables | CharCategory.UnicodePrintables };
+
+            // statistics
+            var log = new List<string>();
 
             for (int i = 0; i < roSpan.Length; i++)
             {
@@ -98,33 +104,30 @@ namespace Horseshoe.NET.Text.TextClean
                     {
                         case '\u00A0':  // non-breaking space
                             strb.Append(' ');
-                            journal.WriteEntry(i + " " + revealOptions.ValueIfNbSpace + " -> " + revealOptions.ValueIfSpace);
-                            journal.IncrementCleanedWhitespaces();
+                            log.Add("[" + i + "] " + revealOptions.ValueIfNbSpace + " -> " + revealOptions.ValueIfSpace);
                             break;
                         default:
                             strb.Append(c);
-                            journal.WriteEntry(i + " " + TextUtil.Reveal(c, options: revealOptions));
+                            log.Add("[" + i + "] " + TextUtil.Reveal(c));
                             break;
                     }
                 }
                 else if (TextUtil.IsAsciiPrintable(c))
                 {
                     strb.Append(c);
-                    journal.WriteEntry(i + " ascii: " + c);
+                    log.Add("[" + i + "] ascii: " + c);
                 }
                 else if (TextUtil.IsPrintable(c))
                 {
                     if (_TryFindAsciiReplacement(c, out string replacement, out string source))
                     {
                         strb.Append(replacement);
-                        journal.WriteEntry(i + " unicode -> ascii: " + c + " -> " + replacement + " (" + source + ")");
-                        journal.IncrementCleanedUnicode();
+                        log.Add("[" + i + "] unicode -> ascii: " + TextUtil.Reveal(c) + " -> " + replacement + " (" + source + ")");
                     }
                     else
                     {
                         strb.Append(substitute);
-                        journal.WriteEntry(i + " unicode (no ASCII replacement): " + TextUtil.Reveal(c, revealOptions));
-                        journal.IncrementCleanedOther();
+                        log.Add("[" + i + "] unicode (no ASCII replacement): " + TextUtil.Reveal(c) + " -> " + substitute);
                     }
                 }
                 else
@@ -133,19 +136,18 @@ namespace Horseshoe.NET.Text.TextClean
                     {
                         case NonprintablesPolicy.Drop:
                         default:
-                            journal.WriteEntry(i + " non-printable (dropped): " + TextUtil.Reveal(c, RevealOptions.All));
+                            log.Add("[" + i + "] nonprintable: " + TextUtil.Reveal(c) + " (dropped)");
                             break;
                         case NonprintablesPolicy.Substitute:
                             strb.Append(substitute);
-                            journal.WriteEntry(i + " non-printable -> '" + substitute + "': " + TextUtil.Reveal(c, revealOptions));
+                            log.Add("[" + i + "] nonprintable: " + TextUtil.Reveal(c) + " -> " + substitute);
                             break;
                     }
-                    journal.IncrementCleanedNonprintables();
                 }
             }
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMessage(() => ValueUtil.Display(log), group: MessageRelayGroup);
+            SystemMessageRelay.RelayMethodReturnValue(() => strb.ToString(), group: MessageRelayGroup);
             return strb.ToString();
         }
 

@@ -54,20 +54,22 @@ namespace Horseshoe.NET.Odbc
             return BuildConnectionString(OdbcSettings.DefaultDataSource, credentials: OdbcSettings.DefaultCredentials, additionalConnectionAttributes: OdbcSettings.DefaultAdditionalConnectionAttributes, connectionTimeout: OdbcSettings.DefaultConnectionTimeout);
         }
 
+        /// <summary>
+        /// Creates an open DB connection ready to send queries, updates, etc.
+        /// </summary>
+        /// <param name="connectionInfo">Connection information e.g. a connection string or the info needed to build one</param>
+        /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
+        /// <param name="cryptoOptions">Optional options for the crypto engine to decrypt the connection string password. Source should be DB settings.</param>
+        /// <returns>A new DB connection</returns>
         public static OdbcConnection LaunchConnection
         (
             OdbcConnectionInfo connectionInfo = null,
             Action<OdbcConnection> peekConnection = null,
-            TraceJournal journal = null
+            CryptoOptions cryptoOptions = null
         )
         {
-            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), journal: journal);
-            var conn = new OdbcConnection
-            (
-                connectionInfo.IsEncryptedPassword
-                  ? DbUtil.DecryptInlinePassword(connectionInfo.ConnectionString, cryptoOptions: OdbcSettings.CryptoOptions)
-                  : connectionInfo.ConnectionString
-            );
+            connectionInfo = DbUtil.LoadFinalConnectionInfo(connectionInfo, () => BuildConnectionStringFromConfig(), cryptoOptions: cryptoOptions);
+            var conn = new OdbcConnection(connectionInfo.ConnectionString);
             conn.Open();
             peekConnection?.Invoke(conn);
             return conn;
@@ -86,8 +88,8 @@ namespace Horseshoe.NET.Odbc
             return BuildCommand
             (
                 conn,
-                CommandType.Text,
                 commandText,
+                CommandType.Text,
                 parameters: parameters,
                 transaction: transaction,
                 commandTimeout: commandTimeout,
@@ -108,8 +110,8 @@ namespace Horseshoe.NET.Odbc
             return BuildCommand
             (
                 conn,
-                CommandType.StoredProcedure,
                 commandText,
+                CommandType.StoredProcedure,
                 parameters: parameters,
                 transaction: transaction,
                 commandTimeout: commandTimeout,
@@ -117,22 +119,22 @@ namespace Horseshoe.NET.Odbc
             );
         }
 
-        public static OdbcCommand BuildCommand
+        internal static OdbcCommand BuildCommand
         (
             OdbcConnection conn,
-            CommandType commandType,
             string commandText,
-            IEnumerable<DbParameter> parameters = null,
-            OdbcTransaction transaction = null,
-            int? commandTimeout = null,
-            Action<OdbcCommand> peekCommand = null
+            CommandType commandType,
+            IEnumerable<DbParameter> parameters,
+            OdbcTransaction transaction,
+            int? commandTimeout,
+            Action<OdbcCommand> peekCommand
         )
         {
             var cmd = new OdbcCommand
             {
                 Connection = conn,
-                CommandType = commandType,
                 CommandText = commandText,
+                CommandType = commandType,
                 Transaction = transaction
             };
             if (parameters != null)
@@ -166,7 +168,7 @@ namespace Horseshoe.NET.Odbc
                     }
                 }
             }
-            if (commandTimeout.TryHasValue(out int value))
+            if (ValueUtil.TryHasValue(commandTimeout, out int value))
             {
                 cmd.CommandTimeout = value;
             }

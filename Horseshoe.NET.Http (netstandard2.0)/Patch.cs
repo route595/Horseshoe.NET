@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+
+using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.Http
 {
@@ -10,6 +11,8 @@ namespace Horseshoe.NET.Http
     /// </summary>
     public static class Patch
     {
+        public static string MessageRelayGroup => HttpConstants.MessageRelayGroup;
+
         public static string AsString
         (
             UriString uri,
@@ -23,16 +26,11 @@ namespace Horseshoe.NET.Http
             int? proxyPort = null,
             NetworkCredential proxyCredentials = null,
             Action<HttpWebRequest> alterRequest = null,
-            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
-            TraceJournal journal = null
+            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("Patch.AsString()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // pass the buck
             var response = Post.AsString
             (
                 uri,
@@ -47,12 +45,10 @@ namespace Horseshoe.NET.Http
                 proxyPort: proxyPort,
                 proxyCredentials: proxyCredentials,
                 alterRequest: alterRequest,
-                handleResponse: handleResponse,
-                journal: journal
+                handleResponse: handleResponse
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(response, group: MessageRelayGroup);
             return response;
         }
 
@@ -69,16 +65,11 @@ namespace Horseshoe.NET.Http
             int? proxyPort = null,
             NetworkCredential proxyCredentials = null,
             Action<HttpWebRequest> alterRequest = null,
-            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
-            TraceJournal journal = null
+            Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("Patch.AsStringAsync()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // pass the buck
             var response = await Post.AsStringAsync
             (
                 uri,
@@ -93,12 +84,10 @@ namespace Horseshoe.NET.Http
                 proxyPort: proxyPort,
                 proxyCredentials: proxyCredentials,
                 alterRequest: alterRequest,
-                handleResponse: handleResponse,
-                journal: journal
+                handleResponse: handleResponse
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(response, group: MessageRelayGroup);
             return response;
         }
 
@@ -117,16 +106,11 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, T> responseParser = null,
-            TraceJournal journal = null
+            Func<string, T> responseParser = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("Patch.AsValue()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // pass the buck
             var result = Post.AsValue<T>
             (
                 uri,
@@ -143,12 +127,10 @@ namespace Horseshoe.NET.Http
                 alterRequest: alterRequest,
                 handleResponse: handleResponse,
                 getRawResponse: getRawResponse,
-                responseParser: responseParser,
-                journal: journal
+                responseParser: responseParser
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(result, group: MessageRelayGroup);
             return result;
         }
 
@@ -167,16 +149,11 @@ namespace Horseshoe.NET.Http
             Action<HttpWebRequest> alterRequest = null,
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
-            Func<string, T> responseParser = null,
-            TraceJournal journal = null
+            Func<string, T> responseParser = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("Patch.AsValueAsync()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // pass the buck
             var result = await Post.AsValueAsync<T>
             (
                 uri,
@@ -193,12 +170,10 @@ namespace Horseshoe.NET.Http
                 alterRequest: alterRequest,
                 handleResponse: handleResponse,
                 getRawResponse: getRawResponse,
-                responseParser: responseParser,
-                journal: journal
+                responseParser: responseParser
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(result, group: MessageRelayGroup);
             return result;
         }
 
@@ -218,16 +193,11 @@ namespace Horseshoe.NET.Http
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
             Func<string, T> responseParser = null,
-            bool zapBackingFields = false,
-            TraceJournal journal = null
+            bool zapBackingFields = false
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("Patch.AsJson()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // pass the buck
             var result = Post.AsJson<T>
             (
                 uri,
@@ -245,12 +215,10 @@ namespace Horseshoe.NET.Http
                 handleResponse: handleResponse,
                 getRawResponse: getRawResponse,
                 responseParser: responseParser,
-                zapBackingFields: zapBackingFields,
-                journal: journal
+                zapBackingFields: zapBackingFields
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(result, group: MessageRelayGroup);
             return result;
         }
 
@@ -270,16 +238,11 @@ namespace Horseshoe.NET.Http
             Action<HttpWebResponse, ConsumerResponseEnvelope> handleResponse = null,
             Action<string> getRawResponse = null,
             Func<string, T> responseParser = null,
-            bool zapBackingFields = false,
-            TraceJournal journal = null
+            bool zapBackingFields = false
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteEntry("Patch.AsJsonAsync()");
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // pass the buck
             var result = await Post.AsJsonAsync<T>
             (
                 uri,
@@ -297,12 +260,10 @@ namespace Horseshoe.NET.Http
                 handleResponse: handleResponse,
                 getRawResponse: getRawResponse,
                 responseParser: responseParser,
-                zapBackingFields: zapBackingFields,
-                journal: journal
+                zapBackingFields: zapBackingFields
             );
 
-            // finalize
-            journal.Level--;
+            SystemMessageRelay.RelayMethodReturnValue(result, group: MessageRelayGroup);
             return result;
         }
     }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Horseshoe.NET.IO;
-using Horseshoe.NET.Iterator.Memory;
+using Horseshoe.NET.RelayMessages;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.DataImport
@@ -15,6 +15,8 @@ namespace Horseshoe.NET.DataImport
     /// </summary>
     public static class ImportData
     {
+        private static readonly string MessageRelayGroup = typeof(ImportData).Namespace;
+
         /// <summary>
         /// Contains methods for importing delimited data
         /// </summary>
@@ -29,20 +31,14 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged.</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedText.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(rawData, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -57,20 +53,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedText.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(rawData, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -84,20 +75,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
-            public static IEnumerable<object[]> AsObjects(string rawData, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static IEnumerable<object[]> AsObjects(string rawData, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedText.AsObjects()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(rawData, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -110,14 +96,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static DataImport AsDataImport(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static DataImport AsDataImport(string rawData, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedText.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport
@@ -153,30 +135,26 @@ namespace Horseshoe.NET.DataImport
                 }
 
                 // loop
-                rawSpan.Iterate
-                (
-                    (raw, ci) =>
+                foreach (var raw in rawSpan)
+                {
+                    SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                    ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiter, null, false, dataImport.NextRow);
+                    try
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiter, null, false, dataImport.NextRow, journal);
-                        try
-                        {
-                            dataImport.ImportRaw(rawValues, dataImport.NextRow);
-                        }
-                        catch (StopImportingDataException)
-                        {
-                            ci.Exit();
-                        }
-                        finally
-                        {
-                            rawValues.Clear();
-                        }
+                        dataImport.ImportRaw(rawValues, dataImport.NextRow);
                     }
-                );
+                    catch (StopImportingDataException)
+                    {
+                        break;
+                    }
+                    finally
+                    {
+                        rawValues.Clear();
+                    }
+                }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: nameof(dataImport) + " with " + dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
@@ -191,14 +169,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static DataImport AsDataImport(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static DataImport AsDataImport(string rawData, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedText.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: enforceColumnCount)
@@ -234,45 +208,41 @@ namespace Horseshoe.NET.DataImport
                 }
 
                 // loop
-                rawSpan.Iterate
-                (
-                    (raw, ci) =>
+                foreach (var raw in rawSpan)
+                {
+                    SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow);
+                    ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow);
+                    try
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        ParseRawValuesInternal(rawValues, raw.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow, journal);
-                        try
-                        {
-                            dataImport.ImportRaw(rawValues, dataImport.NextRow);
-                        }
-                        catch (StopImportingDataException)
-                        {
-                            ci.Exit();
-                        }
-                        finally
-                        {
-                            rawValues.Clear();
-                        }
+                        dataImport.ImportRaw(rawValues, dataImport.NextRow);
                     }
-                );
+                    catch (StopImportingDataException)
+                    {
+                        break;
+                    }
+                    finally
+                    {
+                        rawValues.Clear();
+                    }
+                }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: nameof(dataImport) + " with " + dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
-            internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount, int rowNum, TraceJournal journal)
+            internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount, int rowNum)
             {
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
                 // validation
                 if (delimiter == '\"')
                     throw new DataImportException("cannot use double quote (\\\") as a delimiter");
 
-                journal.Level++;
                 // handle special cases
                 if (rawRow.IsEmpty)
                 {
-                    journal.WriteEntry("encountered empty row on row " + rowNum);
-                    journal.Level--;
+                    SystemMessageRelay.RelayMethodReturn(returnDescription: "encountered empty row on row " + rowNum);
                     return;
                 }
 
@@ -297,7 +267,7 @@ namespace Horseshoe.NET.DataImport
                         column = columnIndex <= columnCount - 1
                             ? columns.ElementAt(columnIndex)
                             : null;
-                        processValue(inQuotes, column, enforceColumnCount, rawValues, valueBuilder, journal);
+                        processValue(inQuotes, column, enforceColumnCount, rawValues, valueBuilder);
                         columnIndex++;
                         continue;
                     }
@@ -316,17 +286,17 @@ namespace Horseshoe.NET.DataImport
                 column = columnIndex <= columnCount - 1
                     ? columns.ElementAt(columnIndex)
                     : null;
-                processValue(inQuotes, column, enforceColumnCount, rawValues, valueBuilder, journal);
+                processValue(inQuotes, column, enforceColumnCount, rawValues, valueBuilder);
 
                 // local function
-                void processValue(bool _inQuotes, Column _column, bool _enforceColumnCount, IList< string> _rawValues, StringBuilder _valueBuilder, TraceJournal _journal)
+                void processValue(bool _inQuotes, Column _column, bool _enforceColumnCount, IList< string> _rawValues, StringBuilder _valueBuilder)
                 {
                     if (_inQuotes)
                         throw new DataImportException("Unclosed quotation marks");
 
                     if (_column != null && _column.NotMapped)
                     {
-                        _journal.WriteEntry("not mapped: \"" + TextUtil.Crop(_valueBuilder.ToString(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"");
+                        SystemMessageRelay.RelayMessage("not mapped: \"" + TextUtil.Crop(_valueBuilder.ToString(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"", group: MessageRelayGroup);
                         _valueBuilder.Clear();
                         return;
                     }
@@ -337,11 +307,10 @@ namespace Horseshoe.NET.DataImport
 
                     _rawValues.Add(_valueBuilder.ToString());
                     _valueBuilder.Clear();
-                    _journal.WriteEntry("parsed value: \"" + TextUtil.Crop(_rawValues.Last(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"");
+                    SystemMessageRelay.RelayMessage("parsed value: \"" + TextUtil.Crop(_rawValues.Last(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"", group: MessageRelayGroup);
                 }
 
-                // finalize method
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             }
         }
 
@@ -359,20 +328,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(file, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -385,20 +349,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsStringsAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = await AsDataImportAsync(file, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, delimiter, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -413,20 +372,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(file, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -441,20 +395,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsStringsAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = await AsDataImportAsync(file, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, delimiter, columns, enforceColumnCount: enforceColumnCount, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -468,20 +417,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
-            public static IEnumerable<object[]> AsObjects(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static IEnumerable<object[]> AsObjects(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsObjects()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(file, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -495,20 +439,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsObjectsAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = await AsDataImportAsync(file, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, delimiter, columns, enforceColumnCount: true, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -521,14 +460,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static DataImport AsDataImport(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static DataImport AsDataImport(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport
@@ -560,8 +495,8 @@ namespace Horseshoe.NET.DataImport
                     }
                     while (rawRow != null)
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, null, false, dataImport.NextRow, journal);
+                        SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, null, false, dataImport.NextRow);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -578,9 +513,8 @@ namespace Horseshoe.NET.DataImport
                     }
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
@@ -593,14 +527,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImportAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport
@@ -632,8 +562,8 @@ namespace Horseshoe.NET.DataImport
                     }
                     while (rawRow != null)
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, null, false, dataImport.NextRow, journal);
+                        SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, null, false, dataImport.NextRow);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -650,9 +580,8 @@ namespace Horseshoe.NET.DataImport
                     }
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
@@ -667,14 +596,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static DataImport AsDataImport(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static DataImport AsDataImport(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: enforceColumnCount)
@@ -706,8 +631,8 @@ namespace Horseshoe.NET.DataImport
                     }
                     while (rawRow != null)
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow, journal);
+                        SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -724,9 +649,8 @@ namespace Horseshoe.NET.DataImport
                     }
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
@@ -741,14 +665,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default, TraceJournal journal = null)
+            public static async Task<DataImport> AsDataImportAsync(FilePath file, char delimiter, IEnumerable<Column> columns, bool enforceColumnCount = false, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = default)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.DelimitedTextFile.AsDataImportAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: enforceColumnCount)
@@ -780,8 +700,8 @@ namespace Horseshoe.NET.DataImport
                     }
                     while (rawRow != null)
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow, journal);
+                        SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                        DelimitedText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), delimiter, columns, enforceColumnCount, dataImport.NextRow);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -798,9 +718,8 @@ namespace Horseshoe.NET.DataImport
                     }
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
         }
@@ -819,20 +738,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static IEnumerable<string[]> AsStrings(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthText.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(rawData, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -845,20 +759,14 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
-            public static IEnumerable<object[]> AsObjects(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<object[]> AsObjects(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthText.AsObjects()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(rawData, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(rawData, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -871,14 +779,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static DataImport AsDataImport(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static DataImport AsDataImport(string rawData, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthText.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: true)
@@ -916,47 +820,43 @@ namespace Horseshoe.NET.DataImport
                 initialSkippedBlankRows = dataImport.SkippedRows;
 
                 // loop
-                rawSpan.Iterate
-                (
-                    (raw, ci) =>
+                foreach (var raw in rawSpan)
+                {
+                    SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                    ParseRawValuesInternal(rawValues, raw.AsSpan(), columns);
+                    try
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        ParseRawValuesInternal(rawValues, raw.AsSpan(), columns, journal);
-                        try
-                        {
-                            dataImport.ImportRaw(rawValues, dataImport.NextRow);
-                        }
-                        catch (StopImportingDataException)
-                        {
-                            ci.Exit();
-                        }
-                        finally
-                        {
-                            rawValues.Clear();
-                        }
+                        dataImport.ImportRaw(rawValues, dataImport.NextRow);
                     }
-                );
+                    catch (StopImportingDataException)
+                    {
+                        break;
+                    }
+                    finally
+                    {
+                        rawValues.Clear();
+                    }
+                }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
-            internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, IEnumerable<Column> columns, TraceJournal journal)
+            internal static void ParseRawValuesInternal(IList<string> rawValues, ReadOnlySpan<char> rawRow, IEnumerable<Column> columns)
             {
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
                 // validation
                 if (columns == null || !columns.Any(c => !c.NotMapped))
                     throw new DataImportException("cannot parse data if 1 or more mapped columns are not supplied");
                 //if (!columns.Any(c => !c.NotMapped && c.FixedWidth > 0))
                 //    throw new DataImportException("cannot parse data due to zero mapped columns have a specified width");
 
-                journal.Level++;
-
                 // handle special cases
                 if (rawRow.IsEmpty)
                 {
-                    journal.WriteEntry("encountered empty row");
+                    SystemMessageRelay.RelayMessage("encountered empty row", group: MessageRelayGroup);
                 }
                 else 
                 {
@@ -977,17 +877,18 @@ namespace Horseshoe.NET.DataImport
                             {
                                 rawValues.Add("");
                             }
-                            journal.WriteEntry("parsed value: \"" + TextUtil.Crop(rawValues.Last(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"  (width=" + fixedWidth + ")");
+                            SystemMessageRelay.RelayMessage("parsed value: \"" + TextUtil.Crop(rawValues.Last(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"  (width=" + fixedWidth + ")", group: MessageRelayGroup);
                         }
                         else
                         {
-                            journal.WriteEntry("not mapped: \"" + TextUtil.Crop(rawRow.Slice(pos, fixedWidth).ToString(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"");
+                            SystemMessageRelay.RelayMessage("not mapped: \"" + TextUtil.Crop(rawRow.Slice(pos, fixedWidth).ToString(), 18, truncateMarker: TruncateMarker.LongEllipsis) + "\"", group: MessageRelayGroup);
                         }
                         pos += fixedWidth;
                     }
                 }
 
-                journal.Level--;
+                //SystemMessageRelay.RelayMethodReturn(returnValueDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
             }
         }
 
@@ -1005,20 +906,15 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<string[]> AsStrings(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthTextFile.AsStrings()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
-                var dataImport = AsDataImport(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -1031,20 +927,14 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;string[]&gt;</c></returns>
-            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static async Task<IEnumerable<string[]>> AsStringsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthTextFile.AsStringsAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = await AsDataImportAsync(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToStringArrays();
             }
 
@@ -1057,20 +947,14 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
-            public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static IEnumerable<object[]> AsObjects(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthTextFile.AsObjects()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = AsDataImport(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = AsDataImport(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -1083,20 +967,14 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>an <c>IEnumerable&lt;object[]&gt;</c></returns>
-            public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static async Task<IEnumerable<object[]>> AsObjectsAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthTextFile.AsObjectsAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-                // variable declaration
-                var dataImport = await AsDataImportAsync(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc, journal: journal);
+                var dataImport = await AsDataImportAsync(file, columns, hasHeaderRow: hasHeaderRow, blankRowPolicy: blankRowPolicy, errorHandlingPolicy: errorHandlingPolicy, autoTrunc: autoTrunc);
 
-                // finalize
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport.ExportToObjectArrays();
             }
 
@@ -1109,14 +987,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static DataImport AsDataImport(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static DataImport AsDataImport(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthTextFile.AsDataImport()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: true)
@@ -1148,8 +1022,8 @@ namespace Horseshoe.NET.DataImport
                     }
                     while (rawRow != null)
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        FixedWidthText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), columns, journal);
+                        SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                        FixedWidthText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), columns);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -1166,9 +1040,8 @@ namespace Horseshoe.NET.DataImport
                     }
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
 
@@ -1181,14 +1054,10 @@ namespace Horseshoe.NET.DataImport
             /// <param name="blankRowPolicy">How to handle blank rows, specifically leading and trailing</param>
             /// <param name="errorHandlingPolicy">How to handle data errors</param>
             /// <param name="autoTrunc">How to interpret empty values</param>
-            /// <param name="journal">A trace journal to which each step of the process is logged</param>
             /// <returns>a <c>DataImport</c> instance</returns>
-            public static async Task<DataImport> AsDataImportAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim, TraceJournal journal = null)
+            public static async Task<DataImport> AsDataImportAsync(FilePath file, IEnumerable<Column> columns, bool hasHeaderRow = false, BlankRowPolicy blankRowPolicy = default, DataErrorHandlingPolicy errorHandlingPolicy = default, AutoTruncate autoTrunc = AutoTruncate.Trim)
             {
-                // journaling
-                journal = journal ?? new TraceJournal();
-                journal.WriteEntry("ImportData.FixedWidthTextFile.AsDataImportAsync()");
-                journal.Level++;
+                SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
                 // variable declaration
                 var dataImport = new DataImport(columns.Where(c => !c.NotMapped).ToList(), enforceColumnCount: true)
@@ -1220,8 +1089,8 @@ namespace Horseshoe.NET.DataImport
                     }
                     while (rawRow != null)
                     {
-                        journal.WriteEntry("parsing row " + dataImport.NextRow);
-                        FixedWidthText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), columns, journal);
+                        SystemMessageRelay.RelayMessage("parsing row " + dataImport.NextRow, group: MessageRelayGroup);
+                        FixedWidthText.ParseRawValuesInternal(rawValues, rawRow.AsSpan(), columns);
                         try
                         {
                             dataImport.ImportRaw(rawValues, dataImport.NextRow);
@@ -1238,9 +1107,8 @@ namespace Horseshoe.NET.DataImport
                     }
                 }
 
-                // finalize
                 dataImport.FinalizeImport();
-                journal.Level--;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: dataImport.RowCount + " rows", group: MessageRelayGroup);
                 return dataImport;
             }
         }

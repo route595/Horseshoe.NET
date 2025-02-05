@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Horseshoe.NET;
-using Horseshoe.NET.Collections;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextClean;
@@ -43,12 +41,9 @@ namespace TestConsole
                 () =>
                 {
                     var phrase = "Å¢t Øñę\u0000";
-                    Console.WriteLine("phrase: " + phrase);
-                    Console.WriteLine("to ASCII: " + TextClean.ToAsciiPrintable(phrase));
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
-                    Console.WriteLine();
-                    Console.WriteLine("to xtd ASCII: " + TextClean.ToAsciiPrintable(phrase));
-                    Console.WriteLine(string.Join(Environment.NewLine, TraceJournal.LastJournal));
+                    Console.WriteLine("phrase: " + phrase + " (" + TextUtil.Reveal(phrase, options: RevealOptions.All) + ")");
+                    phrase = TextClean.ToAsciiPrintable(phrase); // "Act One" char matches found and [NUL] lopped off
+                    Console.WriteLine("phrase: " + phrase + " (" + TextUtil.Reveal(phrase, options: RevealOptions.All) + ")");
                 }
             ),
             BuildMenuRoutine

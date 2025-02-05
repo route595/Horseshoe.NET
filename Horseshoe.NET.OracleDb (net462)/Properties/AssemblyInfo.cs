@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Horseshoe.NET.OracleDb")]
-[assembly: AssemblyDescription("A typesafe, object-oriented ADO.NET-based native Oracle data access utility.")]
+[assembly: AssemblyDescription("ODP.NET-based native Oracle data access wrappers")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.OracleDb")]
-[assembly: AssemblyCopyright("Copyright © 2020-2024 Route 595")]
+[assembly: AssemblyCopyright("Copyright © 2020-2025 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.1.6.0")]
-[assembly: AssemblyFileVersion("3.1.6.0")]
+[assembly: AssemblyVersion("4.0.0.0")]
+[assembly: AssemblyFileVersion("4.0.0.0")]

@@ -1,4 +1,5 @@
-﻿using Horseshoe.NET.Crypto;
+﻿using Horseshoe.NET.Configuration;
+using Horseshoe.NET.Crypto;
 
 namespace Horseshoe.NET.Ftp
 {
@@ -17,8 +18,7 @@ namespace Horseshoe.NET.Ftp
             get
             {
                 return _defaultFtpServer
-                    ?? _Config.Get("Horseshoe.NET:Ftp:Server") 
-                    ?? OrganizationalDefaultSettings.Get<string>("Ftp.Server");
+                    ?? Config.Get("Horseshoe.NET:Ftp:Server");
             }
             set
             {
@@ -36,8 +36,7 @@ namespace Horseshoe.NET.Ftp
             get
             {
                 return _defaultPort
-                    ?? _Config.Get<int?>("Horseshoe.NET:Ftp:Port")
-                    ?? OrganizationalDefaultSettings.Get<int?>("Ftp.Port");
+                    ?? Config.Get<int?>("Horseshoe.NET:Ftp:Port");
             }
             set
             {
@@ -55,8 +54,7 @@ namespace Horseshoe.NET.Ftp
             get
             {
                 return _defaultEnableSsl
-                    ?? _Config.Get<bool?>("Horseshoe.NET:Ftp:EnableSsl")
-                    ?? OrganizationalDefaultSettings.Get<bool>("Ftp.EnableSsl");
+                    ?? Config.Get<bool>("Horseshoe.NET:Ftp:EnableSsl");
             }
             set
             {
@@ -73,18 +71,17 @@ namespace Horseshoe.NET.Ftp
         {
             get
             {
-                var configUserName = _Config.Get("Horseshoe.NET:Ftp:UserName");
-                var configPassword = _Config.Get("Horseshoe.NET:Ftp:Password");
-                var configIsEncryptedPassword = _Config.Get<bool>("Horseshoe.NET:Ftp:IsEncryptedPassword");
-                var configDomain = _Config.Get("Horseshoe.NET:Ftp:Domain");
+                var configUserName = Config.Get("Horseshoe.NET:Ftp:UserName");
+                var configPassword = Config.Get("Horseshoe.NET:Ftp:Password");
+                var configIsEncryptedPassword = Config.Get<bool>("Horseshoe.NET:Ftp:IsEncryptedPassword");
+                var configDomain = Config.Get("Horseshoe.NET:Ftp:Domain");
                 return _defaultCredentials
                     ?? 
                     (
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword), domain: configDomain)
                         : Credential.Build(configUserName, configPassword, domain: configDomain)
-                    )
-                    ?? OrganizationalDefaultSettings.Get<Credential?>("Ftp.Credentials");
+                    );
             }
             set
             {
@@ -102,8 +99,7 @@ namespace Horseshoe.NET.Ftp
             get
             {
                 return _defaultServerPath
-                    ?? _Config.Get("Horseshoe.NET:Ftp:ServerPath")
-                    ?? OrganizationalDefaultSettings.Get<string>("Ftp.ServerPath")
+                    ?? Config.Get("Horseshoe.NET:Ftp:ServerPath")
                     ?? "";
             }
             set

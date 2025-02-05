@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Horseshoe.NET.Collections;
+
 namespace Horseshoe.NET.OracleDb.Meta
 {
     public class OraServer : OraObjectBase//, IEquatable<OraServer>
@@ -54,7 +56,7 @@ namespace Horseshoe.NET.OracleDb.Meta
             {
                 if (string.IsNullOrEmpty(rawList))
                     return null;
-                string[] rawServers = Zap.Strings(rawList.Split('|'), prunePolicy: PrunePolicy.All);
+                string[] rawServers = Zap.Strings(rawList.Split('|'), pruneOptions: PruneOptions.All);
                 var servers = rawServers
                     .Select(raw => Parse(raw))
                     .ToList();
@@ -81,7 +83,7 @@ namespace Horseshoe.NET.OracleDb.Meta
                 raw = raw.Replace("'" + name + "'", "");
             }
 
-            string[] parts = Zap.Strings(raw.Split(';'), prunePolicy: PrunePolicy.Trailing);
+            string[] parts = Zap.Strings(raw.Split(';'), pruneOptions: PruneOptions.Trailing);
 
             if (parts.Length > 0 && parts.Length <= 3)
             {

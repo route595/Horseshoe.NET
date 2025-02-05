@@ -4,9 +4,9 @@ using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
 using System.Linq;
-using System.Reflection;
 
 using Horseshoe.NET.Db;
+using Horseshoe.NET.RelayMessages;
 
 namespace Horseshoe.NET.OleDb
 {
@@ -15,6 +15,8 @@ namespace Horseshoe.NET.OleDb
     /// </summary>
     public static class Execute
     {
+        private static string MessageRelayGroup => OleDbConstants.MessageRelayGroup;
+
         /// <summary>
         /// Opens a connection and executes a non-query stored procedure.
         /// </summary>
@@ -25,7 +27,6 @@ namespace Horseshoe.NET.OleDb
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int Procedure
         (
@@ -35,23 +36,17 @@ namespace Horseshoe.NET.OleDb
             DbCapture dbCapture = null,
             int? commandTimeout = null,
             Action<OleDbConnection> peekConnection = null,
-            Action<OleDbCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OleDbCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
+            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection))
             {
-                var result = Procedure(conn, procedureName, parameters: parameters, dbCapture: dbCapture, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);
+                var rowsAffected = Procedure(conn, procedureName, parameters: parameters, dbCapture: dbCapture, commandTimeout: commandTimeout, peekCommand: peekCommand);
 
-                // finalize
-                journal.Level--;
-                return result;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return rowsAffected;
             }
         }
 
@@ -65,7 +60,6 @@ namespace Horseshoe.NET.OleDb
         /// <param name="dbCapture">A <c>DbCapture</c> instance stores certain metadata only available during live query execution.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int Procedure
         (
@@ -75,19 +69,14 @@ namespace Horseshoe.NET.OleDb
             OleDbTransaction transaction = null,
             DbCapture dbCapture = null,
             int? commandTimeout = null,
-            Action<OleDbCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OleDbCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             using (var cmd = OleDbUtil.BuildProcedureCommand(conn, procedureName, parameters, transaction, commandTimeout, peekCommand))
             {
-                var result = cmd.ExecuteNonQuery();
+                var rowsAffected = cmd.ExecuteNonQuery();
 
                 if (dbCapture != null)
                 {
@@ -97,9 +86,8 @@ namespace Horseshoe.NET.OleDb
                         .ToArray();
                 }
 
-                // finalize
-                journal.Level--;
-                return result;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: "rows affected: " + rowsAffected, group: MessageRelayGroup);
+                return rowsAffected;
             }
         }
 
@@ -112,7 +100,6 @@ namespace Horseshoe.NET.OleDb
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
         /// <param name="peekConnection">Allows access to the underlying DB connection prior to command execution</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int SQL
         (
@@ -121,23 +108,17 @@ namespace Horseshoe.NET.OleDb
             OleDbConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
             Action<OleDbConnection> peekConnection = null,
-            Action<OleDbCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OleDbCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
-            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection, journal: journal))
+            using (var conn = OleDbUtil.LaunchConnection(connectionInfo, peekConnection: peekConnection))
             {
-                var result = SQL(conn, statement, parameters: parameters, commandTimeout: commandTimeout, peekCommand: peekCommand, journal: journal);   // parameters optional here, e.g. may already be included in the SQL statement
+                var rowsAffected = SQL(conn, statement, parameters: parameters, commandTimeout: commandTimeout, peekCommand: peekCommand);   // parameters optional here, e.g. may already be included in the SQL statement
 
-                // finalize
-                journal.Level--;
-                return result;
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return rowsAffected;
             }
         }
 
@@ -150,7 +131,6 @@ namespace Horseshoe.NET.OleDb
         /// <param name="transaction">A transaction can encapsulate multiple DML commands including the ability to roll them all back.</param>
         /// <param name="commandTimeout">The wait time before terminating an attempt to execute a command and generating an error.</param>
         /// <param name="peekCommand">Allows access to the underlying DB command for final inspection or alteration before executing.</param>
-        /// <param name="journal">A trace journal to which each step of the process is logged.</param>
         /// <returns>The number of affected rows.</returns>
         public static int SQL
         (
@@ -159,23 +139,17 @@ namespace Horseshoe.NET.OleDb
             IEnumerable<DbParameter> parameters = null,
             OleDbTransaction transaction = null,
             int? commandTimeout = null,
-            Action<OleDbCommand> peekCommand = null,
-            TraceJournal journal = null
+            Action<OleDbCommand> peekCommand = null
         )
         {
-            // journaling
-            journal = journal ?? new TraceJournal();
-            journal.WriteMethodDisplayName(MethodBase.GetCurrentMethod());
-            journal.Level++;
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            // data stuff
             using (var cmd = OleDbUtil.BuildTextCommand(conn, statement, parameters, transaction, commandTimeout, peekCommand))   // parameters optional here, e.g. may already be included in the SQL statement
             {
-                var result = cmd.ExecuteNonQuery();
+                var rowsAffected = cmd.ExecuteNonQuery();
 
-                // finalize
-                journal.Level--;
-                return result;
+                SystemMessageRelay.RelayMethodReturn(returnDescription: "rows affected: " + rowsAffected, group: MessageRelayGroup);
+                return rowsAffected;
             }
         }
     }

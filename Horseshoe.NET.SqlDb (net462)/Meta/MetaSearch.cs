@@ -60,14 +60,14 @@ namespace Horseshoe.NET.SqlDb.Meta
                     FROM [master].[sys].[databases] 
                     WHERE [name] NOT IN ('master', 'msdb', 'tempdb', 'model')
                 ";
-                var databases = Query.SQL.AsCollection
+                var databases = Query.FromStatement
                 (
                     conn,
                     statement,
-                    rowParser: RowParser.From((reader) => new Db(reader["name"] as string) { Parent = server }),
-                    sorter: new ListSorter<Db>(db => db.Name),
                     commandTimeout: commandTimeout
-                );
+                )
+                    .AsCollection(rowParser: RowParser.From((reader) => new Db(reader["name"] as string) { Parent = server }))
+                    .OrderBy(db => db.Name);
                 if (filter != null)
                 {
                     return databases
@@ -288,10 +288,15 @@ namespace Horseshoe.NET.SqlDb.Meta
 	                    END,
 	                    [name]
                 ";
-                var objects = Query.SQL.AsCollection
+
+                var objects = Query.FromStatement
                 (
-                    conn,
+                    conn, 
                     statement,
+                    commandTimeout: commandTimeout
+                )
+                .AsCollection
+                (
                     rowParser: RowParser.From((reader) => new DbObject
                     (
                         reader["name"] as string,
@@ -302,8 +307,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                         {
                             Parent = database
                         }
-                    }),
-                    commandTimeout: commandTimeout
+                    })
                 );
                 if (filter != null)
                 {
@@ -586,10 +590,14 @@ namespace Horseshoe.NET.SqlDb.Meta
                     ORDER BY 
                         C.[column_id]
                 ";
-                var columns = Query.SQL.AsCollection
+                var columns = Query.FromStatement
                 (
-                    conn,
+                    conn, 
                     statement,
+                    commandTimeout: commandTimeout
+                )
+                .AsCollection
+                (
                     rowParser: RowParser.From((reader) => new DbColumn
                     (
                         reader["column_name"] as string,
@@ -603,8 +611,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                         IsNullable = (bool)reader["is_nullable"],
                         MaxLength = (short)reader["max_length"],
                         ColumnID = (int)reader["column_id"]
-                    }),
-                    commandTimeout: commandTimeout
+                    })
                 );
                 if (filter != null)
                 {
@@ -802,13 +809,16 @@ namespace Horseshoe.NET.SqlDb.Meta
                     SELECT DISTINCT " + column + @" 
                     FROM " + column.Parent.ToFullyQualifiedString(SqlObjectType.Database) + @"
                     " + (conditions.Any() ? "WHERE " + string.Join(" AND ", conditions) : "");
-                var distinctValues = Query.SQL.AsCollection
+                var distinctValues = Query.FromStatement
                 (
                     conn,
                     statement,
-                    rowParser: RowParser.From((object[] objects) => objects[0]),
                     commandTimeout: commandTimeout,
                     autoTrunc: AutoTruncate.Zap
+                )
+                .AsCollection
+                (
+                    rowParser: RowParser.From((object[] objects) => objects[0])
                 );
                 return distinctValues;
             }
@@ -928,12 +938,15 @@ namespace Horseshoe.NET.SqlDb.Meta
                     SELECT " + (distinct ? "DISTINCT " : "") + column + @"
                     FROM " + column.Parent.ToFullyQualifiedString(SqlObjectType.Database) + @"
                     WHERE " + string.Join(" AND ", conditions);
-                var values = Query.SQL.AsCollection
+                var values = Query.FromStatement
                 (
                     conn,
                     statement,
-                    rowParser: RowParser.ScalarString,
                     commandTimeout: commandTimeout
+                )
+                .AsCollection
+                (
+                    rowParser: RowParser.ScalarString
                 );
                 return values;
             }

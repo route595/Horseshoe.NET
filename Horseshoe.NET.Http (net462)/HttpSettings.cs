@@ -15,8 +15,7 @@ namespace Horseshoe.NET.Http
             get
             {
                 return _defaultDomain
-                    ?? Config.Get("Horseshoe.NET:Http:Domain")
-                    ?? OrganizationalDefaultSettings.Get<string>("Http.Domain");
+                    ?? Config.Get("Horseshoe.NET:Http:Domain");
             }
             set
             {
@@ -42,8 +41,7 @@ namespace Horseshoe.NET.Http
                         configIsEncryptedPassword
                             ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
                             : Credential.Build(configUserName, configPassword)
-                    )
-                    ?? OrganizationalDefaultSettings.Get<Credential?>("Http.Credentials");
+                    );
             }
             set
             {

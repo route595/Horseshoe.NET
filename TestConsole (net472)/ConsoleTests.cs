@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.ConsoleX.Plugins;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 
 namespace TestConsole
@@ -14,7 +15,92 @@ namespace TestConsole
         {
             BuildMenuRoutine
             (
-                "Prompt String",
+                "Choose day of week",
+                () =>
+                {
+                    Console.WriteLine("Please indicate available day of week.  To select none simply press 'Enter'.");
+                    var selection = PromptX.List(new []{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" });
+                    switch(selection.Selection.Count)
+                    {
+                        case 0:
+                            Console.WriteLine("You didn't select a day. Your schedule must be full to the max.");
+                            break;
+                        case 1:
+                            Console.WriteLine("Let's put something on the books for \"" + selection.SelectedItem + "\", shall we?");
+                            break;
+                        default:
+                            throw new ThisShouldNeverHappenException();
+                    }
+                    Console.WriteLine();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Choose day of week (required)",
+                () =>
+                {
+                    Console.WriteLine("Please indicate available day of week.  Simply pressing 'Enter' will not work due to required == true.");
+                    var selection = PromptX.List(new []{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }, selectionMode: ListSelectionMode.ExactlyOne);
+                    switch(selection.Selection.Count)
+                    {
+                        case 0:
+                            throw new ThisShouldNeverHappenException();
+                        case 1:
+                            Console.WriteLine("Let's put something on the books for \"" + selection.SelectedItem + "\", shall we?");
+                            break;
+                        default:
+                            throw new ThisShouldNeverHappenException();
+                    }
+                    Console.WriteLine();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Choose day(s) of week",
+                () =>
+                {
+                    Console.WriteLine("Please indicate available day(s) of week.  To select none simply press 'Enter'.");
+                    var selection = PromptX.List(new []{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }, selectionMode: ListSelectionMode.ZeroOrMore);
+                    switch(selection.Selection.Count)
+                    {
+                        case 0:
+                            Console.WriteLine("You didn't select any days. Your schedule must be full to the max.");
+                            break;
+                        case 1:
+                            Console.WriteLine("Let's put something on the books for \"" + selection.SelectedItem + "\", shall we?");
+                            break;
+                        default:
+                            Console.WriteLine("Thanks for being so generous with your time on \"" + string.Join("\", \"", selection.SelectedItems) + "\"!");
+                            break;
+                    }
+                    Console.WriteLine();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Choose day(s) of week (required)",
+                () =>
+                {
+                    Console.WriteLine("Please indicate available day(s) of week.  Simply pressing 'Enter' will not work due to required == true.");
+                    var selection = PromptX.List(new []{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }, selectionMode: ListSelectionMode.OneOrMore);
+                    switch(selection.Selection.Count)
+                    {
+                        case 0:
+                            Console.WriteLine("You didn't select any days. Your schedule must be full to the max.");
+                            break;
+                        case 1:
+                            Console.WriteLine("Let's put something on the books for \"" + selection.SelectedItem + "\", shall we?");
+                            break;
+                        default:
+                            Console.WriteLine("Thanks for being so generous with your time on \"" + string.Join("\", \"", selection.SelectedItems) + "\"!");
+                            break;
+                    }
+                    Console.WriteLine();
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Prompt different data types",
                 () =>
                 {
                     Console.WriteLine("testing 'required'...");
@@ -70,11 +156,17 @@ namespace TestConsole
                 "Test multi-selection",
                 () =>
                 {
+                    var parsedIndices = new List<int>();
                     var inputs = new []
                     {
                         "1,2,3",
+                        "1-3",
                         "0,1,2,3",
+                        "0-3",
                         "all",
+                        "all 1-3",
+                        "all except 1-2,13",
+                        "all except",
                         "rafael",
                         "1-13,15-17",
                         "16-18,20-22",
@@ -85,32 +177,62 @@ namespace TestConsole
                         "14-17-20",
                         "1-3a,8-19"
                     };
-                    Console.WriteLine("Zero-based tests, 22 count...");
+                    Console.WriteLine("**************************");
+                    Console.WriteLine("Stage 1 - parse user input");
+                    Console.WriteLine("**************************");
+                    Console.WriteLine();
                     foreach (var input in inputs)
                     {
-                        Console.Write("  " + TextUtil.Reveal(input) + " -> ");
+                        Console.Write(ValueUtil.Display(input) + " -> ");
+                        parsedIndices.Clear();
                         try
                         {
-                            var indices = MenuSelection.ParseMultipleSelectionIndices(input, 22, false);
-                            Console.WriteLine(indices.Any() ? string.Join(",", indices) : "<zero-results>");
+                            UserInputUtil.ParseMultipleIndices(input, parsedIndices, out bool all, out bool except);
+                            Console.WriteLine(ObjectUtil.DumpToString(new { all, except, indices = "[" + string.Join(", ", parsedIndices) + "]" }));
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            Console.WriteLine(ex.Message.Replace("Validation failed: ", "").Replace(Environment.NewLine, " "));
                         }
                     }
-                    Console.WriteLine("One-based tests, 22 count...");
+                    Console.WriteLine();
+                    Console.WriteLine("*****************************************************");
+                    Console.WriteLine("Stage 2a - parse w/ count = 20, indexPolicy = 1-based");
+                    Console.WriteLine("*****************************************************");
+                    Console.WriteLine();
                     foreach (var input in inputs)
                     {
-                        Console.Write("  " + TextUtil.Reveal(input) + " -> ");
+                        Console.Write(ValueUtil.Display(input) + " -> ");
+                        parsedIndices.Clear();
                         try
                         {
-                            var indices = MenuSelection.ParseMultipleSelectionIndices(input, 22, true);
-                            Console.WriteLine(indices.Any() ? string.Join(",", indices) : "<zero-results>");
+                            var indices = UserInputUtil.ParseMultipleIndices(input, 20);
+                            Console.WriteLine(string.Join(", ", indices));
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            Console.WriteLine(ex.Message.Replace("Validation failed: ", "").Replace(Environment.NewLine, " "));
+                        }
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("***************************************");
+                    Console.WriteLine("Stage 2b - parse w/ set 1 - 15, 16 - 20");
+                    Console.WriteLine("***************************************");
+                    Console.WriteLine();
+                    Console.WriteLine("One-based tests, 22 count...");
+                    var possibleIndices = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20 };
+                    foreach (var input in inputs)
+                    {
+                        Console.Write(ValueUtil.Display(input) + " -> ");
+                        parsedIndices.Clear();
+                        try
+                        {
+                            var indices = UserInputUtil.ParseMultipleIndices(input, possibleIndices);
+                            Console.WriteLine(string.Join(", ", indices));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message.Replace("Validation failed: ", "").Replace(Environment.NewLine, " "));
                         }
                     }
                 }
@@ -129,7 +251,7 @@ namespace TestConsole
                 "Prompt nullable Enum",
                 () =>
                 {
-                    var enum1 = PromptX.Enum<ConsoleTestEnum?>(except: new[] { ConsoleTestEnum.Except as ConsoleTestEnum? });
+                    var enum1 = PromptX.NEnum<ConsoleTestEnum>(except: new[] { ConsoleTestEnum.Except });
                     Console.WriteLine("choice: " + TextUtil.Reveal(enum1));
                 }
             ),
@@ -157,7 +279,7 @@ namespace TestConsole
                 () =>
                 {
                     var list = new[] { "ValueA", "ValueB", "ValueC", "ValueD" };
-                    var selection = PromptX.List(list, title: "hi", indexPolicy: ListIndexPolicy.DisplayZeroBased);
+                    var selection = PromptX.List(list, title: "hi", indexStyle: ListIndexStyle.ZeroBased);
                     Console.WriteLine("choice: " + (selection.SelectedItem ?? "[null]"));
                 }
             ),
@@ -167,7 +289,7 @@ namespace TestConsole
                 () =>
                 {
                     var list = new[] { "ValueA", "ValueB", "ValueC", "ValueD" };
-                    var selection = PromptX.List(list, title: "hi", indexPolicy: ListIndexPolicy.DisplayOneBased, required: true);
+                    var selection = PromptX.List(list, title: "hi", indexStyle: ListIndexStyle.OneBased, selectionMode: ListSelectionMode.ExactlyOne);
                     Console.WriteLine("choice: " + (selection.SelectedItem ?? "[null]"));
                 }
             ),
@@ -182,7 +304,7 @@ namespace TestConsole
                     {
                         try
                         {
-                            Console.WriteLine("int=" + PromptX.Int(null, validator: (i) => Assert.InRange(i, 1, 3)));
+                            Console.WriteLine("int=" + PromptX.Int(null, validator: (i) => AssertValue.InRange(i, 1, 3)));
                         }
                         catch(ConsoleNavigation.CancelInputPromptException)
                         {

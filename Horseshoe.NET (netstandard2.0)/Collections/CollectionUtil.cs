@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Horseshoe.NET.Text;
-
 namespace Horseshoe.NET.Collections
 {
     /// <summary>
@@ -12,188 +10,269 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     public static class CollectionUtil
     {
-        /// <inheritdoc cref="CollectionUtilAbstractions.ToList{T}(IEnumerable{T})"/>
-        public static List<T> ToList<T>(IEnumerable<T> collection)
-        {
-            return CollectionUtilAbstractions.ToList(collection);
-        }
-
-        /// <inheritdoc cref="CollectionUtilAbstractions.AsList{T}(IEnumerable{T})"/>
-        public static List<T> AsList<T>(IEnumerable<T> collection)
-        {
-            return CollectionUtilAbstractions.AsList(collection);
-        }
-
-        /// <inheritdoc cref="CollectionUtilAbstractions.ToArray{T}(IEnumerable{T})"/>
-        public static T[] ToArray<T>(IEnumerable<T> collection)
-        {
-            return CollectionUtilAbstractions.ToArray(collection);
-        }
-
-        /// <inheritdoc cref="CollectionUtilAbstractions.AsArray{T}(IEnumerable{T})"/>
-        public static T[] AsArray<T>(IEnumerable<T> collection)
-        {
-            return CollectionUtilAbstractions.AsArray(collection);
-        }
-
         /// <summary>
-        /// Picks out only the non-<c>null</c> items in a collection, which itself may be <c>null</c>.  
-        /// Returns a non-<c>null</c> collection, possibly with 0 elements and/or a filter which has not yet been executed.
-        /// <example>
-        /// <para>Example</para>
-        /// <code>
-        /// IEnumerable&lt;string&gt; stringCollection = GetArbitraryStringCollection();
-        /// List&lt;string&gt; prunedStrings = CollectionUtil.Prune(stringCollection).ToList();
-        /// </code>
-        /// </example>
+        /// Copies any collection to a new <c>List&lt;T&gt;</c>.  When using optimization, a collection
+        /// already of type <c>List&lt;T&gt;</c> is reused instead of being copied to a new list. 
+        /// A <c>null</c> source collection results in an empty <c>List&lt;T&gt;</c>.
         /// </summary>
-        /// <typeparam name="T">Type of element</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <returns>A non-<c>null</c> collection, possibly with 0 elements</returns>
-        public static IEnumerable<T> Prune<T>(IEnumerable<T> collection)
+        /// <typeparam name="T">The target collection type.</typeparam>
+        /// <param name="collection">A collection to copy to a list, or simply returned (see optimization).</param>
+        /// <param name="optimize">If <c>ReuseCollection</c> and <c>collection</c> is alredy of type <c>List&lt;T&gt;</c>, returns the original list. Default is <c>None</c>.</param>
+        /// <returns>A <c>List&lt;T&gt;</c></returns>
+        /// <exception cref="InvalidCastException"></exception>
+        public static List<T> ToList<T>(System.Collections.IEnumerable collection, Optimization optimize = default)
         {
+            if (((optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection) && collection is List<T> list)
+                return list;
+            if (collection is IEnumerable<T> _collection)
+                return new List<T>(_collection);
             if (collection == null)
-                return Enumerable.Empty<T>();
-            return collection
-                .Where(a => a != null);
+                return new List<T>();
+            return new List<T>(collection.Cast<T>());
         }
 
         /// <summary>
-        /// Picks out only the non-<c>null</c>, non-blank and non-whitespace <c>string</c>s in a collection, which itself may be <c>null</c>.  
-        /// Returns a non-<c>null</c> collection, possibly with 0 elements and/or a filter which has not yet been executed.
-        /// <example>
-        /// <para>Example</para>
-        /// <code>
-        /// IEnumerable&lt;string&gt; stringCollection = GetArbitraryStringCollection();
-        /// List&lt;string&gt; zappedStrings = CollectionUtil.Zap(stringCollection).ToList();
-        /// </code>
-        /// </example>
+        /// Copies any collection to a new <c>List&lt;T&gt;</c>.  When using optimization, a collection
+        /// already of type <c>List&lt;T&gt;</c> is reused instead of being copied to a new list. 
+        /// A <c>null</c> source collection results in an empty <c>List&lt;T&gt;</c>.
         /// </summary>
-        /// <param name="collection">A collection</param>
-        /// <returns>A non-<c>null</c> collection, possibly with 0 elements</returns>
-        public static IEnumerable<string> Zap(IEnumerable<string> collection)
+        /// <typeparam name="T">The target collection type.</typeparam>
+        /// <param name="collection">A collection to copy to a list, or simply returned (see optimization).</param>
+        /// <param name="optimize">If <c>ReuseCollection</c> and <c>collection</c> is alredy of type <c>List&lt;T&gt;</c>, returns the original list. Default is <c>None</c>.</param>
+        /// <returns>A <c>List&lt;T&gt;</c></returns>
+        public static List<T> ToList<T>(IEnumerable<T> collection, Optimization optimize = default)
         {
+            if (((optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection) && collection is List<T> list)
+                return list;
             if (collection == null)
-                return Enumerable.Empty<string>();
-            return collection
-                .Where(s => Horseshoe.NET.Zap.String(s) != null);
+                return new List<T>();
+            return new List<T>(collection);
         }
 
         /// <summary>
-        /// Inflates a list to the desired target size by padding items at the indicated boundary
+        /// Copies any collection to a new <c>T[]</c>.  When using optimization, a collection
+        /// already of type <c>T[]</c> is reused instead of being copied to a new array. 
+        /// Optimizations in <c>ToList()</c> would also apply in cases when called under the hood.  
+        /// A <c>null</c> source collection results in an empty <c>T[]</c>.
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="targetSize">The desired size of the list after padding</param>
-        /// <param name="boundary">End (default) or Start</param>
-        /// <param name="padWith">Item to use for padding</param>
-        /// <param name="cannotExceedTargetSize"><c>true</c> if an exception should be thrown for oversized lists</param>
-        /// <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
-        /// <returns>The resized collection</returns>
-        /// <exception cref="ValidationException"></exception>
-        public static IEnumerable<T> Pad<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary boundary = default, T padWith = default, bool cannotExceedTargetSize = false, bool keepOriginalListDataSource = false)
+        /// <typeparam name="T">The target collection type.</typeparam>
+        /// <param name="collection">A collection to copy to an array, or simply returned (see optimization).</param>
+        /// <param name="optimize">If <c>ReuseCollection</c> and <c>collection</c> is alredy of type <c>T[]</c>, returns the original array. Default is <c>None</c>.</param>
+        /// <returns>A <c>T[]</c></returns>
+        /// <exception cref="InvalidCastException"></exception>
+        public static T[] ToArray<T>(System.Collections.IEnumerable collection, Optimization optimize = default)
         {
-            if (targetSize < 0)
-                throw new ValidationException("targetSize cannot be a negative number");
-            if (collection.Count() > targetSize && cannotExceedTargetSize)
-                throw new ValidationException("source collection already exceeds target size");
-
-            var list = keepOriginalListDataSource
-                ? AsList(collection)
-                : ToList(collection);
-
-            while (list.Count < targetSize)
-            {
-                switch (boundary)
-                {
-                    case CollectionBoundary.Start:
-                    default:
-                        list.Insert(0, padWith);
-                        break;
-                    case CollectionBoundary.End:
-                        list.Add(padWith);
-                        break;
-                }
-            }
-            return list;
+            if (((optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection) && collection is T[] array)
+                return array;
+            if (collection is IEnumerable<T> _collection)
+                return ToList(_collection, optimize: optimize).ToArray();
+            if (collection == null)
+                return Array.Empty<T>();
+            return ToList(collection.Cast<T>(), optimize: Optimization.None).ToArray();
         }
 
         /// <summary>
-        /// Shrinks a list to the desired target size by removing items at the indicated boundary
+        /// Copies any collection to a new <c>T[]</c>.  When using optimization, a collection
+        /// already of type <c>T[]</c> is reused instead of being copied to a new array. 
+        /// Optimizations in <c>ToList()</c> would also apply in cases when called under the hood.  
+        /// A <c>null</c> source collection results in an empty <c>T[]</c>.
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="targetSize">The desired size of the list after padding</param>
-        /// <param name="boundary">End (default) or Start</param>
-        /// <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
-        /// <returns>The resized collection</returns>
-        /// <exception cref="NullReferenceException"></exception>
-        /// <exception cref="ValidationException"></exception>
-        public static IEnumerable<T> Crop<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary boundary = default, bool keepOriginalListDataSource = false)
+        /// <typeparam name="T">The target collection type.</typeparam>
+        /// <param name="collection">A collection to copy to an array, or simply returned (see optimization).</param>
+        /// <param name="optimize">If <c>ReuseCollection</c> and <c>collection</c> is alredy of type <c>T[]</c>, returns the original array. Default is <c>None</c>.</param>
+        /// <returns>A <c>T[]</c></returns>
+        public static T[] ToArray<T>(IEnumerable<T> collection, Optimization optimize = default)
         {
-            if (targetSize < 0)
-                throw new ValidationException("targetSize cannot be a negative number");
-
-            var list = keepOriginalListDataSource
-                ? AsList(collection)
-                : ToList(collection);
-
-            while (list.Count > targetSize)
-            {
-                switch (boundary)
-                {
-                    case CollectionBoundary.Start:
-                    default:
-                        list.RemoveAt(0);
-                        break;
-                    case CollectionBoundary.End:
-                        list.RemoveAt(targetSize);
-                        break;
-                }
-            }
-            return list;
+            if (((optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection) && collection is T[] array)
+                return array;
+            if (collection == null)
+                return Array.Empty<T>();
+            return ToList(collection, optimize: optimize).ToArray();
         }
 
+        /* * * * * * * * * * * * * * 
+         *         GROUP 1
+         * * * * * * * * * * * * * */
+
         /// <summary>
-        /// Inflates or shrinks a list to the desired target size by padding or removing items at the indicated boundary
+        /// Removes all leading and trailing whitespace characters from each non-null <c>string</c> in the collection.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// If the source collection is of type <c>string[]</c> or <c>List&lt;string&gt;</c> that array or list is reused behind the scenes instead of instantiating a new <c>List&lt;string&gt;</c>.
+        /// </item>
+        /// <item>
+        /// An index-based array/list scan is used in lieu of Linq-style collection transforms.
+        /// </item>
+        /// </list>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="targetSize">The desired size of the list after padding</param>
-        /// <param name="cropBoundary">End (default) or Start</param>
-        /// <param name="padBoundary">End (default) or Start</param>
-        /// <param name="padWith">Item to use for padding</param>
-        /// <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
-        /// <returns>The resized collection</returns>
-        /// <exception cref="NullReferenceException"></exception>
-        /// <exception cref="ValidationException"></exception>
-        public static IEnumerable<T> Fit<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary cropBoundary = default, CollectionBoundary padBoundary = default, T padWith = default, bool keepOriginalListDataSource = false)
+        /// <param name="collection">A <c>string</c> collection</param>
+        /// <returns>The collection</returns>
+        public static IEnumerable<string> TrimAll(IEnumerable<string> collection)
         {
-            if (collection.Count() > targetSize)
+            if (collection is string[] stringArray)
             {
-                collection = Crop(collection, targetSize, boundary: cropBoundary, keepOriginalListDataSource: keepOriginalListDataSource);
+                return ArrayUtil.TrimAll(stringArray);
             }
-            else if (collection.Count() < targetSize)
-            {
-                collection = Pad(collection, targetSize, boundary: padBoundary, padWith: padWith, cannotExceedTargetSize: false, keepOriginalListDataSource: keepOriginalListDataSource);
-            }
-            return collection;
+            return ListUtil.TrimAll(ToList(collection, optimize: Optimization.ReuseCollection));
         }
 
+        /// <inheritdoc cref="ListUtil.Zap(IEnumerable{string}, PruneOptions)"/>
+        public static IEnumerable<string> Zap(IEnumerable<string> collection, PruneOptions pruneOptions = default)
+        {
+            return ListUtil.Zap(collection, pruneOptions: pruneOptions);
+        }
+
+        /// <inheritdoc cref="ListUtil.Prune{T}(IEnumerable{T}, PruneOptions)"/>
+        public static IEnumerable<T> Prune<T>(IEnumerable<T> collection, PruneOptions pruneOptions = default)
+        {
+            return ListUtil.Prune(collection, pruneOptions: pruneOptions);
+        }
+
+        /* * * * * * * * * * * * * * 
+         *         GROUP 2
+         * * * * * * * * * * * * * */
+
+        /// <inheritdoc cref="ListUtil.Pad{T}(IEnumerable{T}, int, CollectionBoundary, T, bool)"/>
+        public static IEnumerable<T> Pad<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary boundary = default, T padWith = default, bool cannotExceedTargetSize = false) =>
+            ListUtil.Pad(collection, targetSize, boundary: boundary, padWith: padWith, cannotExceedTargetSize: cannotExceedTargetSize);
+
+        /// <inheritdoc cref="ListUtil.Crop{T}(IEnumerable{T}, int, CollectionBoundary)"/>
+        public static IEnumerable<T> Crop<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary boundary = default) =>
+            ListUtil.Crop(collection, targetSize, boundary: boundary);
+
+        /// <inheritdoc cref="ListUtil.Fit{T}(IEnumerable{T}, int, CollectionBoundary, CollectionBoundary, T)"/>
+        public static IEnumerable<T> Fit<T>(IEnumerable<T> collection, int targetSize, CollectionBoundary cropBoundary = default, CollectionBoundary padBoundary = default, T padWith = default) =>
+            ListUtil.Fit(collection, targetSize, cropBoundary: cropBoundary, padBoundary: padBoundary, padWith: padWith);
+
+        /* * * * * * * * * * * * * * 
+         *         GROUP 3
+         * * * * * * * * * * * * * */
+
+        /// <inheritdoc cref="ListUtil.Append{T}(IEnumerable{T}, IEnumerable{T})"/>
+        public static IEnumerable<T> Append<T>(IEnumerable<T> list, IEnumerable<T> items) =>
+            ListUtil.Append(list, items);
+
+        /// <inheritdoc cref="ListUtil.Append{T}(IEnumerable{T}, T[])"/>
+        public static IEnumerable<T> Append<T>(IEnumerable<T> list, params T[] items) =>
+            ListUtil.Append(list, items);
+
+        /// <inheritdoc cref="ListUtil.AppendIf{T}(IEnumerable{T}, bool, IEnumerable{T})"/>
+        public static IEnumerable<T> AppendIf<T>(IEnumerable<T> list, bool condition, IEnumerable<T> items) =>
+            ListUtil.AppendIf(list, condition, items);
+
+        /// <inheritdoc cref="ListUtil.AppendIf{T}(IEnumerable{T}, bool, T[])"/>
+        public static IEnumerable<T> AppendIf<T>(IEnumerable<T> list, bool condition, params T[] items) =>
+            ListUtil.AppendIf(list, condition, items);
+
+        /// <inheritdoc cref="ListUtil.Append{T}(IEnumerable{T}, IEnumerable{IEnumerable{T}})"/>
+        public static IEnumerable<T> Append<T>(IEnumerable<T> list, IEnumerable<IEnumerable<T>> collections) =>
+            ListUtil.Append(list, collections);
+
+        /// <inheritdoc cref="ListUtil.Append{T}(IEnumerable{T}, IEnumerable{T}[])"/>
+        public static IEnumerable<T> Append<T>(IEnumerable<T> list, params IEnumerable<T>[] collections) =>
+            ListUtil.Append(list, collections);
+
+        /// <inheritdoc cref="ListUtil.AppendIf{T}(IEnumerable{T}, bool, IEnumerable{IEnumerable{T}})"/>
+        public static IEnumerable<T> AppendIf<T>(IEnumerable<T> list, bool condition, IEnumerable<IEnumerable<T>> collections) =>
+            ListUtil.AppendIf(list, condition, collections);
+
+        /// <inheritdoc cref="ListUtil.AppendIf{T}(IEnumerable{T}, bool, IEnumerable{T}[])"/>
+        public static IEnumerable<T> AppendIf<T>(IEnumerable<T> list, bool condition, params IEnumerable<T>[] collections) =>
+            ListUtil.AppendIf(list, condition, collections);
+
+        /// <inheritdoc cref="ListUtil.Insert{T}(IEnumerable{T}, int, IEnumerable{T})"/>
+        public static IEnumerable<T> Insert<T>(IEnumerable<T> list, int index, IEnumerable<T> items) =>
+            ListUtil.Insert(list, index, items);
+
+        /// <inheritdoc cref="ListUtil.Insert{T}(IEnumerable{T}, int, T[])"/>
+        public static IEnumerable<T> Insert<T>(IEnumerable<T> list, int index, params T[] items) =>
+            ListUtil.Insert(list, index, items);
+
+        /// <inheritdoc cref="ListUtil.InsertIf{T}(IEnumerable{T}, bool, int, IEnumerable{T})"/>
+        public static IEnumerable<T> InsertIf<T>(IEnumerable<T> list, bool condition, int index, IEnumerable<T> items) =>
+            ListUtil.InsertIf(list, condition, index, items);
+
+        /// <inheritdoc cref="ListUtil.InsertIf{T}(IEnumerable{T}, bool, int, T[])"/>
+        public static IEnumerable<T> InsertIf<T>(IEnumerable<T> list, bool condition, int index, params T[] items) =>
+            ListUtil.InsertIf(list, condition, index, items);
+
+        /// <inheritdoc cref="ListUtil.Insert{T}(IEnumerable{T}, int, IEnumerable{IEnumerable{T}})"/>
+        public static IEnumerable<T> Insert<T>(IEnumerable<T> list, int index, IEnumerable<IEnumerable<T>> collections) =>
+            ListUtil.Insert(list, index, collections);
+
+        /// <inheritdoc cref="ListUtil.Insert{T}(IEnumerable{T}, int, IEnumerable{T}[])"/>
+        public static IEnumerable<T> Insert<T>(IEnumerable<T> list, int index, params IEnumerable<T>[] collections) =>
+            ListUtil.Insert(list, index, collections);
+
+        /// <inheritdoc cref="ListUtil.InsertIf{T}(IEnumerable{T}, bool, int, IEnumerable{IEnumerable{T}})"/>
+        public static IEnumerable<T> InsertIf<T>(IEnumerable<T> list, bool condition, int index, IEnumerable<IEnumerable<T>> collections) =>
+            ListUtil.InsertIf(list, condition, index, collections);
+
+        /// <inheritdoc cref="ListUtil.InsertIf{T}(IEnumerable{T}, bool, int, IEnumerable{T}[])"/>
+        public static IEnumerable<T> InsertIf<T>(IEnumerable<T> list, bool condition, int index, params IEnumerable<T>[] collections) =>
+            ListUtil.InsertIf(list, condition, index, collections);
+
+        /// <inheritdoc cref="ListUtil.Prepend{T}(IEnumerable{T}, IEnumerable{T})"/>
+        public static IEnumerable<T> Prepend<T>(IEnumerable<T> list, IEnumerable<T> items) =>
+            ListUtil.Prepend(list, items);
+
+        /// <inheritdoc cref="ListUtil.Prepend{T}(IEnumerable{T}, T[])"/>
+        public static IEnumerable<T> Prepend<T>(IEnumerable<T> list, params T[] items) =>
+            ListUtil.Prepend(list, items);
+
+        /// <inheritdoc cref="ListUtil.PrependIf{T}(IEnumerable{T}, bool, IEnumerable{T})"/>
+        public static IEnumerable<T> PrependIf<T>(IEnumerable<T> list, bool condition, IEnumerable<T> items) =>
+            ListUtil.PrependIf(list, condition, items);
+
+        /// <inheritdoc cref="ListUtil.PrependIf{T}(IEnumerable{T}, bool, T[])"/>
+        public static IEnumerable<T> PrependIf<T>(IEnumerable<T> list, bool condition, params T[] items) =>
+            ListUtil.PrependIf(list, condition, items);
+
+        /// <inheritdoc cref="ListUtil.Prepend{T}(IEnumerable{T}, IEnumerable{IEnumerable{T}})"/>
+        public static IEnumerable<T> Prepend<T>(IEnumerable<T> list, IEnumerable<IEnumerable<T>> collections) =>
+            ListUtil.Prepend(list, collections);
+
+        /// <inheritdoc cref="ListUtil.Prepend{T}(IEnumerable{T}, IEnumerable{T}[])"/>
+        public static IEnumerable<T> Prepend<T>(IEnumerable<T> list, params IEnumerable<T>[] collections) =>
+            ListUtil.Prepend(list, collections);
+
+        /// <inheritdoc cref="ListUtil.PrependIf{T}(IEnumerable{T}, bool, IEnumerable{IEnumerable{T}})"/>
+        public static IEnumerable<T> PrependIf<T>(IEnumerable<T> list, bool condition, IEnumerable<IEnumerable<T>> collections) =>
+            ListUtil.PrependIf(list, condition, collections);
+
+        /// <inheritdoc cref="ListUtil.PrependIf{T}(IEnumerable{T}, bool, IEnumerable{T}[])"/>
+        public static IEnumerable<T> PrependIf<T>(IEnumerable<T> list, bool condition, params IEnumerable<T>[] collections) =>
+            ListUtil.PrependIf(list, condition, collections);
+
+        /* * * * * * * * * * * * * * 
+         *         GROUP 4
+         * * * * * * * * * * * * * */
+
         /// <summary>
-        /// Combines zero or more collections
+        /// Combines zero or more collections into a single list
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="collections">Collections to combine</param>
-        /// <returns>The combined collection</returns>
+        /// <returns>The combined <c>List&lt;T&gt;</c></returns>
+        public static IEnumerable<T> Combine<T>(IEnumerable<IEnumerable<T>> collections)
+        {
+            return new CollectionBuilder<T>()
+                .Append(collections)
+                .RenderToList();
+        }
+
+        /// <summary>
+        /// Combines zero or more collections into a single list
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="collections">Collections to combine</param>
+        /// <returns>The combined <c>List&lt;T&gt;</c></returns>
         public static IEnumerable<T> Combine<T>(params IEnumerable<T>[] collections)
         {
-            var list = new List<T>();
-            foreach (var collection in collections ?? Array.Empty<IEnumerable<T>>())
-            {
-                list.AddRange(collection ?? Enumerable.Empty<T>());
-            }
-            return list;
+            return new CollectionBuilder<T>()
+                .Append(collections)
+                .RenderToList();
         }
 
         /// <summary>
@@ -201,153 +280,220 @@ namespace Horseshoe.NET.Collections
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="collections">Collections to combine</param>
-        /// <returns>The combined collection</returns>
+        /// <returns>The combined <c>List&lt;T&gt;</c></returns>
+        public static IEnumerable<T> CombineDistinct<T>(IEnumerable<IEnumerable<T>> collections)
+        {
+            return new CollectionBuilder<T>(distinctValues: true)
+                .Append(collections)
+                .RenderToList();
+        }
+
+        /// <summary>
+        /// Combines zero or more collections into a single list of distinct values
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="collections">Collections to combine</param>
+        /// <returns>The combined <c>List&lt;T&gt;</c></returns>
         public static IEnumerable<T> CombineDistinct<T>(params IEnumerable<T>[] collections)
         {
-            var list = new List<T>();
-            foreach (var collection in collections ?? Array.Empty<IEnumerable<T>>())
-            {
-                list.AddRange(collection?.Distinct() ?? Enumerable.Empty<T>());
-            }
-            return list
-                .Distinct()
-                .ToList();
+            return new CollectionBuilder<T>(distinctValues: true)
+                .Append(collections)
+                .RenderToList();
+        }
+
+        /// <inheritdoc cref="ListUtil.ReplaceAll{T}(List{T}, T, T)"/>
+        public static IEnumerable<T> ReplaceAll<T>(IEnumerable<T> collection, T item, T replacement)
+        {
+            if (collection is T[] tArray)
+                return ArrayUtil.ReplaceAll(tArray, item, replacement);
+            return ListUtil.ReplaceAll(ToList(collection, optimize: Optimization.ReuseCollection), item, replacement);
+        }
+
+        /// <inheritdoc cref="ListUtil.ReplaceAll{T}(List{T}, T, T, IEqualityComparer{T})"/>
+        public static IEnumerable<T> ReplaceAll<T>(IEnumerable<T> collection, T item, T replacement, IEqualityComparer<T> comparer)
+        {
+            if (collection is T[] tArray)
+                return ArrayUtil.ReplaceAll(tArray, item, replacement, comparer);
+            return ListUtil.ReplaceAll(ToList(collection, optimize: Optimization.ReuseCollection), item, replacement, comparer);
+        }
+
+        /// <inheritdoc cref="ListUtil.ReplaceAllIgnoreCase(List{string}, string, string)"/>
+        public static IEnumerable<string> ReplaceAllIgnoreCase(IEnumerable<string> collection, string item, string replacement)
+        {
+            if (collection is string[] stringArray)
+                return ArrayUtil.ReplaceAllIgnoreCase(stringArray, item, replacement);
+            return ListUtil.ReplaceAllIgnoreCase(ToList(collection, optimize: Optimization.ReuseCollection), item, replacement);
         }
 
         /// <summary>
-        /// Combines zero or more collections into a single list of distinct values
+        /// Determines whether a sequence contains a specified element by using the default equality comparer.
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="comparer">The compararer used to determine distinctness</param>
-        /// <param name="collections">Collections to combine</param>
-        /// <returns>The combined collection</returns>
-        public static IEnumerable<T> CombineDistinct<T>(IEqualityComparer<T> comparer, params IEnumerable<T>[] collections)
-        {
-            var list = new List<T>();
-            foreach (var collection in collections ?? Array.Empty<IEnumerable<T>>())
-            {
-                list.AddRange(collection?.Distinct(comparer) ?? Enumerable.Empty<T>());
-            }
-            return list
-                .Distinct(comparer)
-                .ToList();
-        }
-
-        /// <summary>
-        /// Replace each occurrance of <c>item</c> with <c>replacement</c>
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A list</param>
-        /// <param name="item">An item to replace</param>
-        /// <param name="replacement">The replacement item</param>
-        /// <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
-        /// <returns>The modified collection</returns>
-        public static IEnumerable<T> ReplaceAll<T>(IEnumerable<T> collection, T item, T replacement, bool keepOriginalListDataSource = false) where T : IEquatable<T>
-        {
-            var list = keepOriginalListDataSource
-                ? AsList(collection)
-                : ToList(collection);
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (Equals(list[i], item))
-                {
-                    list[i] = replacement;
-                }
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Replace each occurrance of <c>item</c> with <c>replacement</c>
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A list</param>
-        /// <param name="item">An item to replace</param>
-        /// <param name="replacement">The replacement item</param>
-        /// <param name="comparer">An equality comparer</param>
-        /// <param name="keepOriginalListDataSource"><c>true</c> will prevent internally creating a new <c>List&lt;T&gt;</c> if <c>collection</c> is already a <c>List&lt;T&gt;</c> instance - this is to improve performance</param>
-        /// <returns>The modified collection</returns>
-        public static IEnumerable<T> ReplaceAll<T>(IEnumerable<T> collection, T item, T replacement, IEqualityComparer<T> comparer, bool keepOriginalListDataSource = false) where T : IEquatable<T>
-        {
-            var list = keepOriginalListDataSource
-                ? AsList(collection)
-                : ToList(collection);
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (comparer != null)
-                {
-                    if (comparer.Equals(list[i], item))
-                    {
-                        list[i] = replacement;
-                    }
-                }
-                else
-                {
-                    if (Equals(list[i], item))
-                    {
-                        list[i] = replacement;
-                    }
-                }
-            }
-            return list;
-        }
-
-        /// <inheritdoc cref="CollectionUtilAbstractions.Contains{T}(IEnumerable{T}, T, IEqualityComparer{T})"/>
-        public static bool Contains<T>(IEnumerable<T> collection, T item, IEqualityComparer<T> comparer = null)
-        {
-            return CollectionUtilAbstractions.Contains(collection, item, comparer: comparer);
-        }
-
-        /// <summary>
-        /// Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="items">Items to search for (optional, returns <c>collection.Any()</c> if omitted)</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAny<T>(IEnumerable<T> collection, params T[] items) where T : IEquatable<T>
+        /// <param name="collection">A collection to search</param>
+        /// <param name="item">The item to find</param>
+        /// <returns>If item found then <c>true</c>, <c>false</c> otherwise.</returns>
+        public static bool Contains<T>(IEnumerable<T> collection, T item)
         {
             if (collection == null)
                 return false;
-            return items == null || items.Length == 0
-                ? collection.Any()
-                : collection.Any(t => items.Contains(t));
+            return collection.Contains(item);
         }
 
         /// <summary>
-        /// Tests a collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, returns <c>collection.Any()</c>.
+        /// Tests if a collection contains all of the supplied items.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="comparer">A comparer</param>
-        /// <param name="items">Items to search for (optional, returns <c>collection.Any()</c> if omitted)</param>
+        /// <param name="collection">The collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct items to search for in <c>collection</c></param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAny<T>(IEnumerable<T> collection, IEqualityComparer<T> comparer, params T[] items) where T : IEquatable<T>
+        public static bool ContainsAll<T>(IEnumerable<T> collection, IEnumerable<T> items)
         {
-            if (collection == null)
-                return false;
-            return items == null || items.Length == 0
-                ? collection.Any()
-                : collection.Any(t => items.Contains(t, comparer));
+            return new CollectionBuilder<T>(distinctValues: true)
+                .Append(collection)
+                .ContainsAll(items);
         }
 
         /// <summary>
-        /// Tests a <c>string</c> collection for contents - <c>collection</c>, if null, returns <c>false</c> and <c>items</c>, if omitted, also returns <c>false</c>.
+        /// Tests if a collection contains all of the supplied items.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
         /// </summary>
-        /// <param name="collection">A collection of <c>string</c></param>
-        /// <param name="items">Items to search for (optional, but returns <c>false</c> if omitted)</param>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="collection">The collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct items to search for in <c>collection</c></param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAnyIgnoreCase(IEnumerable<string> collection, params string[] items)
+        public static bool ContainsAll<T>(IEnumerable<T> collection, params T[] items)
         {
-            if (collection == null || items == null)
+            return ContainsAll(collection, items as IEnumerable<T>);
+        }
+
+        /// <summary>
+        /// Tests if a collection contains all of the supplied <c>string</c>s.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source <c>string</c> collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <param name="collection">The <c>string</c> collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct <c>string</c>s to search for in <c>collection</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllIgnoreCase(IEnumerable<string> collection, IEnumerable<string> items)
+        {
+            if (collection == null || !collection.Any() || items == null || !items.Any())
                 return false;
-            foreach(string item in items.Distinct())
+            bool itemFound;
+            foreach (string item in items.Distinct())
             {
-                foreach(string _item in collection.Distinct())
+                itemFound = false;
+                foreach (string value in collection.Distinct())
                 {
-                    if (string.Equals(item, _item, StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(item, value, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        itemFound = true;
+                        break;
+                    }
+                }
+                if (!itemFound)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if a collection contains all of the supplied <c>string</c>s.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source <c>string</c> collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <param name="collection">The <c>string</c> collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct <c>string</c>s to search for in <c>collection</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllIgnoreCase(IEnumerable<string> collection, params string[] items)
+        {
+            return ContainsAllIgnoreCase(collection, items as IEnumerable<string>);
+        }
+
+        /// <summary>
+        /// Tests if a collection contains at least one of the supplied items.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="collection">The collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct items to search for in <c>collection</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAny<T>(IEnumerable<T> collection, IEnumerable<T> items)
+        {
+            return new CollectionBuilder<T>(distinctValues: true)
+                .Append(collection)
+                .ContainsAny(items);
+        }
+
+        /// <summary>
+        /// Tests if a collection contains at least one of the supplied items.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="T">Type of item</typeparam>
+        /// <param name="collection">The collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct items to search for in <c>collection</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAny<T>(IEnumerable<T> collection, params T[] items)
+        {
+            return ContainsAny(collection, items as IEnumerable<T>);
+        }
+
+        /// <summary>
+        /// Tests if a collection contains at least one of the supplied <c>string</c>s.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source <c>string</c> collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <param name="collection">The <c>string</c> collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct <c>string</c>s to search for in <c>collection</c></param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAnyIgnoreCase(IEnumerable<string> collection, IEnumerable<string> items)
+        {
+            if (collection == null || !collection.Any() || items == null || !items.Any())
+                return false;
+            foreach (string item in items.Distinct())
+            {
+                foreach (string value in collection.Distinct())
+                {
+                    if (string.Equals(item, value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         return true;
                     }
@@ -357,423 +503,99 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
-        /// Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
+        /// Tests if a collection contains at least one of the supplied <c>string</c>s.  
+        /// Returns <c>false</c> if either <c>collection</c> or <c>items</c> is omitted.
+        /// Optimizations are as follows.
+        /// <list type="number">
+        /// <item>
+        /// The source <c>string</c> collection is reduced to its distinct values before performing the item search.
+        /// </item>
+        /// </list>
         /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="collection">A collection to search</param>
-        /// <param name="items">Items to find</param>
+        /// <param name="collection">The <c>string</c> collection in which to search for <c>items</c>.</param>
+        /// <param name="items">Distinct <c>string</c>s to search for in <c>collection</c></param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAll<T>(IEnumerable<T> collection, params T[] items) where T : IEquatable<T>
+        public static bool ContainsAnyIgnoreCase(IEnumerable<string> collection, params string[] items)
         {
-            return ContainsAll(collection, items as IEnumerable<T>);
+            return ContainsAnyIgnoreCase(collection, items as IEnumerable<string>);
         }
 
         /// <summary>
-        /// Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="controlCollection">A collection to search</param>
-        /// <param name="compareCollection">A collection to find</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAll<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection) where T : IEquatable<T>
-        {
-            if (!ContainsAny(controlCollection) || !ContainsAny(compareCollection))
-                return false;
-
-            compareCollection = compareCollection
-                .Distinct()
-                .ToList();
-
-            foreach (var controlItem in controlCollection.Distinct())
-            {
-                if (!compareCollection.Contains(controlItem))
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Tests a collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
-        /// </summary>
-        /// <typeparam name="T">Type of item</typeparam>
-        /// <param name="controlCollection">A collection to search</param>
-        /// <param name="compareCollection">A collection to find</param>
-        /// <param name="comparer">An equality comparer</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAll<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, IEqualityComparer<T> comparer) where T : IEquatable<T>
-        {
-            if (!ContainsAny(controlCollection) || !ContainsAny(compareCollection))
-                return false;
-
-            compareCollection = compareCollection
-                .Distinct(comparer)
-                .ToList();
-
-            foreach (var controlItem in controlCollection.Distinct(comparer))
-            {
-                if (!compareCollection.Contains(controlItem, comparer))
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Tests a <c>string</c> collection for contents - either <c>collection</c>, if omitted, returns <c>false</c>.
-        /// </summary>
-        /// <param name="controlCollection">A collection to search</param>
-        /// <param name="compareCollection">A collection to find</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAllIgnoreCase(IEnumerable<string> controlCollection, IEnumerable<string> compareCollection)
-        {
-            if (!ContainsAny(controlCollection) || !ContainsAny(compareCollection))
-                return false;
-
-            compareCollection = compareCollection
-                .Distinct()
-                .ToList();
-            bool found;
-
-            foreach (var controlItem in controlCollection.Distinct())
-            {
-                found = false;
-                foreach (var compareItem in compareCollection.Distinct())
-                {
-                    found = (controlItem == null && compareItem == null) || string.Equals(controlItem, compareItem, StringComparison.CurrentCultureIgnoreCase);
-                    if (found) 
-                        break;
-                }
-                if (!found)
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Compares two collections for equivalency (same size and contents or just same contents, depending).
-        /// Collections that are <c>null</c> or empty are considered equivalent to other <c>null</c> or empty collections.
-        /// </summary>
-        /// <param name="controlCollection">A collection to search</param>
-        /// <param name="compareCollection">A collection to compare</param>
-        /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison, default is <c>false</c></param>
-        /// <param name="ignoreCollectionSize"><c>true</c> if matching content values not quantites, default is <c>false</c></param>
-        /// <param name="referencialEquality"><c>true</c> if only interested in comparing items that are the same instance, default is <c>false</c></param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsEquivalent(IEnumerable<object> controlCollection, IEnumerable<object> compareCollection, bool ignoreOrder = false, bool ignoreCollectionSize = false, bool referencialEquality = false)
-        {
-            if (controlCollection == null || !controlCollection.Any())
-            {
-                if (compareCollection == null || !compareCollection.Any())
-                    return true;
-                return false;
-            }
-            else if (compareCollection == null || !compareCollection.Any())
-                return false;
-
-            int controlCollectionCount = controlCollection.Count();
-            if (!ignoreCollectionSize && controlCollectionCount != compareCollection.Count())
-                return false;
-
-            if (!ignoreOrder && !ignoreCollectionSize)  // default behavior
-            {
-                for (int i = 0; i < controlCollectionCount; i++)
-                {
-                    if (referencialEquality)
-                    {
-                        if (referencialEquality && !ReferenceEquals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)))
-                            return false;
-                    }
-                    else if (!Equals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)))
-                        return false;
-                }
-                return true;
-            }
-
-            // if ignoring the order and/or collection size...
-            foreach (object controlObj in controlCollection)
-            {
-                bool foundMatch = false;
-                foreach (object compareObj in compareCollection)
-                {
-                    if (referencialEquality)
-                    {
-                        if (referencialEquality && ReferenceEquals(controlObj, compareObj))
-                        {
-                            foundMatch = true;
-                            break;
-                        }
-                    }
-                    else if (Equals(controlObj, compareObj))
-                    {
-                        foundMatch = true;
-                        break;
-                    }
-                }
-                if (!foundMatch)
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Compares two collections for equivalency (same size and contents or just same contents, depending).
-        /// Collections that are <c>null</c> or empty are considered equivalent to other <c>null</c> or empty collections.
-        /// </summary>
-        /// <param name="controlCollection">A collection to search</param>
-        /// <param name="compareCollection">A collection to compare</param>
-        /// <param name="ignoreCase"><c>true</c> if not a case-sensitive comparison (when <c>T = System.String</c>), default is <c>false</c></param>
-        /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison, default is <c>false</c></param>
-        /// <param name="ignoreCollectionSize"><c>true</c> if matching content values not quantites, default is <c>false</c></param>
-        /// <param name="referencialEquality"><c>true</c> if only interested in comparing items that are the same instance, default is <c>false</c></param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsEquivalentEq<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, bool ignoreCase = false, bool ignoreOrder = false, bool ignoreCollectionSize = false, bool referencialEquality = false) where T : IEquatable<T>
-        {
-            if (controlCollection == null || !controlCollection.Any())
-            {
-                if (compareCollection == null || !compareCollection.Any())
-                    return true;
-                return false;
-            }
-            else if (compareCollection == null || !compareCollection.Any())
-                return false;
-
-            int controlCollectionCount = controlCollection.Count();
-            if (!ignoreCollectionSize && controlCollectionCount != compareCollection.Count())
-                return false;
-
-            if (!ignoreOrder && !ignoreCollectionSize)  // default behavior
-            {
-                for (int i = 0; i < controlCollectionCount; i++)
-                {
-                    if (referencialEquality)
-                    {
-                        if (referencialEquality && !ReferenceEquals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)))
-                            return false;
-                    }
-                    else if (!Equals(controlCollection.ElementAt(i), compareCollection.ElementAt(i)) && !(ignoreCase && typeof(T) == typeof(string) && controlCollection.ElementAt(i) is string controlString && compareCollection.ElementAt(i) is string compareString && string.Equals(controlString, compareString, StringComparison.CurrentCultureIgnoreCase)))
-                        return false;
-                }
-                return true;
-            }
-
-            // if ignoring the order and/or collection size...
-            foreach (T controlObj in controlCollection)
-            {
-                bool foundMatch = false;
-                foreach (T compareObj in compareCollection)
-                {
-                    if (referencialEquality)
-                    {
-                        if (referencialEquality && ReferenceEquals(controlObj, compareObj))
-                        {
-                            foundMatch = true;
-                            break;
-                        }
-                    }
-                    else if (Equals(controlObj, compareObj) || (ignoreCase && typeof(T) == typeof(string) && controlObj is string controlString && compareObj is string compareString && string.Equals(controlString, compareString, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        foundMatch = true;
-                        break;
-                    }
-                }
-                if (!foundMatch)
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+        /// Compares two collections for equality. Empty and <c>null</c> <c>collection</c>s are considered identical.
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="controlCollection">A collection to search</param>
         /// <param name="compareCollection">A collection to compare</param>
+        /// <param name="optimize">
+        /// Optimization options:
+        /// <list type="bullet">
+        /// <item>
+        /// ReuseCollection - use this option if source collections are of type <c>List&lt;T&gt;</c> to reuse them under the hood rather than new lists.
+        /// </item>
+        /// <item>
+        /// Distinct - use this option to shrink the source collections down to distinct values prior to searching.
+        /// </item>
+        /// </list>
+        /// </param>
         /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
-        /// <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsIdentical<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, bool ignoreOrder = false, bool compareDistinctValuesOnly = false) where T : IEquatable<T>
+        public static bool IsIdentical<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, Optimization optimize = default, bool ignoreOrder = false)
         {
-            try
-            {
-                _IsIdentical_Init(ref controlCollection, ref compareCollection, null, ignoreOrder, compareDistinctValuesOnly);
-
-                if (ignoreOrder)
-                {
-                    foreach (var controlItem in controlCollection)
-                    {
-                        if (!compareCollection.Contains(controlItem))
-                            return false;
-                    }
-                    if (!compareDistinctValuesOnly)
-                    {
-                        foreach (var compareItem in compareCollection)
-                        {
-                            if (!controlCollection.Contains(compareItem))
-                                return false;
-                        }
-                    }
-                }
-                else
-                {
-                    var _controlCollection = AsList(controlCollection);
-                    var _compareCollection = AsList(compareCollection);
-                    for (int i = 0; i < _controlCollection.Count; i++)
-                    {
-                        if (!Equals(_controlCollection[i], _compareCollection[i]))
-                            return false;
-                    }
-                }
-                return true;
-            }
-            catch (CollectionUtilMessage msg)
-            {
-                return msg.IsIdentical_ReturnValue;
-            }
+            if (controlCollection is T[] controlArray && compareCollection is T[] compareArray)
+                return ArrayUtil.IsIdentical(controlArray, compareArray, optimize: optimize, ignoreOrder: ignoreOrder);
+            return ListUtil.IsIdentical(ToList(controlCollection, optimize: optimize), ToList(compareCollection, optimize: optimize), optimize: optimize, ignoreOrder: ignoreOrder);
         }
 
         /// <summary>
-        /// Compares two collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+        /// Compares two collections for equality. Empty and <c>null</c> <c>collection</c>s are considered identical.
         /// </summary>
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="controlCollection">A collection to search</param>
         /// <param name="compareCollection">A collection to compare</param>
-        /// <param name="comparer">An equality comparer</param>
+        /// <param name="comparer">An optional equality comparer</param>
+        /// <param name="optimize">
+        /// Optimization options:
+        /// <list type="bullet">
+        /// <item>
+        /// ReuseCollection - use this option if source collections are of type <c>List&lt;T&gt;</c> to reuse them under the hood rather than new lists.
+        /// </item>
+        /// <item>
+        /// Distinct - use this option to shrink the source collections down to distinct values prior to searching.
+        /// </item>
+        /// </list>
+        /// </param>
         /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
-        /// <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsIdentical<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, IEqualityComparer<T> comparer, bool ignoreOrder = false, bool compareDistinctValuesOnly = false) where T : IEquatable<T>
+        public static bool IsIdentical<T>(IEnumerable<T> controlCollection, IEnumerable<T> compareCollection, IEqualityComparer<T> comparer, Optimization optimize = default, bool ignoreOrder = false)
         {
-            try
-            {
-                _IsIdentical_Init(ref controlCollection, ref compareCollection, comparer, ignoreOrder, compareDistinctValuesOnly);
-
-                if (ignoreOrder)
-                {
-                    foreach (var controlItem in controlCollection)
-                    {
-                        if (!compareCollection.Contains(controlItem, comparer))
-                            return false;
-                    }
-                    if (!compareDistinctValuesOnly)
-                    {
-                        foreach (var compareItem in compareCollection)
-                        {
-                            if (!controlCollection.Contains(compareItem, comparer))
-                                return false;
-                        }
-                    }
-                }
-                else
-                {
-                    var _controlCollection = AsList(controlCollection);
-                    var _compareCollection = AsList(compareCollection);
-                    for (int i = 0; i < _controlCollection.Count; i++)
-                    {
-                        if (comparer != null)
-                        {
-                            if (!comparer.Equals(_controlCollection[i], _compareCollection[i]))
-                                return false;
-                        }
-                        else
-                        {
-                            if (!Equals(_controlCollection[i], _compareCollection[i]))
-                                return false;
-                        }
-                    }
-                }
-                return true;
-            }
-            catch (CollectionUtilMessage msg)
-            {
-                return msg.IsIdentical_ReturnValue;
-            }
+            if (controlCollection is T[] controlArray && compareCollection is T[] compareArray)
+                return ArrayUtil.IsIdentical(controlArray, compareArray, comparer, optimize: optimize, ignoreOrder: ignoreOrder);
+            return ListUtil.IsIdentical(ToList(controlCollection, optimize: optimize), ToList(compareCollection, optimize: optimize), comparer, optimize: optimize, ignoreOrder: ignoreOrder);
         }
 
         /// <summary>
-        /// Compares two <c>string</c> collections for equality - a <c>null</c> and an empty <c>collection</c> are considered identical in this method
+        /// Compares two <c>string</c> collections for equality. Empty and <c>null</c> <c>collection</c>s are considered identical.
         /// </summary>
-        /// <param name="controlCollection">A collection to search</param>
-        /// <param name="compareCollection">A collection to compare</param>
+        /// <param name="controlCollection">A <c>string</c> collection to search</param>
+        /// <param name="compareCollection">A <c>string</c> collection to compare</param>
+        /// <param name="optimize">
+        /// Optimization options:
+        /// <list type="bullet">
+        /// <item>
+        /// ReuseCollection - use this option if source collections are of type <c>List&lt;T&gt;</c> to reuse them under the hood rather than new lists.
+        /// </item>
+        /// <item>
+        /// Distinct - use this option to shrink the source collections down to distinct values prior to searching.
+        /// </item>
+        /// </list>
+        /// </param>
         /// <param name="ignoreOrder"><c>true</c> if not an order dependent comparison</param>
-        /// <param name="compareDistinctValuesOnly"><c>true</c> if only considering distinct values</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool IsIdenticalIgnoreCase(IEnumerable<string> controlCollection, IEnumerable<string> compareCollection, bool ignoreOrder = false, bool compareDistinctValuesOnly = false)
+        public static bool IsIdenticalIgnoreCase(IEnumerable<string> controlCollection, IEnumerable<string> compareCollection, Optimization optimize = default, bool ignoreOrder = false)
         {
-            try
-            {
-                _IsIdentical_Init(ref controlCollection, ref compareCollection, null, ignoreOrder, compareDistinctValuesOnly);
-
-                if (ignoreOrder)
-                {
-                    bool found;
-                    foreach (var controlItem in controlCollection)
-                    {
-                        found = false;
-                        foreach (var compareItem in compareCollection)
-                        {
-                            found = (controlItem == null && compareItem == null) || string.Equals(controlItem, compareItem, StringComparison.CurrentCultureIgnoreCase);
-                            if (found)
-                                break;
-                        }
-                        if (!found)
-                            return false;
-                    }
-                    if (!compareDistinctValuesOnly)
-                    {
-                        foreach (var compareItem in compareCollection)
-                        {
-                            found = false;
-                            foreach (var controlItem in controlCollection)
-                            {
-                                found = (controlItem == null && compareItem == null) || string.Equals(controlItem, compareItem, StringComparison.CurrentCultureIgnoreCase);
-                                if (found)
-                                    break;
-                            }
-                            if (!found)
-                                return false;
-                        }
-                    }
-                }
-                else
-                {
-                    var _controlCollection = AsList(controlCollection);
-                    var _compareCollection = AsList(compareCollection);
-                    for (int i = 0; i < _controlCollection.Count; i++)
-                    {
-                        if (!string.Equals(_controlCollection[i], _compareCollection[i], StringComparison.CurrentCultureIgnoreCase))
-                            return false;
-                    }
-                }
-                return true;
-            }
-            catch (CollectionUtilMessage msg)
-            {
-                return msg.IsIdentical_ReturnValue;
-            }
-        }
-
-        private static void _IsIdentical_Init<T>(ref IEnumerable<T> controlCollection, ref IEnumerable<T> compareCollection, IEqualityComparer<T> comparer, bool ignoreOrder, bool compareDistinctValuesOnly) where T : IEquatable<T>
-        {
-            if (!ContainsAny(controlCollection))
-                throw new CollectionUtilMessage { IsIdentical_ReturnValue = !ContainsAny(compareCollection) };
-            else if (!ContainsAny(compareCollection))
-                throw new CollectionUtilMessage { IsIdentical_ReturnValue = !ContainsAny(controlCollection) };
-
-            var _controlCollection = compareDistinctValuesOnly
-                ? controlCollection
-                    .Distinct(comparer)
-                    .ToList()
-                : AsList(controlCollection);
-            var _compareCollection = compareDistinctValuesOnly
-                ? compareCollection
-                    .Distinct(comparer)
-                    .ToList()
-                : AsList(compareCollection);
-
-            if (_controlCollection.Count != _compareCollection.Count)
-                throw new CollectionUtilMessage { IsIdentical_ReturnValue = false };
-
-            controlCollection = _controlCollection;
-            compareCollection = _compareCollection;
+            if (controlCollection is string[] controlArray && compareCollection is string[] compareArray)
+                return ArrayUtil.IsIdenticalIgnoreCase(controlArray, compareArray, optimize: optimize, ignoreOrder: ignoreOrder);
+            return ListUtil.IsIdenticalIgnoreCase(ToList(controlCollection, optimize: optimize), ToList(compareCollection, optimize: optimize), optimize: optimize, ignoreOrder: ignoreOrder);
         }
 
         /// <summary>

@@ -184,5 +184,15 @@ namespace Horseshoe.NET.DateAndTime
                 return provider != null ? date.ToString("g", provider) : date.ToString("g");
             return ToFlexDateString(date, provider: provider);
         }
+
+        /// <summary>
+        /// Returns <c>true</c> if at least one of the hour, minute, second or millisecond values of <c>date</c> is greater than 0
+        /// </summary>
+        /// <param name="date">A date/time</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool HasTime(this DateTime date)
+        {
+            return !(date.Hour == 0 && date.Minute == 0 && date.Second == 0 && date.Millisecond == 0);
+        }
     }
 }

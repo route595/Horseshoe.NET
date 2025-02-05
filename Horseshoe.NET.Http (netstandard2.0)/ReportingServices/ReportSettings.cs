@@ -14,8 +14,7 @@ namespace Horseshoe.NET.Http.ReportingServices
             get
             {
                 return _defaultReportServer
-                    ?? Config.Get("Horseshoe.NET:ReportingServices:ReportServer")
-                    ?? OrganizationalDefaultSettings.Get<string>("ReportingServices.ReportServer");
+                    ?? Config.Get("Horseshoe.NET:ReportingServices:ReportServer");
             }
             set
             {

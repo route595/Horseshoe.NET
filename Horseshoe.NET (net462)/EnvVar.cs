@@ -41,7 +41,7 @@ namespace Horseshoe.NET
         /// will be created.  Alternatively, the value can be an object representation.  To 
         /// hydrate an object representation into an instance you need to supply a <c>parseFunc</c>.
         /// </summary>
-        /// <typeparam name="T">A reference type.</typeparam>
+        /// <typeparam name="T">A runtime type.</typeparam>
         /// <param name="varName">Environment variable name.</param>
         /// <param name="parseFunc">A parsing function.</param>
         /// <param name="required">If <c>true</c>, throws error if environment variable is not found, default is <c>false</c>.</param>
@@ -51,7 +51,6 @@ namespace Horseshoe.NET
         /// <param name="trueValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
         /// <param name="falseValues">Applies to <c>Get&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
         /// <param name="encoding">Applies to <c>Get&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
-        /// <param name="inheritedType">An optional type constraint - the type to which the returned <c>Type</c> must be assignable.</param>
         /// <param name="ignoreCase">Applies to <c>Get&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <returns>An instance of <c>T</c>.</returns>
         /// <exception cref="ConversionException"></exception>
@@ -66,14 +65,13 @@ namespace Horseshoe.NET
             string trueValues = "y|yes|t|true|1",
             string falseValues = "n|no|f|false|0",
             Encoding encoding = null,
-            Type inheritedType = null,
             bool ignoreCase = false
         )
         {
             var value = Get(varName, required: required);
             if (parseFunc != null)
                 return parseFunc.Invoke(value);
-            return Zap.To<T>(value, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, inheritedType: inheritedType, ignoreCase: ignoreCase);
+            return Zap.To<T>(value, numberStyle: numberStyle, provider: provider, locale: locale, trueValues: trueValues, falseValues: falseValues, encoding: encoding, ignoreCase: ignoreCase);
         }
     }
 }

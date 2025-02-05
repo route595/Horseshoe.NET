@@ -38,8 +38,7 @@ namespace Horseshoe.NET.SqlDb
             get
             {
                 return _GetConnectionString(_defaultConnectionString, _isEncryptedPassword)
-                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:SqlDb:IsEncryptedPassword"))
-                    ?? _GetConnectionString(OrganizationalDefaultSettings.Get<string>("SqlDb.ConnectionString"), OrganizationalDefaultSettings.Get<bool>("SqlDb.IsEncryptedPassword"));
+                    ?? _GetConnectionString(Config.GetConnectionString(DefaultConnectionStringName), Config.Get<bool>("Horseshoe.NET:SqlDb:IsEncryptedPassword"));
             }
         }
 
@@ -70,8 +69,7 @@ namespace Horseshoe.NET.SqlDb
             get
             {
                 return _defaultDataSource         // e.g. DBSVR01
-                    ?? DbServer.Parse(Config.Get("Horseshoe.NET:SqlDb:DataSource"))
-                    ?? OrganizationalDefaultSettings.Get<DbServer>("SqlDb.DataSource");
+                    ?? DbServer.Parse(Config.Get("Horseshoe.NET:SqlDb:DataSource"));
             }
             set
             {
@@ -89,8 +87,7 @@ namespace Horseshoe.NET.SqlDb
             get
             {
                 return _defaultInitialCatalog           // e.g. CustomerDatabase
-                    ?? Config.Get("Horseshoe.NET:SqlDb:InitialCatalog")
-                    ?? OrganizationalDefaultSettings.Get<string>("SqlDb.InitialCatalog");
+                    ?? Config.Get("Horseshoe.NET:SqlDb:InitialCatalog");
             }
             set
             {
@@ -116,8 +113,7 @@ namespace Horseshoe.NET.SqlDb
                         configIsEncryptedPassword
                         ? Credential.Build(configUserName, () => Decrypt.String(configPassword))
                         : Credential.Build(configUserName, configPassword)
-                    )
-                    ?? OrganizationalDefaultSettings.Get<Credential?>("SqlDb.Credentials");
+                    );
             }
             set
             {
@@ -135,8 +131,7 @@ namespace Horseshoe.NET.SqlDb
             get
             {
                 return _defaultAdditionalConnectionAttributes         // e.g. Integrated Security=SSQI|Attribute1=Value1
-                    ?? Config.Get("Horseshoe.NET:SqlDb:AdditionalConnectionAttributes", parseFunc: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw))
-                    ?? DbUtil.ParseAdditionalConnectionAttributes(OrganizationalDefaultSettings.Get<string>("SqlDb.AdditionalConnectionAttributes"));
+                    ?? Config.Get("Horseshoe.NET:SqlDb:AdditionalConnectionAttributes", parser: (raw) => DbUtil.ParseAdditionalConnectionAttributes(raw));
             }
             set
             {
@@ -154,8 +149,7 @@ namespace Horseshoe.NET.SqlDb
             get
             {
                 return _defaultConnectionTimeout         // e.g. 30 (Microsoft default)
-                    ?? Config.Get<int?>("Horseshoe.NET:SqlDb:ConnectionTimeout")
-                    ?? OrganizationalDefaultSettings.Get<int?>("SqlDb.ConnectionTimeout");
+                    ?? Config.Get<int?>("Horseshoe.NET:SqlDb:ConnectionTimeout");
             }
             set
             {
@@ -175,8 +169,7 @@ namespace Horseshoe.NET.SqlDb
                 if (_serverList == null)
                 {
                     _serverList =          // e.g. DBSVR01|'NAME'11.22.33.44:9999;2012|DBSVR02;2008R2
-                        Config.Get("Horseshoe.NET:SqlDb:ServerList", parseFunc: (raw) => DbServer.ParseList(raw)) ??
-                        DbServer.ParseList(OrganizationalDefaultSettings.Get<string>("SqlDb.ServerList"));
+                        Config.Get("Horseshoe.NET:SqlDb:ServerList", parser: (raw) => DbServer.ParseList(raw));
                 }
                 return _serverList;
             }

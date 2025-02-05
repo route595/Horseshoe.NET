@@ -47,7 +47,7 @@ namespace Horseshoe.NET.SqlDb
 	                '" + procedureName.Replace("[", "").Replace("]", "") + @"' IN ([name], SCHEMA_NAME([schema_id]) + '.' + [name])
             ".Trim();
             var exists = false;
-            var reader = Query.SQL.AsDataReader(conn, statement, keepOpen: true);
+            var reader = Query.FromStatement(conn, statement).AsDataReader(keepOpen: true);
             if (reader.Read())
             {
                 exists = true;
@@ -104,7 +104,7 @@ namespace Horseshoe.NET.SqlDb
                 INNER JOIN sys.syscolumns cols ON objs.id = cols.id 
                 WHERE objs.[type] = 'P' and objs.[name] = '" + procedureName + @"'
             ";
-            var reader = Query.SQL.AsDataReader(conn, statement.Trim());
+            var reader = Query.FromStatement(conn, statement.Trim()).AsDataReader();
             while (reader.Read())
             {
                 list.Add(

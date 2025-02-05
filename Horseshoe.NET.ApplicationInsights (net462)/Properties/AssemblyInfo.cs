@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Horseshoe.NET.ApplicationInsights (net462)")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Horseshoe.NET.ApplicationInsights")]
+[assembly: AssemblyDescription("Easily add Application Insights to an app with these few shortcuts.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Horseshoe.NET.ApplicationInsights (net462)")]
-[assembly: AssemblyCopyright("Copyright ©  2024")]
+[assembly: AssemblyCompany("Route 595")]
+[assembly: AssemblyProduct("Horseshoe.NET.ApplicationInsights")]
+[assembly: AssemblyCopyright("Copyright © 2020-2025 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("4.0.0.0")]
+[assembly: AssemblyFileVersion("4.0.0.0")]

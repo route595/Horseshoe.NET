@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Horseshoe.NET.Collections
@@ -9,7 +10,7 @@ namespace Horseshoe.NET.Collections
     /// <typeparam name="T">The collection type</typeparam>
     public class CollectionBuilder<T>
     {
-        private readonly List<T> list;
+        internal readonly List<T> _list;
 
         /// <summary>
         /// A list sorter
@@ -17,135 +18,401 @@ namespace Horseshoe.NET.Collections
         public ListSorter<T> Sorter { get; }
 
         /// <summary>
-        /// If <c>true</c> reduces the result to only unique values, default is <c>false</c>
-        /// </summary>
-        public bool DistinctValues { get; }
-
-        /// <summary>
         /// An optional equality comparer to use in conjunction with <c>DistinctValues</c>
         /// </summary>
         public IEqualityComparer<T> Comparer { get; }
 
         /// <summary>
+        /// If <c>true</c> reduces the result to only unique values, default is <c>false</c>
+        /// </summary>
+        public bool DistinctValues { get; }
+
+        /// <summary>
         /// Creates a new <c>CollectionBuilder</c>
         /// </summary>
         /// <param name="sorter">An optional sorter</param>
-        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
         /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
-        public CollectionBuilder(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null) : this(null, sorter: sorter, distinctValues: distinctValues, comparer: comparer)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new <c>CollectionBuilder</c> from an existing collection
-        /// </summary>
-        /// <param name="collection">A collection</param>
-        /// <param name="sorter">An optional sorter</param>
         /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
-        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
-        public CollectionBuilder(IEnumerable<T> collection, ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null)
+        public CollectionBuilder(ListSorter<T> sorter = null, IEqualityComparer<T> comparer = null, bool distinctValues = false)
         {
-            list = CollectionUtil.ToList(collection);
+            _list = new List<T>();
             Sorter = sorter;
-            DistinctValues = distinctValues;
             Comparer = comparer;
+            DistinctValues = distinctValues;
         }
 
         /// <summary>
-        /// Adds one or more items to the final collection
+        /// Appends zero or more items to the current builder
         /// </summary>
-        /// <param name="items">One or more items to append</param>
-        /// <returns>The current collection builder</returns>
-        public CollectionBuilder<T> Add(params T[] items)
+        /// <param name="items">Items to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Append(IEnumerable<T> items)
         {
-            if (items != null)
-                list.AddRange(items);
+            CollectionUtil.Append(_list, items);
             return this;
         }
 
         /// <summary>
-        /// Appends one or more collections to the current collection
+        /// Conditionally appends zero or more items to the current builder
         /// </summary>
-        /// <param name="collections">One or more collections to append</param>
-        /// <returns>The current collection builder</returns>
+        /// <param name="condition">Whether or not to append the item(s)</param>
+        /// <param name="items">Items to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> AppendIf(bool condition, IEnumerable<T> items)
+        {
+            CollectionUtil.AppendIf(_list, condition, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Appends zero or more items to the current builder
+        /// </summary>
+        /// <param name="items">Items to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Append(params T[] items)
+        {
+            CollectionUtil.Append(_list, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more items to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to append the item(s)</param>
+        /// <param name="items">Items to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> AppendIf(bool condition, params T[] items)
+        {
+            CollectionUtil.AppendIf(_list, condition, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Appends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="collections">Collections to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Append(IEnumerable<IEnumerable<T>> collections)
+        {
+            CollectionUtil.Append(_list, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally appends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to append the collection(s)</param>
+        /// <param name="collections">Collections to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> AppendIf(bool condition, IEnumerable<IEnumerable<T>> collections)
+        {
+            CollectionUtil.AppendIf(_list, condition, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Appends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="collections">Collections to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
         public CollectionBuilder<T> Append(params IEnumerable<T>[] collections)
         {
-            if (collections != null)
-            {
-                foreach (var collection in collections)
-                {
-                    if (collection != null)
-                        list.AddRange(collection);
-                }
-            }
+            CollectionUtil.Append(_list, collections);
             return this;
         }
 
         /// <summary>
-        /// Returns the final collection as a <c>List</c>
+        /// Conditionally appends zero or more collections to the current builder
         /// </summary>
-        /// <param name="sorter">An optional sorter</param>
-        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
-        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
+        /// <param name="condition">Whether or not to append the collection(s)</param>
+        /// <param name="collections">Collections to append</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> AppendIf(bool condition, params IEnumerable<T>[] collections)
+        {
+            CollectionUtil.AppendIf(_list, condition, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Inserts zero or more items into the current builder
+        /// </summary>
+        /// <param name="index">The position in the collection to insert the item(s)</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Insert(int index, IEnumerable<T> items)
+        {
+            CollectionUtil.Insert(_list, index, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into the current builder
+        /// </summary>
+        /// <param name="index">The position in the collection to insert the item(s)</param>
+        /// <param name="condition">Whether or not to insert the item(s)</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> InsertIf(bool condition, int index, IEnumerable<T> items)
+        {
+            CollectionUtil.InsertIf(_list, condition, index, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Inserts zero or more items into the current builder
+        /// </summary>
+        /// <param name="index">The position in the collection to insert the item(s)</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Insert(int index, params T[] items)
+        {
+            CollectionUtil.Insert(_list, index, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more items into the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to insert the item(s)</param>
+        /// <param name="index">The position in the collection to insert the item(s)</param>
+        /// <param name="items">Items to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> InsertIf(bool condition, int index, params T[] items)
+        {
+            CollectionUtil.InsertIf(_list, condition, index, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Inserts zero or more collections to the current builder
+        /// </summary>
+        /// <param name="index">The position in the collection to insert the collections(s)</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Insert(int index, IEnumerable<IEnumerable<T>> collections)
+        {
+            CollectionUtil.Insert(_list, index, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to insert the collection(s)</param>
+        /// <param name="index">The position in the collection to insert the collections(s)</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> InsertIf(bool condition, int index, IEnumerable<IEnumerable<T>> collections)
+        {
+            CollectionUtil.InsertIf(_list, condition, index, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Inserts zero or more collections into the current builder
+        /// </summary>
+        /// <param name="index">The position in the collection to insert the collections(s)</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Insert(int index, params IEnumerable<T>[] collections)
+        {
+            CollectionUtil.Insert(_list, index, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally inserts zero or more collections into the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to insert the collection(s)</param>
+        /// <param name="index">The position in the collection to insert the collections(s)</param>
+        /// <param name="collections">Collections to insert</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> InsertIf(bool condition, int index, params IEnumerable<T>[] collections)
+        {
+            CollectionUtil.InsertIf(_list, condition, index, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Prepends zero or more items to the current builder
+        /// </summary>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Prepend(IEnumerable<T> items)
+        {
+            CollectionUtil.Prepend(_list, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally prepends zero or more items to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to prepend the item(s)</param>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> PrependIf(bool condition, IEnumerable<T> items)
+        {
+            CollectionUtil.PrependIf(_list, condition, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Prepends zero or more items to the current builder
+        /// </summary>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Prepend(params T[] items)
+        {
+            CollectionUtil.Prepend(_list, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally prepends zero or more items to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to prepend the item(s)</param>
+        /// <param name="items">Items to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> PrependIf(bool condition, params T[] items)
+        {
+            CollectionUtil.PrependIf(_list, condition, items);
+            return this;
+        }
+
+        /// <summary>
+        /// Prepends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="collections">Collections to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Prepend(IEnumerable<IEnumerable<T>> collections)
+        {
+            CollectionUtil.Prepend(_list, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally prepends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to prepend the collection(s)</param>
+        /// <param name="collections">Collections to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> PrependIf(bool condition, IEnumerable<IEnumerable<T>> collections)
+        {
+            CollectionUtil.PrependIf(_list, condition, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Prepends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="collections">Collections to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> Prepend(params IEnumerable<T>[] collections)
+        {
+            CollectionUtil.Prepend(_list, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Conditionally prepends zero or more collections to the current builder
+        /// </summary>
+        /// <param name="condition">Whether or not to prepend the collection(s)</param>
+        /// <param name="collections">Collections to prepend</param>
+        /// <returns>The current <c>CollectionBuilder</c></returns>
+        public CollectionBuilder<T> PrependIf(bool condition, params IEnumerable<T>[] collections)
+        {
+            CollectionUtil.PrependIf(_list, condition, collections);
+            return this;
+        }
+
+        /// <summary>
+        /// Returns the final collection as a <c>List&lt;T&gt;</c>
+        /// </summary>
         /// <returns>The final collection</returns>
-        public List<T> ToList(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null) 
-        { 
-            IEnumerable<T> collection = list;
-            if ((sorter ?? Sorter) != null)
-                collection = (sorter ?? Sorter)._Sort(collection);
-            if (distinctValues || DistinctValues)
-                collection = (comparer ?? Comparer) == null
-                    ? collection.Distinct()
-                    : collection.Distinct(comparer ?? Comparer);
-            return CollectionUtil.AsList(collection); 
+        public List<T> RenderToList() 
+        {
+            IEnumerable<T> collection = CollectionUtil.ToList(_list);
+            if (Sorter != null)
+                collection = Sorter.Sort(collection);
+            if (DistinctValues)
+                collection = Comparer != null
+                    ? collection.Distinct(Comparer)
+                    : collection.Distinct();
+            return collection.ToList(); 
         }
 
         /// <summary>
         /// Returns the final collection as an array
         /// </summary>
-        /// <param name="sorter">An optional sorter</param>
-        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
-        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
         /// <returns>The final collection</returns>
-        public T[] ToArray(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null) 
+        public T[] RenderToArray() 
         {
-            IEnumerable<T> collection = list;
-            if ((sorter ?? Sorter) != null)
-                collection = (sorter ?? Sorter)._Sort(collection);
-            if (distinctValues || DistinctValues)
-                collection = (comparer ?? Comparer) == null
-                    ? collection.Distinct()
-                    : collection.Distinct(comparer ?? Comparer);
+            IEnumerable<T> collection = CollectionUtil.ToList(_list);
+            if (Sorter != null)
+                collection = Sorter.Sort(collection);
+            if (DistinctValues)
+                collection = Comparer != null
+                    ? collection.Distinct(Comparer)
+                    : collection.Distinct();
             return collection.ToArray();
         }
-    }
-
-    /// <summary>
-    /// Static methods for generating <c>CollectionBuilder</c> instances
-    /// </summary>
-    public static class CollectionBuilder
-    {
-        /// <summary>
-        /// Creates a new <c>CollectionBuilder</c>
-        /// </summary>
-        /// <typeparam name="T">The collection type</typeparam>
-        /// <param name="sorter">An optional sorter</param>
-        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
-        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
-        /// <returns>A new <c>CollectionBuilder</c> instance</returns>
-        public static CollectionBuilder<T> Build<T>(ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null)
-            => new CollectionBuilder<T>(sorter: sorter, distinctValues: distinctValues, comparer: comparer);
 
         /// <summary>
-        /// Creates a new <c>CollectionBuilder</c> from an existing collection
+        /// Searches the final collection for at least one matching item.
+        /// Returns <c>false</c> if <c>items == null</c> or is empty.
         /// </summary>
-        /// <typeparam name="T">The collection type</typeparam>
-        /// <param name="collection">A collection</param>
-        /// <param name="sorter">An optional sorter</param>
-        /// <param name="distinctValues">If <c>true</c> reduces the result to only unique values, default is <c>false</c></param>
-        /// <param name="comparer">An optional equality comparer to use in conjunction with <c>distinctValues = true</c></param>
-        /// <returns>A new <c>CollectionBuilder</c> instance</returns>
-        public static CollectionBuilder<T> Build<T>(IEnumerable<T> collection, ListSorter<T> sorter = null, bool distinctValues = false, IEqualityComparer<T> comparer = null)
-            => new CollectionBuilder<T>(collection, sorter: sorter, distinctValues: distinctValues, comparer: comparer);
+        /// <param name="items">Items to search for</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public bool ContainsAny(IEnumerable<T> items)
+        {
+            if (items == null || !items.Any())
+                return false;
+            var list = DistinctValues
+                ? _list.Distinct().ToList()
+                : _list;
+            return Comparer != null
+                ? items.Any(i => list.Contains(i, Comparer))
+                : items.Any(i => list.Contains(i));
+        }
+
+        /// <summary>
+        /// Searches the final collection for at least one matching item.
+        /// Returns <c>false</c> if <c>items == null</c> or is empty.
+        /// </summary>
+        /// <param name="items">Items to search for</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public bool ContainsAny(params T[] items)
+        {
+            return ContainsAny(items as IEnumerable<T>);
+        }
+
+        /// <summary>
+        /// Searches the final collection for all matching items. 
+        /// Returns <c>false</c> if <c>items == null</c> or is empty.
+        /// </summary>
+        /// <param name="items">Items to search for</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public bool ContainsAll(IEnumerable<T> items)
+        {
+            if (items == null || !items.Any())
+                return false;
+            var list = DistinctValues
+                ? _list.Distinct().ToList()
+                : _list;
+            return Comparer != null
+                ? items.All(i => list.Contains(i, Comparer))
+                : items.All(i => list.Contains(i));
+        }
+
+        /// <summary>
+        /// Searches the final collection for all matching items. 
+        /// Returns <c>false</c> if <c>items == null</c> or is empty.
+        /// </summary>
+        /// <param name="items">Items to search for</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public bool ContainsAll(params T[] items)
+        {
+            return ContainsAll(items as IEnumerable<T>);
+        }
     }
 }

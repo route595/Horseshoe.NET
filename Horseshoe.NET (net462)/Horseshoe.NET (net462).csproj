@@ -42,11 +42,11 @@
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.1\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.1\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -56,8 +56,8 @@
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.IO.Pipelines, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IO.Pipelines.9.0.0\lib\net462\System.IO.Pipelines.dll</HintPath>
+    <Reference Include="System.IO.Pipelines, Version=9.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Pipelines.9.0.1\lib\net462\System.IO.Pipelines.dll</HintPath>
     </Reference>
     <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
@@ -69,11 +69,11 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
-    <Reference Include="System.Text.Encodings.Web, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Text.Encodings.Web.9.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+    <Reference Include="System.Text.Encodings.Web, Version=9.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.9.0.1\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
-    <Reference Include="System.Text.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Text.Json.9.0.0\lib\net462\System.Text.Json.dll</HintPath>
+    <Reference Include="System.Text.Json, Version=9.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.9.0.1\lib\net462\System.Text.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
@@ -90,21 +90,58 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assemblies.cs" />
-    <Compile Include="Assert.cs" />
+    <Compile Include="AssemblyException.cs" />
+    <Compile Include="AssertionConstants.cs" />
+    <Compile Include="AssertionFailedException.cs" />
+    <Compile Include="AuthenticationException.cs" />
+    <Compile Include="Auth[net462].cs" />
+    <Compile Include="BenignException.cs" />
+    <Compile Include="Bootstrap\AlertMessageDetailsRenderingPolicy.cs" />
+    <Compile Include="Bootstrap\ExceptionRenderingPolicy.cs" />
     <Compile Include="Bootstrap\v3\Alert.cs" />
+    <Compile Include="Bootstrap\v3\AlertType.cs" />
     <Compile Include="Bootstrap\v4\Alert.cs" />
     <Compile Include="Bootstrap\BootstrapSettings.cs" />
     <Compile Include="Bootstrap\Extensions.cs" />
+    <Compile Include="Bootstrap\v4\AlertType.cs" />
     <Compile Include="Collections\ArrayUtil.cs" />
+    <Compile Include="ConsoleX\ListSelectionMode.cs" />
+    <Compile Include="ObjectsTypesAndValues\AssertValue.cs" />
+    <Compile Include="Collections\CollectionBoundary.cs" />
     <Compile Include="Collections\CollectionBuilder.cs" />
+    <Compile Include="Collections\CollectionException.cs" />
     <Compile Include="Collections\CollectionUtil.cs" />
+    <Compile Include="Collections\CollectionUtilMessage.cs" />
+    <Compile Include="Collections\DictionaryMerge.cs" />
+    <Compile Include="Collections\DictionaryMergeMode.cs" />
     <Compile Include="Collections\DictionaryUtil.cs" />
+    <Compile Include="Collections\DictionaryExtensions.cs" />
+    <Compile Include="Collections\ArrayExtensions.cs" />
+    <Compile Include="Collections\CollectionBuilderExtensions.cs" />
+    <Compile Include="Collections\ListExtensions.cs" />
     <Compile Include="Collections\Extensions.cs" />
+    <Compile Include="Collections\ImmutableDictionary.cs" />
+    <Compile Include="Collections\ListSorter.cs" />
     <Compile Include="Collections\ListUtil.cs" />
+    <Compile Include="Collections\Optimization.cs" />
+    <Compile Include="Collections\MergeOptions.cs" />
+    <Compile Include="Collections\PruneOptions.cs" />
+    <Compile Include="Compare\Comparator.cs" />
+    <Compile Include="Compare\CompareException.cs" />
+    <Compile Include="Compare\CompareMode.cs" />
     <Compile Include="Compare\Criterinator.cs" />
-    <Compile Include="Config.cs" />
+    <Compile Include="Compare\IComparator.cs" />
+    <Compile Include="Compare\ICriterinator.cs" />
+    <Compile Include="Compare\RegexComparator.cs" />
+    <Compile Include="Compare\ValidationFlaggedAction.cs" />
+    <Compile Include="ConsoleX\ConsoleNavigation.cs" />
     <Compile Include="ConsoleX\ConsoleXApp.cs" />
+    <Compile Include="ConsoleX\ExceptionRendering.cs" />
     <Compile Include="ConsoleX\Extensions.cs" />
+    <Compile Include="ConsoleX\ListIndexStyle.cs" />
+    <Compile Include="ConsoleX\ListSelection.cs" />
+    <Compile Include="ConsoleX\LoopMode.cs" />
+    <Compile Include="ConsoleX\MenuAndListRealtimeConfigurator.cs" />
     <Compile Include="ConsoleX\MenuHeader.cs" />
     <Compile Include="ConsoleX\MenuObject.cs" />
     <Compile Include="ConsoleX\MenuSelection.cs" />
@@ -112,17 +149,46 @@
     <Compile Include="ConsoleX\Plugins\FileSystemNavigatorOptions.cs" />
     <Compile Include="ConsoleX\Plugins\FileSystemNavigatorTypes\FSDirectory.cs" />
     <Compile Include="ConsoleX\Plugins\FileSystemNavigatorTypes\FSFile.cs" />
+    <Compile Include="ConsoleX\PromptType.cs" />
     <Compile Include="ConsoleX\PromptX.cs" />
+    <Compile Include="ConsoleX\QuickValue.cs" />
     <Compile Include="ConsoleX\RenderX.cs" />
     <Compile Include="ConsoleX\RoutineX.cs" />
+    <Compile Include="ConsoleX\Title.cs" />
+    <Compile Include="ConsoleX\UserInputUtil.cs" />
+    <Compile Include="ConversionException.cs" />
+    <Compile Include="Credential.cs" />
+    <Compile Include="Crypto\CryptoOptions.cs" />
+    <Compile Include="Crypto\HashOptions.cs" />
     <Compile Include="Crypto\RecursiveHashEngine.cs" />
+    <Compile Include="DataImport\BlankRowPolicy.cs" />
     <Compile Include="DataImport\Column.cs" />
+    <Compile Include="DataImport\DataError.cs" />
+    <Compile Include="DataImport\DataErrorHandlingPolicy.cs" />
+    <Compile Include="DataImport\DataImportException.cs" />
+    <Compile Include="DataImport\ImportConstants.cs" />
     <Compile Include="DataImport\ImportData.cs" />
     <Compile Include="DataImport\ImportedRow.cs" />
+    <Compile Include="DataImport\InvalidDatumException.cs" />
+    <Compile Include="DataImport\StopImportingDataException.cs" />
+    <Compile Include="DateAndTime\DisplayOptions.cs" />
+    <Compile Include="DateAndTime\RangeOptions.cs" />
+    <Compile Include="DateAndTime\SetOptions.cs" />
+    <Compile Include="DateAndTime\TimePartDisplay.cs" />
     <Compile Include="DateAndTime\YearSpan.cs" />
+    <Compile Include="Db\AndGroupFilter.cs" />
+    <Compile Include="Db\ColumnExpression.cs" />
     <Compile Include="Db\ConnectionInfo.cs" />
+    <Compile Include="Db\ConnectionStringPart.cs" />
+    <Compile Include="Db\DbCapture.cs" />
+    <Compile Include="Db\DbConstants.cs" />
+    <Compile Include="Db\DbException.cs" />
+    <Compile Include="Db\DbProvider.cs" />
     <Compile Include="Db\DbSettings.cs" />
     <Compile Include="Db\Filter.cs" />
+    <Compile Include="Db\IFilter.cs" />
+    <Compile Include="Db\IFilterFactory.cs" />
+    <Compile Include="Db\IGroupFilter.cs" />
     <Compile Include="Db\LiteralFilter.cs" />
     <Compile Include="Db\NotFilter.cs" />
     <Compile Include="Db\NotFilterFactory.cs" />
@@ -140,15 +206,58 @@
     <Compile Include="DateAndTime\Extensions.cs" />
     <Compile Include="Db\DbUtil.cs" />
     <Compile Include="Db\Extensions.cs" />
+    <Compile Include="Db\OrGroupFilter.cs" />
+    <Compile Include="Db\Parameter.cs" />
+    <Compile Include="Db\QueryBase.cs" />
     <Compile Include="Db\RowParser.cs" />
+    <Compile Include="Db\SqlLiteral.cs" />
+    <Compile Include="Dotnet\DotnetLanguage.cs" />
+    <Compile Include="Dotnet\DotnetUtil.cs" />
+    <Compile Include="Email\Sms\Carrier.cs" />
     <Compile Include="Email\Sms\TextMessage.cs" />
+    <Compile Include="Email\SmtpConnectionInfo.cs" />
+    <Compile Include="EnvironmentVariableNotFoundException.cs" />
     <Compile Include="EnvVar.cs" />
+    <Compile Include="ExceptionInfo.cs" />
+    <Compile Include="ExceptionTypeRenderingPolicy.cs" />
+    <Compile Include="FrontLoader\Extensions.cs" />
+    <Compile Include="FrontLoader\ValueFrontLoader.cs" />
     <Compile Include="Ftp\FtpConnectionInfo.cs" />
+    <Compile Include="Ftp\FtpFileMasks.cs" />
+    <Compile Include="Ftp\FtpOperationException.cs" />
+    <Compile Include="IO\DirectoryPath[net4x].cs" />
+    <Compile Include="IO\FileFilter\DirectoryFilter.cs" />
+    <Compile Include="IO\FileFilter\DirectoryFilterGroup.cs" />
+    <Compile Include="IO\FileFilter\DirectoryNameFilter.cs" />
+    <Compile Include="IO\FileFilter\FileDateModifiedFilter.cs" />
+    <Compile Include="IO\FileFilter\FileFilter.cs" />
+    <Compile Include="IO\FileFilter\FileFilterGroup.cs" />
+    <Compile Include="IO\FileFilter\FileNameFilter.cs" />
+    <Compile Include="IO\FileFilter\FileSizeFilter.cs" />
+    <Compile Include="IO\FileFilter\FilterMode.cs" />
+    <Compile Include="IO\FileFilter\GroupFilterMode.cs" />
+    <Compile Include="IO\FilePath.cs" />
+    <Compile Include="IO\FileSize.cs" />
+    <Compile Include="IO\FileSizeUnit.cs" />
+    <Compile Include="IO\FileTraversal\FileSystemObjectType.cs" />
+    <Compile Include="IO\FileTraversal\TraversalConstants.cs" />
     <Compile Include="IO\FileTraversal\TraversalDirectoryIntercom.cs" />
     <Compile Include="IO\FileTraversal\TraversalEngine.cs" />
     <Compile Include="IO\FileTraversal\TraversalFileIntercom.cs" />
-    <Compile Include="Iterator\Memory\Extensions.cs" />
-    <Compile Include="Iterator\Extensions.cs" />
+    <Compile Include="IO\FileTraversal\TraversalOptimizations.cs" />
+    <Compile Include="IO\FileTraversal\TraversalStatistics.cs" />
+    <Compile Include="IO\FileType.cs" />
+    <Compile Include="IO\FileUtilAbstractions.cs" />
+    <Compile Include="IO\NamedMemoryStream.cs" />
+    <Compile Include="NumberUtil.cs" />
+    <Compile Include="ObjectsTypesAndValues\ObjectExtensions.cs" />
+    <Compile Include="ObjectsTypesAndValues\ObjectMappingException.cs" />
+    <Compile Include="ObjectsTypesAndValues\ObjectMemberException.cs" />
+    <Compile Include="ObjectsTypesAndValues\PropertyValue.cs" />
+    <Compile Include="ObjectsTypesAndValues\TypeExtensions.cs" />
+    <Compile Include="ObjectsTypesAndValues\TypeFormatters.cs" />
+    <Compile Include="ObjectsTypesAndValues\TypeException.cs" />
+    <Compile Include="ObjectsTypesAndValues\TypeNotFoundException.cs" />
     <Compile Include="ObjectsTypesAndValues\ValueUtil.cs" />
     <Compile Include="ObjectsTypesAndValues\TypeUtil.cs" />
     <Compile Include="Extensions.cs" />
@@ -167,26 +276,56 @@
     <Compile Include="Ftp\FtpUtil.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Machine.cs" />
-    <Compile Include="ObjectsTypesAndValues\Extensions.cs" />
     <Compile Include="ObjectsTypesAndValues\ObjectUtil.cs" />
     <Compile Include="OleDb\Delete.cs" />
     <Compile Include="OleDb\Execute.cs" />
     <Compile Include="OleDb\Insert.cs" />
     <Compile Include="OleDb\OleDbConnectionInfo.cs" />
+    <Compile Include="OleDb\OleDbConstants.cs" />
     <Compile Include="OleDb\OleDbSettings.cs" />
     <Compile Include="OleDb\OleDbUtil.cs" />
+    <Compile Include="OleDb\Query-orig.cs" />
     <Compile Include="OleDb\Query.cs" />
     <Compile Include="OleDb\Update.cs" />
-    <Compile Include="OrganizationalDefaultSettings.cs" />
+    <Compile Include="ParseException.cs" />
+    <Compile Include="Password.cs" />
+    <Compile Include="Primitives\ObjectValues.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReconstitutedException.cs" />
+    <Compile Include="RelayMessages\IIndentedMessageRelay.cs" />
+    <Compile Include="RelayMessages\IMessageRelay.cs" />
+    <Compile Include="RelayMessages\Indent.cs" />
+    <Compile Include="RelayMessages\IndentHint.cs" />
+    <Compile Include="RelayMessages\RelayerOfExceptions.cs" />
+    <Compile Include="RelayMessages\RelayerOfMessages.cs" />
+    <Compile Include="RelayMessages\RelayIndentedMessagesBase.cs" />
+    <Compile Include="RelayMessages\RelayToConsole.cs" />
+    <Compile Include="RelayMessages\RelayToFile.cs" />
+    <Compile Include="RelayMessages\SystemMessageRelay.cs" />
+    <Compile Include="RelayProgress\IProgressRelay.cs" />
+    <Compile Include="RelayProgress\RelayerOfProgress.cs" />
+    <Compile Include="RelayProgress\RelayProgressBase.cs" />
+    <Compile Include="RelayProgress\RelayProgressToConsole_Basic.cs" />
+    <Compile Include="IStrictSensitive.cs" />
+    <Compile Include="Text\AutoTruncate.cs" />
+    <Compile Include="Text\CharCategory.cs" />
     <Compile Include="Text\Deserialize.cs" />
+    <Compile Include="Text\ExtensionAbstractions.cs" />
     <Compile Include="Text\Extensions.cs" />
+    <Compile Include="Text\HorizontalAlign.cs" />
+    <Compile Include="Text\HorizontalPosition.cs" />
     <Compile Include="Text\Internal\NewtonsoftJsonImpl.cs" />
     <Compile Include="Text\Internal\SystemTextJsonImpl.cs" />
     <Compile Include="Text\JsonProvider.cs" />
+    <Compile Include="Text\RevealOptions.cs" />
     <Compile Include="Text\Serialize.cs" />
     <Compile Include="Text\CharLib.cs" />
+    <Compile Include="Text\TextClean\NonprintablesPolicy.cs" />
     <Compile Include="Text\TextClean\TextClean.cs" />
+    <Compile Include="Text\TextClean\TextCleanAbstractions.cs" />
+    <Compile Include="Text\TextConstants.cs" />
+    <Compile Include="Text\TextGrid\BorderPolicy.cs" />
+    <Compile Include="Text\TextGrid\CellPaddingPolicy.cs" />
     <Compile Include="Text\TextGrid\Column.cs" />
     <Compile Include="Text\TextGrid\EZGrid.cs" />
     <Compile Include="Text\TextGrid\TextGrid.cs" />
@@ -194,8 +333,28 @@
     <Compile Include="Text\TextSearch.cs" />
     <Compile Include="Text\TextSettings.cs" />
     <Compile Include="Text\TextUtil.cs" />
-    <Compile Include="XmlDoc\XmlDoc.cs" />
-    <Compile Include="XmlDoc\XmlDocBuilder.cs" />
+    <Compile Include="Text\TruncateMarker.cs" />
+    <Compile Include="ThisShouldNeverHappenException.cs" />
+    <Compile Include="Try.cs" />
+    <Compile Include="UtilityException.cs" />
+    <Compile Include="ValidationException.cs" />
+    <Compile Include="Xml\Assembly.cs" />
+    <Compile Include="Xml\Class.cs" />
+    <Compile Include="Xml\DocElement.cs" />
+    <Compile Include="Xml\Enum.cs" />
+    <Compile Include="Xml\EnumValue.cs" />
+    <Compile Include="Xml\Exception.cs" />
+    <Compile Include="Xml\Interface.cs" />
+    <Compile Include="Xml\Member.cs" />
+    <Compile Include="Xml\Method.cs" />
+    <Compile Include="Xml\NestedDocElement.cs" />
+    <Compile Include="Xml\Param.cs" />
+    <Compile Include="Xml\Property.cs" />
+    <Compile Include="Xml\Struct.cs" />
+    <Compile Include="Xml\Type.cs" />
+    <Compile Include="Xml\XmlDoc.cs" />
+    <Compile Include="Xml\XmlDocParseException.cs" />
+    <Compile Include="Zap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -204,9 +363,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions %28net462%29\Horseshoe.NET.Abstractions %28net462%29.csproj">
-      <Project>{ad82cbaa-fd68-40b0-ab19-57f255505efb}</Project>
-      <Name>Horseshoe.NET.Abstractions %28net462%29</Name>
+    <ProjectReference Include="..\Horseshoe.NET.Configuration %28net462%29\Horseshoe.NET.Configuration %28net462%29.csproj">
+      <Project>{b30f21c3-d24d-4726-af26-779728c339b3}</Project>
+      <Name>Horseshoe.NET.Configuration %28net462%29</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

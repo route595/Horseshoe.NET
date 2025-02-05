@@ -43,7 +43,7 @@ namespace Horseshoe.NET.ApplicationInsights
                 var telemetryConfig = TelemetryConfiguration.CreateDefault();
                 telemetryConfig.ConnectionString = connectionString;
                 _telemetryClient = new TelemetryClient(telemetryConfig);
-                _telemetryClient.Context.Cloud.RoleName = ConfigurationManager.AppSettings[appSettingsName_CloudRoleName];
+                _telemetryClient.Context.Cloud.RoleName = Config.Get(appSettingsName_CloudRoleName);
             }
             return _telemetryClient;
         }

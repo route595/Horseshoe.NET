@@ -204,10 +204,6 @@
       <Project>{109113d1-c040-4265-896d-c949f9c60569}</Project>
       <Name>Horseshoe.NET %28net462%29</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions %28net462%29\Horseshoe.NET.Abstractions %28net462%29.csproj">
-      <Project>{ad82cbaa-fd68-40b0-ab19-57f255505efb}</Project>
-      <Name>Horseshoe.NET.Abstractions %28net462%29</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.ActiveDirectory %28net462%29\Horseshoe.NET.ActiveDirectory %28net462%29.csproj">
       <Project>{6e9721de-1308-47eb-a5b4-7cb8fb48168b}</Project>
       <Name>Horseshoe.NET.ActiveDirectory %28net462%29</Name>

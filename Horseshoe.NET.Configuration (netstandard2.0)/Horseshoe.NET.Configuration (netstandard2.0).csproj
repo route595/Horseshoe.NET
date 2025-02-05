@@ -6,20 +6,16 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <Authors>Carl Thomas</Authors>
-    <Version>3.1.6</Version>
+    <Version>4.0.0</Version>
     <Description>Configuration utility for .NET.</Description>
-    <Copyright>Copyright © 2020-2024 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
     <Company>Route 595</Company>
     <AssemblyName>Horseshoe.NET.Configuration</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
-    <ProjectReference Include="..\Horseshoe.NET.Abstractions (netstandard2.0)\Horseshoe.NET.Abstractions (netstandard2.0).csproj" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.1" />
   </ItemGroup>
 
 </Project>

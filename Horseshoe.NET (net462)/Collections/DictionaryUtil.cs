@@ -9,6 +9,183 @@ namespace Horseshoe.NET.Collections
     public static class DictionaryUtil
     {
         /// <summary>
+        /// Gets the value of a dictionary entry if it exists, otherwise <c>default</c> (e.g. <c>null</c>).
+        /// </summary>
+        /// <typeparam name="TKey">Type of key.</typeparam>
+        /// <typeparam name="TValue">Type of value.</typeparam>
+        /// <param name="dictionary">A dictionary.</param>
+        /// <param name="key">A key.</param>
+        public static TValue ValueOrDefault<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            if (dictionary.TryGetValue(key, out TValue value))
+            {
+                return value;
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// Adds or updates a value in a dictionary.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key.</typeparam>
+        /// <typeparam name="TValue">Type of value.</typeparam>
+        /// <param name="dictionary">A dictionary.</param>
+        /// <param name="key">A key.</param>
+        /// <param name="value">A value.</param>
+        public static void AddOrReplace<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            // replace
+            if (dictionary.ContainsKey(key))
+            {
+                dictionary[key] = value;
+            }
+            // add
+            else
+            {
+                dictionary.Add(key, value);
+            }
+        }
+
+        /// <summary>
+        /// Adds or updates a value in a dictionary or removes the entry if it exists and the new value is <c>null</c>.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key.</typeparam>
+        /// <typeparam name="TValue">Type of value.</typeparam>
+        /// <param name="dictionary">A dictionary.</param>
+        /// <param name="key">A key.</param>
+        /// <param name="value">A value.</param>
+        public static void AddRemoveOrReplace<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            // remove
+            if (typeof(TValue).IsClass && value == null)
+            {
+                if (dictionary.ContainsKey(key))
+                {
+                    dictionary.Remove(key);
+                }
+            }
+            // replace
+            else if (dictionary.ContainsKey(key))
+            {
+                dictionary[key] = value;
+            }
+            // add
+            else
+            {
+                dictionary.Add(key, value);
+            }
+        }
+
+        /// <summary>
+        /// Returns a new dictionary containing the provided mappings.  If optimizing and argument is 
+        /// already a dictionary then that is what is returned. RTL merging by default, i.e. the last 
+        /// duplicate value overwites any previous ones.  To change this behavior
+        /// see <c>options</c> (<see cref="MergeOptions"/>).
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="mappings">A key/value pair collection</param>
+        /// <param name="options">Dictionary merge options</param>
+        /// <param name="optimize">If <c>ReuseCollection</c> and <c>mappings</c> is alredy of type <c>ImmutableDictionary&lt;TKey,TValue&gt;</c>, returns the original dictionary. Default is <c>None</c>.</param>
+        /// <returns>A new dictionary</returns>
+        public static Dictionary<TKey, TValue> From<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> mappings, MergeOptions options = null, Optimization optimize = default)
+        {
+            if (mappings is Dictionary<TKey, TValue> _dict && (optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection)
+                return _dict;
+            var dict = new Dictionary<TKey, TValue>();
+            TValue value;
+            foreach (var kvp in mappings)
+            {
+                // use new value includes lef
+                value = kvp.Value;
+                if (dict.ContainsKey(kvp.Key))
+                {
+                    // choose new or old value based on client logic
+                    if (options is MergeOptions<TKey, TValue> genericOptions && genericOptions.CustomMerge != null)
+                        value = genericOptions.CustomMerge(dict, mappings, kvp.Key);
+                    // keep old value (a.k.a. left-to-right merging)
+                    else if (options is MergeOptions mergeOptions && mergeOptions.Mode == DictionaryMergeMode.LTR)
+                        continue;
+                }
+                dict[kvp.Key] = value;
+            }
+            return dict;
+        }
+
+        /// <summary>
+        /// Builds a new dictionary from a single mapping.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="mapping">A key/value pair</param>
+        /// <returns>A new dictionary</returns>
+        public static Dictionary<TKey, TValue> From<TKey, TValue>(KeyValuePair<TKey, TValue> mapping)
+        {
+            return From(mapping.Key, mapping.Value);
+        }
+
+        /// <summary>
+        /// Builds a new dictionary from a single mapping.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="key">A key</param>
+        /// <param name="value">A value</param>
+        /// <returns>A new dictionary</returns>
+        public static Dictionary<TKey, TValue> From<TKey, TValue>(TKey key, TValue value)
+        {
+            return new Dictionary<TKey, TValue> { { key, value } };
+        }
+
+        /// <summary>
+        /// Returns a new immutable dictionary containing the provided mappings.  If optimizing and argument is 
+        /// already an immutable dictionary then that is what is returned. RTL merging by default, i.e. the last 
+        /// duplicate value overwites any previous ones.  To change this behavior
+        /// see <c>options</c> (<see cref="MergeOptions"/>).
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="mappings">A key/value pair collection</param>
+        /// <param name="options">Dictionary merge options</param>
+        /// <param name="optimize">If <c>ReuseCollection</c> and <c>mappings</c> is alredy of type <c>ImmutableDictionary&lt;TKey,TValue&gt;</c>, returns the original dictionary. Default is <c>None</c>.</param>
+        /// <returns>A new dictionary</returns>
+        public static ImmutableDictionary<TKey, TValue> ImmutableFrom<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> mappings, MergeOptions options = null, Optimization optimize = default)
+        {
+            if (mappings is ImmutableDictionary<TKey, TValue> iDict && (optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection)
+                return iDict;
+            IDictionary<TKey, TValue> dict;
+            if (mappings is Dictionary<TKey, TValue> _dict && (optimize & Optimization.ReuseCollection) == Optimization.ReuseCollection)
+            {
+                dict = _dict;
+            }
+            else
+            {
+                dict = From(mappings, options: options);
+            }
+            return new ImmutableDictionary<TKey, TValue>(dict);
+        }
+
+        /// <summary>
+        /// Gets the value associated with the specified key
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="dict">A dictionary</param>
+        /// <param name="key">A key </param>
+        /// <param name="value">A value (out)</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool TryGetValue<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey key, out TValue value)
+        {
+            if (dict == null)
+            {
+                value = default;
+                return false;
+            }
+
+            return dict.TryGetValue(key, out value);
+        }
+
+        /// <summary>
         /// Removes and returns a value from a dictionary, like <c>Array.pop()</c> in JavaScript
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
@@ -31,113 +208,236 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
-        /// Appends multiple dictionaries into another.  By default, identical keys are merged right-to-left, i.e. table(s) being appended overwrite 
-        /// table being appended to.  To change this behavior see <see cref="MergeOptions"/>.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
+        /// Appends additional mappings to a dictionary.  By default, a duplicate key causes an exception. 
+        /// To change this behavior see <see cref="MergeOptions"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionariesToAppend">Dictionaries to append</param>
+        /// <param name="mappingCollectionsToAppend">Dictionaries and/or other mapping collections to append</param>
         /// <param name="options">Dictionary merge options</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> Append<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IEnumerable<IDictionary<TKey, TValue>> dictionariesToAppend, MergeOptions<TKey, TValue> options = null)
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> Append<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IEnumerable<IEnumerable<KeyValuePair<TKey, TValue>>> mappingCollectionsToAppend, MergeOptions options = null)
         {
-            List<IDictionary<TKey, TValue>> list = dictionariesToAppend != null
-                ? new List<IDictionary<TKey, TValue>>(dictionariesToAppend)
-                : new List<IDictionary<TKey, TValue>>();
-            list.Insert(0, dictionary);
+            if (dictionary == null)
+                dictionary = new Dictionary<TKey, TValue>();
 
-            return Combine(list, options: options);
+            var _mappingCollectionsToAppend = ListUtil.Prune(mappingCollectionsToAppend); // eliminate null collections
+
+            options = options ?? new MergeOptions();
+
+            foreach (var mappingsToAppend in _mappingCollectionsToAppend)
+            {
+                foreach (var kvp in mappingsToAppend)
+                {
+                    AppendMapping(dictionary, kvp, mappingsToAppend, options);
+                }
+            }
+            return dictionary;
+        }
+
+        private static void AppendMapping<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend, MergeOptions options)
+        {
+            if (dictionary.ContainsKey(key) && options.Mode != DictionaryMergeMode.Error)
+            {
+                if (options is MergeOptions<TKey, TValue> genericOptions && genericOptions.CustomMerge != null)
+                {
+                    dictionary[key] = genericOptions.CustomMerge.Invoke(dictionary, mappingsToAppend, key);
+                }
+                else
+                {
+                    switch (options.Mode)
+                    {
+                        case DictionaryMergeMode.RTL:
+                            dictionary[key] = value;
+                            break;
+                            //case DictionaryMergeMode.LTR:
+                            //    continue;
+                    }
+                }
+            }
+            else
+            {
+                dictionary.Add(key, value);
+            }
+        }
+
+        private static void AppendMapping<TKey, TValue>(IDictionary<TKey, TValue> dictionary, KeyValuePair<TKey, TValue> mapping, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend, MergeOptions options)
+        {
+            AppendMapping(dictionary, mapping.Key, mapping.Value, mappingsToAppend, options);
         }
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  Identical keys are merged left-to-right i.e. table being appended to is not overwritten.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
+        /// Appends additional mappings to a dictionary.  Duplicate keys will be merged left-to-right i.e. ignored. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, IEnumerable{IEnumerable{KeyValuePair{TKey, TValue}}}, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionariesToAppend">Dictionaries to append</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
-            Append(dictionary, dictionariesToAppend, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.LTR });
+        /// <param name="mappingCollectionsToAppend">Dictionaries and/or other mapping collections to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(IDictionary<TKey, TValue> dictionary, params IEnumerable<KeyValuePair<TKey, TValue>>[] mappingCollectionsToAppend) =>
+            Append(dictionary, mappingCollectionsToAppend, options: new MergeOptions { Mode = DictionaryMergeMode.LTR });
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  Identical keys are merged right-to-left i.e. table(s) being appended overwrite table being appended to.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
+        /// Appends additional mappings to a dictionary.  Duplicate keys will be merged right-to-keft i.e. overwritten. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, IEnumerable{IEnumerable{KeyValuePair{TKey, TValue}}}, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionariesToAppend">Dictionaries to append</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(IDictionary<TKey, TValue> dictionary, params IDictionary<TKey, TValue>[] dictionariesToAppend) =>
-            Append(dictionary, dictionariesToAppend, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.RTL });
+        /// <param name="mappingCollectionsToAppend">Dictionaries and/or other mapping collections to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(IDictionary<TKey, TValue> dictionary, params IEnumerable<KeyValuePair<TKey, TValue>>[] mappingCollectionsToAppend) =>
+            Append(dictionary, mappingCollectionsToAppend, options: new MergeOptions { Mode = DictionaryMergeMode.RTL });
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  By default, identical keys are merged right-to-left i.e. table(s) being appended overwrite 
-        /// table being appended to.  To change this behavior see <see cref="MergeOptions"/>.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
+        /// Appends additional mappings to a dictionary.  By default, a duplicate key causes an exception. 
+        /// To change this behavior see <see cref="MergeOptions"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionaryToAppend">Dictionary to append</param>
+        /// <param name="mappingsToAppend">Dictionary or other mapping collection to append</param>
         /// <param name="options">Dictionary merge options</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> Append<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend, MergeOptions<TKey, TValue> options = null) =>
-            Append(dictionary, new[] { dictionaryToAppend }, options: options);
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> Append<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend, MergeOptions options = null) =>
+            Append(dictionary, new[] { mappingsToAppend }, options: options);
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  Identical keys are merged left-to-right i.e. table being appended to is not overwritten.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
+        /// Appends additional mappings to a dictionary.  Duplicate keys will be merged left-to-right i.e. ignored. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, IEnumerable{KeyValuePair{TKey, TValue}}, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionaryToAppend">Dictionaries to append</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend) =>
-            Append(dictionary, dictionaryToAppend, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.LTR });
+        /// <param name="mappingsToAppend">Dictionary or other mapping collection to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend) =>
+            Append(dictionary, mappingsToAppend, options: new MergeOptions { Mode = DictionaryMergeMode.LTR });
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  Identical keys are merged left-to-right i.e. table being appended to is not overwritten.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements. 
-        /// Optimized for improved memory managment, however, source dictionary could be altered before being returned by the method.
+        /// Appends additional mappings to a dictionary.  Duplicate keys will be merged right-to-keft i.e. overwritten. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, IEnumerable{KeyValuePair{TKey, TValue}}, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionaryToAppend">Dictionaries to append</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> AppendLTR_Optimized<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend) =>
-            Append(dictionary, dictionaryToAppend, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.LTR, Optimize = true });
+        /// <param name="mappingsToAppend">Dictionary or other mapping collection to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend) =>
+            Append(dictionary, mappingsToAppend, options: new MergeOptions { Mode = DictionaryMergeMode.RTL });
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  Identical keys are merged right-to-left i.e. table(s) being appended overwrite table being appended to.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
+        /// Appends an additional mapping to a dictionary.  By default, a duplicate key causes an exception. 
+        /// To change this behavior see <see cref="MergeOptions"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionaryToAppend">Dictionaries to append</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend) =>
-            Append(dictionary, dictionaryToAppend, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.RTL });
+        /// <param name="mappingToAppend">A key and value to append</param>
+        /// <param name="options">Dictionary merge options</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> Append<TKey, TValue>(IDictionary<TKey, TValue> dictionary, KeyValuePair<TKey, TValue> mappingToAppend, MergeOptions options = null)
+        {
+            if (dictionary == null)
+                dictionary = new Dictionary<TKey, TValue>();
+
+            AppendMapping(dictionary, mappingToAppend, null, options);
+
+            return dictionary;
+        }
 
         /// <summary>
-        /// Combines multiple dictionaries into one.  Identical keys are merged right-to-left i.e. table(s) being appended overwrite table being appended to.
-        /// Returns a non-<c>null</c> dictionary, possibly with 0 elements.
-        /// Optimized for improved memory managment, however, source dictionary could be altered before being returned by the method.
+        /// Appends an additional mapping to a dictionary.  Duplicate keys will be merged left-to-right i.e. ignored. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, KeyValuePair{TKey, TValue}, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
         /// </summary>
         /// <typeparam name="TKey">Type of key</typeparam>
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionary">A dictionary</param>
-        /// <param name="dictionaryToAppend">Dictionaries to append</param>
-        /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> AppendRTL_Optimized<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dictionaryToAppend) =>
-            Append(dictionary, dictionaryToAppend, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.RTL, Optimize = true });
+        /// <param name="mappingToAppend">A key/value pair to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(IDictionary<TKey, TValue> dictionary, KeyValuePair<TKey, TValue> mappingToAppend)
+        {
+            return Append(dictionary, mappingToAppend, options: new MergeOptions { Mode = DictionaryMergeMode.LTR });
+        }
+
+        /// <summary>
+        /// Appends an additional mapping to a dictionary.  Duplicate keys will be merged right-to-keft i.e. overwritten. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, KeyValuePair{TKey, TValue}, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="dictionary">A dictionary</param>
+        /// <param name="mappingToAppend">A key/value pair to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(IDictionary<TKey, TValue> dictionary, KeyValuePair<TKey, TValue> mappingToAppend)
+        {
+            return Append(dictionary, mappingToAppend, options: new MergeOptions { Mode = DictionaryMergeMode.RTL });
+        }
+
+        /// <summary>
+        /// Appends an additional mapping to a dictionary.  By default, a duplicate key causes an exception. 
+        /// To change this behavior see <see cref="MergeOptions"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="dictionary">A dictionary</param>
+        /// <param name="key">A key to append</param>
+        /// <param name="value">A value to append</param>
+        /// <param name="options">Dictionary merge options</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> Append<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value, MergeOptions options = null)
+        {
+            if (dictionary == null)
+                dictionary = new Dictionary<TKey, TValue>();
+
+            AppendMapping(dictionary, key, value, null, options);
+
+            return dictionary;
+        }
+
+        /// <summary>
+        /// Appends an additional mapping to a dictionary.  Duplicate keys will be merged left-to-right i.e. ignored. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, TKey, TValue, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="dictionary">A dictionary</param>
+        /// <param name="key">A key to append</param>
+        /// <param name="value">A value to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendLTR<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            return Append(dictionary, key, value, options: new MergeOptions { Mode = DictionaryMergeMode.LTR });
+        }
+
+        /// <summary>
+        /// Appends an additional mapping to a dictionary.  Duplicate keys will be merged right-to-keft i.e. overwritten. 
+        /// To change this behavior use <see cref="Append{TKey, TValue}(IDictionary{TKey, TValue}, TKey, TValue, MergeOptions)"/>.
+        /// Returns original dictionary as long as it wasn't <c>null</c>.
+        /// </summary>
+        /// <typeparam name="TKey">Type of key</typeparam>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="dictionary">A dictionary</param>
+        /// <param name="key">A key to append</param>
+        /// <param name="value">A value to append</param>
+        /// <returns>The original dictionary as long as it wasn't <c>null</c>.</returns>
+        public static IDictionary<TKey, TValue> AppendRTL<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            return Append(dictionary, key, value, options: new MergeOptions { Mode = DictionaryMergeMode.RTL });
+        }
 
         /// <summary>
         /// Combines multiple dictionaries into one. By default, identical keys are merged right-to-left, i.e. table(s) being appended overwrite 
@@ -149,52 +449,24 @@ namespace Horseshoe.NET.Collections
         /// <param name="dictionaries">Dictionaries to combine</param>
         /// <param name="options">Dictionary merge options</param>
         /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> Combine<TKey, TValue>(IEnumerable<IDictionary<TKey, TValue>> dictionaries, MergeOptions<TKey, TValue> options = null)
+        public static IDictionary<TKey, TValue> Combine<TKey, TValue>(IEnumerable<IEnumerable<KeyValuePair<TKey, TValue>>> dictionaries, MergeOptions options = null)
         {
-            dictionaries = ArrayUtil.Prune(dictionaries);
+            var _dictionaries = ListUtil.Prune(dictionaries); // eliminate null collections
 
-            if (!dictionaries.Any())
+            if (!_dictionaries.Any())
                 return new Dictionary<TKey, TValue>();
 
-            options = options ?? new MergeOptions<TKey, TValue>();
+            options = options ?? new MergeOptions();
 
-            var dictionary = options.Optimize
-                ? dictionaries.First()
-                : new Dictionary<TKey, TValue>(dictionaries.First());
+            var dictionary = options.Optimize && _dictionaries.First() is IDictionary<TKey, TValue> idict
+                ? idict
+                : From(_dictionaries.First(), options: options);
 
-            var temp = new List<IDictionary<TKey, TValue>>(dictionaries);
-            temp.RemoveAt(0);
-            dictionaries = temp.ToArray();
-
-            foreach (var dictionaryToAppend in dictionaries)
+            for (int i = 1, count = _dictionaries.Count(); i < count; i++)
             {
-                foreach (var kvp in dictionaryToAppend)
+                foreach (var kvp in _dictionaries[i])
                 {
-                    if (dictionary.ContainsKey(kvp.Key))
-                    {
-                        TValue selectedValue;
-                        if (options.Merge != null)
-                        {
-                            selectedValue = options.Merge.Invoke(dictionary, dictionaryToAppend, kvp.Key);
-                        }
-                        else
-                        {
-                            switch (options.Mode)
-                            {
-                                case DictionaryMergeMode.RTL:
-                                default:
-                                    selectedValue = kvp.Value;
-                                    break;
-                                case DictionaryMergeMode.LTR:
-                                    continue;
-                            }
-                        }
-                        dictionary[kvp.Key] = selectedValue;
-                    }
-                    else
-                    {
-                        dictionary.Add(kvp.Key, kvp.Value);
-                    }
+                    AppendMapping(dictionary, kvp, _dictionaries[i], options);
                 }
             }
             return dictionary;
@@ -208,8 +480,8 @@ namespace Horseshoe.NET.Collections
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionaries">Dictionaries to combine</param>
         /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> CombineLTR<TKey, TValue>(params IDictionary<TKey, TValue>[] dictionaries) =>
-            Combine(dictionaries, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.LTR });
+        public static IDictionary<TKey, TValue> CombineLTR<TKey, TValue>(params IEnumerable<KeyValuePair<TKey, TValue>>[] dictionaries) =>
+            Combine(dictionaries, options: new MergeOptions { Mode = DictionaryMergeMode.LTR });
 
         /// <summary>
         /// Combines multiple dictionaries into one. Identical keys are merged left-to-right, i.e. table being appended to is not overwritten.  
@@ -220,8 +492,8 @@ namespace Horseshoe.NET.Collections
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionaries">Dictionaries to combine</param>
         /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> CombineLTR_Optimized<TKey, TValue>(params IDictionary<TKey, TValue>[] dictionaries) =>
-            Combine(dictionaries, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.LTR, Optimize = true });
+        public static IDictionary<TKey, TValue> CombineLTR_Optimized<TKey, TValue>(params IEnumerable<KeyValuePair<TKey, TValue>>[] dictionaries) =>
+            Combine(dictionaries, options: new MergeOptions { Mode = DictionaryMergeMode.LTR, Optimize = true });
 
         /// <summary>
         /// Combines multiple dictionaries into one. Identical keys are merged right-to-left, i.e. table(s) being appended overwrite table being appended to.  
@@ -231,8 +503,8 @@ namespace Horseshoe.NET.Collections
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionaries">Dictionaries to combine</param>
         /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> CombineRTL<TKey, TValue>(params IDictionary<TKey, TValue>[] dictionaries) =>
-            Combine(dictionaries, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.RTL });
+        public static IDictionary<TKey, TValue> CombineRTL<TKey, TValue>(params IEnumerable<KeyValuePair<TKey, TValue>>[] dictionaries) =>
+            Combine(dictionaries, options: new MergeOptions { Mode = DictionaryMergeMode.RTL });
 
         /// <summary>
         /// Combines multiple dictionaries into one. Identical keys are merged right-to-left, i.e. table(s) being appended overwrite table being appended to.  
@@ -243,7 +515,7 @@ namespace Horseshoe.NET.Collections
         /// <typeparam name="TValue">Type of value</typeparam>
         /// <param name="dictionaries">Dictionaries to combine</param>
         /// <returns>A non-<c>null</c> dictionary, possibly with 0 elements</returns>
-        public static IDictionary<TKey, TValue> CombineRTL_Optimized<TKey, TValue>(params IDictionary<TKey, TValue>[] dictionaries) =>
-            Combine(dictionaries, options: new MergeOptions<TKey, TValue> { Mode = DictionaryMergeMode.RTL });
+        public static IDictionary<TKey, TValue> CombineRTL_Optimized<TKey, TValue>(params IEnumerable<KeyValuePair<TKey, TValue>>[] dictionaries) =>
+            Combine(dictionaries, options: new MergeOptions { Mode = DictionaryMergeMode.RTL });
     }
 }

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
 using Horseshoe.NET.Crypto;
-using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET
@@ -13,6 +14,76 @@ namespace Horseshoe.NET
     /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Inspired by SQL, determines if an item is one of a supplied array of values
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="obj">The item to locate</param>
+        /// <param name="collection">The collection to search</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool In<T>(this T obj, params T[] collection)
+        {
+            return In(obj, collection as IEnumerable<T>);
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if an item is one of a supplied array of values
+        /// </summary>
+        /// <typeparam name="T">Type of collection</typeparam>
+        /// <param name="obj">The item to locate</param>
+        /// <param name="collection">The collection to search</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool In<T>(this T obj, IEnumerable<T> collection)
+        {
+            if (collection == null)
+                return false;
+            return collection.Contains(obj);
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if a <c>string</c> is one of a supplied array (not case-senstitive)
+        /// </summary>
+        /// <param name="text">The <c>string</c> to locate</param>
+        /// <param name="collection">The collection of <c>string</c>s to search</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool InIgnoreCase(this string text, params string[] collection)
+        {
+            return InIgnoreCase(text, collection as IEnumerable<string>);
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if a <c>string</c> is one of a supplied array (not case-senstitive)
+        /// </summary>
+        /// <param name="text">The <c>string</c> to locate</param>
+        /// <param name="collection">The collection of <c>string</c>s to search</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool InIgnoreCase(this string text, IEnumerable<string> collection)
+        {
+            return collection.Any(s => string.Equals(s, text, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if a <c>char</c> is one of a supplied array (not case-senstitive)
+        /// </summary>
+        /// <param name="char">The <c>char</c> to locate</param>
+        /// <param name="collection">The collection of <c>char</c>s to search</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool InIgnoreCase(this char @char, IEnumerable<char> collection)
+        {
+            return collection.Any(c => string.Equals(new string(c, 1), new string(@char, 1), StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Inspired by SQL, determines if a <c>char</c> is one of a supplied array of <c>int</c> char codes
+        /// </summary>
+        /// <param name="chr">A <c>char</c> to locate</param>
+        /// <param name="charCodes">A collection or char codes to search</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool In(this char chr, params int[] charCodes)
+        {
+            return In(chr, charCodes?.Select(i => (char)i));
+        }
+
         /// <summary>
         /// Display an assembly name and version
         /// </summary>
@@ -211,8 +282,8 @@ namespace Horseshoe.NET
         private static void _Render(ExceptionInfo exceptionInfo, StringBuilder strb, ExceptionTypeRenderingPolicy typeRendering, bool includeDateTime, bool includeMachineName, bool includeStackTrace, int indent, bool recursive)
         {
             _RenderMessage(exceptionInfo, strb, typeRendering);
-            strb.AppendLineIf(includeDateTime, "Date/Time: " + TextUtil.Reveal(exceptionInfo.DateTime?.ToString("yyyy-MM-dd HH:mm:ss")))
-                .AppendLineIf(includeMachineName, "Source Location: " + TextUtil.Reveal(exceptionInfo.SourceLocation));
+            strb.AppendLineIf(includeDateTime, () => "Date/Time: " + TextUtil.Reveal(exceptionInfo.DateTime?.ToString("yyyy-MM-dd HH:mm:ss")))
+                .AppendLineIf(includeMachineName, () => "Source Location: " + TextUtil.Reveal(exceptionInfo.SourceLocation));
             if (includeStackTrace)
             {
                 strb.AppendLine("Stack Trace:")
@@ -244,104 +315,5 @@ namespace Horseshoe.NET
         public static string ToEncryptedPassword(this Password password, CryptoOptions cryptoOptions) => password.HasSecurePassword
             ? Encrypt.String(TextUtil.ConvertToUnsecureString(password), cryptoOptions)
             : null;
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this byte? inValue, out byte value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this short? inValue, out short value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this int? inValue, out int value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this long? inValue, out long value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this float? inValue, out float value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this double? inValue, out double value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable numerics.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this decimal? inValue, out decimal value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable date/times.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this DateTime? inValue, out DateTime value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
-
-        /// <summary>
-        /// An easy-to-use value sniffing method for nullable Booleans.
-        /// </summary>
-        /// <param name="inValue">The nullable value.</param>
-        /// <param name="value">The non-nullable value, if any.</param>
-        /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool TryHasValue(this bool? inValue, out bool value)
-        {
-            return ValueUtil.TryHasValue(inValue, out value);
-        }
     }
 }

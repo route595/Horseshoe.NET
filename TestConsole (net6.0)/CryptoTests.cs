@@ -168,7 +168,7 @@ namespace TestConsole
                     {
                         var algorithm = new System.Security.Cryptography.RijndaelManaged();
                         var ciphertext = Encrypt.String("This is your life!", new CryptoOptions { Algorithm = algorithm });
-                        Console.WriteLine("This is your life!" + " -> " + ciphertext.Crop(26, truncateMarker: TruncateMarker.LongEllipsis) + " -- Key: " + string.Join(", ", algorithm.Key).Crop(26, truncateMarker: TruncateMarker.LongEllipsis) + " -- IV: " + string.Join(", ", algorithm.IV).Crop(26, truncateMarker: TruncateMarker.LongEllipsis));
+                        Console.WriteLine("This is your life!" + " -> " + TextUtil.Crop(ciphertext, 26, truncateMarker: TruncateMarker.LongEllipsis) + " -- Key: " + TextUtil.Crop(string.Join(", ", algorithm.Key), 26, truncateMarker: TruncateMarker.LongEllipsis) + " -- IV: " + TextUtil.Crop(string.Join(", ", algorithm.IV), 26, truncateMarker: TruncateMarker.LongEllipsis));
                     }
                 }
             ),
@@ -181,7 +181,7 @@ namespace TestConsole
                     {
                         var algorithm = new System.Security.Cryptography.RijndaelManaged { Key = ArrayUtil.Pad(null, 32, padWith: (byte)32) };
                         var ciphertext = Encrypt.String("This is your life!", new CryptoOptions { Algorithm = algorithm });
-                        Console.WriteLine("This is your life!" + " -> " + ciphertext.Crop(26, truncateMarker: TruncateMarker.LongEllipsis) + " -- Key: " + string.Join(", ", algorithm.Key).Crop(26, truncateMarker: TruncateMarker.LongEllipsis) + " -- IV: " + string.Join(", ", algorithm.IV).Crop(26, truncateMarker: TruncateMarker.LongEllipsis));
+                        Console.WriteLine("This is your life!" + " -> " + TextUtil.Crop(ciphertext, 26, truncateMarker: TruncateMarker.LongEllipsis) + " -- Key: " + TextUtil.Crop(string.Join(", ", algorithm.Key), 26, truncateMarker: TruncateMarker.LongEllipsis) + " -- IV: " + TextUtil.Crop(string.Join(", ", algorithm.IV), 26, truncateMarker: TruncateMarker.LongEllipsis));
                     }
                 }
             ),
@@ -194,7 +194,7 @@ namespace TestConsole
                     {
                         var algorithm = new System.Security.Cryptography.RijndaelManaged { Key = ArrayUtil.Pad(null, 32, padWith: (byte)32), IV = ArrayUtil.Pad(null, 16, padWith: (byte)16) };
                         var ciphertext = Encrypt.String("This is your life!", new CryptoOptions { Algorithm = algorithm });
-                        Console.WriteLine("This is your life!" + " -> " + ciphertext.Crop(26, truncateMarker: TruncateMarker.LongEllipsis) + " -- Key: " + string.Join(", ", algorithm.Key).Crop(26, truncateMarker: TruncateMarker.LongEllipsis) + " -- IV: " + string.Join(", ", algorithm.IV).Crop(26, truncateMarker: TruncateMarker.LongEllipsis));
+                        Console.WriteLine("This is your life!" + " -> " + TextUtil.Crop(ciphertext, 26, truncateMarker: TruncateMarker.LongEllipsis) + " -- Key: " + TextUtil.Crop(string.Join(", ", algorithm.Key), 26, truncateMarker: TruncateMarker.LongEllipsis) + " -- IV: " + TextUtil.Crop(string.Join(", ", algorithm.IV), 26, truncateMarker: TruncateMarker.LongEllipsis));
                     }
                 }
             ),
