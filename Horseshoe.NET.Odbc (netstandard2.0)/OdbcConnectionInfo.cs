@@ -16,5 +16,11 @@ namespace Horseshoe.NET.Odbc
         {
             return OdbcUtil.BuildConnectionString(DataSource, credentials: Credentials, additionalConnectionAttributes: AdditionalConnectionAttributes, connectionTimeout: ConnectionTimeout);
         }
+
+        /// <summary>
+        /// Implicitly converts connection strings to <c>OdbcConnectionInfo</c>
+        /// </summary>
+        /// <param name="connectionString"></param>
+        public static implicit operator OdbcConnectionInfo(string connectionString) => new OdbcConnectionInfo { ConnectionString = connectionString };
     }
 }
