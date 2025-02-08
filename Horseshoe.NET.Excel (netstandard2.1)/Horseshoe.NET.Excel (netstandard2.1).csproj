@@ -5,7 +5,7 @@
     <RootNamespace>Horseshoe.NET.Excel</RootNamespace>
     <Nullable>enable</Nullable>
     <AssemblyName>Horseshoe.NET.Excel</AssemblyName>
-    <Version>4.0.0</Version>
+    <Version>4.0.1</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>An Excel file import utility for .NET (uses NPOI).</Description>

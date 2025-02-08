@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Net;
 using System.Security;
 
-using Horseshoe.NET.Crypto;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET

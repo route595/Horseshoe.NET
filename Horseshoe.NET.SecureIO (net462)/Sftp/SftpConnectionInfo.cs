@@ -28,5 +28,11 @@ namespace Horseshoe.NET.SecureIO.Sftp
                 "/" + (ServerPath ?? "") +
                 (Credentials.HasValue ? "?password=*******" : "");
         }
+
+        /// <summary>
+        /// Implicitly converts pseudo connection strings to <c>SftpConnectionInfo</c>
+        /// </summary>
+        /// <param name="pseudoConnectionString"></param>
+        public static implicit operator SftpConnectionInfo(string pseudoConnectionString) => SftpUtil.ParseSftpConnectionString(pseudoConnectionString);
     }
 }

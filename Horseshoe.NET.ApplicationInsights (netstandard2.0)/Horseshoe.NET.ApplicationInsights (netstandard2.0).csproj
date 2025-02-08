@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.ApplicationInsights</RootNamespace>
     <AssemblyName>Horseshoe.NET.ApplicationInsights</AssemblyName>
-    <Version>4.0.0</Version>
+    <Version>4.0.1</Version>
     <Description>Easily add Application Insights to an app with these few shortcuts.</Description>
     <Copyright>Copyright © 2020-2025 Route 595</Copyright>
     <Company>Route 595</Company>

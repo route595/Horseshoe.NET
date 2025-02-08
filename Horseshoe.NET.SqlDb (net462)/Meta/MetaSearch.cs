@@ -66,7 +66,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     statement,
                     commandTimeout: commandTimeout
                 )
-                    .AsCollection(rowParser: RowParser.From((reader) => new Db(reader["name"] as string) { Parent = server }))
+                    .AsList(rowParser: RowParser.From((reader) => new Db(reader["name"] as string) { Parent = server }))
                     .OrderBy(db => db.Name);
                 if (filter != null)
                 {
@@ -295,7 +295,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     statement,
                     commandTimeout: commandTimeout
                 )
-                .AsCollection
+                .AsList
                 (
                     rowParser: RowParser.From((reader) => new DbObject
                     (
@@ -596,7 +596,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     statement,
                     commandTimeout: commandTimeout
                 )
-                .AsCollection
+                .AsList
                 (
                     rowParser: RowParser.From((reader) => new DbColumn
                     (
@@ -816,7 +816,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     commandTimeout: commandTimeout,
                     autoTrunc: AutoTruncate.Zap
                 )
-                .AsCollection
+                .AsList
                 (
                     rowParser: RowParser.From((object[] objects) => objects[0])
                 );
@@ -944,7 +944,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     statement,
                     commandTimeout: commandTimeout
                 )
-                .AsCollection
+                .AsList
                 (
                     rowParser: RowParser.ScalarString
                 );

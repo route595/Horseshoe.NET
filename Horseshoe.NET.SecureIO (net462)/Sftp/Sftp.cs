@@ -22,13 +22,13 @@ namespace Horseshoe.NET.SecureIO.Sftp
 
         public static void UploadFile
         (
-            string filePath,
+            FilePath sourceFile,
             SftpConnectionInfo connectionInfo = null,
             string serverPath = null,
             string serverFileName = null,
             bool isBinary = false,
             Encoding encoding = null,
-            Action<string, long, int, string> fileUploaded = null
+            Action<string, long, int, string> onFileUploaded = null
         )
         {
             byte[] fileContents;
@@ -36,91 +36,68 @@ namespace Horseshoe.NET.SecureIO.Sftp
             // Get the file bytes
             if (isBinary)
             {
-                fileContents = File.ReadAllBytes(filePath);
+                fileContents = File.ReadAllBytes(sourceFile);
             }
             else
             {
-                using (StreamReader sourceStream = new StreamReader(filePath))
+                using (StreamReader sourceStream = new StreamReader(sourceFile))
                 {
                     fileContents = (encoding ?? Encoding.Default).GetBytes(sourceStream.ReadToEnd());
                 }
             }
 
-            UploadFile(serverFileName ?? Path.GetFileName(filePath), fileContents, connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded);
+            CreateFile(serverFileName ?? Path.GetFileName(sourceFile), fileContents, connectionInfo: connectionInfo, serverPath: serverPath, onFileUploaded: onFileUploaded);
         }
 
-        public static void UploadFile
+        public static void CreateFile
         (
-            FileInfo file,
-            SftpConnectionInfo connectionInfo = null,
-            string serverPath = null,
-            string serverFileName = null,
-            bool isBinary = false,
-            Encoding encoding = null,
-            Action<string, long, int, string> fileUploaded = null
-        )
-        {
-            UploadFile
-            (
-                file.FullName,
-                connectionInfo: connectionInfo,
-                serverPath: serverPath,
-                serverFileName: serverFileName,
-                isBinary: isBinary,
-                encoding: encoding,
-                fileUploaded: fileUploaded
-            );
-        }
-
-        public static void UploadFile
-        (
-            string fileName,
+            string destFileName,
             string contents,
             SftpConnectionInfo connectionInfo = null,
             string serverPath = null,
             Encoding encoding = null,
-            Action<string, long, int, string> fileUploaded = null
+            Action<string, long, int, string> onFileUploaded = null
         )
         {
             // Get the content bytes
             byte[] fileContents = (encoding ?? Encoding.Default).GetBytes(contents);
 
-            UploadFile(fileName, fileContents, connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded);
+            CreateFile(destFileName, fileContents, connectionInfo: connectionInfo, serverPath: serverPath, onFileUploaded: onFileUploaded);
         }
 
-        public static void UploadFile
+        public static void CreateFile
         (
             NamedMemoryStream namedStream,
             SftpConnectionInfo connectionInfo = null,
             string serverPath = null,
-            Action<string, long, int, string> fileUploaded = null
+            Action<string, long, int, string> onFileUploaded = null
         )
         {
-            UploadFile(namedStream.Name, namedStream, connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded);
+            CreateFile(namedStream.Name, namedStream, connectionInfo: connectionInfo, serverPath: serverPath, onFileUploaded: onFileUploaded);
         }
 
-        public static void UploadFile
+        public static void CreateFile
         (
-            string fileName,
+            string destFileName,
             byte[] contents,
             SftpConnectionInfo connectionInfo = null,
             string serverPath = null,
-            Action<string, long, int, string> fileUploaded = null
+            Action<string, long, int, string> onFileUploaded = null
         )
         {
             var memoryStream = new MemoryStream();
             memoryStream.Write(contents, 0, contents.Length);
             memoryStream.Position = 0;
-            UploadFile(fileName, memoryStream, connectionInfo: connectionInfo, serverPath: serverPath, fileUploaded: fileUploaded);
+            CreateFile(destFileName, memoryStream, connectionInfo: connectionInfo, serverPath: serverPath, onFileUploaded: onFileUploaded);
         }
 
-        public static void UploadFile
+        public static void CreateFile
         (
-            string fileName,
+            string destFileName,
             Stream contents,
             SftpConnectionInfo connectionInfo = null,
             string serverPath = null,
-            Action<string, long, int, string> fileUploaded = null
+            Action<string, long, int, string> onFileUploaded = null
         )
         {
             ConnectAndDoAction
@@ -135,8 +112,8 @@ namespace Horseshoe.NET.SecureIO.Sftp
                         server.ChangeDirectory(resultantServerPath);
                     }
                     server.BufferSize = 4 * 1024;
-                    server.UploadFile(contents, fileName, (ulongValue) => bytesUploaded = (long)ulongValue);
-                    fileUploaded?.Invoke(TextUtil.Reveal(fileName), bytesUploaded, 0, "File upload action raised no errors");
+                    server.UploadFile(contents, destFileName, (ulongValue) => bytesUploaded = (long)ulongValue);
+                    onFileUploaded?.Invoke(TextUtil.Reveal(destFileName), bytesUploaded, 0, "File upload action raised no errors");
                 }
             );
         }

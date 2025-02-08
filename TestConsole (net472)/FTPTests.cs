@@ -105,15 +105,15 @@ namespace TestConsole
             new MenuHeader("SFTP Tests"),
             BuildMenuRoutine
             (
-                "Test SFTP Upload",
+                "Test SFTP Create",
                 () =>
                 {
-                    Sftp.UploadFile
+                    Sftp.CreateFile
                     (
                         "hello.txt",
                         "Hello World!",
                         connectionInfo: SftpUtil.ParseSftpConnectionString(sftpPseudoConnectionString),
-                        fileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription)
+                        onFileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription)
                     );
                 }
             ),

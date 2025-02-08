@@ -190,46 +190,46 @@ namespace Horseshoe.NET.Db
         public abstract DataAdapterT BuildDataAdapter(CmdT cmd);
 
         /// <summary>
-        /// Executes the database query defined in this <c>QueryBase</c> and returns the rows as objects of type <c>T</c>.
+        /// Executes the database query defined in this <c>QueryBase</c> and returns the rows as a list of type <c>T</c>.
         /// By convention, the properties of <c>T</c> correspond to the data columns returned by the query.
         /// </summary>
-        /// <returns>A collection of type <c>T</c></returns>
-        public IEnumerable<T> AsCollection<T>(RowParser<T> rowParser = null)
+        /// <returns>A list of type <c>T</c></returns>
+        public List<T> AsList<T>(RowParser<T> rowParser = null)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             if (Connection != null)
             {
-                var list = AsList(Connection, rowParser: rowParser);
+                var list = AsListInternal(Connection, rowParser: rowParser);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
             using (var conn = LaunchConnection())
             {
-                var list = AsList(conn, rowParser: rowParser);
+                var list = AsListInternal(conn, rowParser: rowParser);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
         }
 
         /// <summary>
-        /// Asynchronously executes the database query defined in this <c>QueryBase</c> and returns the rows as objects of type <c>T</c>.
+        /// Asynchronously executes the database query defined in this <c>QueryBase</c> and returns the rows as a list of type <c>T</c>.
         /// By convention, the properties of <c>T</c> correspond to the data columns returned by the query.
         /// </summary>
-        /// <returns>A collection of type <c>T</c></returns>
-        public async Task<IEnumerable<T>> AsCollectionAsync<T>(RowParser<T> rowParser = null)
+        /// <returns>A list of type <c>T</c></returns>
+        public async Task<List<T>> AsListAsync<T>(RowParser<T> rowParser = null)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             if (Connection != null)
             {
-                var list = await AsListAsync(Connection, rowParser: rowParser);
+                var list = await AsListInternalAsync(Connection, rowParser: rowParser);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
             using (var conn = LaunchConnection())
             {
-                var list = await AsListAsync(conn, rowParser: rowParser);
+                var list = await AsListInternalAsync(conn, rowParser: rowParser);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
@@ -245,13 +245,13 @@ namespace Horseshoe.NET.Db
 
             if (Connection != null)
             {
-                var list = AsObjects(Connection);
+                var list = AsObjectsInternal(Connection);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
             using (var conn = LaunchConnection())
             {
-                var list = AsObjects(conn);
+                var list = AsObjectsInternal(conn);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
@@ -267,35 +267,59 @@ namespace Horseshoe.NET.Db
 
             if (Connection != null)
             {
-                var list = await AsObjectsAsync(Connection);
+                var list = await AsObjectsInternalAsync(Connection);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
             using (var conn = LaunchConnection())
             {
-                var list = await AsObjectsAsync(conn);
+                var list = await AsObjectsInternalAsync(conn);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return list;
             }
         }
 
         /// <summary>
-        /// Executes the database query defined in this <c>QueryBase</c> and returns the data in a <c>DataTable</c>. 
+        /// Executes the database query defined in this <c>QueryBase</c> and returns the data in a <c>DataSet</c>. 
         /// </summary>
-        /// <returns>A <c>DataTable</c></returns>
-        public DataTable AsDataTable()
+        /// <param name="tableName">The name of the data table in the data set</param>
+        /// <returns>A <c>DataSet</c></returns>
+        public DataSet AsDataSet(string tableName = null)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
             if (Connection != null)
             {
-                var dataSet = AsDataSet(Connection, CommandType.In(CommandType.StoredProcedure, CommandType.TableDirect) ? Statement : null);
+                var dataSet = AsDataSetInternal(Connection, tableName ?? (CommandType.In(CommandType.StoredProcedure, CommandType.TableDirect) ? Statement : null));
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return dataSet;
+            }
+            using (var conn = LaunchConnection())
+            {
+                var dataSet = AsDataSetInternal(conn, tableName ?? (CommandType.In(CommandType.StoredProcedure, CommandType.TableDirect) ? Statement : null));
+                SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
+                return dataSet;
+            }
+        }
+
+        /// <summary>
+        /// Executes the database query defined in this <c>QueryBase</c> and returns the data in a <c>DataTable</c>. 
+        /// </summary>
+        /// <param name="name">The data table name</param>
+        /// <returns>A <c>DataTable</c></returns>
+        public DataTable AsDataTable(string name = null)
+        {
+            SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
+
+            if (Connection != null)
+            {
+                var dataSet = AsDataSetInternal(Connection, name ?? (CommandType.In(CommandType.StoredProcedure, CommandType.TableDirect) ? Statement : null));
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
             }
             using (var conn = LaunchConnection())
             {
-                var dataSet = AsDataSet(conn, CommandType.In(CommandType.StoredProcedure, CommandType.TableDirect) ? Statement : null);
+                var dataSet = AsDataSetInternal(conn, name ?? (CommandType.In(CommandType.StoredProcedure, CommandType.TableDirect) ? Statement : null));
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataSet.Tables.Count > 0 ? dataSet.Tables[0] : null;
             }
@@ -312,13 +336,13 @@ namespace Horseshoe.NET.Db
 
             if (Connection != null)
             {
-                var dataReader = AsDataReader(Connection, keepOpen);
+                var dataReader = AsDataReaderInternal(Connection, keepOpen);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataReader;
             }
             using (var conn = LaunchConnection())
             {
-                var dataReader = AsDataReader(conn, keepOpen);
+                var dataReader = AsDataReaderInternal(conn, keepOpen);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataReader;
             }
@@ -335,13 +359,13 @@ namespace Horseshoe.NET.Db
 
             if (Connection != null)
             {
-                var dataReader = await AsDataReaderAsync(Connection, keepOpen);
+                var dataReader = await AsDataReaderInternalAsync(Connection, keepOpen);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataReader;
             }
             using (var conn = LaunchConnection())
             {
-                var dataReader = await AsDataReaderAsync(conn, keepOpen);
+                var dataReader = await AsDataReaderInternalAsync(conn, keepOpen);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return dataReader;
             }
@@ -357,13 +381,13 @@ namespace Horseshoe.NET.Db
 
             if (Connection != null)
             {
-                var obj = AsScalar(Connection);
+                var obj = AsScalarInternal(Connection);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return obj;
             }
             using (var conn = LaunchConnection())
             {
-                var obj = AsScalar(conn);
+                var obj = AsScalarInternal(conn);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return obj;
             }
@@ -379,23 +403,23 @@ namespace Horseshoe.NET.Db
 
             if (Connection != null)
             {
-                var obj = await AsScalarAsync(Connection);
+                var obj = await AsScalarInternalAsync(Connection);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return obj;
             }
             using (var conn = LaunchConnection())
             {
-                var obj = await AsScalarAsync(conn);
+                var obj = await AsScalarInternalAsync(conn);
                 SystemMessageRelay.RelayMethodReturn(group: MessageRelayGroup);
                 return obj;
             }
         }
 
-        private IEnumerable<T> AsList<T>(ConnT conn, RowParser<T> rowParser = null)
+        private List<T> AsListInternal<T>(ConnT conn, RowParser<T> rowParser = null)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            rowParser = rowParser ?? RowParser.BuildAutoParser<T>();  // column -> property mapper
+            rowParser = rowParser ?? RowParser.BuildAutoParser<T>();  // basic column -> property mapper
             var list = new List<T>();
             using (var command = BuildCommand(conn))
             {
@@ -432,11 +456,11 @@ namespace Horseshoe.NET.Db
             return list;
         }
 
-        private async Task<IEnumerable<T>> AsListAsync<T>(ConnT conn, RowParser<T> rowParser = null)
+        private async Task<List<T>> AsListInternalAsync<T>(ConnT conn, RowParser<T> rowParser = null)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
-            rowParser = rowParser ?? RowParser.BuildAutoParser<T>();  // column -> property mapper
+            rowParser = rowParser ?? RowParser.BuildAutoParser<T>();  // basic column -> property mapper
             var list = new List<T>();
             using (var command = BuildCommand(conn))
             {
@@ -473,7 +497,7 @@ namespace Horseshoe.NET.Db
             return list;
         }
 
-        private IEnumerable<object[]> AsObjects(ConnT conn)
+        private IEnumerable<object[]> AsObjectsInternal(ConnT conn)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
@@ -486,7 +510,7 @@ namespace Horseshoe.NET.Db
             }
         }
 
-        private async Task<IEnumerable<object[]>> AsObjectsAsync(ConnT conn)
+        private async Task<IEnumerable<object[]>> AsObjectsInternalAsync(ConnT conn)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
@@ -499,7 +523,7 @@ namespace Horseshoe.NET.Db
             }
         }
 
-        private DataSet AsDataSet(ConnT conn, string tableName)
+        private DataSet AsDataSetInternal(ConnT conn, string tableName)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
@@ -525,7 +549,7 @@ namespace Horseshoe.NET.Db
             }
         }
 
-        private IDataReader AsDataReader(ConnT conn, bool keepOpen)
+        private IDataReader AsDataReaderInternal(ConnT conn, bool keepOpen)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
@@ -546,7 +570,7 @@ namespace Horseshoe.NET.Db
             return dataReader;
         }
 
-        private async Task<IDataReader> AsDataReaderAsync(ConnT conn, bool keepOpen)
+        private async Task<IDataReader> AsDataReaderInternalAsync(ConnT conn, bool keepOpen)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
@@ -567,7 +591,7 @@ namespace Horseshoe.NET.Db
             return dataReader;
         }
 
-        private object AsScalar(ConnT conn)
+        private object AsScalarInternal(ConnT conn)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 
@@ -580,7 +604,7 @@ namespace Horseshoe.NET.Db
             }
         }
 
-        private async Task<object> AsScalarAsync(ConnT conn)
+        private async Task<object> AsScalarInternalAsync(ConnT conn)
         {
             SystemMessageRelay.RelayMethodInfo(group: MessageRelayGroup);
 

@@ -10,11 +10,31 @@ using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.ActiveDirectory
 {
+    /// <summary>
+    /// Common Active Directory related tasks
+    /// </summary>
     public static class ADUtil
     {
-        public static ADUser Authenticate(string userIdNameOrEmail, string plainTextPassword)
+        /// <summary>
+        /// Authenticates and gets info about a user
+        /// </summary>
+        /// <param name="userId">A unique user identifier including account ID, display name or email (options depend on <c>propertiesToSearch</c>)</param>
+        /// <param name="password">A password that is kept secure under the hood</param>
+        /// <param name="propertiesToLoad">Optional optimization, specify which properties LDAP will return.</param>
+        /// <param name="propertiesToSearch">Optional optimization, specify which LDAP properties may be searched (e.g. "sAMAccountName", "mail|userPrincipalName", etc.)</param>
+        /// <param name="peekFilter">Allow client access to generated filters prior to querying LDAP.</param>
+        /// <returns>An AD user</returns>
+        /// <exception cref="ADLoginException"></exception>
+        public static ADUser Authenticate
+        (
+            string userId, 
+            Password password,
+            string propertiesToLoad = ADConstants.UserProperties.Default,
+            string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
+            Action<string> peekFilter = null
+        )
         {
-            if (string.IsNullOrEmpty(userIdNameOrEmail))
+            if (string.IsNullOrEmpty(userId))
             {
                 throw new ADLoginException("Please supply a user name");
             }
@@ -22,20 +42,31 @@ namespace Horseshoe.NET.ActiveDirectory
             var context = ADEngine.GetDomainContext();
             //using (var context = ADEngine.GetDomainContext())
             //{
-            if (context.ValidateCredentials(userIdNameOrEmail, plainTextPassword, ContextOptions.SecureSocketLayer | ContextOptions.SimpleBind))
+            if (context.ValidateCredentials(userId, password.ToUnsecurePassword(), ContextOptions.SecureSocketLayer | ContextOptions.SimpleBind))
             {
-                return GetUser(userIdNameOrEmail);
+                return GetUser(userId, propertiesToLoad: propertiesToLoad, propertiesToSearch: propertiesToSearch, peekFilter: peekFilter);
             }
             //}
             throw new ADLoginException("Login failed");
         }
 
-        public static ADUser GetUser(string userIdNameOrEmail,
+        /// <summary>
+        /// Gets info about a user
+        /// </summary>
+        /// <param name="userId">A unique user identifier including account ID, display name or email (options depend on <c>propertiesToSearch</c>)</param>
+        /// <param name="propertiesToLoad">Optional optimization, specify which properties LDAP will return.</param>
+        /// <param name="propertiesToSearch">Optional optimization, specify which LDAP properties may be searched (e.g. "sAMAccountName", "mail|userPrincipalName", etc.)</param>
+        /// <param name="peekFilter">Allow client access to generated filters prior to querying LDAP.</param>
+        /// <returns>An AD user</returns>
+        public static ADUser GetUser
+        (
+            string userId,
             string propertiesToLoad = ADConstants.UserProperties.Default,
             string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
-            Action<string> peekFilter = null)
+            Action<string> peekFilter = null
+        )
         {
-            var searchResult = ADEngine.GetUser(userIdNameOrEmail, propertiesToLoad, propertiesToSearch, peekFilter);
+            var searchResult = ADEngine.GetUser(userId, propertiesToLoad, propertiesToSearch, peekFilter);
             var dict = new Dictionary<string, object>();
 
             foreach (DictionaryEntry entry in searchResult.Properties)
@@ -57,18 +88,18 @@ namespace Horseshoe.NET.ActiveDirectory
             return new ADUser(dict);
         }
 
-        public static DirectoryEntry GetUserEntry(string userIdNameOrEmail,
+        public static DirectoryEntry GetUserEntry(string userId,
             string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
             Action<string> peekFilter = null)
         {
-            return ADEngine.GetUser(userIdNameOrEmail, "*", propertiesToSearch, peekFilter).GetDirectoryEntry();
+            return ADEngine.GetUser(userId, "*", propertiesToSearch, peekFilter).GetDirectoryEntry();
         }
 
-        public static IEnumerable<string> EnumerateUserProperties(string userIdNameOrEmail, int maxLength = 0,
+        public static IEnumerable<string> EnumerateUserProperties(string userId, int maxLength = 0,
             string propertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
             Action<string> peekFilter = null)
         {
-            var searchResult = ADEngine.GetUser(userIdNameOrEmail, "*", propertiesToSearch, peekFilter);
+            var searchResult = ADEngine.GetUser(userId, "*", propertiesToSearch, peekFilter);
             var list = new List<string>();
             foreach (DictionaryEntry entry in searchResult.Properties)
             {
@@ -111,13 +142,13 @@ namespace Horseshoe.NET.ActiveDirectory
             return list;
         }
 
-        public static void AssignUserToGroup(string userIdNameOrEmail, string groupName,
+        public static void AssignUserToGroup(string userId, string groupName,
             string userPropertiesToSearch = ADConstants.UserSearchProperties.GetDefault,
             string groupPropertiesToLoad = ADConstants.GroupProperties.member,
             Action<string> peekUserFilter = null, Action<string> peekGroupFilter = null,
             Action beforeCommit = null, Action afterCommit = null)
         {
-            var user = GetUserEntry(userIdNameOrEmail, propertiesToSearch: userPropertiesToSearch, peekFilter: peekUserFilter);
+            var user = GetUserEntry(userId, propertiesToSearch: userPropertiesToSearch, peekFilter: peekUserFilter);
             var group = GetGroupEntry(groupName, propertiesToLoad: groupPropertiesToLoad, peekFilter: peekGroupFilter);
             AssignUserToGroup(user, group, beforeCommit: beforeCommit, afterCommit: afterCommit);
         }
@@ -136,12 +167,12 @@ namespace Horseshoe.NET.ActiveDirectory
             afterCommit?.Invoke();
         }
 
-        public static IEnumerable<ADUser> SearchUsers(string partialUserIdNameOrEmail,
+        public static IEnumerable<ADUser> SearchUsers(string partialUserId,
             string propertiesToLoad = ADConstants.UserProperties.Default,
             string propertiesToSearch = ADConstants.UserSearchProperties.SearchDefault,
             Func<List<ADUser>, List<ADUser>> alterList = null, Action<string> peekFilter = null)
         {
-            var searchResultCollection = ADEngine.SearchUsers(partialUserIdNameOrEmail, propertiesToLoad,
+            var searchResultCollection = ADEngine.SearchUsers(partialUserId, propertiesToLoad,
                 propertiesToSearch, peekFilter: peekFilter);
             var users = new List<ADUser>();
 

@@ -5,7 +5,7 @@
     <RootNamespace>Horseshoe.NET.OracleDb</RootNamespace>
     <Description>ODP.NET-based native Oracle data access wrappers</Description>
     <Copyright>Copyright © 2020-2025 Route 595</Copyright>
-    <Version>4.0.0</Version>
+    <Version>4.0.1</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <SignAssembly>true</SignAssembly>

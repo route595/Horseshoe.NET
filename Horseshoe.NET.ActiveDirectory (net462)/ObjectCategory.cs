@@ -5,6 +5,7 @@
         computer,
         contact,
         person,
+        group,
         nTDSDSA
     }
 }

@@ -80,7 +80,8 @@
     <Compile Include="DomainController.cs" />
     <Compile Include="DomainInfo.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="FilterFactory.cs" />
+    <Compile Include="LdapSearchMode.cs" />
+    <Compile Include="LdapFiltersForAD.cs" />
     <Compile Include="ILdapFilter.cs" />
     <Compile Include="LdapFilter.cs" />
     <Compile Include="LdapFilterDescriptionBuilder.cs" />
