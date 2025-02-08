@@ -6,7 +6,7 @@ ADO.NET-based ODBC data access wrappers
 
 ## Code Examples
 
-```
+```c#
 // DB connection not established and statement not executed yet
 var query = Query.FromStatement
 (

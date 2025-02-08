@@ -6,7 +6,7 @@ Services for Active Directory authentication and LDAP querying.
 
 ## Code Examples
 
-```
+```c#
 var userIdNameOrEmail = "djones1" -or- "david.jones@mybiz.com" -or- "Jones, David E. [Contractor]";
 var ldapProperties = "name|cn|samaccountname|memberof";   // (optional)
 
