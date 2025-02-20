@@ -29,6 +29,7 @@ result.selectedItems     // [ "Monday", "Tuesday", "Wednesday" ]
                   // Press any key to try again…
 > 2               // [ "Monday" ]
 > 2-4,6           // [ "Monday", "Tuesday", "Wednesday", "Friday" ]
+> all             // [ "Sunday", "Monday",      ...    , "Friday", "Saturday" ]
 > all except 1,7  // [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" ]
 > none (or blank) // [ ]
 ```
@@ -37,16 +38,16 @@ result.selectedItems     // [ "Monday", "Tuesday", "Wednesday" ]
 
 ```c#
 var plaintext = "H1ghW@y2Hev3n";
-var options = new CryptoOptions { IsCiphertextBase64Encoded = true };
-ciphertext = Encrypt.String(plaintext, options);     // "2puPR6R9//bo/D3hK+bONQ=="
-plaintext = Decrypt.String(ciphertext, options);     // "H1ghW@y2Hev3n"
+var b64Options = new CryptoOptions { IsCiphertextBase64Encoded = true };
+ciphertext = Encrypt.String(plaintext, b64Options);  // "2puPR6R9//bo/D3hK+bONQ=="
+plaintext = Decrypt.String(ciphertext, b64Options);  // "H1ghW@y2Hev3n"
 ```
 
 #### Horseshoe.NET.Text
 
 ```c#
-var phrase = "Å¢t Øñę\u0000”;                        // Unicode > ASCII & drop ctrls
-TextClean.ToAsciiPrintable(phrase);                  // "Act One"  
+var phrase = "Å¢t Øñę\u0000”;
+TextClean.ToAsciiPrintable(phrase);      // "Act One" (Unicode > ASCII, ctrl > '')
 TextUtil.Reveal(phrase, options: RevealOptions.All);
 // "Å¢t Øñę" -> ['Å'-197]['¢'-162]['t'-116][space]['Ø'-216]['ñ'-241]['ę'-281][NUL]
 // "Act One" -> [‘A’-65 ][‘c’-99 ][’t’-116][space]['O'-79 ][’n'-110]['e'-101]

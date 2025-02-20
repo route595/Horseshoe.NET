@@ -12,7 +12,7 @@ var ldapProperties = "name|cn|samaccountname|memberof";   // (optional)
 
 var user = ADUtil.GetUser(userIdNameOrEmail, propertiesToLoad: ldapProperties);
 -or-
-var user = ADUtil.Authenticate(userIdNameOrEmail, "P@$$W0rd123");
+var user = ADUtil.Authenticate(userIdNameOrEmail, "P@$$W0rd123", propertiesToLoad: ldapProperties);
 
 user.GetGroups(orderByAdsPath: true);        // "All Contractors", "DB Admins", "Hiring Team"...
 user.OU;                                     // "Contractors"

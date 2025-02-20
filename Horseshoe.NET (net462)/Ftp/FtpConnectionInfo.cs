@@ -38,5 +38,11 @@
         {
             return FtpUtil.BuildConnectionString(this, hidePassword: true);
         }
+
+        /// <summary>
+        /// Implicitly converts pseudo connection strings to <c>FtpConnectionInfo</c>
+        /// </summary>
+        /// <param name="pseudoConnectionString"></param>
+        public static implicit operator FtpConnectionInfo(string pseudoConnectionString) => FtpUtil.ParseFtpConnectionString(pseudoConnectionString);
     }
 }

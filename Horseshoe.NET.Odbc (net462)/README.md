@@ -11,7 +11,7 @@ ADO.NET-based ODBC data access wrappers
 var query = Query.FromStatement
 (
     "Server=MYSVR;Database=MYDB;UID=me;PWD=myPwd", 
-    "SELECT * FROM MyTable"
+    "SELECT * FROM [MyTable]"
 ); 
 
 // creating a row parser offers fine grained control over converting data rows to objects
@@ -19,15 +19,19 @@ var rowParser = new RowParser<MyModel>
 (
     (IDataReader reader) => new MyModel
     {
-        MyStringProperty = Zap.String(reader["col1"]),
-        MyNonNullStringProperty = (string)reader["col2"],
-        MyNullableIntProperty = Zap.NInt(reader["col3"]),
-        MyNonNullIntProperty = (int)reader["col4"],
-        MyCompoundProperty = new MyOtherClass((int)reader["col5"], (string)reader["col6"])
+        MyStringProperty = Zap.String(reader["varcharColumn"]),
+        MyNonNullStringProperty = (string)reader["nonNullVarcharColumn"],
+        MyNullableIntProperty = Zap.NInt(reader["intColumn"]),
+        MyNonNullIntProperty = (int)reader["nonNullIntColumn"],
+        MyCustomProperty = new MyCustomClass
+        {
+            ID = ((int)reader["nonNullIntColumn2"], 
+            Description = (string)reader["nonNullVarcharColumn2"]
+        }
     }
 );
 
-// the following will cause the DB connection to open and the statement to execute
+// the following causes the DB connection to open and the statement to execute
 IEnumerable<MyModel> list = query.AsList(rowParser);
 string str = Zap.String(query.AsScalar());
 DataTable dataTable = query.AsDataTable("My DataTable");

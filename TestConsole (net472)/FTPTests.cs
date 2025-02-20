@@ -21,12 +21,12 @@ namespace TestConsole
                 "Test FTP Upload",
                 () =>
                 {
-                    Ftp.UploadFile
+                    Ftp.CreateFile
                     (
                         "hello.txt",
                         "Hello World!",
                         connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
-                        fileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
+                        onFileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
                         requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                 }
@@ -36,12 +36,12 @@ namespace TestConsole
                 "Test FTPS Upload",
                 () =>
                 {
-                    Ftp.UploadFile
+                    Ftp.CreateFile
                     (
                         "hello.txt",
                         "Hello World!",
                         connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString.Replace("ftp://", "ftps://")),
-                        fileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
+                        onFileUploaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Upload results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
                         requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                 }
@@ -55,7 +55,7 @@ namespace TestConsole
                     (
                         "hello.txt",
                         connectionInfo: FtpUtil.ParseFtpConnectionString(ftpPseudoConnectionString),
-                        fileDownloaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Download results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
+                        onFileDownloaded: (fileName, fileSize, statusCode, statusDescription) => Console.WriteLine("Download results: " + fileName + " - " + FileUtil.GetDisplayFileSize(fileSize) + " - " + statusDescription),
                         requestUriCreated: (uri) => Console.WriteLine("URI: " + uri)
                     );
                     Console.WriteLine("File length: " + stream.Length);

@@ -7,8 +7,8 @@ A set of common methods and classes for handling JWTs and a subset of basic OAut
 ## Code Examples
 
 ```c#
+// mint a token
 // note: the same digital signature crypto key that creates the digital signature is also used to validate it
-// note: roles may very well include Active Directory group memberships
 TokenService.CreateAccessToken 
 (
     tokenKey,            // e.g. encoding.GetBytes("ah476&ewj^!09")
@@ -16,8 +16,9 @@ TokenService.CreateAccessToken
     keyId,               // e.g. "0001"
     lifespanInSeconds,   // default is 3600 (1 hour)
     securityAlgorithm    // default is "HS256"
-);                                            // -> "eyjg73ls0..." (encoded JWT)
+);                                            // "eyjg73ls0..." (encoded JWT)
 
-// parse a token string
+// parse a token
+// note: If ADFS '/token' provided the JWT roles will include Active Directory group memberships
 TokenService.ParseToken("eyjg73ls0...");      // -> token as instance of AccessToken
 ```

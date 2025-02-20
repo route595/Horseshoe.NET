@@ -55,36 +55,57 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
 
 ## Code Examples
 
+#### Horseshoe.NET.ActiveDirectory
+
+```c#
+var userIdNameOrEmail = "djones1" -or- "david.jones@mybiz.com" -or- "Jones, David E. [Contractor]";
+var ldapProperties = "name|cn|samaccountname|memberof";   // (optional)
+
+var user = ADUtil.GetUser(userIdNameOrEmail, propertiesToLoad: ldapProperties);
+-or-
+var user = ADUtil.Authenticate(userIdNameOrEmail, "P@$$W0rd123", propertiesToLoad: ldapProperties);
+
+user.GetGroups(orderByAdsPath: true);        // "All Contractors", "DB Admins", "Hiring Team"...
+user.OU;                                     // "Contractors"
+user.RawOU;                                  // LDAP://OU=Contractors,DC=mybiz,DC=com
+ADUtil.ListOUs();                            // (lists all OUs in Active Directory)
+ADEngine.GetDomainContext().ConnectedServer; // (lists name of connected domain controller)
+```
+
 #### Horseshoe.NET.Configuration
 
 ```xml
 <appSettings>
   <add key="myInt" value="90" />
   <add key="myHexInt" value="5a" />
-  <add key="myInt_Annotation" value="5a[hex]" />
-  <add key="myInt_Format" value="0x5a" />
+  <add key="myHexInt_Annotation" value="5a[hex]" />
+  <add key="myHexInt_Format" value="0x5a" />
 </appSettings>
 ```
 
 ```c#
 // Getting an int...
-Config.Get<int>("myInt");              // value="90" -> 90
+Config.Get<int>("myInt");                // value="90" -> 90
 
 // Getting a hex formatted int...
-Config.Get<int>("myHexInt",            // value="5a" -> 90
+Config.Get<int>("myHexInt",              // value="5a" -> 90
     numberStyle: NumberStyles.HexNumber);
 
 // Getting a hex formatted int w/ key annotation...
-Config.Get<int>("myHexInt[hex]");      // value="5a" -> 90
+Config.Get<int>("myHexInt[hex]");        // value="5a" -> 90
 
 // Getting a hex formatted int w/ data annotation or data format...
-Config.Get<int>("myInt_Annotation");   // value="5a[hex]" -> 90
-Config.Get<int>("myInt_Format");       // value="0x5a" -> 90
+Config.Get<int>("myHexInt_Annotation");  // value="5a[hex]" -> 90
+Config.Get<int>("myHexInt_Format");      // value="0x5a" -> 90
 
 // Before Horseshoe.NET... 
 var stringValue = ConfigurationManager.AppSettings["myInt"];
 if (stringValue != null)
     return int.Parse(stringValue);
+- or -
+var stringValue = ConfigurationManager.AppSettings["myHexInt"];
+if (stringValue != null)
+    return int.Parse(stringValue, NumberStyles.HexNumber);
 ```
 
 #### Horseshoe.NET.ConsoleX
@@ -108,6 +129,7 @@ result.selectedItems     // [ "Monday", "Tuesday", "Wednesday" ]
                   // Press any key to try again…
 > 2               // [ "Monday" ]
 > 2-4,6           // [ "Monday", "Tuesday", "Wednesday", "Friday" ]
+> all             // [ "Sunday", "Monday",      ...    , "Friday", "Saturday" ]
 > all except 1,7  // [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" ]
 > none (or blank) // [ ]
 ```
@@ -116,9 +138,39 @@ result.selectedItems     // [ "Monday", "Tuesday", "Wednesday" ]
 
 ```c#
 var plaintext = "H1ghW@y2Hev3n";
-var options = new CryptoOptions { IsCiphertextBase64Encoded = true };
-ciphertext = Encrypt.String(plaintext, options);     // "2puPR6R9//bo/D3hK+bONQ=="
-plaintext = Decrypt.String(ciphertext, options);     // "H1ghW@y2Hev3n"
+var b64Options = new CryptoOptions { IsCiphertextBase64Encoded = true };
+ciphertext = Encrypt.String(plaintext, b64Options);  // "2puPR6R9//bo/D3hK+bONQ=="
+plaintext = Decrypt.String(ciphertext, b64Options);  // "H1ghW@y2Hev3n"
+```
+
+#### Horseshoe.NET.Excel
+
+```c#
+// [data.xlsx]
+// --------+-----+-----------+------------------
+// Name    | Age | Fav Color | Fav Food
+// --------+-----+-----------+------------------
+// Gerald  |  37 | red       | chewing gum
+// --------+-----+-----------+------------------
+// Abigail |  22 | blue      | raspberry sorbet
+// --------+-----+-----------+------------------
+// Fred    | 101 | yello     | grapefruit
+// --------+-----+-----------+------------------
+// Diane   |  56 | green     | broccoli + cheese
+// --------+-----+-----------+------------------
+
+var dataImport = ImportExcelData.AsDataImport
+(
+    "data.xlsx",
+    hasHeaderRow: true,
+    autoTrunc: AutoTruncate.Zap
+);
+dataImport.ExportToStringArrays().Render(separator: ",");
+
+// Gerald,37,red,chewing gum
+// Gerald,22,blue,chewing guraspberry sorbetm
+// Gerald,101,yellow,grapefruit
+// Gerald,56,green,broccoli + cheese
 ```
 
 #### Horseshoe.NET.Finance
@@ -175,11 +227,129 @@ FinanceEngine
 // Mar 2028 │                                  │ $227.40 $224.96 $  2.44 $    0.00 │ $227.40 $224.96 $  2.44
 ```
 
+#### Horseshoe.NET.Http
+
+```c#
+// basic HTTP call
+var apiResponse = Get.AsJson<WebServiceResponse<string>>
+(
+    "https://site.com/service/endpoint"
+);
+apiResponse.Data;    // { "requestedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
+
+// HTTP call with JWT authorization
+var apiResponse = Get.AsJson<WebServiceResponse<string>>
+(
+    "https://site.com/service/endpoint", 
+    alterHeaders: (hdrs) =>
+        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + "blabla")
+);
+apiResponse.Data;    // { "authorizedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
+```
+
+#### Horseshoe.NET.Jwt
+
+```c#
+// mint a token
+// note: the same digital signature crypto key that creates the digital signature is also used to validate it
+TokenService.CreateAccessToken 
+(
+    tokenKey,            // e.g. encoding.GetBytes("ah476&ewj^!09")
+    roles,               // e.g. { "All Contractors", "Domain Admin" }
+    keyId,               // e.g. "0001"
+    lifespanInSeconds,   // default is 3600 (1 hour)
+    securityAlgorithm    // default is "HS256"
+);                                            // "eyjg73ls0..." (encoded JWT)
+
+// parse a token
+// note: If ADFS '/token' provided the JWT roles will include Active Directory group memberships
+TokenService.ParseToken("eyjg73ls0...");      // -> token as instance of AccessToken
+```
+
+#### Horseshoe.NET.OleDb|Odbc|OracleDb|SqlDb
+
+```c#
+// DB connection not established and statement not executed yet
+var query = Query.FromStatement
+(
+    "Server=MYSVR;Database=MYDB;UID=me;PWD=myPwd"                        // (ODBC)
+    -or-
+    "Data Source=me/myPwd@//MYSVR:1650//MYDB"                            // (Oracle)
+    -or-
+    "Data Source=MYSVR;Initial Catalog=MYDB;User ID=me;Password=myPwd",  // (SQL Server)
+    "SELECT * FROM [MySchema].[MyTable]"
+); 
+
+// creating a row parser offers fine grained control over converting data rows to objects
+var rowParser = new RowParser<MyModel>
+(
+    (IDataReader reader) => new MyModel
+    {
+        MyStringProperty = Zap.String(reader["varcharColumn"]),
+        MyNonNullStringProperty = (string)reader["nonNullVarcharColumn"],
+        MyNullableIntProperty = Zap.NInt(reader["intColumn"]),
+        MyNonNullIntProperty = (int)reader["nonNullIntColumn"],
+        MyCustomProperty = new MyCustomClass
+        {
+            ID = ((int)reader["nonNullIntColumn2"], 
+            Description = (string)reader["nonNullVarcharColumn2"]
+        }
+    }
+);
+
+// the following causes the DB connection to open and the statement to execute
+IEnumerable<MyModel> list = query.AsList(rowParser);
+string str = Zap.String(query.AsScalar());
+DataTable dataTable = query.AsDataTable("My DataTable");
+```
+
+#### Horseshoe.NET.SecureIO
+
+```c#
+pseudoConnectionString = "sftp://username@11.22.33.44//root/subdir?password=PA$$w0rd";
+
+var dirContents = Sftp.ListDirectoryContents
+(
+    fileMask: FtpFileMasks.Txt,           // or "*.txt"
+    connectionInfo: pseudoConnectionString
+);
+foreach (var fileName in dirContents)
+    Console.WriteLine(fileName);
+
+Sftp.CreateFile
+(
+    "hello.txt",                          // remote dest file name
+    "Hello World!",                       // file contents
+    connectionInfo: pseudoConnectionString
+);
+
+Sftp.UploadFile
+(
+    "C:\\hello.txt",                      // local src file path
+    connectionInfo: pseudoConnectionString
+);
+
+var stream = Sftp.DownloadFile
+(
+    "hello.txt",                          // remote src file name
+    connectionInfo: pseudoConnectionString
+);
+Console.WriteLine("File length: " + stream.Length);
+Console.WriteLine("File contents: " + encoding.GetString(stream.ToArray()));
+
+Sftp.DeleteFile
+(
+    "hello.txt",                          // remote src file name
+    connectionInfo: pseudoConnectionString
+);
+
+```
+
 #### Horseshoe.NET.Text
 
 ```c#
-var phrase = "Å¢t Øñę\u0000”;                        // Unicode > ASCII & drop ctrls
-TextClean.ToAsciiPrintable(phrase);                  // "Act One"  
+var phrase = "Å¢t Øñę\u0000”;
+TextClean.ToAsciiPrintable(phrase);      // "Act One" (Unicode > ASCII, ctrl > "")
 TextUtil.Reveal(phrase, options: RevealOptions.All);
 // "Å¢t Øñę" -> ['Å'-197]['¢'-162]['t'-116][space]['Ø'-216]['ñ'-241]['ę'-281][NUL]
 // "Act One" -> [‘A’-65 ][‘c’-99 ][’t’-116][space]['O'-79 ][’n'-110]['e'-101]
