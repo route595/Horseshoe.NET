@@ -106,6 +106,12 @@
     <Compile Include="Bootstrap\v4\AlertType.cs" />
     <Compile Include="Collections\ArrayUtil.cs" />
     <Compile Include="ConsoleX\ListSelectionMode.cs" />
+    <Compile Include="DataImport\DataImportOptions.cs" />
+    <Compile Include="DataImport\DataImportRow.cs" />
+    <Compile Include="DataImport\FileImport.cs" />
+    <Compile Include="DataImport\IColumn.cs" />
+    <Compile Include="DataImport\TextDataImport.cs" />
+    <Compile Include="DataImport\TypedDataImport.cs" />
     <Compile Include="ObjectsTypesAndValues\AssertValue.cs" />
     <Compile Include="Collections\CollectionBoundary.cs" />
     <Compile Include="Collections\CollectionBuilder.cs" />

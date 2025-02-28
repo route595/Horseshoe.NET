@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
-
+using System.Net.Http.Headers;
+using System.Security.AccessControl;
+using System.Web;
 using Horseshoe.NET.Collections;
+using Horseshoe.NET.IO;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.DataImport
@@ -10,24 +14,53 @@ namespace Horseshoe.NET.DataImport
     /// <summary>
     /// The backing structure and logic behind data imports
     /// </summary>
-    public class DataImport : List<ImportedRow>
+    public class DataImport : List<DataImportRow>
     {
-        private readonly List<Column> _columns;
+        /// <summary>
+        /// Either raw <c>string</c> data or a <c>FilePath</c>
+        /// </summary>
+        public object DataSource { get; }
+
+        ///// <summary>
+        ///// The store
+        ///// </summary>
+        //public List<object[]> RawImportedData { get; } = new List<object[]>();
+
+        ///// <summary>
+        ///// Returns <c>RawImportedData</c> cast as <c>string</c>s.
+        ///// </summary>
+        ///// <exception cref="InvalidCastException"></exception>
+        //public List<string[]> RawImportedStringData => RawImportedData.Select(row => row.Select(o => Zap.String(o)).ToArray()).ToList();
 
         /// <summary>
-        /// A <c>Column[]</c> view of the column metadata used during import
+        /// Returns the number of columns added to this instance-as-a-list.
         /// </summary>
-        public Column[] Columns => _columns?.ToArray();
+        public int ColumnsCount => Count;
+
+        /// <summary>
+        /// Returns <c>true</c> if any columns have been added to this instance-as-a-list.
+        /// </summary>
+        public bool HasColumns => Count > 0;
+
+        /// <summary>
+        /// The <c>IColumn</c>s used to define the import
+        /// </summary>
+        public IColumn[] Columns { get; set; }
+
+        /// <summary>
+        /// Data import options e.g. <c>bool HasHeaderRow</c>, <c>char[] Delimiters</c>
+        /// </summary>
+        public DataImportOptions Options { get; }
 
         /// <summary>
         /// The column count
         /// </summary>
-        public int ColumnCount => _columns?.Count ?? 0;
+        public int ColumnCount => Columns?.Length ?? 0;
 
         /// <summary>
         /// The count of mapped columns only
         /// </summary>
-        public int MappedColumnCount => _columns?.Count(c => !c.NotMapped) ?? 0;
+        public int MappedColumnCount => Columns?.Count(c => c != null) ?? 0;
 
         /// <summary>
         /// If <c>true</c> the parsing engine will pad short rows with blank or <c>null</c> values and throw an exception if the row is too long
@@ -75,6 +108,28 @@ namespace Horseshoe.NET.DataImport
         public int DataErrorCount => DataErrors?.Count() ?? 0;
 
         /// <summary>
+        /// Allows access to the raw (trimmed) imported text before converting to typed values (see columns)
+        /// </summary>
+        public Action<IEnumerable<string[]>> PeekRawImportedText { get; set; }
+
+        /// <summary>
+        /// Allows access to the raw imported values before final conversion to destination values (see columns)
+        /// </summary>
+        public Action<IEnumerable<object[]>> PeekRawImportedValues { get; set; }
+
+        public DataImport(string rawData, DataImportOptions options = null)
+        {
+            DataSource = rawData;
+            Options = options ?? new DataImportOptions();
+        }
+
+        public DataImport(FilePath file, DataImportOptions options = null)
+        {
+            DataSource = file;
+            Options = options ?? new DataImportOptions();
+        }
+
+        /// <summary>
         /// Creates a <c>DataImport</c> instance
         /// </summary>
         public DataImport()
@@ -97,6 +152,16 @@ namespace Horseshoe.NET.DataImport
                 }
             }
             EnforceColumnCount = enforceColumnCount;
+        }
+
+        public void Render(IEnumerable<string[]> rawValues)
+        {
+
+        }
+
+        public void Render(IEnumerable<object[]> rawValues)
+        {
+
         }
 
         /// <summary>
@@ -357,6 +422,69 @@ namespace Horseshoe.NET.DataImport
                 list.Add(stringArray);                               // add array to result
             }
             return list;
+        }
+
+        public static DataImport FromFile(FilePath file)
+        {
+            var dataImport = new DataImport
+        }
+
+        public static DataImport ImportFixedWidthFile(FilePath file, Column[] columns, DataImportOptions options = null)
+        {
+            string[] rawRows = ArrayUtil.Prune
+            (
+                options?.Encoding != null 
+                    ? file.ReadAllLines(options.Encoding) 
+                    : file.ReadAllLines()
+            );
+            return ImportFixedWidthText(rawRows, columns, options: options);
+        }
+
+        public static DataImport ImportFixedWidthText(string rawText, Column[] columns, DataImportOptions options = null)
+        {
+            string[] rawRows = rawText
+                .Replace("\r\n", "\n")
+                .Split(new[] { '\n' }, StringSplitOptions.None);
+            return ImportFixedWidthText(rawRows, columns, options: options);
+        }
+
+        public static DataImport ImportFixedWidthText(string[] rawRows, Column[] columns, DataImportOptions options = null)
+        {
+            // validation
+            if (columns == null || columns.Length == 0)
+                throw new DataImportException("Fixed-width imports require at least one column to be defined");
+            if (columns.Any(c => c == null || c.StartPosition <= -1 || c.Width <= 0))
+                throw new DataImportException("Fixed-width imports require only non-null columns having start position > -1 and width > 0");
+
+            var dataInput = new DataImport();
+            var rawItemsList = new List<string>();
+            var readMode = false;
+            
+            for (int i = 0; i < rawRows.Length; i++)
+            {
+                if (readMode)
+                {
+                    var row = new DataImportRow
+                    {
+                        RowNumber = i + 1,
+                        RawValues = columns.Select(c => rawRows[i].Substring(c.StartPosition, c.Width)).ToArray()
+                    };
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(rawRows[index]))
+                        continue;  // skip leading blank rows
+                }
+                    rawItemsList.
+            }
+
+            
+        }
+
+        public static DataImport CreateFixedWidth(IEnumerable<Column> columns)
+        {
+            if (columns.Any(c => c.))
+            new DataImport()
         }
     }
 }

@@ -1,18 +1,26 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Primitives;
+
 namespace Horseshoe.NET.DataImport
 {
-    // A collectin of utiltiy methods for data import
-    internal static class ImportUtil
+    /// <summary>
+    /// A collection of utiltiy methods for data import
+    /// </summary>
+    public static class ImportUtil
     {
-        internal static bool IsBlankRow(IEnumerable<string> values)
+        internal static bool IsBlankRow(StringValues values)
         {
-            if (values.Count() == 0)
-                return true;
-            if (values.Count() == 1)
-                return string.IsNullOrWhiteSpace(values.Single());
-            return false;
+            switch (values.Count)
+            {
+                case 0:
+                    return true;
+                case 1:
+                    return string.IsNullOrWhiteSpace(values.Single());
+                default:
+                    return false;
+            }
         }
     }
 }

@@ -147,17 +147,19 @@ plaintext = Decrypt.String(ciphertext, b64Options);  // "H1ghW@y2Hev3n"
 
 ```c#
 // [data.xlsx]
-// --------+-----+-----------+------------------
-// Name    | Age | Fav Color | Fav Food
-// --------+-----+-----------+------------------
-// Gerald  |  37 | red       | chewing gum
-// --------+-----+-----------+------------------
-// Abigail |  22 | blue      | raspberry sorbet
-// --------+-----+-----------+------------------
-// Fred    | 101 | yello     | grapefruit
-// --------+-----+-----------+------------------
-// Diane   |  56 | green     | broccoli + cheese
-// --------+-----+-----------+------------------
+// ╔═══╦═════════╦═════╦═══════════╦═══════════════════╗
+// ║   ║    A    ║  B  ║     C     ║         D         ║
+// ╠═══╬═════════╩═════╩═══════════╩═══════════════════╣
+// ║ 1 ║ Name    │ Age │ Fav Color │ Fav Food          ║
+// ╠═══╣─────────┼─────┼───────────┼───────────────────╢
+// ║ 2 ║ Gerald  │  37 │ red       │ chewing gum       ║
+// ╠═══╣─────────┼─────┼───────────┼───────────────────╢
+// ║ 3 ║ Abigail │  22 │ blue      │ raspberry sorbet  ║
+// ╠═══╣─────────┼─────┼───────────┼───────────────────╢
+// ║ 4 ║ Fred    │ 101 │ yello     │ grapefruit        ║
+// ╠═══╣─────────┼─────┼───────────┼───────────────────╢
+// ║ 5 ║ Diane   │  56 │ green     │ broccoli + cheese ║
+// ╚═══╩═════════╧═════╧═══════════╧═══════════════════╝
 
 var dataImport = ImportExcelData.AsDataImport
 (
@@ -165,12 +167,11 @@ var dataImport = ImportExcelData.AsDataImport
     hasHeaderRow: true,
     autoTrunc: AutoTruncate.Zap
 );
-dataImport.ExportToStringArrays().Render(separator: ",");
-
-// Gerald,37,red,chewing gum
-// Gerald,22,blue,chewing guraspberry sorbetm
-// Gerald,101,yellow,grapefruit
-// Gerald,56,green,broccoli + cheese
+var results = dataImport.ExportToStringArrays();
+// [ "Gerald" ,  "37", "red"   , "chewing gum"       ]
+// [ "Abigail",  "22", "blue"  , "raspberry sorbet"  ]
+// [ "Fred"   , "101", "yellow", "grapefruit"        ]
+// [ "Diane"  ,  "56", "green" , "broccoli + cheese" ]
 ```
 
 #### Horseshoe.NET.Finance
