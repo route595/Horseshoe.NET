@@ -5,8 +5,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Horseshoe.NET.ConsoleX;
-using Horseshoe.NET.Ftp;
 using Horseshoe.NET.IO;
+using Horseshoe.NET.IO.Ftp;
 using Horseshoe.NET.SecureIO.Sftp;
 
 namespace TestConsole

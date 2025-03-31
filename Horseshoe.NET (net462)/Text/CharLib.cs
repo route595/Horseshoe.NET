@@ -1,964 +1,1019 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using Horseshoe.NET.Collections;
 
 namespace Horseshoe.NET.Text
 {
     /// <summary>
-    /// A <c>char</c> categorization library for text operations such as Unicode-to-ASCII conversions. 
+    /// A library of <c>char</c>s and <c>char</c> attributes (i.e. HTML codes) for <c>char</c> substitutions and other text operations. 
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Unicode ref: https://en.wikipedia.org/wiki/List_of_Unicode_characters#Basic_Latin
-    /// </para>
-    /// <para>
-    /// Punctuation ref: https://en.wikipedia.org/wiki/Punctuation  (I stopped right before Armenian)
+    /// Unicode / HTML ref: https://en.wikipedia.org/wiki/List_of_Unicode_characters
     /// </para>
     /// </remarks>
     public static class CharLib
     {
-        public static IEnumerable<int> GetCharIndicesByCategory(CharCategory category)
-        {
-            var list = new List<int>();
-
-            if (category == CharCategory.None)
-                return list;
-
-            if ((category & CharCategory.Spaces) == CharCategory.Spaces)
-            {
-                list.AddRange(new[] { 32, 160 });  // space, non-breaking space
-            }
-
-            if ((category & CharCategory.OtherWhitespaces) == CharCategory.OtherWhitespaces)
-            {
-                list.AddRange(new[] { 9, 10, 13 });  // tab, line feed, carriage return
-            }
-
-            if ((category & CharCategory.AsciiNumeric) == CharCategory.AsciiNumeric)
-            {
-                list.AddRange(Enumerable.Range(48, 10));  //  48 -  57 i.e. '0' - '9'
-            }
-
-            if ((category & CharCategory.AsciiAlphabetic) == CharCategory.AsciiAlphabetic)
-            {
-                list.AddRange(Enumerable.Range(65, 26));  //  65 -  90 i.e. 'A' - 'Z'
-                list.AddRange(Enumerable.Range(97, 26));  //  97 - 122 i.e. 'a' - 'z'
-            }
-
-            if ((category & CharCategory.AsciiSymbols) == CharCategory.AsciiSymbols)
-            {
-                list.AddRange(Enumerable.Range(33, 15));  //  33 -  47
-                list.AddRange(Enumerable.Range(58, 7));   //  58 -  64
-                list.AddRange(Enumerable.Range(91, 6));   //  91 -  96
-                list.AddRange(Enumerable.Range(123, 4));  // 123 - 126
-            }
-
-            if ((category & CharCategory.UnicodePrintables) == CharCategory.UnicodePrintables)
-            {
-                list.AddRange(Enumerable.Range(161, 65536 - 161));  //  161 - 65535
-                list.Remove(65279);  // byte-order mark
-                list.Remove(65533);  // unicode replacement char
-            }
-
-            if ((category & CharCategory.Nonprintables) == CharCategory.Nonprintables)
-            {
-                list.AddRange(Enumerable.Range(0, 31));   //   0 -  31 ASCII controls
-                list.AddRange(Enumerable.Range(127, 33)); // 127 - 159 ASCII 'DEL' and Unicode (or extended ASCII) controls
-                list.AddRange(new[] { 65279, 65533 });    // byte-order mark, unicode replacement char
-            }
-
-            return list;
-        }
-
-        public static IEnumerable<char> GetCharsByCategory(CharCategory category)
-        {
-            var indices = GetCharIndicesByCategory(category);
-            return GetCharsByIndices(indices);
-        }
-
-        public static IEnumerable<char> GetCharsByIndices(IEnumerable<int> indices)
-        {
-            return indices.Select(i => (char)i).ToArray();
-        }
-
-        ///// <summary>
-        ///// A subset of whitespace characters
-        ///// </summary>
-        //public static char[] ASCIIWhitespaces { get; } = new[]
-        //{//   9    10    13    32
-        //    '\t', '\n', '\r', ' '
-        //};
-
-        ///// <summary>
-        ///// A subset of whitespace characters
-        ///// </summary>
-        //public static char[] SubsetASCIIWhitespacesExceptNewLines => ASCIIWhitespaces
-        //    .Where(c => !c.In(10, 13))
-        //    .ToArray();
-
-        ///// <summary>
-        ///// The subset of ASCII whitespace <c>char</c>s comprising only carriage return (<c>\r</c>) and line feed (<c>\n</c>)
-        ///// </summary>
-        //public static char[] SubsetNewLines => ASCIIWhitespaces
-        //    .Where(c => c.In(10, 13))
-        //    .ToArray();
-
-        ///// <summary>
-        ///// ASCII alphabetic <c>char</c>s (i.e. upper and lowercase A - Z).
-        ///// </summary>
-        //public static char[] ASCIIAlpha { get; } = new[]
-        //{
-        //    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-        //    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-        //    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-        //    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
-        //};
-
-        ///// <summary>
-        ///// Upper case ASCII alphabetic <c>char</c>s (i.e. A - Z).
-        ///// </summary>
-        //public static char[] SubsetUCaseASCIIAlpha => ASCIIAlpha
-        //    .Take(26)
-        //    .ToArray();
-
-        ///// <summary>
-        ///// Lower case ASCII alphabetic <c>char</c>s (i.e. a - z).
-        ///// </summary>
-        //public static char[] SubsetLCaseASCIIAlpha => ASCIIAlpha
-        //    .Skip(26)
-        //    .ToArray();
-
-        ///// <summary>
-        ///// ASCII alphabetic <c>char</c>s (i.e. 0 - 9).
-        ///// </summary>
-        //public static char[] ASCIINumeric { get; } = new[]
-        //{
-        //    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-        //};
-
-        ///// <summary>
-        ///// ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
-        ///// </summary>
-        //public static char[] AllASCIIAlphaNumeric =>
-        //    ArrayUtil.Combine(ASCIIAlpha, ASCIINumeric);
-
-        ///// <summary>
-        ///// Upper case ASCII alpanumeric <c>char</c>s (i.e. A - Z and 0 - 9).
-        ///// </summary>
-        //public static char[] SubsetUCaseASCIIAlphaNumeric =>
-        //    ArrayUtil.Combine(SubsetUCaseASCIIAlpha, ASCIINumeric);
-
-        ///// <summary>
-        ///// Lower case ASCII alpanumeric <c>char</c>s (i.e. a - z and 0 - 9).
-        ///// </summary>
-        //public static char[] SubsetLCaseASCIIAlphaNumeric =>
-        //    ArrayUtil.Combine(SubsetLCaseASCIIAlpha, ASCIINumeric);
-
-        ///// <summary>
-        ///// ASCII punctuation and symbols.
-        ///// </summary>
-        //public static char[] ASCIISymbols { get; } = new[]
-        //{
-        //    // punctuation
-        //    '.', ',', ':', ';', '<', '!', '?', '"', '\'', '[', ']', '(', ')', '{', '}',
-        //    // symbols
-        //    '#', '$', '%', '*', '+', '&', '/', '/', '|', '\\', '^', '_', '`', '~'
-        //};
-
-        ///// <summary>
-        ///// Gets all ASCII printable <c>char</c>s potentially including any whitespaces indicated in <c>whitespacePolicy</c>.
-        ///// </summary>
-        ///// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
-        ///// <returns>An array of all ASCII printable <c>char</c>s.</returns>
-        //public static char[] GetAllASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
-        //{
-        //    var includedWhitespaces = new List<char>();
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
-        //    {
-        //        includedWhitespaces.Add(' ');
-        //    }
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
-        //    {
-        //        includedWhitespaces.Add('\t');
-        //    }
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
-        //    {
-        //        includedWhitespaces.Add('\r');
-        //        includedWhitespaces.Add('\n');
-        //    }
-        //    return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, includedWhitespaces);
-        //}
-
-        ///// <summary>
-        ///// ASCII control characters (not including tabs and new lines)
-        ///// </summary>
-        //public static char[] ASCIINonprintables { get; } = new[]
-        //{   
-        //    // Controls (in 0 - 31 range, excluding whitespaces)                                       \t (9)    \n (10)                       \r (13)
-        //    '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008',                     '\u000B', '\u000C',           '\u000E', '\u000F',
-        //    '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001A', '\u001B', '\u001C', '\u001D', '\u001E', '\u001F', 
-
-        //    // Control (127)
-        //    '\u007f'
-        //};
-
-        ///// <summary>
-        ///// Extended ASCII whitespaces (includes only the non-breaking space).
-        ///// </summary>
-        //public static char[] ExtendedASCIIWhitespaces { get; } = new[]
-        //{
-        //    // Char (160)
-        //    '\u00A0' /* nbsp */
-        //};
-
-        ///// <summary>
-        ///// The complete set of ASCII and extended ASCII whitespace characters.
-        ///// </summary>
-        //public static char[] AllWhitespaces =>
-        //    ArrayUtil.Combine(ASCIIWhitespaces, ExtendedASCIIWhitespaces);
-
-        ///// <summary>
-        ///// The complete set of ASCII and extended ASCII whitespace characters (except new lines).
-        ///// </summary>
-        //public static char[] SubsetWhitespacesExceptNewLines =>
-        //    ArrayUtil.Combine(SubsetASCIIWhitespacesExceptNewLines, ExtendedASCIIWhitespaces);
-
-        ///// <summary>
-        ///// Extended ASCII Latin <c>char</c>s.
-        ///// </summary>
-        //public static char[] ExtendedASCIIAlpha { get; } = new[]
-        //{
-        //    'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 
-        //    'Ç', 
-        //    'Ð',
-        //    'È', 'É', 'Ê', 'Ë',
-        //    'ƒ',
-        //    'Ì', 'Í', 'Î', 'Ï', 
-        //    'Ñ', 
-        //    'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Œ', 
-        //    'Š', 'ß',
-        //    'Þ', 'þ', 
-        //    'Ù', 'Ú', 'Û', 'Ü',
-        //    'Ý', 'Ÿ',
-        //    'Ž',
-        //    'à', 'á', 'â', 'ã', 'ä', 'å', 'æ',
-        //    'ç', 
-        //    'ð', 
-        //    'è', 'é', 'ê', 'ë',
-        //    'ì', 'í', 'î', 'ï',
-        //    'ñ',
-        //    'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'œ', 
-        //    'š',
-        //    'ù', 'ú', 'û', 'ü', 
-        //    'ý', 'ÿ', 
-        //    'ž'
-        //};
-
-        ///// <summary>
-        ///// Upper case extended ASCII Latin <c>char</c>s.
-        ///// </summary>
-        //public static char[] SubsetUCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
-        //    .Where(c => char.IsUpper(c))
-        //    .ToArray();
-
-        ///// <summary>
-        ///// Lower case extended ASCII Latin <c>char</c>s.
-        ///// </summary>
-        //public static char[] SubsetLCaseExtendedASCIIAlpha => ExtendedASCIIAlpha
-        //    .Where(c => char.IsLower(c))
-        //    .ToArray();
-
-        ///// <summary>
-        ///// ASCII and extended ASCII Latin <c>char</c>s.
-        ///// </summary>
-        //public static char[] AllExtendedASCIIAlpha =>
-        //    ArrayUtil.Combine(ASCIIAlpha, ExtendedASCIIAlpha);
-
-        ///// <summary>
-        ///// ASCII and extended ASCII alphanumeric <c>char</c>s.
-        ///// </summary>
-        //public static char[] AllExtendedASCIIAlphaNumeric =>
-        //    ArrayUtil.Combine(AllASCIIAlphaNumeric, ExtendedASCIIAlpha);
-
-        ///// <summary>
-        ///// Upper case ASCII and extended ASCII alphanumeric <c>char</c>s.
-        ///// </summary>
-        //public static char[] SubsetUCaseExtendedASCIIAlphaNumeric =>
-        //    ArrayUtil.Combine(SubsetUCaseASCIIAlphaNumeric, SubsetUCaseExtendedASCIIAlpha);
-
-        ///// <summary>
-        ///// Lower case ASCII and extended ASCII alphanumeric <c>char</c>s.
-        ///// </summary>
-        //public static char[] SubsetLCaseExtendedASCIIAlphaNumeric =>
-        //    ArrayUtil.Combine(SubsetLCaseASCIIAlphaNumeric, SubsetLCaseExtendedASCIIAlpha);
-
-        ///// <summary>
-        ///// Extended ASCII punctuation and symbols.
-        ///// </summary>
-        //public static char[] ExtendedASCIISymbols { get; } = new[]
-        //{
-        //    // punctuation
-        //    '‚', '„', '…', '¨', '‹', '‘', '’', '“', '”', '–', '—', '›', '¡', '«', '­', '»', '¿', '·',
-
-        //    // symbols
-        //    '€', '†', 'ˆ', '•', '˜', '™', '¢', '£', '¤', '¥', '¦', '§', '©', '¬', '®', '¯', '°',
-        //    '±', '´', 'µ', '¶', '¸', 
-
-        //    // math and programming
-        //    '×', '÷', '¼', '½', '¾', '‰',
-
-        //    // superscripts and subscripts
-        //    'ª', '²', '³', '¹', 'º'
-        //};
-
-        ///// <summary>
-        ///// Gets all ASCII and extended ASCII printable <c>char</c>s including any whitespaces indicated in <c>whitespacePolicy</c>.
-        ///// </summary>
-        ///// <param name="whitespacePolicy">Which whitespaces to include. Note: <c>IncludeNonBreakingSpace</c> has no effect because it belongs in the extended ASCII set.</param>
-        ///// <returns>An array of all ASCII printable <c>char</c>s.</returns>
-        //public static char[] GetAllExtendedASCIIPrintables(WhitespacePolicy whitespacePolicy = default)
-        //{
-        //    var includedWhitespaces = new List<char>();
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeASCIISpace) == WhitespacePolicy.IncludeASCIISpace)
-        //    {
-        //        includedWhitespaces.Add(' ');
-        //    }
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeNonbreakingSpace) == WhitespacePolicy.IncludeNonbreakingSpace)
-        //    {
-        //        includedWhitespaces.Add('\u00A0');
-        //    }
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeTab) == WhitespacePolicy.IncludeTab)
-        //    {
-        //        includedWhitespaces.Add('\t');
-        //    }
-        //    if ((whitespacePolicy & WhitespacePolicy.IncludeNewLines) == WhitespacePolicy.IncludeNewLines)
-        //    {
-        //        includedWhitespaces.Add('\r');
-        //        includedWhitespaces.Add('\n');
-        //    }
-        //    return ArrayUtil.Combine(AllASCIIAlphaNumeric, ASCIISymbols, ExtendedASCIIAlpha, ExtendedASCIISymbols, includedWhitespaces);
-        //}
-
-        ///// <summary>
-        ///// Extended ASCII control <c>char</c>s.
-        ///// </summary>
-        //public static char[] ExtendedASCIINonprintables { get; } = new[]
-        //{
-        //    // Controls (in 128 - 159 range)
-        //    '\u0080', '\u0081', '\u0082', '\u0083', '\u0084', '\u0085', '\u0086', '\u0087', '\u0088', '\u0089', '\u008A', '\u008B', '\u008C', '\u008D', '\u008E', '\u008F',
-        //    '\u0090', '\u0091', '\u0092', '\u0093', '\u0094', '\u0095', '\u0096', '\u0097', '\u0098', '\u0099', '\u009A', '\u009B', '\u009C', '\u009D', '\u009E', '\u009F'
-        //};
-
-        ///// <summary>
-        ///// ASCII and extended ASCII control <c>char</c>s.
-        ///// </summary>
-        //public static char[] AllExtendedASCIINonprintables =>
-        //    ArrayUtil.Combine(ASCIINonprintables, ExtendedASCIINonprintables);
-
-        ///// <summary>
-        ///// Other Unicode non-printable <c>char</c>s.
-        ///// </summary>
-        //public static char[] UnicodeNonprintables { get; } = new[]
-        //{
-        //    /* ByteOrderMark (65279)    UnicodeReplacementChar � (65533) */
-        //    '\uFEFF',                   '\uFFFD'
-        //};
-
-        ///// <summary>
-        ///// ASCII and extended ASCII control <c>char</c>s and Unicode non-printable <c>char</c>s.
-        ///// </summary>
-        //public static char[] AllNonprintables =>
-        //    ArrayUtil.Combine(AllExtendedASCIINonprintables, UnicodeNonprintables);
+        private static IDictionary<string, char[]> _unicodeToASCIIConversions;
 
         /// <summary>
-        /// A Unicode Latin-to-ASCII conversion chart. 
+        /// A collection of ASCII equivalents of many Unicode characters.
         /// </summary>
-        public static IDictionary<char, char[]> UnicodeLatinToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
+        /// <remarks>
+        /// <para>
+        /// Unicode or Extended ASCII <c>chars</c> that count as ASCII for our purposes:
+        /// </para>
+        /// <list type="bullet">
+        /// <item>'¢' (U+00A2) Cent sign</item>
+        /// <item>'£' (U+00A3) Pound sign</item>
+        /// <item>'°' (U+00B0) Degree sign</item>
+        /// </list>
+        /// <para>
+        /// Examples of Unicode or Extended ASCII <c>chars</c> that resolve to a [note] because they do not resemble any ASCII character:
+        /// </para>
+        /// <list type="bullet">
+        /// <item>'§' (U+00A7) [section]</item>
+        /// <item>'ƛ' (U+019B) [lambda]</item>
+        /// <item>etc.</item>
+        /// </list>
+        /// </remarks>
+        public static IDictionary<string, char[]> UnicodeToASCIIConversions
         {
-            { 'A', new[] { 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å'  } },
-            { 'C', new[] { 'Ç', 'Ⅽ' } },
-            { 'D', new[] { 'Ⅾ' } },
-            { 'E', new[] { 'È', 'É', 'Ê', 'Ë' } },
-            { 'I', new[] { 'Ì', 'Í', 'Î', 'Ï', 'Ⅰ'} },
-            { 'L', new[] { 'Ⅼ' } },
-            { 'M', new[] { 'Ⅿ' } },
-            { 'N', new[] { 'Ñ' } },
-            { 'O', new[] { 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø' } },
-            { 'U', new[] { 'Ù', 'Ú', 'Û', 'Ü' } },
-            { 'V', new[] { 'Ⅴ' } },
-            { 'X', new[] { 'Ⅹ' } },
-            { 'Y', new[] { 'Ý', 'Ÿ' } },
-            { 'a', new[] { 'à', 'á', 'â', 'ã', 'ä', 'å' } },
-            { 'c', new[] { 'ç', 'ⅽ' } },
-            { 'd', new[] { 'ⅾ' } },
-            { 'e', new[] { 'è', 'é', 'ê', 'ë' } },
-            { 'i', new[] { 'ì', 'í', 'î', 'ï', 'ⅰ' } },
-            { 'm', new[] { 'ⅿ' } },
-            { 'n', new[] { 'ñ' } },
-            { 'o', new[] { 'ò', 'ó', 'ô', 'õ', 'ö', 'ø' } },
-            { 'u', new[] { 'ù', 'ú', 'û', 'ü' } },
-            { 'v', new[] { 'ⅴ' } },
-            { 'x', new[] { 'ⅹ' } },
-            { 'y', new[] { 'ý', 'ÿ' } },
-        }.AsImmutable();
+            get
+            {
+                if (_unicodeToASCIIConversions == null)
+                    _unicodeToASCIIConversions = _combine
+                    (
+                        // Latin-1 Supplement
+                        new Dictionary<string, char[]>
+                        {
+                            { " ", new[] { '\u00A0' } }, // { [nb-space] }
+                            { "!", new[] { '\u00A1' } }, // { '¡' }
+                            { "?", new[] { '\u00BF' } }, // { '¿' }
+                            { "|", new[] { '\u00A6' } }, // { '¦' }
+                            { ",", new[] { '\u00B8' } }, // { '¸' }
+                            { ".", new[] { '\u00B7' } }, // { '·' }
+                            { "..", new[] { '\u00A8' } }, // { '¨' }
+                            { "-", new[] { '\u00AC', '\u00AD', '\u00AF', '\u00F7' } }, // { '¬', [soft-hyphen], '¯', '÷' }
+                            { "+-", new[] { '\u00B1' } }, // { '±' }
+                            { "\"", new[] { '\u00AB', '\u00BB' } }, // { '«', '»' }
+                            { "`", new[] { '\u00B4' } }, // { '´' }
+                            { "°", new[] { '\u00BA' } }, // { 'º' }
+                            { "1", new[] { '\u00B9' } }, // { '¹' }
+                            { "1/2", new[] { '\u00BD' } }, // { '½' }
+                            { "1/4", new[] { '\u00BC' } }, // { '¼' }
+                            { "2", new[] { '\u00B2' } }, // { '²' }
+                            { "3", new[] { '\u00B3' } }, // { '³' }
+                            { "3/4", new[] { '\u00BE' } }, // { '¾' }
+                            { "A", new[] { '\u00C0', '\u00C1', '\u00C2', '\u00C3', '\u00C4', '\u00C5' } }, // { 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å' }
+                            { "AE", new[] { '\u00C6' } }, // { 'Æ' }
+                            { "a", new[] { '\u00AA', '\u00E0', '\u00E1', '\u00E2', '\u00E3', '\u00E4', '\u00E5' } }, // { 'ª', 'à', 'á', 'â', 'ã', 'ä', 'å' }
+                            { "ae", new[] { '\u00E6' } }, // { 'æ' }
+                            { "B", new[] { '\u00DF' } }, // { 'ß' }
+                            { "C", new[] { '\u00C7' } }, // { 'Ç' }
+                            { "c", new[] { '\u00A9', '\u00E7' } }, // { '©', 'ç' }
+                            { "E", new[] { '\u00C8', '\u00C9', '\u00CA', '\u00CB' } }, // { 'È', 'É', 'Ê', 'Ë' }
+                            { "e", new[] { '\u00E8', '\u00E9', '\u00EA', '\u00EB' } }, // { 'è', 'é', 'ê', 'ë' }
+                            { "D", new[] { '\u00D0' } }, // { 'Ð' }
+                            { "d", new[] { '\u00F0' } }, // { 'ð' }
+                            { "I", new[] { '\u00CC', '\u00CD', '\u00CE', '\u00CF' } }, // { 'Ì', 'Í', 'Î', 'Ï' }
+                            { "i", new[] { '\u00EC', '\u00ED', '\u00EE', '\u00EF' } }, // { 'ì', 'í', 'î', 'ï' }
+                            { "N", new[] { '\u00D1' } }, // { 'Ñ' }
+                            { "n", new[] { '\u00F1' } }, // { 'ñ' }
+                            { "O", new[] { '\u00D2', '\u00D3', '\u00D4', '\u00D5', '\u00D6', '\u00D8' } }, // { 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø' }
+                            { "o", new[] { '\u00A4', '\u00F2', '\u00F3', '\u00F4', '\u00F5', '\u00F6', '\u00F8' } }, // { '¤', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø' }
+                            { "P", new[] { '\u00B6', '\u00DE' } }, // { '¶', 'Þ' }
+                            { "p", new[] { '\u00FE' } }, // { 'þ' }
+                            { "R", new[] { '\u00AE' } }, // { '®' }
+                            { "U", new[] { '\u00D9', '\u00DA', '\u00DB', '\u00DC' } }, // { 'Ù', 'Ú', 'Û', 'Ü' }
+                            { "u", new[] { '\u00B5', '\u00F9', '\u00FA', '\u00FB', '\u00FC' } }, // { 'µ', 'ù', 'ú', 'û', 'ü' }
+                            { "x", new[] { '\u00D7' } }, // { '×' }
+                            { "Y", new[] { '\u00A5', '\u00DD' } }, // { '¥', 'Ý' }
+                            { "y", new[] { '\u00FD', '\u00FF' } }, // { 'ý', 'ÿ' }
+                            { "[section]", new[] { '\u00A7' } }, // { '§' }
+                        },
 
-        /// <summary>
-        /// A Unicode Latin-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
-        /// </summary>
-        public static IDictionary<string, char[]> UnicodeLatinToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
-        {
-            { "AE", new[] { 'Æ' } },
-            { "II", new[] { 'Ⅱ' } },
-            { "III", new[] { 'Ⅲ' } },
-            { "IV", new[] { 'Ⅳ' } },
-            { "IX", new[] { 'Ⅸ' } },
-            { "VI", new[] { 'Ⅵ' } },
-            { "VII", new[] { 'Ⅶ' } },
-            { "VIII", new[] { 'Ⅷ' } },
-            { "XI", new[] { 'Ⅺ' } },
-            { "XII", new[] { 'Ⅻ' } },
-            { "YR", new[] { 'Ʀ' }},
-            { "ae", new[] { 'æ' } },
-            { "ff", new[] { 'ﬀ' } },
-            { "fi", new[] { 'ﬁ' } },
-            { "fl", new[] { 'ﬂ' } },
-            { "ffi", new[] { 'ﬃ' } },
-            { "ffl", new[] { 'ﬄ' } },
-            { "ft", new[] { 'ﬅ' } },
-            { "hv", new[] { 'ƕ' } },
-            { "ii", new[] { 'ⅱ' } },
-            { "iii", new[] { 'ⅲ' } },
-            { "iv", new[] { 'ⅳ' } },
-            { "ix", new[] { 'ⅸ' } },
-            { "st", new[] { 'ﬆ' } },
-            { "vi", new[] { 'ⅵ' } },
-            { "vii", new[] { 'ⅶ' } },
-            { "viii", new[] { 'ⅷ' } },
-            { "xi", new[] { 'ⅺ' } },
-            { "xii", new[] { 'ⅻ' } },
-        }.AsImmutable();
 
-        /// <summary>
-        /// A Unicode extended Latin-to-ASCII conversion chart. 
-        /// </summary>
-        public static IDictionary<char, char[]> UnicodeExtendedLatinToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
-        {
-            { 'A', new[] { 'Ā', 'Ă', 'Ą', 'Ǎ', 'Ǟ', 'Ǡ', 'Ǻ', 'Ȁ', 'Ȃ', 'Ȧ', 'Ⱥ' } },
-            { 'B', new[] { 'Ɓ', 'Ƃ', 'Ƀ', 'Ḃ', 'ß' } },
-            { 'C', new[] { 'Ć', 'Ĉ', 'Ċ', 'Č', 'Ƈ', 'Ȼ' } },
-            { 'D', new[] { 'Ď', 'Đ', 'Ɖ', 'Ɗ', 'Ƌ', 'Ḋ', 'Ð' } },
-            { 'E', new[] { 'Ē', 'Ĕ', 'Ė', 'Ę', 'Ě', 'Ǝ', 'Ə', 'Ɛ', 'Ʃ', 'Ȅ', 'Ȇ', 'Ȩ', 'Ɇ' } },
-            { 'F', new[] { 'Ƒ', 'Ḟ' } },
-            { 'G', new[] { 'Ĝ', 'Ğ', 'Ġ', 'Ģ', 'Ɠ', 'Ǥ', 'Ǧ', 'Ǵ' } },
-            { 'H', new[] { 'Ĥ', 'Ħ', 'Ȟ' } },
-            { 'I', new[] { 'Ĩ', 'Ī', 'Ĭ', 'Į', 'İ', 'Ɩ', 'Ɨ', 'Ǐ', 'Ȉ', 'Ȋ' } },
-            { 'J', new[] { 'Ĵ', 'Ɉ' } },
-            { 'K', new[] { 'Ķ', 'Ƙ', 'Ǩ' } },
-            { 'L', new[] { 'Ĺ', 'Ļ', 'Ľ', 'Ŀ', 'Ł', 'Ƚ' } },
-            { 'M', new[] { 'Ɯ', 'Ṁ' } },
-            { 'N', new[] { 'Ń', 'Ņ', 'Ň', 'Ŋ', 'Ɲ', 'Ǹ', 'Ƞ' } },
-            { 'O', new[] { 'Ō', 'Ŏ', 'Ő', 'Ɔ', 'Ɵ', 'Ơ', 'Ǒ', 'Ǫ', 'Ǭ', 'Ǿ', 'Ȍ', 'Ȏ', 'Ȫ', 'Ȭ', 'Ȯ', 'Ȱ' } },
-            { 'P', new[] { 'Ƥ', 'Ṗ', 'Þ' } },
-            { 'Q', new[] { 'Ɋ' } },
-            { 'R', new[] { 'Ŕ', 'Ŗ', 'Ř', 'Ȑ', 'Ȓ', 'Ɍ' } },
-            { 'S', new[] { 'Ś', 'Ŝ', 'Ş', 'Š', 'Ƨ', 'Ș', 'Ṡ' } },
-            { 'T', new[] { 'Ţ', 'Ť', 'Ŧ', 'Ƭ', 'Ʈ', 'Ț', 'Ⱦ', 'Ṫ' } },
-            { 'U', new[] { 'Ũ', 'Ū', 'Ŭ', 'Ů', 'Ű', 'Ų', 'Ư', 'Ʊ', 'Ǔ', 'Ǖ', 'Ǘ', 'Ǚ', 'Ǜ', 'Ȕ', 'Ȗ', 'Ʉ' } },
-            { 'V', new[] { 'Ʋ', 'Ʌ' } },
-            { 'W', new[] { 'Ŵ', 'Ẁ', 'Ẃ', 'Ẅ' } },
-            { 'Y', new[] { 'Ŷ', 'Ɣ', 'Ƴ', 'Ȳ', 'Ɏ', 'Ỳ' } },
-            { 'Z', new[] { 'Ź', 'Ż', 'Ž', 'Ƶ', 'Ȥ' } },
-            { 'a', new[] { 'ā', 'ă', 'ą', 'ǎ', 'ǟ', 'ǡ', 'ǻ', 'ȁ', 'ȃ', 'ȧ' } },
-            { 'b', new[] { 'ƀ', 'ƃ', 'ḃ' } },
-            { 'c', new[] { 'ć', 'ĉ', 'ċ', 'č', 'ƈ', 'ȼ' } },
-            { 'd', new[] { 'ď', 'đ', 'ƌ', 'ȡ', 'ḋ', 'ð' } },
-            { 'e', new[] { 'ē', 'ĕ', 'ė', 'ę', 'ě', 'ǝ', 'ȅ', 'ȇ', 'ȩ', 'ɇ', 'ə' } },
-            { 'f', new[] { 'ƒ', 'ḟ' } },
-            { 'g', new[] { 'ĝ', 'ğ', 'ġ', 'ģ', 'ǥ', 'ǧ', 'ǵ' } },
-            { 'h', new[] { 'ĥ', 'ħ', 'ȟ' } },
-            { 'i', new[] { 'ĩ', 'ī', 'ĭ', 'į', 'ı', 'ǐ', 'ȉ', 'ȋ' } },
-            { 'j', new[] { 'ĵ', 'ȷ', 'ɉ' } },
-            { 'k', new[] { 'ķ', 'ĸ', 'ƙ', 'ǩ' } },
-            { 'l', new[] { 'ĺ', 'ļ', 'ľ', 'ŀ', 'ł', 'ƚ', 'ȴ' } },
-            { 'm', new[] { 'ṁ' } },
-            { 'n', new[] { 'ń', 'ņ', 'ň', 'ŉ', 'ŋ', 'ƞ', 'ǹ', 'ȵ' } },
-            { 'o', new[] { 'ō', 'ŏ', 'ő', 'ơ', 'ǒ', 'ǫ', 'ǭ', 'ǿ', 'ȍ', 'ȏ', 'ȫ', 'ȭ', 'ȯ', 'ȱ' } },
-            { 'p', new[] { 'ƥ', 'ṗ', 'þ', } },
-            { 'q', new[] { 'ɋ' } },
-            { 'r', new[] { 'ŕ', 'ŗ', 'ř', 'ȑ', 'ȓ', 'ɍ', 'ɼ' } },
-            { 's', new[] { 'ś', 'ŝ', 'ş', 'š', 'ſ', 'ƨ', 'ș', 'ȿ', 'ṡ', 'ẛ' } },
-            { 't', new[] { 'ţ', 'ť', 'ŧ', 'ƫ', 'ƭ', 'ț', 'ȶ', 'ṫ' } },
-            { 'u', new[] { 'ũ', 'ū', 'ŭ', 'ů', 'ű', 'ų', 'ư', 'ǔ', 'ǖ', 'ǘ', 'ǚ', 'ǜ', 'ȕ', 'ȗ' } },
-            { 'w', new[] { 'ŵ', 'ẁ', 'ẃ', 'ẅ' } },
-            { 'y', new[] { 'ŷ', 'ƴ', 'ȳ', 'ɏ', 'ỳ' } },
-            { 'z', new[] { 'ź', 'ż', 'ž', 'ƶ', 'ȥ', 'ɀ' } },
-        }.AsImmutable();
+                        // Latin Extended-A
+                        new Dictionary<string, char[]>
+                        {
+                            { "A", new[] { '\u0100', '\u0102', '\u0104' } }, // { 'Ā', 'Ă', 'Ą' }
+                            { "a", new[] { '\u0101', '\u0103', '\u0105' } }, // { 'ā', 'ă', 'ą' }
+                            { "C", new[] { '\u0106', '\u0108', '\u010A', '\u010C' } }, // { 'Ć', 'Ĉ', 'Ċ', 'Č' }
+                            { "c", new[] { '\u0107', '\u0109', '\u010B', '\u010D' } }, // { 'ć', 'ĉ', 'ċ', 'č' }
+                            { "D", new[] { '\u010E', '\u0110' } }, // { 'Ď', 'Đ' }
+                            { "d", new[] { '\u010F', '\u0111' } }, // { 'ď', 'đ' }
+                            { "E", new[] { '\u0112', '\u0114', '\u0116', '\u0118', '\u011A' } }, // { 'Ē', 'Ĕ', 'Ė', 'Ę', 'Ě' }
+                            { "e", new[] { '\u0113', '\u0115', '\u0117', '\u0119', '\u011B' } }, // { 'ē', 'ĕ', 'ė', 'ę', 'ě' }
+                            { "f", new[] { '\u017F' } }, // { 'ſ' }
+                            { "G", new[] { '\u011C', '\u011E', '\u0120', '\u0122' } }, // { 'Ĝ', 'Ğ', 'Ġ', 'Ģ' }
+                            { "g", new[] { '\u011D', '\u011F', '\u0121', '\u0123' } }, // { 'ĝ', 'ğ', 'ġ', 'ģ' }
+                            { "H", new[] { '\u0124', '\u0126' } }, // { 'Ĥ', 'Ħ' }
+                            { "h", new[] { '\u0125', '\u0127' } }, // { 'ĥ', 'ħ' }
+                            { "I", new[] { '\u0128', '\u012A', '\u012C', '\u012E', '\u0130' } }, // { 'Ĩ', 'Ī', 'Ĭ', 'Į', 'İ' }
+                            { "i", new[] { '\u0129', '\u012B', '\u012D', '\u012F', '\u0131' } }, // { 'ĩ', 'ī', 'ĭ', 'į', 'ı' }
+                            { "IJ", new[] { '\u0132' } }, // { 'Ĳ' }
+                            { "ij", new[] { '\u0133' } }, // { 'ĳ' }
+                            { "J", new[] { '\u0134' } }, // { 'Ĵ' }
+                            { "j", new[] { '\u0135' } }, // { 'ĵ' }
+                            { "K", new[] { '\u0136', '\u0138' } }, // { 'Ķ', 'ĸ' }
+                            { "k", new[] { '\u0137' } }, // { 'ķ' }
+                            { "L", new[] { '\u0139', '\u013B', '\u013D', '\u013F', '\u0141' } }, // { 'Ĺ', 'Ļ', 'Ľ', 'Ŀ', 'Ł' }
+                            { "l", new[] { '\u013A', '\u013C', '\u013E', '\u0140', '\u0142' } }, // { 'ĺ', 'ļ', 'ľ', 'ŀ', 'ł' }
+                            { "N", new[] { '\u0143', '\u0145', '\u0147', '\u014A' } }, // { 'Ń', 'Ņ', 'Ň', 'Ŋ' }
+                            { "n", new[] { '\u0144', '\u0146', '\u0148', '\u014B' } }, // { 'ń', 'ņ', 'ň', 'ŋ' }
+                            { "'n", new[] { '\u0149' } }, // { 'ŉ' }
+                            { "O", new[] { '\u014C', '\u014E', '\u0150' } }, // { 'Ō', 'Ŏ', 'Ő' }
+                            { "o", new[] { '\u014D', '\u014F', '\u0151' } }, // { 'ō', 'ŏ', 'ő' }
+                            { "OE", new[] { '\u0152' } }, // { 'Œ' }
+                            { "oe", new[] { '\u0153' } }, // { 'œ' }
+                            { "R", new[] { '\u0154', '\u0156', '\u0158' } }, // { 'Ŕ', 'Ŗ', 'Ř' }
+                            { "r", new[] { '\u0155', '\u0157', '\u0159' } }, // { 'ŕ', 'ŗ', 'ř' }
+                            { "S", new[] { '\u015A', '\u015C', '\u015E', '\u0160' } }, // { 'Ś', 'Ŝ', 'Ş', 'Š' }
+                            { "s", new[] { '\u015B', '\u015D', '\u015F', '\u0161' } }, // { 'ś', 'ŝ', 'ş', 'š' }
+                            { "T", new[] { '\u0162', '\u0164', '\u0166' } }, // { 'Ţ', 'Ť', 'Ŧ' }
+                            { "t", new[] { '\u0163', '\u0165', '\u0167' } }, // { 'ţ', 'ť', 'ŧ' }
+                            { "U", new[] { '\u0168', '\u016A', '\u016C', '\u016E', '\u0170', '\u0172' } }, // { 'Ũ', 'Ū', 'Ŭ', 'Ů', 'Ű', 'Ų' }
+                            { "u", new[] { '\u0169', '\u016B', '\u016D', '\u016F', '\u0171', '\u0173' } }, // { 'ũ', 'ū', 'ŭ', 'ů', 'ű', 'ų' }
+                            { "W", new[] { '\u0174' } }, // { 'Ŵ' }
+                            { "w", new[] { '\u0175' } }, // { 'ŵ' }
+                            { "Y", new[] { '\u0176', '\u0178' } }, // { 'Ŷ', 'Ÿ' }
+                            { "y", new[] { '\u0177' } }, // { 'ŷ' }
+                            { "Z", new[] { '\u0179', '\u017B', '\u017D' } }, // { 'Ź', 'Ż', 'Ž' }
+                            { "z", new[] { '\u017A', '\u017C', '\u017E' } }, // { 'ź', 'ż', 'ž' }
+                        },
 
-        /// <summary>
-        /// A Unicode extended Latin-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
-        /// </summary>
-        public static IDictionary<string, char[]> UnicodeExtendedLatinToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
-        {
-            { "AE", new[] { 'Ǣ', 'Ǽ' } },
-            { "DZ", new[] { 'Ǆ', 'Ǳ' } },
-            { "Dz", new[] { 'ǅ', 'ǲ' } },
-            { "IJ", new[] { 'Ĳ' } },
-            { "LJ", new[] { 'Ǉ' } },
-            { "Lj", new[] { 'ǈ' } },
-            { "NJ", new[] { 'Ǌ' } },
-            { "Nj", new[] { 'ǋ' } },
-            { "OE", new[] { 'Œ' } },
-            { "OI", new[] { 'Ƣ' } },
-            { "OU", new[] { 'Ȣ' } },
-            { "ae", new[] { 'ǣ', 'ǽ' } },
-            { "db", new[] { 'ȸ' } },
-            { "dz", new[] { 'ǆ', 'ǳ' } },
-            { "ij", new[] { 'ĳ' } },
-            { "lj", new[] { 'ǉ' } },
-            { "nj", new[] { 'ǌ' } },
-            { "oe", new[] { 'œ' } },
-            { "oi", new[] { 'ƣ' } },
-            { "ou", new[] { 'ȣ' } },
-            { "qp", new[] { 'ȹ' } },
-        }.AsImmutable();
+                        // Latin Extended-B
+                        new Dictionary<string, char[]>
+                        {
+                            { "|", new[] { '\u01C0' } }, // { 'ǀ' }
+                            { "||", new[] { '\u01C1' } }, // { 'ǁ' }
+                            { "|=", new[] { '\u01C2' } }, // { 'ǂ' }
+                            { "!", new[] { '\u01C3' } }, // { 'ǃ' }
+                            { "¢", new[] { '\u023B', '\u023C' } }, // { 'Ȼ', 'ȼ' }
+                            { "2", new[] { '\u01BB' } }, // { 'ƻ' }
+                            { "3", new[] { '\u0190', '\u01B7', '\u01B8', '\u01B9', '\u01BA', '\u01EE', '\u01EF', '\u021C', '\u021D' } }, // { 'Ɛ', 'Ʒ', 'Ƹ', 'ƹ', 'ƺ', 'Ǯ', 'ǯ', 'Ȝ', 'ȝ' }
+                            { "5", new[] { '\u01BC', '\u01BD' } }, // { 'Ƽ', 'ƽ' }
+                            { "8", new[] { '\u0222', '\u0223' } }, // { 'Ȣ', 'ȣ' }
+                            { "A", new[] { '\u01CD', '\u01DE', '\u01E0', '\u01FA', '\u0200', '\u0202', '\u0226', '\u023A' } }, // { 'Ǎ', 'Ǟ', 'Ǡ', 'Ǻ', 'Ȁ', 'Ȃ', 'Ȧ', 'Ⱥ' }
+                            { "a", new[] { '\u01CE', '\u01DF', '\u01E1', '\u01FB', '\u0201', '\u0203', '\u0227' } }, // { 'ǎ', 'ǟ', 'ǡ', 'ǻ', 'ȁ', 'ȃ', 'ȧ' }
+                            { "AE", new[] { '\u01E2', '\u01FC' } }, // { 'Ǣ', 'Ǽ' }
+                            { "ae", new[] { '\u01E3', '\u01FD' } }, // { 'ǣ', 'ǽ' }
+                            { "B", new[] { '\u0181', '\u0182', '\u0243' } }, // { 'Ɓ ', 'Ƃ ', 'Ƀ' }
+                            { "b", new[] { '\u0180', '\u0183', '\u0184', '\u0185' } }, // { 'ƀ', 'ƃ ', 'Ƅ ', 'ƅ ' }
+                            { "C", new[] { '\u0186', '\u0187' } }, // { 'Ɔ', 'Ƈ ', 'Ċ', 'Č' }
+                            { "c", new[] { '\u0188' } }, // { 'ƈ ' }
+                            { "D", new[] { '\u0189', '\u018A' } }, // { 'Ɖ', 'Ɗ' }
+                            { "DZ", new[] { '\u01C4', '\u01F1' } }, // { 'Ǆ', 'Ǳ' }
+                            { "Dz", new[] { '\u01C5', '\u01F2' } }, // { 'ǅ', 'ǲ' }
+                            { "d", new[] { '\u018B', '\u018C', '\u0221' } }, // { 'Ƌ', 'ƌ', 'ȡ' }
+                            { "db", new[] { '\u0238' } }, // { 'ȸ' }
+                            { "dz", new[] { '\u01C6', '\u01F3' } }, // { 'ǆ', 'ǳ' }
+                            { "E", new[] { '\u018E', '\u01A9', '\u0204', '\u0206', '\u0228', '\u0246' } }, // { 'Ǝ', 'Ʃ', 'Ȅ', 'Ȇ', 'Ȩ', 'Ɇ' }
+                            { "e", new[] { '\u018F', '\u01DD', '\u0205', '\u0207', '\u0229', '\u0247' } }, // { 'Ə', 'ǝ', 'ȅ', 'ȇ', 'ȩ', 'ɇ' }
+                            { "F", new[] { '\u0191' } }, // { 'Ƒ' }
+                            { "f", new[] { '\u0192' } }, // { 'ƒ' }
+                            { "G", new[] { '\u0193', '\u01E4', '\u01E6', '\u01F4' } }, // { 'Ɠ', 'Ǥ', 'Ǧ', 'Ǵ' }
+                            { "g", new[] { '\u01E5', '\u01E7', '\u01F5' } }, // { 'ǥ', 'ǧ', 'ǵ' }
+                            { "H", new[] { '\u01F6', '\u021E' } }, // { 'Ƕ', 'Ȟ' }
+                            { "h", new[] { '\u021F' } }, // { 'ȟ' }
+                            { "hv", new[] { '\u0195' } }, // { 'ƕ' }
+                            { "I", new[] { '\u0197', '\u01CF', '\u0208', '\u020A' } }, // { 'Ɨ', 'Ǐ', 'Ȉ', 'Ȋ' }
+                            { "i", new[] { '\u0196', '\u01D0', '\u0209', '\u020B' } }, // { 'Ɩ', 'ǐ', 'ȉ', 'ȋ' }
+                            { "J", new[] { '\u0248' } }, // { 'Ɉ' }
+                            { "j", new[] { '\u01F0', '\u0237', '\u0249' } }, // { 'ǰ', 'ȷ', 'ɉ' }
+                            { "K", new[] { '\u0198', '\u01E8' } }, // { 'Ƙ', 'Ǩ' }
+                            { "k", new[] { '\u0199', '\u01E9' } }, // { 'ƙ', 'ǩ' }
+                            { "L", new[] { '\u023D' } }, // { 'Ƚ' }
+                            { "LJ", new[] { '\u01C7' } }, // { 'Ǉ' }
+                            { "Lj", new[] { '\u01C8' } }, // { 'ǈ' }
+                            { "l", new[] { '\u019A', '\u01AA', '\u0234' } }, // { 'ƚ', 'ƪ', 'ȴ' }
+                            { "lj", new[] { '\u01C9' } }, // { 'ǉ' }
+                            { "N", new[] { '\u019D', '\u01F8' } }, // { 'Ɲ', 'Ǹ' }
+                            { "NJ", new[] { '\u01CA' } }, // { 'Ǌ' }
+                            { "Nj", new[] { '\u01CB' } }, // { 'ǋ' }
+                            { "n", new[] { '\u019E', '\u01F9', '\u0220', '\u0235' } }, // { 'ƞ', 'ǹ', 'Ƞ', 'ȵ' }
+                            { "nj", new[] { '\u01CC' } }, // { 'ǌ' }
+                            { "O", new[] { '\u019F', '\u01A0', '\u01D1', '\u01EA', '\u01EC', '\u01FE', '\u020C', '\u020E', '\u022A', '\u022C', '\u022E', '\u0230' } }, // { 'Ɵ', 'Ơ', 'Ǒ', 'Ǫ', 'Ǭ', 'Ǿ', 'Ȍ', 'Ȏ', 'Ȫ', 'Ȭ', 'Ȯ', 'Ȱ' }
+                            { "OI", new[] { '\u01A2' } }, // { 'Ƣ' }
+                            { "o", new[] { '\u018D', '\u01A1', '\u01D2', '\u01EB', '\u01ED', '\u01FF', '\u020D', '\u020F', '\u022B', '\u022D', '\u022F', '\u0231' } }, // { 'ƍ', 'ơ', 'ǒ', 'ǫ', 'ǭ', 'ǿ', 'ȍ', 'ȏ', 'ȫ', 'ȭ', 'ȯ', 'ȱ' }
+                            { "oi", new[] { '\u01A3' } }, // { 'ƣ' }
+                            { "P", new[] { '\u01A4', '\u01F7' } }, // { 'Ƥ', 'Ƿ' }
+                            { "p", new[] { '\u01A5', '\u01BF' } }, // { 'ƥ', 'ƿ' }
+                            { "Q", new[] { '\u024A' } }, // { 'Ɋ' }
+                            { "q", new[] { '\u024B' } }, // { 'ɋ' }
+                            { "qp", new[] { '\u0238' } }, // { 'ȹ' }
+                            { "R", new[] { '\u01A6', '\u0210', '\u0212', '\u024C' } }, // { 'Ʀ', 'Ȑ', 'Ȓ', 'Ɍ' }
+                            { "r", new[] { '\u0211', '\u0213', '\u024D' } }, // { 'ȑ', 'ȓ', 'ɍ' }
+                            { "S", new[] { '\u01A7', '\u0218' } }, // { 'Ƨ', 'Ș' }
+                            { "s", new[] { '\u01A8', '\u0219', '\u023F' } }, // { 'ƨ', 'ș', 'ȿ' }
+                            { "T", new[] { '\u01AC', '\u01AE', '\u021A', '\u023E' } }, // { 'Ƭ', 'Ʈ', 'Ț', 'Ⱦ' }
+                            { "t", new[] { '\u01AB', '\u01AD', '\u021B', '\u0236' } }, // { 'ƫ', 'ƭ', 'ț', 'ȶ' }
+                            { "U", new[] { '\u01AF', '\u01B1', '\u01B2', '\u01D3', '\u01D5', '\u01D7', '\u01D9', '\u01DB', '\u0214', '\u0216', '\u0244' } }, // { 'Ư', 'Ʊ', 'Ʋ', 'Ǔ', 'Ǖ', 'Ǘ', 'Ǚ', 'Ǜ', 'Ȕ', 'Ȗ', 'Ʉ' }
+                            { "u", new[] { '\u01B0', '\u01D4', '\u01D6', '\u01D8', '\u01DA', '\u01DC', '\u0215', '\u0217' } }, // { 'ư', 'ǔ', 'ǖ', 'ǘ', 'ǚ', 'ǜ', 'ȕ', 'ȗ' }
+                            { "V", new[] { '\u0194', '\u0245' } }, // { 'Ɣ', 'Ʌ' }
+                            { "w", new[] { '\u019C' } }, // { 'Ɯ' }
+                            { "Y", new[] { '\u01B3', '\u0232', '\u024E' } }, // { 'Ƴ', 'Ȳ', 'Ɏ' }
+                            { "y", new[] { '\u01B4', '\u0233', '\u024F' } }, // { 'ƴ', 'ȳ', 'ɏ' }
+                            { "Z", new[] { '\u01B5', '\u0224' } }, // { 'Ƶ', 'Ȥ' }
+                            { "z", new[] { '\u01B6', '\u0225', '\u0240' } }, // { 'ƶ', 'ȥ', 'ɀ' }
+                            { "[lambda]", new[] { '\u019B' } }, // { 'ƛ' }
+                            { "[glottal-stop]", new[] { '\u01BE', '\u0241', '\u0242' } }, // { 'ƾ', 'Ɂ', 'ɂ' }
+                        },
+                        /*
+U+1E44	U+1E45	U+1E46	U+1E47	U+1E48	U+1E49	U+1E4A	U+1E4B	U+1E4C	U+1E4D	U+1E4E	U+1E4F	U+1E50	U+1E51	U+1E52	U+1E53	U+1E54	U+1E55	U+1E56	U+1E57	U+1E58	U+1E59	U+1E5A	U+1E5B	U+1E5C	U+1E5D	U+1E5E	U+1E5F
+Ṅ	ṅ	Ṇ	ṇ	Ṉ	ṉ	Ṋ	ṋ	Ṍ	ṍ	Ṏ	ṏ	Ṑ	ṑ	Ṓ	ṓ	Ṕ	ṕ	Ṗ	ṗ	Ṙ	ṙ	Ṛ	ṛ	Ṝ	ṝ	Ṟ	ṟ
+																											
+U+1E60	U+1E61	U+1E62	U+1E63	U+1E64	U+1E65	U+1E66	U+1E67	U+1E68	U+1E69	U+1E6A	U+1E6B	U+1E6C	U+1E6D	U+1E6E	U+1E6F	U+1E70	U+1E71	U+1E72	U+1E73	U+1E74	U+1E75	U+1E76	U+1E77	U+1E78	U+1E79	U+1E7A	U+1E7B
+Ṡ	ṡ	Ṣ	ṣ	Ṥ	ṥ	Ṧ	ṧ	Ṩ	ṩ	Ṫ	ṫ	Ṭ	ṭ	Ṯ	ṯ	Ṱ	ṱ	Ṳ	ṳ	Ṵ	ṵ	Ṷ	ṷ	Ṹ	ṹ	Ṻ	ṻ
+																											
+U+1E7C	U+1E7D	U+1E7E	U+1E7F	U+1E80	U+1E81	U+1E82	U+1E83	U+1E84	U+1E85	U+1E86	U+1E87	U+1E88	U+1E89	U+1E8A	U+1E8B	U+1E8C	U+1E8D	U+1E8E	U+1E8F	U+1E90	U+1E91	U+1E92	U+1E93	U+1E94	U+1E95		
+Ṽ	ṽ	Ṿ	ṿ	Ẁ	ẁ	Ẃ	ẃ	Ẅ	ẅ	Ẇ	ẇ	Ẉ	ẉ	Ẋ	ẋ	Ẍ	ẍ	Ẏ	ẏ	Ẑ	ẑ	Ẓ	ẓ	Ẕ	ẕ		
+																											
+U+1E96	U+1E97	U+1E98	U+1E99	U+1E9A	U+1E9B	U+1E9C	U+1E9D	U+1E9E	U+1E9F																		
+ẖ	ẗ	ẘ	ẙ	ẚ	ẛ	ẜ	ẝ	ẞ	ẟ																		
+																											
+U+1EA0	U+1EA1	U+1EA2	U+1EA3	U+1EA4	U+1EA5	U+1EA6	U+1EA7	U+1EA8	U+1EA9	U+1EAA	U+1EAB	U+1EAC	U+1EAD	U+1EAE	U+1EAF	U+1EB0	U+1EB1	U+1EB2	U+1EB3	U+1EB4	U+1EB5	U+1EB6	U+1EB7				
+Ạ	ạ	Ả	ả	Ấ	ấ	Ầ	ầ	Ẩ	ẩ	Ẫ	ẫ	Ậ	ậ	Ắ	ắ	Ằ	ằ	Ẳ	ẳ	Ẵ	ẵ	Ặ	ặ				
+																											
+U+1EB8	U+1EB9	U+1EBA	U+1EBB	U+1EBC	U+1EBD	U+1EBE	U+1EBF	U+1EC0	U+1EC1	U+1EC2	U+1EC3	U+1EC4	U+1EC5	U+1EC6	U+1EC7	U+1EC8	U+1EC9	U+1ECA	U+1ECB								
+Ẹ	ẹ	Ẻ	ẻ	Ẽ	ẽ	Ế	ế	Ề	ề	Ể	ể	Ễ	ễ	Ệ	ệ	Ỉ	ỉ	Ị	ị								
+																											
+U+1ECC	U+1ECD	U+1ECE	U+1ECF	U+1ED0	U+1ED1	U+1ED2	U+1ED3	U+1ED4	U+1ED5	U+1ED6	U+1ED7	U+1ED8	U+1ED9	U+1EDA	U+1EDB	U+1EDC	U+1EDD	U+1EDE	U+1EDF	U+1EE0	U+1EE1	U+1EE2	U+1EE3				
+Ọ	ọ	Ỏ	ỏ	Ố	ố	Ồ	ồ	Ổ	ổ	Ỗ	ỗ	Ộ	ộ	Ớ	ớ	Ờ	ờ	Ở	ở	Ỡ	ỡ	Ợ	ợ				
+																											
+U+1EE4	U+1EE5	U+1EE6	U+1EE7	U+1EE8	U+1EE9	U+1EEA	U+1EEB	U+1EEC	U+1EED	U+1EEE	U+1EEF	U+1EF0	U+1EF1														
+Ụ	ụ	Ủ	ủ	Ứ	ứ	Ừ	ừ	Ử	ử	Ữ	ữ	Ự	ự														
+																											
+U+1EF2	U+1EF3	U+1EF4	U+1EF5	U+1EF6	U+1EF7	U+1EF8	U+1EF9	U+1EFA	U+1EFB	U+1EFC	U+1EFD	U+1EFE	U+1EFF														
+Ỳ	ỳ	Ỵ	ỵ	Ỷ	ỷ	Ỹ	ỹ	Ỻ	ỻ	Ỽ	ỽ	Ỿ	ỿ														          */
+                        // Latin Extended Additional
+                        new Dictionary<string, char[]>
+                        {
+                            { "6", new[] { '\u1EFC', '\u1EFD' } }, // { 'Ỽ', 'ỽ' } , '' , '\u1E00'
+                            { "A", new[] { '\u1E00', '\u1EA0', '\u1EA2', '\u1EA4', '\u1EA6', '\u1EA8', '\u1EAA', '\u1EAC', '\u1EAE', '\u1EB0', '\u1EB2', '\u1EB4', '\u1EB6' } }, // { 'Ḁ', '', '', '', '', '', '', '', '', '', '', '', '' }
+                            { "a", new[] { '\u1E01', '\u1E9A', '\u1EA1', '\u1EA3', '\u1EA5', '\u1EA7', '\u1EA9', '\u1EAB', '\u1EAD', '\u1EAF', '\u1EB1', '\u1EB3', '\u1EB5', '\u1EB7' } }, // { 'ḁ', 'ẚ', '', '', '', '', '', '', '', '', '', '', '', '' }
+                            { "B", new[] { '\u1E02', '\u1E04', '\u1E06', '\u1E9E' } }, // { 'Ḃ', 'Ḅ', 'Ḇ', 'ẞ' }
+                            { "b", new[] { '\u1E03', '\u1E05', '\u1E07' } }, // { 'ḃ', 'ḅ', 'ḇ' }
+                            { "C", new[] { '\u1E08' } }, // { 'Ḉ' }
+                            { "c", new[] { '\u1E09' } }, // { 'ḉ' }
+                            { "D", new[] { '\u1E0A', '\u1E0C', '\u1E0E', '\u1E10', '\u1E12' } }, // { 'Ḋ', 'Ḍ', 'Ḏ', 'Ḑ', 'Ḓ' }
+                            { "d", new[] { '\u1E0B', '\u1E0D', '\u1E0F', '\u1E11', '\u1E13' } }, // { 'ḋ', 'ḍ', 'ḏ', 'ḑ', 'ḓ' }
+                            { "E", new[] { '\u1E14', '\u1E16', '\u1E18', '\u1E1A', '\u1E1C', '\u1EB8', '\u1EBA', '\u1EBC', '\u1EBE', '\u1EC0', '\u1EC2', '\u1EC4', '\u1EC6' } }, // { 'Ḕ', 'Ḗ', 'Ḙ', 'Ḛ', 'Ḝ', '', '', '', '', '', '', '', '' }
+                            { "e", new[] { '\u1E15', '\u1E17', '\u1E19', '\u1E1B', '\u1E1D', '\u1EB9', '\u1EBB', '\u1EBD', '\u1EBF', '\u1EC1', '\u1EC3', '\u1EC5', '\u1EC7' } }, // { 'ḕ', 'ḗ', 'ḙ', 'ḛ', 'ḝ', '', '', '', '', '', '', '', '' }
+                            { "F", new[] { '\u1E1E' } }, // { 'Ḟ' }
+                            { "f", new[] { '\u1E1F', '\u1E9C', '\u1E9D' } }, // { 'ḟ', 'ẜ', 'ẝ' }
+                            { "G", new[] { '\u1E20' } }, // { 'Ḡ' }
+                            { "g", new[] { '\u1E21' } }, // { 'ḡ' }
+                            { "H", new[] { '\u1E22', '\u1E24', '\u1E26', '\u1E28', '\u1E2A' } }, // { 'Ḣ', 'Ḥ', 'Ḧ', 'Ḩ', 'Ḫ' }
+                            { "h", new[] { '\u1E23', '\u1E25', '\u1E27', '\u1E29', '\u1E2B', '\u1E96' } }, // { 'ḣ', 'ḥ', 'ḧ', 'ḩ', 'ḫ', 'ẖ' }
+                            { "I", new[] { '\u1E2C', '\u1E2E', '\u1EC8', '\u1ECA' } }, // { 'Ḭ', 'Ḯ', '', '' }
+                            { "IL", new[] { '\u1EFA' } }, // { 'Ỻ' }
+                            { "i", new[] { '\u1E2D', '\u1E2F', '\u1EC9', '\u1ECB' } }, // { 'ḭ', 'ḯ', '', '' }
+                            { "K", new[] { '\u1E30', '\u1E32', '\u1E34' } }, // { 'Ḱ', 'Ḳ', 'Ḵ'}
+                            { "k", new[] { '\u1E31', '\u1E33', '\u1E35' } }, // { 'ḱ', 'ḳ', 'ḵ' }
+                            { "L", new[] { '\u1E36', '\u1E38', '\u1E3A', '\u1E3C' } }, // { 'Ḷ', 'Ḹ', 'Ḻ', 'Ḽ'}
+                            { "l", new[] { '\u1E37', '\u1E39', '\u1E3B', '\u1E3D', '\u1E9B' } }, // { 'ḷ', 'ḹ', 'ḻ', 'ḽ', 'ẛ' }
+                            { "ll", new[] { '\u1EFB' } }, // { 'ỻ' }
+                            { "M", new[] { '\u1E3E', '\u1E40', '\u1E42' } }, // { 'Ḿ', 'Ṁ', 'Ṃ' }
+                            { "m", new[] { '\u1E3F', '\u1E41', '\u1E43' } }, // { 'ḿ', 'ṁ', 'ṃ' }
+                            { "N", new[] { '\u1E44', '\u1E46', '\u1E48', '\u1E4A' } }, // { 'Ṅ', 'Ṇ', 'Ṉ', 'Ṋ' }
+                            { "n", new[] { '\u1E45', '\u1E47', '\u1E49', '\u1E4B' } }, // { 'ṅ', 'ṇ', 'ṉ', 'ṋ' }
+                            { "O", new[] { '\u1E4C', '\u1E4E', '\u1E50', '\u1E52', '\u1ECC', '\u1ECE', '\u1ED0', '\u1ED2', '\u1ED4', '\u1ED6', '\u1ED8', '\u1EDA', '\u1EDC', '\u1EDE', '\u1EE0', '\u1EE2' } }, // { 'Ṍ', 'Ṏ', 'Ṑ', 'Ṓ', '', '', '', '', '', '', '', '', '', '', '', '' }
+                            { "o", new[] { '\u1E4D', '\u1E4F', '\u1E51', '\u1E53', '\u1E9F', '\u1ECD', '\u1ECF', '\u1ED1', '\u1ED3', '\u1ED5', '\u1ED7', '\u1ED9', '\u1EDB', '\u1EDD', '\u1EDF', '\u1EE1', '\u1EE3' } }, // { 'ṍ', 'ṏ', 'ṑ', 'ṓ', 'ẟ', '', '', '', '', '', '', '', '', '', '', '', '' }
+                            { "P", new[] { '\u1E54', '\u1E56' } }, // { '', '' }
+                            { "p", new[] { '\u1E55', '\u1E57' } }, // { '', '' }
+                            { "R", new[] { '\u1E58', '\u1E5A', '\u1E5C', '\u1E5E' } }, // { '', '', '', '' }
+                            { "r", new[] { '\u1E59', '\u1E5B', '\u1E5D', '\u1E5F' } }, // { '', '', '', '' }
+                            { "S", new[] { '\u1E60', '\u1E62', '\u1E64', '\u1E66', '\u1E68' } }, // { '', '', '', '', '' }
+                            { "s", new[] { '\u1E61', '\u1E63', '\u1E65', '\u1E67', '\u1E69' } }, // { '', '', '', '', '' }
+                            { "T", new[] { '\u1E6A', '\u1E6C', '\u1E6E', '\u1E70' } }, // { '', '', '', '' }
+                            { "t", new[] { '\u1E6B', '\u1E6D', '\u1E6F', '\u1E71', '\u1E97' } }, // { '', '', '', '', 'ẗ' }
+                            { "U", new[] { '\u1E72', '\u1E74', '\u1E76', '\u1E78', '\u1E7A', '\u1EE4', '\u1EE6', '\u1EE8', '\u1EEA', '\u1EEC', '\u1EEE', '\u1EF0' } }, // { '', '', '', '', '', '', '', '', '', '', '', '' }
+                            { "u", new[] { '\u1E73', '\u1E75', '\u1E77', '\u1E79', '\u1E7B', '\u1EE5', '\u1EE7', '\u1EE9', '\u1EEB', '\u1EED', '\u1EEF', '\u1EF1' } }, // { '', '', '', '', '', '', '', '', '', '', '', '' }
+                            { "V", new[] { '\u1E7C', '\u1E7E' } }, // { '', '' }
+                            { "v", new[] { '\u1E7D', '\u1E7F' } }, // { '', '' }
+                            { "W", new[] { '\u1E80', '\u1E82', '\u1E84', '\u1E86', '\u1E88' } }, // { '', '', '', '', '' }
+                            { "w", new[] { '\u1E81', '\u1E83', '\u1E85', '\u1E87', '\u1E89', '\u1E98' } }, // { '', '', '', '', '', 'ẘ' }
+                            { "X", new[] { '\u1E8A', '\u1E8C' } }, // { '', '' }
+                            { "x", new[] { '\u1E8B', '\u1E8D' } }, // { '', '' }
+                            { "Y", new[] { '\u1E8E', '\u1EF2', '\u1EF4', '\u1EF6', '\u1EF8', '\u1EFE' } }, // { '', '', '', '', '', 'Ỿ' }
+                            { "y", new[] { '\u1E8F', '\u1E99', '\u1EF3', '\u1EF5', '\u1EF7', '\u1EF9', '\u1EFF' } }, // { '', 'ẙ', '', '', '', '', 'ỿ' }
+                            { "Z", new[] { '\u1E90', '\u1E92', '\u1E94' } }, // { '' '', '' }
+                            { "z", new[] { '\u1E91', '\u1E93', '\u1E95' } }, // { '' '', '' }
+                        },
+                        /* , '' , '\u0250'
 
-        /// <summary>
-        /// A Unicode Greek-to-ASCII conversion chart. 
-        /// </summary>
-        public static IDictionary<char, char[]> UnicodeGreekToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
-        {
-            { 'A', new[] { 'Ά', 'Α' } },
-            { 'B', new[] { 'Β', 'ϐ' } },
-            { 'C', new[] { 'Ϲ', 'Ͻ', 'Ͼ', 'Ͽ' } },
-            { 'E', new[] { 'Έ', 'Ε', 'Σ' } },
-            { 'F', new[] { 'Ϝ' } },
-            { 'H', new[] { 'Ή', 'Η' } },
-            { 'I', new[] { 'Ί', 'Ι', 'Ϊ' } },
-            { 'J', new[] { 'Ϳ' } },
-            { 'K', new[] { 'Κ', 'Ϗ' } },
-            { 'M', new[] { 'Μ', 'Ϻ' } },
-            { 'N', new[] { 'Ͷ', 'Ν' } },
-            { 'O', new[] { 'Ό', 'Θ', 'Ο', 'Φ', 'ϴ' } },
-            { 'P', new[] { 'Ρ' } },
-            { 'Q', new[] { 'Ϙ' } },
-            { 'T', new[] { 'Ͳ', 'Τ' } },
-            { 'X', new[] { 'Χ' } },
-            { 'Y', new[] { 'Ύ', 'Υ', 'Ϋ', 'ϒ', 'ϓ', 'ϔ' } },
-            { 'Z', new[] { 'Ζ' } },
-            { 'a', new[] { 'ά', 'α' } },
-            { 'b', new[] { 'β' } },
-            { 'c', new[] { 'ς' } },
-            { 'e', new[] { 'έ', 'ε', 'ϵ', '϶' } },
-            { 'f', new[] { 'ϝ' } },
-            { 'i', new[] { 'ΐ', 'ί', 'ι', 'ϊ' } },
-            { 'k', new[] { 'κ' } },
-            { 'm', new[] { 'ϻ' } },
-            { 'n', new[] { 'ͷ', 'ή', 'η' } },
-            { 'o', new[] { 'θ', 'ο', 'σ', 'ό' } },
-            { 'p', new[] { 'ρ' } },
-            { 'q', new[] { 'ϙ' } },
-            { 't', new[] { 'ͳ', 'τ' } },
-            { 'u', new[] { 'ΰ', 'υ', 'ϋ', 'ύ' } },
-            { 'v', new[] { 'ν' } },
-            { 'w', new[] { 'ω', 'ώ' } },
-            { 'x', new[] { 'χ' } },
-            { 'y', new[] { 'γ' } },
-            { 'z', new[] { 'ζ' } },
-        }.AsImmutable();
+                        */
 
-        /// <summary>
-        /// A Unicode extended Greek-to-ASCII conversion chart. 
-        /// </summary>
-        public static IDictionary<char, char[]> UnicodeExtendedGreekToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
-        {
-            { 'A', new[] { 'Ἀ', 'Ἁ', 'Ἂ', 'Ἃ', 'Ἄ', 'Ἅ', 'Ἆ', 'Ἇ', 'ᾈ', 'ᾉ', 'ᾊ', 'ᾋ', 'ᾌ', 'ᾍ', 'ᾎ', 'ᾏ', 'Ᾰ', 'Ᾱ', 'Ὰ', 'Ά', 'ᾼ' } },
-            { 'E', new[] { 'Ἐ', 'Ἑ', 'Ἒ', 'Ἓ', 'Ἔ', 'Ἕ', 'Ὲ', 'Έ' } },
-            { 'H', new[] { 'Ἠ', 'Ἡ', 'Ἢ', 'Ἣ', 'Ἤ', 'Ἥ', 'Ἦ', 'Ἧ', 'ᾘ', 'ᾙ', 'ᾚ', 'ᾛ', 'ᾜ', 'ᾝ', 'ᾞ', 'ᾟ', 'Ὴ', 'Ή', 'ῌ' } },
-            { 'I', new[] { 'Ἰ', 'Ἱ', 'Ἲ', 'Ἳ', 'Ἴ', 'Ἵ', 'Ἶ', 'Ἷ', 'Ῐ', 'Ῑ', 'Ὶ', 'Ί' } },
-            { 'O', new[] { 'Ὀ', 'Ὁ', 'Ὂ', 'Ὃ', 'Ὄ', 'Ὅ', 'Ὸ', 'Ό' } },
-            { 'P', new[] { 'Ῥ' } },
-            { 'Y', new[] { 'Ὑ', 'Ὓ', 'Ὕ', 'Ὗ', 'Ῠ', 'Ῡ', 'Ὺ', 'Ύ' } },
-            { 'a', new[] { 'ἀ', 'ἁ', 'ἂ', 'ἃ', 'ἄ', 'ἅ', 'ἆ', 'ἇ', 'ὰ', 'ά', 'ᾀ', 'ᾁ', 'ᾂ', 'ᾃ', 'ᾄ', 'ᾅ', 'ᾆ', 'ᾇ', 'ᾰ', 'ᾱ', 'ᾲ', 'ᾳ', 'ᾴ', 'ᾶ', 'ᾷ' } },
-            { 'e', new[] { 'ἐ', 'ἑ', 'ἒ', 'ἓ', 'ἔ', 'ἕ', 'ὲ', 'έ' } },
-            { 'i', new[] { 'ἰ', 'ἱ', 'ἲ', 'ἳ', 'ἴ', 'ἵ', 'ἶ', 'ἷ', 'ὶ', 'ί', 'ῐ', 'ῑ', 'ῒ', 'ΐ', 'ῖ', 'ῗ' } },
-            { 'n', new[] { 'ἠ', 'ἡ', 'ἢ', 'ἣ', 'ἤ', 'ἥ', 'ἦ', 'ἧ', 'ὴ', 'ή', 'ᾐ', 'ᾑ', 'ᾒ', 'ᾓ', 'ᾔ', 'ᾕ', 'ᾖ', 'ᾗ', 'ῂ', 'ῃ', 'ῄ', 'ῆ', 'ῇ' } },
-            { 'o', new[] { 'ὀ', 'ὁ', 'ὂ', 'ὃ', 'ὄ', 'ὅ', 'ὸ', 'ό' } },
-            { 'p', new[] { 'ῤ', 'ῥ' } },
-            { 'u', new[] { 'ὐ', 'ὑ', 'ὒ', 'ὓ', 'ὔ', 'ὕ', 'ὖ', 'ὗ', 'ὺ', 'ύ', 'ῠ', 'ῡ', 'ῢ', 'ΰ', 'ῦ', 'ῧ' } },
-            { 'w', new[] { 'ὠ', 'ὡ', 'ὢ', 'ὣ', 'ὤ', 'ὥ', 'ὦ', 'ὧ', 'ὼ', 'ώ', 'ᾠ', 'ᾡ', 'ᾢ', 'ᾣ', 'ᾤ', 'ᾥ', 'ᾦ', 'ᾧ', 'ῲ', 'ῳ', 'ῴ', 'ῶ', 'ῷ' } },
-        }.AsImmutable();
+                        //
+                        new Dictionary<string, char[]>
+                        {
 
-        /// <summary>
-        /// A Unicode Greek-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
-        /// </summary>
-        public static IDictionary<string, char[]> UnicodeGreekToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
+                        },
+
+                        //
+                        new Dictionary<string, char[]>
         {
+          { "A", new[] { 'Ά', 'Α' } },
+          { "B", new[] { 'Β', 'ϐ' } },
+          { "C", new[] { 'Ϲ', 'Ͻ', 'Ͼ', 'Ͽ' } },
+          { "E", new[] { 'Έ', 'Ε', 'Σ' } },
+          { "F", new[] { 'Ϝ' } },
+          { "H", new[] { 'Ή', 'Η' } },
+          { "I", new[] { 'Ί', 'Ι', 'Ϊ' } },
+          { "J", new[] { 'Ϳ' } },
+          { "K", new[] { 'Κ', 'Ϗ' } },
+          { "M", new[] { 'Μ', 'Ϻ' } },
+          { "N", new[] { 'Ͷ', 'Ν' } },
+          { "O", new[] { 'Ό', 'Θ', 'Ο', 'Φ', 'ϴ' } },
+          { "P", new[] { 'Ρ' } },
+          { "Q", new[] { 'Ϙ' } },
+          { "T", new[] { 'Ͳ', 'Τ' } },
+          { "X", new[] { 'Χ' } },
+          { "Y", new[] { 'Ύ', 'Υ', 'Ϋ', 'ϒ', 'ϓ', 'ϔ' } },
+          { "Z", new[] { 'Ζ' } },
+          { "a", new[] { 'ά', 'α' } },
+          { "b", new[] { 'β' } },
+          { "c", new[] { 'ς' } },
+          { "e", new[] { 'έ', 'ε', 'ϵ', '϶' } },
+          { "f", new[] { 'ϝ' } },
+          { "i", new[] { 'ΐ', 'ί', 'ι', 'ϊ' } },
+          { "k", new[] { 'κ' } },
+          { "m", new[] { 'ϻ' } },
+          { "n", new[] { 'ͷ', 'ή', 'η' } },
+          { "o", new[] { 'θ', 'ο', 'σ', 'ό' } },
+          { "p", new[] { 'ρ' } },
+          { "q", new[] { 'ϙ' } },
+          { "t", new[] { 'ͳ', 'τ' } },
+          { "u", new[] { 'ΰ', 'υ', 'ϋ', 'ύ' } },
+          { "v", new[] { 'ν' } },
+          { "w", new[] { 'ω', 'ώ' } },
+          { "x", new[] { 'χ' } },
+          { "y", new[] { 'γ' } },
+          { "z", new[] { 'ζ' } },
+                        },
+                        //
+                        new Dictionary<string, char[]>
+        {
+          { "A", new[] { 'Ἀ', 'Ἁ', 'Ἂ', 'Ἃ', 'Ἄ', 'Ἅ', 'Ἆ', 'Ἇ', 'ᾈ', 'ᾉ', 'ᾊ', 'ᾋ', 'ᾌ', 'ᾍ', 'ᾎ', 'ᾏ', 'Ᾰ', 'Ᾱ', 'Ὰ', 'Ά', 'ᾼ' } },
+          { "E", new[] { 'Ἐ', 'Ἑ', 'Ἒ', 'Ἓ', 'Ἔ', 'Ἕ', 'Ὲ', 'Έ' } },
+          { "H", new[] { 'Ἠ', 'Ἡ', 'Ἢ', 'Ἣ', 'Ἤ', 'Ἥ', 'Ἦ', 'Ἧ', 'ᾘ', 'ᾙ', 'ᾚ', 'ᾛ', 'ᾜ', 'ᾝ', 'ᾞ', 'ᾟ', 'Ὴ', 'Ή', 'ῌ' } },
+          { "I", new[] { 'Ἰ', 'Ἱ', 'Ἲ', 'Ἳ', 'Ἴ', 'Ἵ', 'Ἶ', 'Ἷ', 'Ῐ', 'Ῑ', 'Ὶ', 'Ί' } },
+          { "O", new[] { 'Ὀ', 'Ὁ', 'Ὂ', 'Ὃ', 'Ὄ', 'Ὅ', 'Ὸ', 'Ό' } },
+          { "P", new[] { 'Ῥ' } },
+          { "Y", new[] { 'Ὑ', 'Ὓ', 'Ὕ', 'Ὗ', 'Ῠ', 'Ῡ', 'Ὺ', 'Ύ' } },
+          { "a", new[] { 'ἀ', 'ἁ', 'ἂ', 'ἃ', 'ἄ', 'ἅ', 'ἆ', 'ἇ', 'ὰ', 'ά', 'ᾀ', 'ᾁ', 'ᾂ', 'ᾃ', 'ᾄ', 'ᾅ', 'ᾆ', 'ᾇ', 'ᾰ', 'ᾱ', 'ᾲ', 'ᾳ', 'ᾴ', 'ᾶ', 'ᾷ' } },
+          { "e", new[] { 'ἐ', 'ἑ', 'ἒ', 'ἓ', 'ἔ', 'ἕ', 'ὲ', 'έ' } },
+          { "i", new[] { 'ἰ', 'ἱ', 'ἲ', 'ἳ', 'ἴ', 'ἵ', 'ἶ', 'ἷ', 'ὶ', 'ί', 'ῐ', 'ῑ', 'ῒ', 'ΐ', 'ῖ', 'ῗ' } },
+          { "n", new[] { 'ἠ', 'ἡ', 'ἢ', 'ἣ', 'ἤ', 'ἥ', 'ἦ', 'ἧ', 'ὴ', 'ή', 'ᾐ', 'ᾑ', 'ᾒ', 'ᾓ', 'ᾔ', 'ᾕ', 'ᾖ', 'ᾗ', 'ῂ', 'ῃ', 'ῄ', 'ῆ', 'ῇ' } },
+          { "o", new[] { 'ὀ', 'ὁ', 'ὂ', 'ὃ', 'ὄ', 'ὅ', 'ὸ', 'ό' } },
+          { "p", new[] { 'ῤ', 'ῥ' } },
+          { "u", new[] { 'ὐ', 'ὑ', 'ὒ', 'ὓ', 'ὔ', 'ὕ', 'ὖ', 'ὗ', 'ὺ', 'ύ', 'ῠ', 'ῡ', 'ῢ', 'ΰ', 'ῦ', 'ῧ' } },
+          { "w", new[] { 'ὠ', 'ὡ', 'ὢ', 'ὣ', 'ὤ', 'ὥ', 'ὦ', 'ὧ', 'ὼ', 'ώ', 'ᾠ', 'ᾡ', 'ᾢ', 'ᾣ', 'ᾤ', 'ᾥ', 'ᾦ', 'ᾧ', 'ῲ', 'ῳ', 'ῴ', 'ῶ', 'ῷ' } },
+
             { "PI", new[] { 'Π' } },
             { "pi", new[] { 'π' } },
             { "mu", new[] { 'μ' } },
-        }.AsImmutable();
-
-        /// <summary>
-        /// A Unicode extended Cyrillic-to-ASCII conversion chart. 
-        /// </summary>
-        public static IDictionary<char, char[]> UnicodeCyrillicToASCIIAlphaConversions { get; } = new Dictionary<char, char[]>
+                        },
+                        //
+                        new Dictionary<string, char[]>
         {
-            { 'A', new[] { 'А', 'Ѧ' } },
-            { 'B', new[] { 'Б', 'В' } },
-            { 'C', new[] { 'С', 'Ҫ' } },
-            { 'E', new[] { 'Ѐ', 'Ё', 'Є', 'Е', 'Э', 'Ҽ', 'Ҿ', 'Ӭ' } },
-            { 'H', new[] { 'Н', 'Ң', 'Ҥ', 'Һ' } },
-            { 'I', new[] { 'І', 'Ї', 'Ӏ' } },
-            { 'J', new[] { 'Ј' } },
-            { 'K', new[] { 'Ќ', 'К', 'Қ', 'Ҝ', 'Ҟ', 'Ҡ' } },
-            { 'M', new[] { 'М' } },
-            { 'N', new[] { 'Ѝ', 'И', 'Й', 'Ҋ', 'Ӣ', 'Ӥ' } },
-            { 'O', new[] { 'О', 'Ф', 'Ѳ', 'Ѻ', 'Ӧ', 'Ө', 'Ӫ' } },
-            { 'P', new[] { 'Р', 'Ҏ' } },
-            { 'R', new[] { 'Я' } },
-            { 'S', new[] { 'Ѕ' } },
-            { 'T', new[] { 'Т', 'Ҭ' } },
-            { 'V', new[] { 'Ѵ', 'Ѷ' } },
-            { 'W', new[] { 'Ш', 'Щ', 'Ѡ', 'Ѽ', 'Ѿ' } },
-            { 'X', new[] { 'Х', 'Ҳ', 'Җ', 'Ӂ', 'Ӽ', 'Ӿ' } },
-            { 'Y', new[] { 'У', 'Ү', 'Ұ', 'Ӯ', 'Ӱ', 'Ӳ' } },
-            { 'a', new[] { 'а', 'ѧ' } },
-            { 'b', new[] { 'б', 'в' } },
-            { 'c', new[] { 'с', 'ҫ' } },
-            { 'e', new[] { 'е', 'э', 'ѐ', 'ё', 'є', 'ҽ', 'ҿ', 'ӭ' } },
-            { 'h', new[] { 'н', 'ң', 'ҥ', 'һ' } },
-            { 'i', new[] { 'і', 'ї' } },
-            { 'j', new[] { 'ј' } },
-            { 'k', new[] { 'к', 'ќ', 'қ', 'ҝ', 'ҟ', 'ҡ' } },
-            { 'm', new[] { 'м' } },
-            { 'n', new[] { 'и', 'й', 'ѝ', 'ҋ', 'ӣ', 'ӥ' } },
-            { 'o', new[] { 'о', 'ѳ', 'ѻ', 'ӧ', 'ө', 'ӫ' } },
-            { 'p', new[] { 'р', 'ҏ' } },
-            { 'r', new[] { 'я' } },
-            { 's', new[] { 'ѕ' } },
-            { 't', new[] { 'т', 'ҭ' } },
-            { 'v', new[] { 'ѵ', 'ѷ' } },
-            { 'w', new[] { 'ш', 'щ', 'ѡ', 'ѽ', 'ѿ' } },
-            { 'x', new[] { 'х', 'ҳ', 'җ', 'ӂ', 'ӽ', 'ӿ' } },
-            { 'y', new[] { 'Ў', 'у', 'ў', 'ү', 'ұ', 'ӯ', 'ӱ', 'ӳ' } },
-            { '3', new[] { 'З', 'з', 'Ҙ', 'ҙ', 'Ӟ', 'ӟ', 'Ӡ', 'ӡ'  } },
-        }.AsImmutable();
+          { "A", new[] { 'А', 'Ѧ' } },
+          { "B", new[] { 'Б', 'В' } },
+          { "C", new[] { 'С', 'Ҫ' } },
+          { "E", new[] { 'Ѐ', 'Ё', 'Є', 'Е', 'Э', 'Ҽ', 'Ҿ', 'Ӭ' } },
+          { "H", new[] { 'Н', 'Ң', 'Ҥ', 'Һ' } },
+          { "I", new[] { 'І', 'Ї', 'Ӏ' } },
+          { "J", new[] { 'Ј' } },
+          { "K", new[] { 'Ќ', 'К', 'Қ', 'Ҝ', 'Ҟ', 'Ҡ' } },
+          { "M", new[] { 'М' } },
+          { "N", new[] { 'Ѝ', 'И', 'Й', 'Ҋ', 'Ӣ', 'Ӥ' } },
+          { "O", new[] { 'О', 'Ф', 'Ѳ', 'Ѻ', 'Ӧ', 'Ө', 'Ӫ' } },
+          { "P", new[] { 'Р', 'Ҏ' } },
+          { "R", new[] { 'Я' } },
+          { "S", new[] { 'Ѕ' } },
+          { "T", new[] { 'Т', 'Ҭ' } },
+          { "V", new[] { 'Ѵ', 'Ѷ' } },
+          { "W", new[] { 'Ш', 'Щ', 'Ѡ', 'Ѽ', 'Ѿ' } },
+          { "X", new[] { 'Х', 'Ҳ', 'Җ', 'Ӂ', 'Ӽ', 'Ӿ' } },
+          { "Y", new[] { 'У', 'Ү', 'Ұ', 'Ӯ', 'Ӱ', 'Ӳ' } },
+          { "a", new[] { 'а', 'ѧ' } },
+          { "b", new[] { 'б', 'в' } },
+          { "c", new[] { 'с', 'ҫ' } },
+          { "e", new[] { 'е', 'э', 'ѐ', 'ё', 'є', 'ҽ', 'ҿ', 'ӭ' } },
+          { "h", new[] { 'н', 'ң', 'ҥ', 'һ' } },
+          { "i", new[] { 'і', 'ї' } },
+          { "j", new[] { 'ј' } },
+          { "k", new[] { 'к', 'ќ', 'қ', 'ҝ', 'ҟ', 'ҡ' } },
+          { "m", new[] { 'м' } },
+          { "n", new[] { 'и', 'й', 'ѝ', 'ҋ', 'ӣ', 'ӥ' } },
+          { "o", new[] { 'о', 'ѳ', 'ѻ', 'ӧ', 'ө', 'ӫ' } },
+          { "p", new[] { 'р', 'ҏ' } },
+          { "r", new[] { 'я' } },
+          { "s", new[] { 'ѕ' } },
+          { "t", new[] { 'т', 'ҭ' } },
+          { "v", new[] { 'ѵ', 'ѷ' } },
+          { "w", new[] { 'ш', 'щ', 'ѡ', 'ѽ', 'ѿ' } },
+          { "x", new[] { 'х', 'ҳ', 'җ', 'ӂ', 'ӽ', 'ӿ' } },
+          { "y", new[] { 'Ў', 'у', 'ў', 'ү', 'ұ', 'ӯ', 'ӱ', 'ӳ' } },
+          { "3", new[] { 'З', 'з', 'Ҙ', 'ҙ', 'Ӟ', 'ӟ', 'Ӡ', 'ӡ'  } },
 
-        /// <summary>
-        /// A Unicode Cyrillic-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
-        /// </summary>
-        public static IDictionary<string, char[]> UnicodeCyrillicToASCIIAlphaComplexConversions { get; } = new Dictionary<string, char[]>
-        {
             { "Bl", new[] { 'Ӹ' } },
             { "IA", new[] { 'Ѩ' } },
             { "Oy", new[] { 'Ѹ' } },
             { "bl", new[] { 'ӹ' } },
             { "ia", new[] { 'ѩ' } },
             { "oy", new[] { 'ѹ' } },
-        }.AsImmutable();
-
-        /// <summary>
-        /// A Unicode symbols-to-ASCII conversion chart. Included are letter-like, number-like, punctation-like and other symbols.
-        /// </summary>
-        public static IDictionary<char, char[]> UnicodeSymbolsToASCIIConversions { get; } = new Dictionary<char, char[]>
+                        },
+                        //
+                        new Dictionary<string, char[]>
         {
+
             // letter-like (incl. superscripts, subscripts)
-            { 'A', new[] { 'Ⓐ', 'Å', '∀' } },
-            { 'B', new[] { 'Ⓑ', 'ℬ', '₿' } },
-            { 'C', new[] { 'Ⓒ', 'ℂ', 'ℭ', '₡', '∁' } },
-            { 'D', new[] { 'Ⓓ', 'ⅅ' } },
-            { 'E', new[] { 'Ⓔ', 'ℰ', 'ℇ', '∃', '∄', '∈', '∉', '∊', '∋', '∌', '∍' } },
-            { 'F', new[] { 'Ⓕ', 'ℱ', 'Ⅎ', 'ⅎ', '₣' } },
-            { 'G', new[] { 'Ⓖ', '⅁' } },
-            { 'H', new[] { 'Ⓗ', 'ℋ', 'ℌ', 'ℍ' } },
-            { 'I', new[] { 'Ⓘ', 'ℐ', 'ℑ' } },
-            { 'J', new[] { 'Ⓙ' } },
-            { 'K', new[] { 'Ⓚ', 'K', '₭' } },
-            { 'L', new[] { 'Ⓛ', 'ℒ', '⅃', '⅂', '₤' } },
-            { 'M', new[] { 'Ⓜ', 'ℳ' } },
-            { 'N', new[] { 'Ⓝ', 'ℕ', '₦' } },
-            { 'O', new[] { 'Ⓞ' } },
-            { 'P', new[] { 'Ⓟ', '♇', 'ℙ', '℘', '℗', '₽' } },
-            { 'Q', new[] { 'Ⓠ', '℺', 'ℚ' } },
-            { 'R', new[] { 'Ⓡ', '℟', 'ℝ', 'ℜ', 'ℛ', 'ʶ' } },
-            { 'S', new[] { 'Ⓢ', '₷', '⸈' } },
-            { 'T', new[] { 'Ⓣ', '₸', '₮', '⸀', '⸁', '⸆', '⸇' } },
-            { 'U', new[] { 'Ⓤ' } },
-            { 'V', new[] { 'Ⓥ', '℣' } },
-            { 'W', new[] { 'Ⓦ', '₩' } },
-            { 'X', new[] { 'Ⓧ', '☒', '☓' } },
-            { 'Y', new[] { 'Ⓨ', '⅄' } },
-            { 'Z', new[] { 'Ⓩ', 'ℤ' } },
-            { 'a', new[] { 'ⓐ', '⍺', '⍶', 'ª', 'ₐ' } },
-            { 'b', new[] { 'ⓑ', '♭' } },
-            { 'c', new[] { 'ⓒ', '¢', '₵', '⸿' } },
-            { 'd', new[] { 'ⓓ', 'ⅆ', '₫' } },
-            { 'e', new[] { 'ⓔ', '℮', 'ℯ', 'ⅇ', 'ₑ', 'ₔ' } },
-            { 'f', new[] { 'ⓕ' } },
-            { 'g', new[] { 'ⓖ', 'ℊ' } },
-            { 'h', new[] { 'ⓗ', 'ℎ', 'ℏ', 'ʰ', 'ʱ', 'ₕ' } },
-            { 'i', new[] { 'ⓘ', '℩', 'ℹ', 'ⅈ', '⍳', '⍸', 'ⁱ' } },
-            { 'j', new[] { 'ⓙ', 'ⅉ', 'ʲ' } },
-            { 'k', new[] { 'ⓚ', 'ₖ' } },
-            { 'l', new[] { 'ⓛ', 'ℓ', 'ˡ', 'ₗ' } },
-            { 'm', new[] { 'ⓜ', '₥', 'ₘ' } },
-            { 'n', new[] { 'ⓝ', 'ⁿ', 'ₙ' } },
-            { 'o', new[] { 'ⓞ', 'ℴ', '∘' /* U+2218 Ring operator */, 'º', 'ₒ', '᛫' } },
-            { 'p', new[] { 'ⓟ', '⍴', 'ₚ' } },
-            { 'q', new[] { 'ⓠ' } },
-            { 'r', new[] { 'ⓡ', 'ʳ', 'ʴ', 'ʵ' } },
-            { 's', new[] { 'ⓢ', 'ˢ', 'ₛ' } },
-            { 't', new[] { 'ⓣ', 'ₜ' } },
-            { 'u', new[] { 'ⓤ' } },
-            { 'v', new[] { 'ⓥ', '˅', '˯' } },
-            { 'w', new[] { 'ⓦ', '⍵', '⍹', 'ʷ' } },
-            { 'x', new[] { 'ⓧ', '˟', 'ˣ', '×' /* U+00D7 Multiplication sign */, 'ₓ', '⸼' } },
-            { 'y', new[] { 'ⓨ', 'ˠ', 'ʸ' } },
-            { 'z', new[] { 'ⓩ' } },
+          { "A", new[] { 'Ⓐ', 'Å', '∀' } },
+          { "B", new[] { 'Ⓑ', 'ℬ', '₿' } },
+          { "C", new[] { 'Ⓒ', 'ℂ', 'ℭ', '₡', '∁' } },
+          { "D", new[] { 'Ⓓ', 'ⅅ' } },
+          { "E", new[] { 'Ⓔ', 'ℰ', 'ℇ', '∃', '∄', '∈', '∉', '∊', '∋', '∌', '∍' } },
+          { "F", new[] { 'Ⓕ', 'ℱ', 'Ⅎ', 'ⅎ', '₣' } },
+          { "G", new[] { 'Ⓖ', '⅁' } },
+          { "H", new[] { 'Ⓗ', 'ℋ', 'ℌ', 'ℍ' } },
+          { "I", new[] { 'Ⓘ', 'ℐ', 'ℑ' } },
+          { "J", new[] { 'Ⓙ' } },
+          { "K", new[] { 'Ⓚ', 'K', '₭' } },
+          { "L", new[] { 'Ⓛ', 'ℒ', '⅃', '⅂', '₤' } },
+          { "M", new[] { 'Ⓜ', 'ℳ' } },
+          { "N", new[] { 'Ⓝ', 'ℕ', '₦' } },
+          { "O", new[] { 'Ⓞ' } },
+          { "P", new[] { 'Ⓟ', '♇', 'ℙ', '℘', '℗', '₽' } },
+          { "Q", new[] { 'Ⓠ', '℺', 'ℚ' } },
+          { "R", new[] { 'Ⓡ', '℟', 'ℝ', 'ℜ', 'ℛ', 'ʶ' } },
+          { "S", new[] { 'Ⓢ', '₷', '⸈' } },
+          { "T", new[] { 'Ⓣ', '₸', '₮', '⸀', '⸁', '⸆', '⸇' } },
+          { "U", new[] { 'Ⓤ' } },
+          { "V", new[] { 'Ⓥ', '℣' } },
+          { "W", new[] { 'Ⓦ', '₩' } },
+          { "X", new[] { 'Ⓧ', '☒', '☓' } },
+          { "Y", new[] { 'Ⓨ', '⅄' } },
+          { "Z", new[] { 'Ⓩ', 'ℤ' } },
+          { "a", new[] { 'ⓐ', '⍺', '⍶', 'ª', 'ₐ' } },
+          { "b", new[] { 'ⓑ', '♭' } },
+          { "c", new[] { 'ⓒ', '¢', '₵', '⸿' } },
+          { "d", new[] { 'ⓓ', 'ⅆ', '₫' } },
+          { "e", new[] { 'ⓔ', '℮', 'ℯ', 'ⅇ', 'ₑ', 'ₔ' } },
+          { "f", new[] { 'ⓕ' } },
+          { "g", new[] { 'ⓖ', 'ℊ' } },
+          { "h", new[] { 'ⓗ', 'ℎ', 'ℏ', 'ʰ', 'ʱ', 'ₕ' } },
+          { "i", new[] { 'ⓘ', '℩', 'ℹ', 'ⅈ', '⍳', '⍸', 'ⁱ' } },
+          { "j", new[] { 'ⓙ', 'ⅉ', 'ʲ' } },
+          { "k", new[] { 'ⓚ', 'ₖ' } },
+          { "l", new[] { 'ⓛ', 'ℓ', 'ˡ', 'ₗ' } },
+          { "m", new[] { 'ⓜ', '₥', 'ₘ' } },
+          { "n", new[] { 'ⓝ', 'ⁿ', 'ₙ' } },
+          { "o", new[] { 'ⓞ', 'ℴ', '∘' /* U+2218 Ring operator */, 'º', 'ₒ', '᛫' } },
+          { "p", new[] { 'ⓟ', '⍴', 'ₚ' } },
+          { "q", new[] { 'ⓠ' } },
+          { "r", new[] { 'ⓡ', 'ʳ', 'ʴ', 'ʵ' } },
+          { "s", new[] { 'ⓢ', 'ˢ', 'ₛ' } },
+          { "t", new[] { 'ⓣ', 'ₜ' } },
+          { "u", new[] { 'ⓤ' } },
+          { "v", new[] { 'ⓥ', '˅', '˯' } },
+          { "w", new[] { 'ⓦ', '⍵', '⍹', 'ʷ' } },
+          { "x", new[] { 'ⓧ', '˟', 'ˣ', '×' /* U+00D7 Multiplication sign */, 'ₓ', '⸼' } },
+          { "y", new[] { 'ⓨ', 'ˠ', 'ʸ' } },
+          { "z", new[] { 'ⓩ' } },
             // number-like (incl. superscripts, subscripts)
-            { '0', new[] { '⓪', '⓿', '∅', '⁰', '₀' } },
-            { '1', new[] { '①', '⓵', '¹', '₁' } },
-            { '2', new[] { '②', '⓶', '↊', '²', '₂' } },
-            { '3', new[] { '③', '⓷', '↋', '³', '₃' } },
-            { '4', new[] { '④', '⓸', '⁴', '₄' } },
-            { '5', new[] { '⑤', '⓹', '⁵', '₅' } },
-            { '6', new[] { '⑥', '⓺', '⁶', '₆' } },
-            { '7', new[] { '⑦', '⓻', '⁷', '₇', '⁊' } },
-            { '8', new[] { '⑧', '⓼', '⁸', '₈' } },
-            { '9', new[] { '⑨', '⓽', '⁹', '₉' } },
+          { "0", new[] { '⓪', '⓿', '∅', '⁰', '₀' } },
+          { "1", new[] { '①', '⓵', '¹', '₁' } },
+          { "2", new[] { '②', '⓶', '↊', '²', '₂' } },
+          { "3", new[] { '③', '⓷', '↋', '³', '₃' } },
+          { "4", new[] { '④', '⓸', '⁴', '₄' } },
+          { "5", new[] { '⑤', '⓹', '⁵', '₅' } },
+          { "6", new[] { '⑥', '⓺', '⁶', '₆' } },
+          { "7", new[] { '⑦', '⓻', '⁷', '₇', '⁊' } },
+          { "8", new[] { '⑧', '⓼', '⁸', '₈' } },
+          { "9", new[] { '⑨', '⓽', '⁹', '₉' } },
             // punctuation
-            { '!', new[] { '¡', '︕', '﹗', '！' } },
-            { '?', new[] { '¿', '؟', '⸮', '︖', '﹖', '？' } },
-            { '.', new[] { '·', '⋅' /* U+22C5 Dot operator */, '·', '․', '‧', '⸱', '⸳', '。', '・', '︒', '﹒', '．', '｡', '･' } },
-            { ',', new[] { '،', '᠂', '⸒', '⸲', '⸴', '⹁', '、', '︐', '︑', '﹐', '﹑', '，', '､' } },
-            { ';', new[] { '⁏', '⍮', ';', '؛', '⸵', '︔', '﹔', '；' } },
-            { ':', new[] { 'ː', '˸', '᛬', '⁚', '⁝', '︓', '︰', '﹕', '：' } },
-            { '\'', new[] { '‘', '’', '‚', '‛', '′', '‵', '⹄', '＇' } },
-            { '"', new[] { 'ˮ', '“', '”', '„', '‟', '«', '»', '⹂', '〝', '〞', '〟', '᳓', '〃', '＂' } },
-            { '-', new[] { '˗', '–', '—', '―', '‾', '­', '⁃', '⹃', '﹉', '﹊', '﹋', '﹌' } },
-            { '<', new[] { '˂', '˱', '‹', '〈', '❬', '❮', '❰', '⟨', '⦉', '⦑', '⧼', '〈' } },
-            { '>', new[] { '˃', '˲', '›', '〉', '❭', '❯', '❱', '⟩', '⦊', '⦒', '⧽', '〉', '‣' } },
-            { '[', new[] { '⁅', '⌈', '⌊', '⟦', '⟬', '⦋', '⦍', '⦏', '⸢', '⸤', '「', '『', '〚', '［', '｢' } },
-            { ']', new[] { '⁆', '⌉', '⌋', '⟧', '⟭', '⦌', '⦎', '⦐', '⸣', '⸥', '」', '』', '〛', '］', '｣' } },
-            { '(', new[] { '⁽', '₍', '❨', '❪', '❲', '⟮', '⦇', '⦗', '⸦', '【', '〔', '〖', '〘', '﹙', '﹝', '（' } },
-            { ')', new[] { '⁾', '₎', '❩', '❫', '❳', '⟯', '⦈', '⦘', '⸧', '】', '〕', '〗', '〙', '﹚', '﹞', '）', '﴿' } },
-            { '{', new[] { '❴', '⟅', '⦃', '﹛', '｛' } },
-            { '}', new[] { '❵', '⟆', '⦄', '﹜', '｝' } },
+          { "!", new[] { '¡', '︕', '﹗', '！' } },
+          { "?", new[] { '¿', '؟', '⸮', '︖', '﹖', '？' } },
+          { ".", new[] { '·', '⋅' /* U+22C5 Dot operator */, '·', '․', '‧', '⸱', '⸳', '。', '・', '︒', '﹒', '．', '｡', '･' } },
+          { ",", new[] { '،', '᠂', '⸒', '⸲', '⸴', '⹁', '、', '︐', '︑', '﹐', '﹑', '，', '､' } },
+          { ";", new[] { '⁏', '⍮', ';', '؛', '⸵', '︔', '﹔', '；' } },
+          { ":", new[] { 'ː', '˸', '᛬', '⁚', '⁝', '︓', '︰', '﹕', '：' } },
+          { "\'", new[] { '‘', '’', '‚', '‛', '′', '‵', '⹄', '＇' } },
+          { "\"", new[] { 'ˮ', '“', '”', '„', '‟', '«', '»', '⹂', '〝', '〞', '〟', '᳓', '〃', '＂' } },
+          { "-", new[] { '˗', '–', '—', '―', '‾', '­', '⁃', '⹃', '﹉', '﹊', '﹋', '﹌' } },
+          { "<", new[] { '˂', '˱', '‹', '〈', '❬', '❮', '❰', '⟨', '⦉', '⦑', '⧼', '〈' } },
+          { ">", new[] { '˃', '˲', '›', '〉', '❭', '❯', '❱', '⟩', '⦊', '⦒', '⧽', '〉', '‣' } },
+          { "[", new[] { '⁅', '⌈', '⌊', '⟦', '⟬', '⦋', '⦍', '⦏', '⸢', '⸤', '「', '『', '〚', '［', '｢' } },
+          { "]", new[] { '⁆', '⌉', '⌋', '⟧', '⟭', '⦌', '⦎', '⦐', '⸣', '⸥', '」', '』', '〛', '］', '｣' } },
+          { "(", new[] { '⁽', '₍', '❨', '❪', '❲', '⟮', '⦇', '⦗', '⸦', '【', '〔', '〖', '〘', '﹙', '﹝', '（' } },
+          { ")", new[] { '⁾', '₎', '❩', '❫', '❳', '⟯', '⦈', '⦘', '⸧', '】', '〕', '〗', '〙', '﹚', '﹞', '）', '﴿' } },
+          { "{", new[] { '❴', '⟅', '⦃', '﹛', '｛' } },
+          { "}", new[] { '❵', '⟆', '⦄', '﹜', '｝' } },
             // symbols
-            { '*', new[] { '⁎', '•', '⁕', '⸎', '⸰', '﹡', '＊' } },
-            { '#', new[] { '♯', '﹟', '＃' } },
-            { '&', new[] { '⅋', '﹠', '＆' } },
-            { '@', new[] { '﹫', '＠' } },
-            { '|', new[] { '¦', '⧘', '⧙', '︳', '︴', '।', '⁞', '⸽', '⸾' } },
-            { '/', new[] { '⁄', '∕', '√', '／' } },  // not including '÷'
-            { '\\', new[] { '∖', '﹨', '＼' } },
-            { '^', new[] { 'ˆ', '˄', '˰', '‸', '⁁' } },
-            { '%', new[] { '⸓', '﹪', '％' } },
-            { '´', new[] { 'ˊ', 'ˏ' } },
-            { '`', new[] { 'ˋ', 'ˎ', '˴', '﹅', '﹆' } },
-            { '_', new[] { 'ˍ', '‗', '﹍', '﹎', '﹏', '＿', '⸏', '⸐', '⸑' } },
-            { '~', new[] { '˜', '˷', '∼', '∽', '∿', '⁓' } },
+          { "*", new[] { '⁎', '•', '⁕', '⸎', '⸰', '﹡', '＊' } },
+          { "#", new[] { '♯', '﹟', '＃' } },
+          { "&", new[] { '⅋', '﹠', '＆' } },
+          { "@", new[] { '﹫', '＠' } },
+          { "|", new[] { '¦', '⧘', '⧙', '︳', '︴', '।', '⁞', '⸽', '⸾' } },
+          { "/", new[] { '⁄', '∕', '√', '／' } },  // not including '÷'
+          { "\\", new[] { '∖', '﹨', '＼' } },
+          { "^", new[] { 'ˆ', '˄', '˰', '‸', '⁁' } },
+          { "%", new[] { '⸓', '﹪', '％' } },
+          { "´", new[] { 'ˊ', 'ˏ' } },
+          { "`", new[] { 'ˋ', 'ˎ', '˴', '﹅', '﹆' } },
+          { "_", new[] { 'ˍ', '‗', '﹍', '﹎', '﹏', '＿', '⸏', '⸐', '⸑' } },
+          { "~", new[] { '˜', '˷', '∼', '∽', '∿', '⁓' } },
             // math and programming
-            { '+', new[] { '∔', '᛭', '⸭' } },
-            { '=', new[] { '˭' } },
+          { "+", new[] { '∔', '᛭', '⸭' } },
+          { "=", new[] { '˭' } },
 
-        }.AsImmutable();
+        },
+
+                        //
+                        new Dictionary<string, char[]>
+                        {
+                            { "AE", new[] { 'Ǣ', 'Ǽ' } },
+                            { "DZ", new[] { 'Ǆ', 'Ǳ' } },
+                            { "Dz", new[] { 'ǅ', 'ǲ' } },
+                            { "IJ", new[] { 'Ĳ' } },
+                            { "LJ", new[] { 'Ǉ' } },
+                            { "Lj", new[] { 'ǈ' } },
+                            { "NJ", new[] { 'Ǌ' } },
+                            { "Nj", new[] { 'ǋ' } },
+                            { "OE", new[] { 'Œ' } },
+                            { "OI", new[] { 'Ƣ' } },
+                            { "OU", new[] { 'Ȣ' } },
+                            { "ae", new[] { 'ǣ', 'ǽ' } },
+                            { "db", new[] { 'ȸ' } },
+                            { "dz", new[] { 'ǆ', 'ǳ' } },
+                            { "ij", new[] { 'ĳ' } },
+                            { "lj", new[] { 'ǉ' } },
+                            { "nj", new[] { 'ǌ' } },
+                            { "oe", new[] { 'œ' } },
+                            { "oi", new[] { 'ƣ' } },
+                            { "ou", new[] { 'ȣ' } },
+                            { "qp", new[] { 'ȹ' } },
+                        },
+
+                        new Dictionary<string, char[]>
+                        {
+                            { "AE", new[] { 'Æ' } },
+                            { "II", new[] { 'Ⅱ' } },
+                            { "III", new[] { 'Ⅲ' } },
+                            { "IV", new[] { 'Ⅳ' } },
+                            { "IX", new[] { 'Ⅸ' } },
+                            { "VI", new[] { 'Ⅵ' } },
+                            { "VII", new[] { 'Ⅶ' } },
+                            { "VIII", new[] { 'Ⅷ' } },
+                            { "XI", new[] { 'Ⅺ' } },
+                            { "XII", new[] { 'Ⅻ' } },
+                            { "YR", new[] { 'Ʀ' }},
+                            { "ae", new[] { 'æ' } },
+                            { "ff", new[] { 'ﬀ' } },
+                            { "fi", new[] { 'ﬁ' } },
+                            { "fl", new[] { 'ﬂ' } },
+                            { "ffi", new[] { 'ﬃ' } },
+                            { "ffl", new[] { 'ﬄ' } },
+                            { "ft", new[] { 'ﬅ' } },
+                            { "hv", new[] { 'ƕ' } },
+                            { "ii", new[] { 'ⅱ' } },
+                            { "iii", new[] { 'ⅲ' } },
+                            { "iv", new[] { 'ⅳ' } },
+                            { "ix", new[] { 'ⅸ' } },
+                            { "st", new[] { 'ﬆ' } },
+                            { "vi", new[] { 'ⅵ' } },
+                            { "vii", new[] { 'ⅶ' } },
+                            { "viii", new[] { 'ⅷ' } },
+                            { "xi", new[] { 'ⅺ' } },
+                            { "xii", new[] { 'ⅻ' } },
+                           
+                            // letter-like and currencies
+                            { "A/S", new[] { '⅍' } },
+                            { "CL", new[] { '℄' } },
+                            { "Cr", new[] { '₢' } },
+                            { "EUR", new[] { '€' } },
+                            { "FAX", new[] { '℻' } },
+                            { "GBP", new[] { '£' } },
+                            { "JPY", new[] { '¥' } },
+                            { "No", new[] { '№' } },
+                            { "PL", new[] { '⅊' } },
+                            { "Pts", new[] { '₧' } },
+                            { "PX", new[] { '☧' } },
+                            { "Rs", new[] { '₨' } },
+                            { "Rx", new[] { '℞' } },
+                            { "SM", new[] { '℠' } },
+                            { "TEL", new[] { '℡' } },
+                            { "TM", new[] { '™' } },
+                            { "a/c", new[] { '℀' } },
+                            { "a/s", new[] { '℁' } },
+                            { "c/o", new[] { '℅' } },
+                            { "c/u", new[] { '℆' } },
+                            { "lb", new[] { '℔' } },
+                            { "(a)", new[] { '⒜' } },
+                            { "(b)", new[] { '⒝' } },
+                            { "(c)", new[] { '⒞' } },
+                            { "(d)", new[] { '⒟' } },
+                            { "(e)", new[] { '⒠' } },
+                            { "(f)", new[] { '⒡' } },
+                            { "(g)", new[] { '⒢' } },
+                            { "(h)", new[] { '⒣' } },
+                            { "(i)", new[] { '⒤' } },
+                            { "(j)", new[] { '⒥' } },
+                            { "(k)", new[] { '⒦' } },
+                            { "(l)", new[] { '⒧' } },
+                            { "(m)", new[] { '⒨' } },
+                            { "(n)", new[] { '⒩' } },
+                            { "(o)", new[] { '⒪' } },
+                            { "(p)", new[] { '⒫' } },
+                            { "(q)", new[] { '⒬' } },
+                            { "(r)", new[] { '⒭' } },
+                            { "(s)", new[] { '⒮' } },
+                            { "(t)", new[] { '⒯' } },
+                            { "(u)", new[] { '⒰' } },
+                            { "(v)", new[] { '⒱' } },
+                            { "(w)", new[] { '⒲' } },
+                            { "(x)", new[] { '⒳' } },
+                            { "(y)", new[] { '⒴' } },
+                            { "(z)", new[] { '⒵' } },
+                            { "°C", new[] { '℃' } },
+                            { "°F", new[] { '℉' } },
+                            // number-like
+                            { "(1)", new[] { '⑴' } },
+                            { "(2)", new[] { '⑵' } },
+                            { "(3)", new[] { '⑶' } },
+                            { "(4)", new[] { '⑷' } },
+                            { "(5)", new[] { '⑸' } },
+                            { "(6)", new[] { '⑹' } },
+                            { "(7)", new[] { '⑺' } },
+                            { "(8)", new[] { '⑻' } },
+                            { "(9)", new[] { '⑼' } },
+                            { "(10)", new[] { '⑽' } },
+                            { "(11)", new[] { '⑾' } },
+                            { "(12)", new[] { '⑿' } },
+                            { "(13)", new[] { '⒀' } },
+                            { "(14)", new[] { '⒁' } },
+                            { "(15)", new[] { '⒂' } },
+                            { "(16)", new[] { '⒃' } },
+                            { "(17)", new[] { '⒄' } },
+                            { "(18)", new[] { '⒅' } },
+                            { "(19)", new[] { '⒆' } },
+                            { "(20)", new[] { '⒇' } },
+                            { "1.", new[] { '⒈' } },
+                            { "2.", new[] { '⒉' } },
+                            { "3.", new[] { '⒊' } },
+                            { "4.", new[] { '⒋' } },
+                            { "5.", new[] { '⒌' } },
+                            { "6.", new[] { '⒍' } },
+                            { "7.", new[] { '⒎' } },
+                            { "8.", new[] { '⒏' } },
+                            { "9.", new[] { '⒐' } },
+                            { "10.", new[] { '⒑' } },
+                            { "11.", new[] { '⒒' } },
+                            { "12.", new[] { '⒓' } },
+                            { "13.", new[] { '⒔' } },
+                            { "14.", new[] { '⒕' } },
+                            { "15.", new[] { '⒖' } },
+                            { "16.", new[] { '⒗' } },
+                            { "17.", new[] { '⒘' } },
+                            { "18.", new[] { '⒙' } },
+                            { "19.", new[] { '⒚' } },
+                            { "20.", new[] { '⒛' } },
+                            { "10", new[] { '⓾' } },
+                            // math and programming
+                            { "0/00", new[] { '‰' } },
+                            { "0/000", new[] { '‱' } },
+                            { "0/3", new[] { '↉' } },
+                            { "1/", new[] { '⅟' } },
+                            { "1/2", new[] { '½' } },
+                            { "1/3", new[] { '⅓' } },
+                            { "1/4", new[] { '¼' } },
+                            { "1/5", new[] { '⅕' } },
+                            { "1/6", new[] { '⅙' } },
+                            { "1/7", new[] { '⅐' } },
+                            { "1/8", new[] { '⅛' } },
+                            { "1/9", new[] { '⅑' } },
+                            { "1/10", new[] { '⅒' } },
+                            { "2/3", new[] { '⅔' } },
+                            { "2/5", new[] { '⅖' } },
+                            { "3/", new[] { '¾' } },
+                            { "3/4", new[] { '∛' } },
+                            { "3/5", new[] { '⅗' } },
+                            { "3/8", new[] { '⅜' } },
+                            { "4/", new[] { '∜' } },
+                            { "4/5", new[] { '⅘' } },
+                            { "5/6", new[] { '⅚' } },
+                            { "5/8", new[] { '⅝' } },
+                            { "7/8", new[] { '⅞' } },
+                            { "+/-", new[] { '∓' } },
+                            // basic emoji
+                            { ":(", new[] { '☹' } },
+                            { ":)", new[] { '☺', '☻' } },
+                            // punctuation
+                            { "..", new[] { '¨', '᠃', '‥' } },
+                            { "...", new[] { '…', '⋰', '⋱', '⸪', '⸫', '︙' } },
+                            { "....", new[] { '᠅' } },
+                            { "!!", new[] { '‼' } },
+                            { "??", new[] { '⁇' } },
+                            { "?!", new[] { '⁈', '‽', '⸘' } },
+                            { "!?", new[] { '⁉' } },
+                            { ":", new[] { '∴', '∵', '∶' } },
+                            { "::", new[] { '∷', '⸬' } },
+                            { ":.", new[] { '჻' } },
+                            { ".:", new[] { '⁖' } },
+                            { ".:.", new[] { '⁘', '⁛' } },
+                            { ":.:", new[] { '⁙' } },
+                            { ":+:", new[] { '⁜' } },
+                            { "''", new[] { '″', '‶' } },
+                            { "'''", new[] { '‴', '‷' } },
+                            { "''''", new[] { '⁗' } },
+                            { "((", new[] { '⸨', '⦅', '｟' } },
+                            { "))", new[] { '⸩', '⦆', '｠' } },
+                            { "<<", new[] { '⟪', '《' } },
+                            { ">>", new[] { '⟫', '》' } },
+                            { "<(", new[] { '⦓' } },
+                            { ")>", new[] { '⦔' } },
+                            { ">((", new[] { '⦕' } },
+                            { "))<", new[] { '⦖' } },
+                            { ">:", new[] { '⸖' } },
+                            // symbols
+                            { "´´", new[] { '˶' } },
+                            { "``", new[] { '˵' } },
+                            { "||", new[] { '‖', '⧚', '⧛', '॥' } },
+                            { "**", new[] { '⁑' } },
+                            { "***", new[] { '⁂' } },
+                            { "~o", new[] { '⸛' } },
+                            { "~.", new[] { '⸞', '⸟' } },
+                            // meta
+                            { "[dagger]", new[] { '†', '‡', '⸶', '⸷', '⸸' } },
+                            { "[palm-branch]", new[] { '⸙' } },
+                            { "[paragraph]", new[] { '¶', '⁋' } },
+                            { "[reference]", new[] { '※' } },
+                            { "[section]", new[] { '§', '⸹' } },
+                            { "[square]", new[] { '⸋' } },
+                        }
+                    );
+                return _unicodeToASCIIConversions;
+            }
+        }
+
+        private static IDictionary<string, char[]> _combine(params IDictionary<string, char[]>[] dictionaries) =>
+            DictionaryUtil.Combine
+            (
+                dictionaries, 
+                new MergeOptions<string, char[]>
+                {
+                    CustomMerge = (key, leftValue, rightValue, leftDict, rightDict) =>
+                    {
+                        return ArrayUtil.Combine(leftValue, rightValue);
+                    }
+                }
+            );
+
+        private static IDictionary<int, string> _htmlCodes;
 
         /// <summary>
-        /// A Unicode symbols-to-ASCII conversion chart for Unicode <c>char</c>s that can be represented by multiple ASCII <c>char</c>s. 
-        /// Included are letter-like, number-like, punctation-like, math/programming, emoji, meta and other symbols.
+        /// A mapping of certain ASCII and Unicode <c>char</c> codes to their HTML representations, e.g. ( [38-"&amp;"] -&gt; "&amp;amp;")
         /// </summary>
-        public static IDictionary<string, char[]> UnicodeSymbolsToASCIIComplexConversions { get; } = new Dictionary<string, char[]>
+        public static IDictionary<int, string> HTMLCodes
         {
-            // letter-like and currencies
-            { "A/S", new[] { '⅍' } },
-            { "CL", new[] { '℄' } },
-            { "Cr", new[] { '₢' } },
-            { "EUR", new[] { '€' } },
-            { "FAX", new[] { '℻' } },
-            { "GBP", new[] { '£' } },
-            { "JPY", new[] { '¥' } },
-            { "No", new[] { '№' } },
-            { "PL", new[] { '⅊' } },
-            { "Pts", new[] { '₧' } },
-            { "PX", new[] { '☧' } },
-            { "Rs", new[] { '₨' } },
-            { "Rx", new[] { '℞' } },
-            { "SM", new[] { '℠' } },
-            { "TEL", new[] { '℡' } },
-            { "TM", new[] { '™' } },
-            { "a/c", new[] { '℀' } },
-            { "a/s", new[] { '℁' } },
-            { "c/o", new[] { '℅' } },
-            { "c/u", new[] { '℆' } },
-            { "lb", new[] { '℔' } },
-            { "(a)", new[] { '⒜' } },
-            { "(b)", new[] { '⒝' } },
-            { "(c)", new[] { '⒞' } },
-            { "(d)", new[] { '⒟' } },
-            { "(e)", new[] { '⒠' } },
-            { "(f)", new[] { '⒡' } },
-            { "(g)", new[] { '⒢' } },
-            { "(h)", new[] { '⒣' } },
-            { "(i)", new[] { '⒤' } },
-            { "(j)", new[] { '⒥' } },
-            { "(k)", new[] { '⒦' } },
-            { "(l)", new[] { '⒧' } },
-            { "(m)", new[] { '⒨' } },
-            { "(n)", new[] { '⒩' } },
-            { "(o)", new[] { '⒪' } },
-            { "(p)", new[] { '⒫' } },
-            { "(q)", new[] { '⒬' } },
-            { "(r)", new[] { '⒭' } },
-            { "(s)", new[] { '⒮' } },
-            { "(t)", new[] { '⒯' } },
-            { "(u)", new[] { '⒰' } },
-            { "(v)", new[] { '⒱' } },
-            { "(w)", new[] { '⒲' } },
-            { "(x)", new[] { '⒳' } },
-            { "(y)", new[] { '⒴' } },
-            { "(z)", new[] { '⒵' } },
-            { "°C", new[] { '℃' } },
-            { "°F", new[] { '℉' } },
-            // number-like
-            { "(1)", new[] { '⑴' } },
-            { "(2)", new[] { '⑵' } },
-            { "(3)", new[] { '⑶' } },
-            { "(4)", new[] { '⑷' } },
-            { "(5)", new[] { '⑸' } },
-            { "(6)", new[] { '⑹' } },
-            { "(7)", new[] { '⑺' } },
-            { "(8)", new[] { '⑻' } },
-            { "(9)", new[] { '⑼' } },
-            { "(10)", new[] { '⑽' } },
-            { "(11)", new[] { '⑾' } },
-            { "(12)", new[] { '⑿' } },
-            { "(13)", new[] { '⒀' } },
-            { "(14)", new[] { '⒁' } },
-            { "(15)", new[] { '⒂' } },
-            { "(16)", new[] { '⒃' } },
-            { "(17)", new[] { '⒄' } },
-            { "(18)", new[] { '⒅' } },
-            { "(19)", new[] { '⒆' } },
-            { "(20)", new[] { '⒇' } },
-            { "1.", new[] { '⒈' } },
-            { "2.", new[] { '⒉' } },
-            { "3.", new[] { '⒊' } },
-            { "4.", new[] { '⒋' } },
-            { "5.", new[] { '⒌' } },
-            { "6.", new[] { '⒍' } },
-            { "7.", new[] { '⒎' } },
-            { "8.", new[] { '⒏' } },
-            { "9.", new[] { '⒐' } },
-            { "10.", new[] { '⒑' } },
-            { "11.", new[] { '⒒' } },
-            { "12.", new[] { '⒓' } },
-            { "13.", new[] { '⒔' } },
-            { "14.", new[] { '⒕' } },
-            { "15.", new[] { '⒖' } },
-            { "16.", new[] { '⒗' } },
-            { "17.", new[] { '⒘' } },
-            { "18.", new[] { '⒙' } },
-            { "19.", new[] { '⒚' } },
-            { "20.", new[] { '⒛' } },
-            { "10", new[] { '⓾' } },
-            // math and programming
-            { "0/00", new[] { '‰' } },
-            { "0/000", new[] { '‱' } },
-            { "0/3", new[] { '↉' } },
-            { "1/", new[] { '⅟' } },
-            { "1/2", new[] { '½' } },
-            { "1/3", new[] { '⅓' } },
-            { "1/4", new[] { '¼' } },
-            { "1/5", new[] { '⅕' } },
-            { "1/6", new[] { '⅙' } },
-            { "1/7", new[] { '⅐' } },
-            { "1/8", new[] { '⅛' } },
-            { "1/9", new[] { '⅑' } },
-            { "1/10", new[] { '⅒' } },
-            { "2/3", new[] { '⅔' } },
-            { "2/5", new[] { '⅖' } },
-            { "3/", new[] { '¾' } },
-            { "3/4", new[] { '∛' } },
-            { "3/5", new[] { '⅗' } },
-            { "3/8", new[] { '⅜' } },
-            { "4/", new[] { '∜' } },
-            { "4/5", new[] { '⅘' } },
-            { "5/6", new[] { '⅚' } },
-            { "5/8", new[] { '⅝' } },
-            { "7/8", new[] { '⅞' } },
-            { "+/-", new[] { '∓' } },
-            // basic emoji
-            { ":(", new[] { '☹' } },
-            { ":)", new[] { '☺', '☻' } },
-            // punctuation
-            { "..", new[] { '¨', '᠃', '‥' } },
-            { "...", new[] { '…', '⋰', '⋱', '⸪', '⸫', '︙' } },
-            { "....", new[] { '᠅' } },
-            { "!!", new[] { '‼' } },
-            { "??", new[] { '⁇' } },
-            { "?!", new[] { '⁈', '‽', '⸘' } },
-            { "!?", new[] { '⁉' } },
-            { ":", new[] { '∴', '∵', '∶' } },
-            { "::", new[] { '∷', '⸬' } },
-            { ":.", new[] { '჻' } },
-            { ".:", new[] { '⁖' } },
-            { ".:.", new[] { '⁘', '⁛' } },
-            { ":.:", new[] { '⁙' } },
-            { ":+:", new[] { '⁜' } },
-            { "''", new[] { '″', '‶' } },
-            { "'''", new[] { '‴', '‷' } },
-            { "''''", new[] { '⁗' } },
-            { "((", new[] { '⸨', '⦅', '｟' } },
-            { "))", new[] { '⸩', '⦆', '｠' } },
-            { "<<", new[] { '⟪', '《' } },
-            { ">>", new[] { '⟫', '》' } },
-            { "<(", new[] { '⦓' } },
-            { ")>", new[] { '⦔' } },
-            { ">((", new[] { '⦕' } },
-            { "))<", new[] { '⦖' } },
-            { ">:", new[] { '⸖' } },
-            // symbols
-            { "´´", new[] { '˶' } },
-            { "``", new[] { '˵' } },
-            { "||", new[] { '‖', '⧚', '⧛', '॥' } },
-            { "**", new[] { '⁑' } },
-            { "***", new[] { '⁂' } },
-            { "~o", new[] { '⸛' } },
-            { "~.", new[] { '⸞', '⸟' } },
-            // meta
-            { "[dagger]", new[] { '†', '‡', '⸶', '⸷', '⸸' } },
-            { "[palm-branch]", new[] { '⸙' } },
-            { "[paragraph]", new[] { '¶', '⁋' } },
-            { "[reference]", new[] { '※' } },
-            { "[section]", new[] { '§', '⸹' } },
-            { "[square]", new[] { '⸋' } },
-        }.AsImmutable();
-
-        /// <summary>
-        /// A collection of all the single <c>char</c>-based Unicode-to-ASCII conversion charts.
-        /// </summary>
-        public static IDictionary<string, IDictionary<char, char[]>> AllUnicodeToASCIIConversions => new Dictionary<string, IDictionary<char, char[]>>
-        {
-            { "latin", UnicodeLatinToASCIIAlphaConversions },
-            { "extended latin", UnicodeExtendedLatinToASCIIAlphaConversions },
-            { "greek", UnicodeGreekToASCIIAlphaConversions },
-            { "extended greek", UnicodeExtendedGreekToASCIIAlphaConversions },
-            { "cyrillic", UnicodeCyrillicToASCIIAlphaConversions },
-            { "symbols", UnicodeSymbolsToASCIIConversions }
-        };
-
-        /// <summary>
-        /// A collection of all the multi-<c>char</c>-based Unicode-to-ASCII conversion charts.
-        /// </summary>
-        public static IDictionary<string, IDictionary<string, char[]>> AllUnicodeToASCIIComplexConversions => new Dictionary<string, IDictionary<string, char[]>>
-        {
-            { "complex latin", UnicodeLatinToASCIIAlphaComplexConversions },
-            { "complex extended latin", UnicodeExtendedLatinToASCIIAlphaComplexConversions },
-            { "complex greek", UnicodeGreekToASCIIAlphaComplexConversions },
-            { "complex cyrillic", UnicodeCyrillicToASCIIAlphaComplexConversions },
-            { "complex symbols", UnicodeSymbolsToASCIIComplexConversions }
-        };
+            get
+            {
+                if (_htmlCodes == null)
+                    _htmlCodes = new Dictionary<int, string>
+                    {
+                        { 34, "&quot;" },
+                        { 38, "&amp;" },
+                        { 60, "&lt;" },
+                        { 62, "&gt;" },
+                        { 160, "&nbsp;" },
+                        { 161, "&iexcl;" },
+                        { 162, "&cent;" },
+                        { 163, "&pound;" },
+                        { 164, "&curren;" },
+                        { 165, "&yen;" },
+                        { 166, "&brvbar;" },
+                        { 167, "&sect;" },
+                        { 168, "&uml;" },
+                        { 169, "&copy;" },
+                        { 170, "&ordf;" },
+                        { 171, "&laquo;" },
+                        { 172, "&not;" },
+                        { 173, "&shy;" },
+                        { 174, "&reg;" },
+                        { 175, "&macr;" },
+                        { 176, "&deg;" },
+                        { 177, "&plusmn;" },
+                        { 178, "&sup2;" },
+                        { 179, "&sup3;" },
+                        { 180, "&acute;" },
+                        { 181, "&micro;" },
+                        { 182, "&para;" },
+                        { 183, "&middot;" },
+                        { 184, "&cedil;" },
+                        { 185, "&sup1;" },
+                        { 186, "&ordm;" },
+                        { 187, "&raquo;" },
+                        { 188, "&frac14;" },
+                        { 189, "&frac12;" },
+                        { 190, "&frac34;" },
+                        { 191, "&iquest;" },
+                        { 192, "&Agrave;" },
+                        { 193, "&Aacute;" },
+                        { 194, "&Acirc;" },
+                        { 195, "&Atilde;" },
+                        { 196, "&Auml;" },
+                        { 197, "&Aring;" },
+                        { 198, "&AElig;" },
+                        { 199, "&Ccedil;" },
+                        { 200, "&Egrave;" },
+                        { 201, "&Eacute;" },
+                        { 202, "&Ecirc;" },
+                        { 203, "&Euml;" },
+                        { 204, "&Igrave;" },
+                        { 205, "&Iacute;" },
+                        { 206, "&Icirc;" },
+                        { 207, "&Iuml;" },
+                        { 208, "&ETH;" },
+                        { 209, "&Ntilde;" },
+                        { 210, "&Ograve;" },
+                        { 211, "&Oacute;" },
+                        { 212, "&Ocirc;" },
+                        { 213, "&Otilde;" },
+                        { 214, "&Ouml;" },
+                        { 215, "&times;" },
+                        { 216, "&Oslash;" },
+                        { 217, "&Ugrave;" },
+                        { 218, "&Uacute;" },
+                        { 219, "&Ucirc;" },
+                        { 220, "&Uuml;" },
+                        { 221, "&Yacute;" },
+                        { 222, "&THORN;" },
+                        { 223, "&szlig;" },
+                        { 224, "&agrave;" },
+                        { 225, "&aacute;" },
+                        { 226, "&acirc;" },
+                        { 227, "&atilde;" },
+                        { 228, "&auml;" },
+                        { 229, "&aring;" },
+                        { 230, "&aelig;" },
+                        { 231, "&ccedil;" },
+                        { 232, "&egrave;" },
+                        { 233, "&eacute;" },
+                        { 234, "&ecirc;" },
+                        { 235, "&euml;" },
+                        { 236, "&igrave;" },
+                        { 237, "&iacute;" },
+                        { 238, "&icirc;" },
+                        { 239, "&iuml;" },
+                        { 240, "&eth;" },
+                        { 241, "&ntilde;" },
+                        { 242, "&ograve;" },
+                        { 243, "&oacute;" },
+                        { 244, "&ocirc;" },
+                        { 245, "&otilde;" },
+                        { 246, "&ouml;" },
+                        { 247, "&divide;" },
+                        { 248, "&oslash;" },
+                        { 249, "&ugrave;" },
+                        { 250, "&uacute;" },
+                        { 251, "&ucirc;" },
+                        { 252, "&uuml;" },
+                        { 253, "&yacute;" },
+                        { 254, "&thorn;" },
+                        { 255, "&yuml;" },
+                        { 256, "&Amacr;" },
+                        { 257, "&amacr;" },
+                        { 258, "&Abreve;" },
+                        { 259, "&abreve;" },
+                        { 260, "&Aogon;" },
+                        { 261, "&aogon;" },
+                        { 262, "&Cacute;" },
+                        { 263, "&cacute;" },
+                        { 264, "&Ccirc;" },
+                        { 265, "&ccirc;" },
+                        { 266, "&Cdot;" },
+                        { 267, "&cdot;" },
+                        { 268, "&Ccaron;" },
+                        { 269, "&ccaron;" },
+                        { 270, "&Dcaron;" },
+                        { 271, "&dcaron;" },
+                        { 272, "&Dstrok;" },
+                        { 273, "&dstrok;" },
+                        { 274, "&Emacr;" },
+                        { 275, "&emacr;" },
+                        { 276, "&Ebreve;" },
+                        { 277, "&ebreve;" },
+                        { 278, "&Edot;" },
+                        { 279, "&edot;" },
+                        { 280, "&Eogon;" },
+                        { 281, "&eogon;" },
+                        { 282, "&Ecaron;" },
+                        { 283, "&ecaron;" },
+                        { 284, "&Gcirc;" },
+                        { 285, "&gcirc;" },
+                        { 286, "&Gbreve;" },
+                        { 287, "&gbreve;" },
+                        { 288, "&Gdot;" },
+                        { 289, "&gdot;" },
+                        { 290, "&Gcedil;" },
+                        { 291, "&gcedil;" },
+                        { 292, "&Hcirc;" },
+                        { 293, "&hcirc;" },
+                        { 294, "&Hstrok;" },
+                        { 295, "&hstrok;" },
+                        { 296, "&Itilde;" },
+                        { 297, "&itilde;" },
+                        { 298, "&Imacr;" },
+                        { 299, "&imacr;" },
+                        { 300, "&Ibreve;" },
+                        { 301, "&ibreve;" },
+                        { 302, "&Iogon;" },
+                        { 303, "&iogon;" },
+                        { 304, "&Idot;" },
+                        { 305, "&inodot;" },
+                        { 306, "&IJlig;" },
+                        { 307, "&ijlig;" },
+                        { 308, "&Jcirc;" },
+                        { 309, "&jcirc;" },
+                        { 310, "&Kcedil;" },
+                        { 311, "&kcedil;" },
+                        { 312, "&kgreen;" },
+                        { 313, "&Lacute;" },
+                        { 314, "&lacute;" },
+                        { 315, "&Lcedil;" },
+                        { 316, "&lcedil;" },
+                        { 317, "&Lcaron;" },
+                        { 318, "&lcaron;" },
+                        { 319, "&Lmidot;" },
+                        { 320, "&lmidot;" },
+                        { 321, "&Lstrok;" },
+                        { 322, "&lstrok;" },
+                        { 323, "&Nacute;" },
+                        { 324, "&nacute;" },
+                        { 325, "&Ncedil;" },
+                        { 326, "&ncedil;" },
+                        { 327, "&Ncaron;" },
+                        { 328, "&ncaron;" },
+                        { 329, "&napos;" },
+                        { 330, "&ENG;" },
+                        { 331, "&eng;" },
+                        { 332, "&Omacr;" },
+                        { 333, "&omacr;" },
+                        { 334, "&Obreve;" },
+                        { 335, "&obreve;" },
+                        { 336, "&Odblac;" },
+                        { 337, "&odblac;" },
+                        { 338, "&OElig;" },
+                        { 339, "&oelig;" },
+                        { 340, "&Racute;" },
+                        { 341, "&racute;" },
+                        { 342, "&Rcedil;" },
+                        { 343, "&rcedil;" },
+                        { 344, "&Rcaron;" },
+                        { 345, "&rcaron;" },
+                        { 346, "&Sacute;" },
+                        { 347, "&sacute;" },
+                        { 348, "&Scirc;" },
+                        { 349, "&scirc;" },
+                        { 350, "&Scedil;" },
+                        { 351, "&scedil;" },
+                        { 352, "&Scaron;" },
+                        { 353, "&scaron;" },
+                        { 354, "&Tcedil;" },
+                        { 355, "&tcedil;" },
+                        { 356, "&Tcaron;" },
+                        { 357, "&tcaron;" },
+                        { 358, "&Tstrok;" },
+                        { 359, "&tstrok;" },
+                        { 360, "&Utilde;" },
+                        { 361, "&utilde;" },
+                        { 362, "&Umacr;" },
+                        { 363, "&umacr;" },
+                        { 364, "&Ubreve;" },
+                        { 365, "&ubreve;" },
+                        { 366, "&Uring;" },
+                        { 367, "&uring;" },
+                        { 368, "&Udblac;" },
+                        { 369, "&udblac;" },
+                        { 370, "&Uogon;" },
+                        { 371, "&uogon;" },
+                        { 372, "&Wcirc;" },
+                        { 373, "&wcirc;" },
+                        { 374, "&Ycirc;" },
+                        { 375, "&ycirc;" },
+                        { 376, "&Yuml;" },
+                        { 377, "&Zacute;" },
+                        { 378, "&zacute;" },
+                        { 379, "&Zdot;" },
+                        { 380, "&zdot;" },
+                        { 381, "&Zcaron;" },
+                        { 382, "&zcaron;" }
+                    };
+                return _htmlCodes;
+            }
+        }
     }
 }

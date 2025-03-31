@@ -386,10 +386,10 @@ namespace Horseshoe.NET.Excel
                                     default:
                                         throw new DataImportException("Cell error: " + cellAddress + " (code = " + cell.ErrorCellValue + ")");
                                     case DataErrorHandlingPolicy.Embed:
-                                        value = new DataError("Cell error: " + cellAddress + " (code = " + cell.ErrorCellValue + ")");
+                                        value = new ImportError { Message = "Cell error: " + cellAddress + " (code = " + cell.ErrorCellValue + ")" };
                                         SystemMessageRelay.RelayMessage("error cell " + cellAddress + " (code = " + cell.ErrorCellValue + ") -> " + TextUtil.Reveal(value), group: MessageRelayGroup);
                                         break;
-                                    case DataErrorHandlingPolicy.IgnoreAndUseDefaultValue:
+                                    case DataErrorHandlingPolicy.Ignore:
                                         value = autoTrunc == AutoTruncate.Zap ? null : "";
                                         SystemMessageRelay.RelayMessage("error cell " + cellAddress + " (code = " + cell.ErrorCellValue + ") -> " + TextUtil.Reveal(value), group: MessageRelayGroup);
                                         break;
@@ -403,9 +403,9 @@ namespace Horseshoe.NET.Excel
                                     default:
                                         throw new DataImportException("Unknown cell type: " + cellAddress);
                                     case DataErrorHandlingPolicy.Embed:
-                                        value = new DataError("Unknown cell type: " + cellAddress, cell.ColumnIndex + 1, cell.RowIndex + 1);
+                                        value = new ImportError{ Message = "Unknown cell type: " + cellAddress, ColumnNumber = cell.ColumnIndex + 1, Row = new ImportedDataRow { RowNumber = cell.RowIndex + 1 } };
                                         break;
-                                    case DataErrorHandlingPolicy.IgnoreAndUseDefaultValue:
+                                    case DataErrorHandlingPolicy.Ignore:
                                         value = null;
                                         break;
                                 }

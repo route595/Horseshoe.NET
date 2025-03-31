@@ -69,7 +69,7 @@ namespace TestConsole.Finance
                         {
                             writer.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, {(projection.SnowballOrder == SnowballOrder.SameAsSourceCreditAccountCollection ? "not sorted": $"sorted by {projection.SnowballOrder}")}, monthly budget = {projection.MinimumMonthlyBudget:C}{(projection.Snowballing && projection.ExtraSnowballAmount > 0m ? $" + {projection.ExtraSnowballAmount:C} = {projection.TotalMonthlyBudget:C}" : "")}");
                             textGrid = projection.RenderToTextGrid();
-                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Format + "}", textGrid.Columns[0].Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
+                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].DisplayFormat + "}", textGrid.Columns[0].List.Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
                             writer.WriteLine();
                         }
                         writer.WriteLine(textGrid.Render());

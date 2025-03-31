@@ -16,23 +16,22 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
   - Horseshoe.NET.ConsoleX
     - Horseshoe.NET.ConsoleX.Plugins
   - Horseshoe.NET.Crypto
+  - Horseshoe.NET.Data
   - Horseshoe.NET.DataImport
   - Horseshoe.NET.DateAndTime
   - Horseshoe.NET.Db
   - Horseshoe.NET.Dotnet
   - Horseshoe.NET.Email
     - Horseshoe.NET.Email.Sms
-  - Horseshoe.NET.Ftp
   - Horseshoe.NET.IO
     - Horseshoe.NET.IO.FileFilter
     - Horseshoe.NET.IO.FileTraversal
+    - Horseshoe.NET.Ftp
   - Horseshoe.NET.ObjectsTypesAndValues
   - Horseshoe.NET.OleDb  (.NET Framework only)
   - Horseshoe.NET.Primitives
   - Horseshoe.NET.RelayMessages
-  - Horseshoe.NET.RelayProgress
   - Horseshoe.NET.Text
-    - Horseshoe.NET.Text.TextClean
     - Horseshoe.NET.Text.TextGrid
   - Horseshoe.NET.Xml
     - Horseshoe.NET.Xml.Doc
@@ -350,7 +349,7 @@ Sftp.DeleteFile
 
 ```c#
 var phrase = "Å¢t Øñę\u0000”;
-TextClean.ToAsciiPrintable(phrase);      // "Act One" (Unicode > ASCII, ctrl > "")
+TextClean.ToAsciiPrintable(phrase);  // -> "Act One" (Unicode -> ASCII, [NUL] -> "")
 TextUtil.Reveal(phrase, options: RevealOptions.All);
 // "Å¢t Øñę" -> ['Å'-197]['¢'-162]['t'-116][space]['Ø'-216]['ñ'-241]['ę'-281][NUL]
 // "Act One" -> [‘A’-65 ][‘c’-99 ][’t’-116][space]['O'-79 ][’n'-110]['e'-101]

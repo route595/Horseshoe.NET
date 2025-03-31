@@ -43,11 +43,25 @@ ciphertext = Encrypt.String(plaintext, b64Options);  // "2puPR6R9//bo/D3hK+bONQ=
 plaintext = Decrypt.String(ciphertext, b64Options);  // "H1ghW@y2Hev3n"
 ```
 
+#### Horseshoe.NET.DataImport
+
+```c#
+// [villains.csv]
+// Name,Age,Location
+// "Snape, Severus",47,Hogwarts
+// Maleficent,39,Enchanted Castle
+// Jafar,59,Cave of Wonders
+
+var options = new DataImportOptions { HasHeaderRow = true };
+TabularData.ImportCommaDelimitedText("villains.csv", options: options);
+```
+
+
 #### Horseshoe.NET.Text
 
 ```c#
 var phrase = "Å¢t Øñę\u0000”;
-TextClean.ToAsciiPrintable(phrase);      // "Act One" (Unicode > ASCII, ctrl > '')
+TextClean.ToAsciiPrintable(phrase);  // -> "Act One" (Unicode -> ASCII, [NUL] -> "")
 TextUtil.Reveal(phrase, options: RevealOptions.All);
 // "Å¢t Øñę" -> ['Å'-197]['¢'-162]['t'-116][space]['Ø'-216]['ñ'-241]['ę'-281][NUL]
 // "Act One" -> [‘A’-65 ][‘c’-99 ][’t’-116][space]['O'-79 ][’n'-110]['e'-101]

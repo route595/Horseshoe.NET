@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 
 using Horseshoe.NET.ObjectsTypesAndValues;
-using Horseshoe.NET.Text.TextClean;
+using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.Db
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
-
-using Horseshoe.NET.Text.TextClean;
+﻿using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.Email.Sms
 {

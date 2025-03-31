@@ -74,7 +74,7 @@ namespace Horseshoe.NET.Finance
 
         public TextGrid RenderToTextGrid(string dateFormat = "MMM yyyy")
         {
-            var dateColumn = new Column { Title = "Date", Format = dateFormat };
+            var dateColumn = new Column { Name = "Date", DisplayFormat = dateFormat };
             //var date = DateUtil.GetMonthStart(basedOnDateTime: startDate);
             var accountColumns = this
                 .Select(cap => new Column(cap.Select(mp => mp.Render(cap))) { Title = cap.GetTitleElements() })
@@ -88,15 +88,15 @@ namespace Horseshoe.NET.Finance
             // insert sub-column titles in calculated columns
             for (int i = 0; i < Count; i++)
             {
-                textGrid.Columns[i].Insert(0, this[i].RenderSubColumnTitles());
+                textGrid.Columns[i].List.Insert(0, this[i].RenderSubColumnTitles());
             }
 
             // insert and populate date column
             textGrid.InsertColumn(0, dateColumn);
-            dateColumn.Add("");  // sub-column title is blank
+            dateColumn.List.Add("");  // sub-column title is blank
             foreach (var date in Dates)
             {
-                dateColumn.Add(date);
+                dateColumn.List.Add(date);
             }
 
             return textGrid;

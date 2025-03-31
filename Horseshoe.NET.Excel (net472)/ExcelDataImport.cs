@@ -32,7 +32,7 @@ namespace Horseshoe.NET.Excel
         /// <summary>
         /// Populated once a method such as <c>ExportToObjectArrays()</c> has executed
         /// </summary>
-        public IEnumerable<DataError> DataErrors { get; set; }
+        public IEnumerable<ImportError> DataErrors { get; set; }
 
         public int DataErrorCount => DataErrors?.Count() ?? 0;
 
@@ -71,9 +71,9 @@ namespace Horseshoe.NET.Excel
             _columns.Add(column);
         }
 
-        public void AddColumn(string name, Type dataType = null, int fixedWidth = 0, Func<string, object> parser = null, Func<object, string> formatter = null)
+        public void AddColumn(string name, Type dataType = null, Func<object, object> sourceParser = null, Func<object, string> displayFormatter = null)
         {
-            AddColumn(new Column(name) { DataType = dataType, FixedWidth = fixedWidth, Parser = parser, Formatter = formatter });
+            AddColumn(new Column{ Name = name, DataType = dataType, SourceParser = sourceParser, DisplayFormatter = displayFormatter });
         }
 
         public void ImportRaw(List<object> rawImportedRow, int sourceRowNumber)
@@ -118,9 +118,9 @@ namespace Horseshoe.NET.Excel
                 {
                     for (int i = 0, colsToConvert = Math.Min(rawImportedRow.Count, ColumnCount); i < colsToConvert; i++)
                     {
-                        if (rawImportedRow[i] != null && !(rawImportedRow[i] is DataError) && Columns[i].Converter != null)
+                        if (rawImportedRow[i] != null && !(rawImportedRow[i] is ImportError) && Columns[i].SourceParser != null)
                         {
-                            rawImportedRow[i] = Columns[i].Converter.Invoke(rawImportedRow[i]);
+                            rawImportedRow[i] = Columns[i].SourceParser.Invoke(rawImportedRow[i]);
                         }
                     }
                 }
@@ -186,7 +186,7 @@ namespace Horseshoe.NET.Excel
             DataErrors = this
                 .Where(row => row.Values != null)
                 .Select(row => row.Values)
-                .SelectMany(oArray => oArray.Where(o => o is DataError).Select(o => (DataError)o))
+                .SelectMany(oArray => oArray.Where(o => o is ImportError).Select(o => (ImportError)o))
                 .ToList();
 
         }

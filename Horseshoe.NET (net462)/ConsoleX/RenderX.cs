@@ -7,7 +7,6 @@ using Microsoft.Extensions.Primitives;
 using Horseshoe.NET.Collections;
 using Horseshoe.NET.Text;
 using Horseshoe.NET.Text.TextGrid;
-using Horseshoe.NET.Text.TextClean;
 
 namespace Horseshoe.NET.ConsoleX
 {

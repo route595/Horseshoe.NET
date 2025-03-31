@@ -113,20 +113,20 @@ namespace Horseshoe.NET.Excel
         public static object ProcessDatum(object value, Column column, string dataReference, DataErrorHandlingPolicy dataErrorHandling)
         {
             DataImportException diex = null;
-            if (column?.Parser != null)
+            if (column?.SourceParser != null)
             {
                 try
                 {
-                    value = column.Parser.Invoke(value?.ToString());
+                    value = column.SourceParser.Invoke(value?.ToString());
                 }
                 catch (Exception ex)
                 {
-                    diex = new InvalidDatumException(ex, value, columnName: column?.Name, fixedWidth: column?.FixedWidth ?? 0, position: dataReference);
+                    diex = new InvalidDatumException(ex, value, columnName: column?.Name, width: column?.Width ?? 0, position: dataReference);
                 }
             }
-            if (value is string stringValue && column?.FixedWidth > 0 && stringValue.Length > column.FixedWidth)
+            if (value is string stringValue && column?.Width > 0 && stringValue.Length > column.Width)
             {
-                diex = new InvalidDatumException("Value length (" + stringValue.Length + ") exceeds max length (" + column.FixedWidth + ")", stringValue, columnName: column?.Name, fixedWidth: column?.FixedWidth ?? 0, position: dataReference);
+                diex = new InvalidDatumException("Value length (" + stringValue.Length + ") exceeds max length (" + column.Width + ")", stringValue, columnName: column?.Name, width: column?.Width ?? 0, position: dataReference);
             }
             if (diex != null)
             {
@@ -138,7 +138,7 @@ namespace Horseshoe.NET.Excel
                     case DataErrorHandlingPolicy.Embed:
                         value = diex;
                         break;
-                    case DataErrorHandlingPolicy.IgnoreAndUseDefaultValue:
+                    case DataErrorHandlingPolicy.Ignore:
                         value = TypeUtil.GetDefaultValue(column.DataType);
                         break;
                 }

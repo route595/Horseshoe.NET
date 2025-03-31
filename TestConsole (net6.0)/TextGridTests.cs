@@ -86,12 +86,12 @@ namespace TestConsole
                         new TextGridTestPersonWage { Person = "Steve", HourlyWage = 20.02m }
                     };
                     var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, PaddingPolicy = CellPaddingPolicy.Vertical };
-                    var col1 = new Column { Title = "Person" };
-                    var col2 = new Column { Title = "Hourly Wage", Format = "C" };
+                    var col1 = new Column { Name = "Person" };
+                    var col2 = new Column { Name = "Hourly Wage", DisplayFormat = "C" };
                     foreach(var pw in personWages)
                     {
-                        col1.Add(pw.Person);
-                        col2.Add(pw.HourlyWage);
+                        col1.List.Add(pw.Person);
+                        col2.List.Add(pw.HourlyWage);
                     }
                     grid.Columns.Add(col1);
                     grid.Columns.Add(col2);
@@ -112,12 +112,12 @@ namespace TestConsole
                         new TextGridTestPersonNWage { Person = "Steve", HourlyWage = null }
                     };
                     var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, PaddingPolicy = CellPaddingPolicy.Vertical };
-                    var col1 = new Column { Title = "Person" };
-                    var col2 = new Column { Title = "Hourly Wage", Format = "C" };
+                    var col1 = new Column { Name = "Person" };
+                    var col2 = new Column { Name = "Hourly Wage", DisplayFormat = "C" };
                     foreach(var pw in personWages)
                     {
-                        col1.Add(pw.Person);
-                        col2.Add(pw.HourlyWage);
+                        col1.List.Add(pw.Person);
+                        col2.List.Add(pw.HourlyWage);
                     }
                     grid.Columns.Add(col1);
                     grid.Columns.Add(col2);

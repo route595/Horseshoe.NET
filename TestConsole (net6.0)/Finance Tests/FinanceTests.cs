@@ -47,13 +47,19 @@ namespace TestConsole.Finance
                         new CreditAccount { Name = "Line of Credit", APR = .0624m, Balance = 4000m, MinimumPaymentAmount = 150m },
                         new CreditAccount { Name = "My Store Card", APR = .1999m, Balance = 20000m, MinimumPaymentAmount = 350m, AltList = new[] { new AltCreditAccountPayoffInfo { StartDate = DateUtil.GetMonthStart(), EndDate = DateUtil.GetMonthStart().AddMonths(4), APR = 0m } } }
                     };
+                    accounts = PromptX.List
+                    (
+                        accounts, 
+                        renderer: act => act.Name + " " + act.Balance.ToString("C") + " " + act.APR.ToString("P2"),
+                        selectionMode: ListSelectionMode.OneOrMore
+                    ).SelectedItems;
                     var projections = new[]
                     {
                         FinanceEngine.GenerateCreditPayoffProjection(accounts),
                         FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true),
                         FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, snowballOrder : SnowballOrder.APR_Descending),
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m),
-                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 500m, snowballOrder : SnowballOrder.APR_Descending),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 100m),
+                        FinanceEngine.GenerateCreditPayoffProjection(accounts, snowballing: true, extraSnowballAmount: 100m, snowballOrder : SnowballOrder.APR),
                     };
                     TextGrid textGrid = null;
                     var tempFilePath = Path.Combine(Path.GetTempPath(), "Horseshoe.NET.TestConsole.FinanceTest.output.txt");
@@ -63,7 +69,7 @@ namespace TestConsole.Finance
                         {
                             writer.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, {(projection.SnowballOrder == SnowballOrder.SameAsSourceCreditAccountCollection ? "not sorted": $"sorted by {projection.SnowballOrder}")}, monthly budget = {projection.MinimumMonthlyBudget:C}{(projection.Snowballing && projection.ExtraSnowballAmount > 0m ? $" + {projection.ExtraSnowballAmount:C} = {projection.TotalMonthlyBudget:C}" : "")}");
                             textGrid = projection.RenderToTextGrid();
-                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Format + "}", textGrid.Columns[0].Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
+                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].DisplayFormat + "}", textGrid.Columns[0].List.Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
                             writer.WriteLine();
                         }
                         writer.WriteLine(textGrid.Render());

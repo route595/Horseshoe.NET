@@ -123,18 +123,14 @@ namespace Horseshoe.NET.Dotnet
             var formatter = TypeFormatters.GetFormatter(value.GetType());
             if (formatter != null)
                 return formatter.Invoke(value);
+            if (value is DateTime dateTimeValue)
+                value = dateTimeValue.ToShortDateString() + (dateTimeValue.HasTime() ? " " + dateTimeValue.ToShortTimeString() : "");
             if (value is string stringValue)
                 return "\"" + stringValue.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"") + "\"";
             if (value is char charValue)
                 return lang == DotnetLanguage.VB
                     ? "\"" + charValue + "\""
                     : "'" + charValue + "'";
-            if (value is DateTime dateTimeValue)
-                return
-                    "\"" +
-                    dateTimeValue.ToShortDateString() +
-                    (dateTimeValue.HasTime() ? " " + dateTimeValue.ToShortTimeString() : "") +
-                    "\"";
             if (value is Type _type)
                 return _type.FullName;
             if (value is IDictionary dict)  // incl. StringValues, string[], List<string>, etc.
@@ -147,14 +143,14 @@ namespace Horseshoe.NET.Dotnet
                 {
                     list.Add(GetSourceCodeFormattedValue(key, lang: lang) + ": " + GetSourceCodeFormattedValue(dict[key], lang: lang));
                 }
-                return "[ " + string.Join(", " + list) + " ]";
+                return "[ " + string.Join(", ", list) + " ]";
             }
             if (value is IEnumerable enumerable)
             {
                 var objs = enumerable.Cast<object>();
                 if (!objs.Any())
                     return "[]";
-                return "[ " + string.Join(", " + objs.Select(o => GetSourceCodeFormattedValue(o, lang: lang))) + " ]";
+                return "[ " + string.Join(", ", objs.Select(o => GetSourceCodeFormattedValue(o, lang: lang))) + " ]";
             }
 
             var type = value.GetType();

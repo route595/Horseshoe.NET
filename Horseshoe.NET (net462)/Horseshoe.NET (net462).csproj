@@ -45,8 +45,8 @@
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.1\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.2, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.2\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.3\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -106,12 +106,18 @@
     <Compile Include="Bootstrap\v4\AlertType.cs" />
     <Compile Include="Collections\ArrayUtil.cs" />
     <Compile Include="ConsoleX\ListSelectionMode.cs" />
+    <Compile Include="DataImport\DataImportConstants.cs" />
     <Compile Include="DataImport\DataImportOptions.cs" />
-    <Compile Include="DataImport\DataImportRow.cs" />
-    <Compile Include="DataImport\FileImport.cs" />
-    <Compile Include="DataImport\IColumn.cs" />
-    <Compile Include="DataImport\TextDataImport.cs" />
-    <Compile Include="DataImport\TypedDataImport.cs" />
+    <Compile Include="DataImport\ImportedDataRow.cs" />
+    <Compile Include="DataImport\PositionNotation.cs" />
+    <Compile Include="DataImport\TabularDataUtil.cs" />
+    <Compile Include="Data\ColumnBase.cs" />
+    <Compile Include="IO\Ftp\Ftp.cs" />
+    <Compile Include="IO\Ftp\FtpConnectionInfo.cs" />
+    <Compile Include="IO\Ftp\FtpFileMasks.cs" />
+    <Compile Include="IO\Ftp\FtpOperationException.cs" />
+    <Compile Include="IO\Ftp\FtpSettings.cs" />
+    <Compile Include="IO\Ftp\FtpUtil.cs" />
     <Compile Include="ObjectsTypesAndValues\AssertValue.cs" />
     <Compile Include="Collections\CollectionBoundary.cs" />
     <Compile Include="Collections\CollectionBuilder.cs" />
@@ -169,12 +175,9 @@
     <Compile Include="Crypto\RecursiveHashEngine.cs" />
     <Compile Include="DataImport\BlankRowPolicy.cs" />
     <Compile Include="DataImport\Column.cs" />
-    <Compile Include="DataImport\DataError.cs" />
+    <Compile Include="DataImport\ImportError.cs" />
     <Compile Include="DataImport\DataErrorHandlingPolicy.cs" />
     <Compile Include="DataImport\DataImportException.cs" />
-    <Compile Include="DataImport\ImportConstants.cs" />
-    <Compile Include="DataImport\ImportData.cs" />
-    <Compile Include="DataImport\ImportedRow.cs" />
     <Compile Include="DataImport\InvalidDatumException.cs" />
     <Compile Include="DataImport\StopImportingDataException.cs" />
     <Compile Include="DateAndTime\DisplayOptions.cs" />
@@ -207,7 +210,7 @@
     <Compile Include="Crypto\Extensions.cs" />
     <Compile Include="Crypto\RecursiveHash.cs" />
     <Compile Include="Crypto\Hash.cs" />
-    <Compile Include="DataImport\DataImport.cs" />
+    <Compile Include="DataImport\TabularData.cs" />
     <Compile Include="DateAndTime\DateUtil.cs" />
     <Compile Include="DateAndTime\Extensions.cs" />
     <Compile Include="Db\DbUtil.cs" />
@@ -228,9 +231,6 @@
     <Compile Include="ExceptionTypeRenderingPolicy.cs" />
     <Compile Include="FrontLoader\Extensions.cs" />
     <Compile Include="FrontLoader\ValueFrontLoader.cs" />
-    <Compile Include="Ftp\FtpConnectionInfo.cs" />
-    <Compile Include="Ftp\FtpFileMasks.cs" />
-    <Compile Include="Ftp\FtpOperationException.cs" />
     <Compile Include="IO\DirectoryPath[net4x].cs" />
     <Compile Include="IO\FileFilter\DirectoryFilter.cs" />
     <Compile Include="IO\FileFilter\DirectoryFilterGroup.cs" />
@@ -274,12 +274,8 @@
     <Compile Include="Email\PlainEmail.cs" />
     <Compile Include="Email\SmtpUtil.cs" />
     <Compile Include="DataImport\Extensions.cs" />
-    <Compile Include="DataImport\ImportUtil.cs" />
     <Compile Include="IO\Extensions.cs" />
     <Compile Include="IO\FileUtil.cs" />
-    <Compile Include="Ftp\Ftp.cs" />
-    <Compile Include="Ftp\FtpSettings.cs" />
-    <Compile Include="Ftp\FtpUtil.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Machine.cs" />
     <Compile Include="ObjectsTypesAndValues\ObjectUtil.cs" />
@@ -308,13 +304,15 @@
     <Compile Include="RelayMessages\RelayToConsole.cs" />
     <Compile Include="RelayMessages\RelayToFile.cs" />
     <Compile Include="RelayMessages\SystemMessageRelay.cs" />
-    <Compile Include="RelayProgress\IProgressRelay.cs" />
-    <Compile Include="RelayProgress\RelayerOfProgress.cs" />
-    <Compile Include="RelayProgress\RelayProgressBase.cs" />
-    <Compile Include="RelayProgress\RelayProgressToConsole_Basic.cs" />
+    <Compile Include="RelayMessages\IProgressRelay.cs" />
+    <Compile Include="RelayMessages\RelayerOfProgress.cs" />
+    <Compile Include="RelayMessages\RelayProgressBase.cs" />
+    <Compile Include="RelayMessages\RelayProgressToConsole_Basic.cs" />
     <Compile Include="IStrictSensitive.cs" />
     <Compile Include="Text\AutoTruncate.cs" />
     <Compile Include="Text\CharCategory.cs" />
+    <Compile Include="Text\CharUtil.cs" />
+    <Compile Include="Text\CharInfo.cs" />
     <Compile Include="Text\Deserialize.cs" />
     <Compile Include="Text\ExtensionAbstractions.cs" />
     <Compile Include="Text\Extensions.cs" />
@@ -323,12 +321,12 @@
     <Compile Include="Text\Internal\NewtonsoftJsonImpl.cs" />
     <Compile Include="Text\Internal\SystemTextJsonImpl.cs" />
     <Compile Include="Text\JsonProvider.cs" />
+    <Compile Include="Text\WhitespaceCleanPolicy.cs" />
     <Compile Include="Text\RevealOptions.cs" />
     <Compile Include="Text\Serialize.cs" />
     <Compile Include="Text\CharLib.cs" />
-    <Compile Include="Text\TextClean\NonprintablesPolicy.cs" />
-    <Compile Include="Text\TextClean\TextClean.cs" />
-    <Compile Include="Text\TextClean\TextCleanAbstractions.cs" />
+    <Compile Include="Text\NonprintableCleanPolicy.cs" />
+    <Compile Include="Text\TextClean.cs" />
     <Compile Include="Text\TextConstants.cs" />
     <Compile Include="Text\TextGrid\BorderPolicy.cs" />
     <Compile Include="Text\TextGrid\CellPaddingPolicy.cs" />

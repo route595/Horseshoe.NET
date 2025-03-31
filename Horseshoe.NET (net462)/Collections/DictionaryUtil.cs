@@ -100,9 +100,9 @@ namespace Horseshoe.NET.Collections
                 value = kvp.Value;
                 if (dict.ContainsKey(kvp.Key))
                 {
-                    // choose new or old value based on client logic
+                    // choose (or manipulate) value based on client logic
                     if (options is MergeOptions<TKey, TValue> genericOptions && genericOptions.CustomMerge != null)
-                        value = genericOptions.CustomMerge(dict, mappings, kvp.Key);
+                        value = genericOptions.CustomMerge(kvp.Key, dict[kvp.Key], kvp.Value, dict, mappings);
                     // keep old value (a.k.a. left-to-right merging)
                     else if (options is MergeOptions mergeOptions && mergeOptions.Mode == DictionaryMergeMode.LTR)
                         continue;
@@ -231,41 +231,39 @@ namespace Horseshoe.NET.Collections
             {
                 foreach (var kvp in mappingsToAppend)
                 {
-                    AppendMapping(dictionary, kvp, mappingsToAppend, options);
+                    AppendMapping(dictionary, kvp, /*mappingsToAppend,*/ options);
                 }
             }
             return dictionary;
         }
 
-        private static void AppendMapping<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend, MergeOptions options)
+        private static void AppendMapping<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value, /*IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend,*/ MergeOptions options)
         {
-            if (dictionary.ContainsKey(key) && options.Mode != DictionaryMergeMode.Error)
+            if (dictionary.ContainsKey(key))
             {
+                options = options ?? new MergeOptions();
                 if (options is MergeOptions<TKey, TValue> genericOptions && genericOptions.CustomMerge != null)
                 {
-                    dictionary[key] = genericOptions.CustomMerge.Invoke(dictionary, mappingsToAppend, key);
+                    dictionary[key] = genericOptions.CustomMerge.Invoke(key, dictionary[key], value, dictionary, null);
+                    return;
                 }
-                else
+                switch (options.Mode)
                 {
-                    switch (options.Mode)
-                    {
-                        case DictionaryMergeMode.RTL:
-                            dictionary[key] = value;
-                            break;
-                            //case DictionaryMergeMode.LTR:
-                            //    continue;
-                    }
+                    case DictionaryMergeMode.RTL:
+                        dictionary[key] = value;
+                        return;
+                    case DictionaryMergeMode.LTR:
+                        return;
+                    case DictionaryMergeMode.Error:
+                        break;
                 }
             }
-            else
-            {
-                dictionary.Add(key, value);
-            }
+            dictionary.Add(key, value);
         }
 
-        private static void AppendMapping<TKey, TValue>(IDictionary<TKey, TValue> dictionary, KeyValuePair<TKey, TValue> mapping, IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend, MergeOptions options)
+        private static void AppendMapping<TKey, TValue>(IDictionary<TKey, TValue> dictionary, KeyValuePair<TKey, TValue> mapping, /*IEnumerable<KeyValuePair<TKey, TValue>> mappingsToAppend,*/ MergeOptions options)
         {
-            AppendMapping(dictionary, mapping.Key, mapping.Value, mappingsToAppend, options);
+            AppendMapping(dictionary, mapping.Key, mapping.Value, /*mappingsToAppend,*/ options);
         }
 
         /// <summary>
@@ -350,7 +348,7 @@ namespace Horseshoe.NET.Collections
             if (dictionary == null)
                 dictionary = new Dictionary<TKey, TValue>();
 
-            AppendMapping(dictionary, mappingToAppend, null, options);
+            AppendMapping(dictionary, mappingToAppend, /*null,*/ options);
 
             return dictionary;
         }
@@ -402,7 +400,7 @@ namespace Horseshoe.NET.Collections
             if (dictionary == null)
                 dictionary = new Dictionary<TKey, TValue>();
 
-            AppendMapping(dictionary, key, value, null, options);
+            AppendMapping(dictionary, key, value, /*null,*/ options);
 
             return dictionary;
         }
@@ -466,7 +464,7 @@ namespace Horseshoe.NET.Collections
             {
                 foreach (var kvp in _dictionaries[i])
                 {
-                    AppendMapping(dictionary, kvp, _dictionaries[i], options);
+                    AppendMapping(dictionary, kvp, /*_dictionaries[i],*/ options);
                 }
             }
             return dictionary;

@@ -501,13 +501,13 @@ namespace Horseshoe.NET.Text.TextGrid
         {
             var props = TypeUtil.GetInstanceProperties<T>();
             var cols = props
-                .Select(p => new Column() { Title = TextUtil.SpaceOutTitleCase(p.Name) })
+                .Select(p => new Column() { Name = TextUtil.SpaceOutTitleCase(p.Name) })
                 .ToList();
             foreach (var t in collection ?? Enumerable.Empty<T>())
             {
                 for (int i = 0; i < cols.Count; i++)
                 {
-                    cols[i].Add(props[i].GetValue(t));
+                    cols[i].List.Add(props[i].GetValue(t));
                 }
             }
             //var grid = new TextGrid { BorderPolicy = borderPolicy, CellPaddingLeft = cellPadding, CellPaddingRight = 1 };
@@ -530,8 +530,8 @@ namespace Horseshoe.NET.Text.TextGrid
             var col2 = new Column();
             foreach (var kvp in dictionary)
             {
-                col1.Add(kvp.Key);
-                col2.Add(kvp.Value);
+                col1.List.Add(kvp.Key);
+                col2.List.Add(kvp.Value);
             }
             return new TextGrid(new[] { col1, col2 });
         }

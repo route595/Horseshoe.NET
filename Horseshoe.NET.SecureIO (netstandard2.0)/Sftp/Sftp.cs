@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Horseshoe.NET.Ftp;
 using Horseshoe.NET.IO;
+using Horseshoe.NET.IO.Ftp;
 using Horseshoe.NET.Text;
 
 using Renci.SshNet;

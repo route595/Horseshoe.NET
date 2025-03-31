@@ -1,6 +1,7 @@
 ﻿using System;
+
 using Horseshoe.NET.Crypto;
-using Horseshoe.NET.Ftp;
+using Horseshoe.NET.IO.Ftp;
 
 namespace Horseshoe.NET.SecureIO.Sftp
 {

@@ -127,7 +127,7 @@ namespace TestConsole
                 Console.WriteLine("Data Errors: " + dataImport.DataErrorCount);
                 foreach (var dataError in dataImport.DataErrors)
                 {
-                    Console.WriteLine("  " + dataError.Print());
+                    Console.WriteLine("  " + dataError);
                 }
             }
         }

@@ -333,13 +333,13 @@ namespace Horseshoe.NET.Collections
         public static string StringDumpToGrid<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, BorderPolicy borderPolicy = default)
         {
             var textGrid = new TextGrid { BorderPolicy = borderPolicy };
-            var col1 = new Column { Title = typeof(TKey).Name };
-            var col2 = new Column { Title = typeof(TValue).Name };
+            var col1 = new Column { Name = typeof(TKey).Name };
+            var col2 = new Column { Name = typeof(TValue).Name };
             textGrid.AddColumns(col1, col2);
             foreach (var kvp in dictionary)
             {
-                col1.Add(kvp.Key);
-                col2.Add(kvp.Value);
+                col1.List.Add(kvp.Key);
+                col2.List.Add(kvp.Value);
             }
             return textGrid.Render();
         }

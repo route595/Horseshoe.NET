@@ -1,14 +1,21 @@
-﻿using Microsoft.Extensions.Primitives;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Primitives;
+
+using Horseshoe.NET.Data;
 
 namespace Horseshoe.NET.Text.TextGrid
 {
     /// <summary>
     /// A <c>List</c> containing column data in a <c>TextGrid</c>.
     /// </summary>
-    public class Column : List<object>
+    public class Column : ColumnBase
     {
+        /// <summary>
+        /// The list of items contained in this column
+        /// </summary>
+        public List<object> List { get; }
+
         private List<string> _renderedList { get; set; }
 
         /// <summary>
@@ -20,16 +27,6 @@ namespace Horseshoe.NET.Text.TextGrid
         /// Column titles, if set, are rendered across the top of the grid above each column.
         /// </summary>
         public StringValues Title { get; set; }
-
-        /// <summary>
-        /// An optional format for item rendering.
-        /// </summary>
-        public virtual string Format { get; set; }
-
-        /// <summary>
-        /// How to display null items.
-        /// </summary>
-        public virtual string DisplayNullAs { get; set; } = TextConstants.Null;
 
         /// <summary>
         /// The alignment of the title.
@@ -57,26 +54,63 @@ namespace Horseshoe.NET.Text.TextGrid
         public int WidthToRender => TargetWidth ?? CalculatedWidth;
 
         /// <summary>
-        /// Creates a new <c>Column</c>.
+        /// The number of items in this column
         /// </summary>
-        public Column() : base()
-        {
-        }
+        public int Count => List.Count;
 
         /// <summary>
         /// Creates a new <c>Column</c>.
+        /// </summary>
+        public Column()
+        {
+            List = new List<object>();
+        }
+
+        /// <summary>
+        /// Creates a new column based on the argument column.
+        /// </summary>
+        /// <param name="columnBase">A column upon which to base the new column.</param>
+        public Column(ColumnBase columnBase) : base(columnBase)
+        {
+            List = new List<object>();
+        }
+
+        /// <summary>
+        /// Creates a new column with the supplied capacity.
         /// </summary>
         /// <param name="capacity">Specifies the initial capacity.</param>
-        public Column(int capacity) : base(capacity)
+        public Column(int capacity)
         {
+            List = new List<object>(capacity);
         }
 
         /// <summary>
-        /// Creates a new <c>Column</c>.
+        /// Creates a new column with the supplied capacity based on the argument column.
+        /// </summary>
+        /// <param name="columnBase">A column upon which to base the new column.</param>
+        /// <param name="capacity">Specifies the initial capacity.</param>
+        public Column(ColumnBase columnBase, int capacity) : base(columnBase)
+        {
+            List = new List<object>(capacity);
+        }
+
+        /// <summary>
+        /// Creates a new column with the supplied elements.
         /// </summary>
         /// <param name="collection">Elements to copy into this <c>Column</c>.</param>
-        public Column(IEnumerable<object> collection) : base(collection)
+        public Column(IEnumerable<object> collection)
         {
+            List = new List<object>(collection);
+        }
+
+        /// <summary>
+        /// Creates a new column with the supplied elements based on the argument column.
+        /// </summary>
+        /// <param name="columnBase">A column upon which to base the new column.</param>
+        /// <param name="collection">Elements to copy into this <c>Column</c>.</param>
+        public Column(ColumnBase columnBase, IEnumerable<object> collection) : base(columnBase)
+        {
+            List = new List<object>(collection);
         }
 
         /// <summary>
@@ -88,7 +122,7 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <exception cref="System.ArgumentOutOfRangeException"></exception>
         public T CastItemAt<T>(int index)
         {
-            return (T)this[index];
+            return (T)List[index];
         }
 
         /// <summary>
@@ -98,10 +132,10 @@ namespace Horseshoe.NET.Text.TextGrid
         {
             _renderedList = Render();
             CalculatedWidth = _renderedList.Any() ? _renderedList.Max(s => s.Length) : 0;
+            if (!Title.Any() && Name != null)
+                Title = Name;
             if (Title.Any() && Title.Max(s => (s ?? "").Length) > CalculatedWidth)
-            {
                 CalculatedWidth = Title.Max(s => (s ?? "").Length);
-            }
         }
 
         /// <summary>
@@ -110,7 +144,7 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <returns>A <c>List</c> of <c>string</c>-rendered column data</returns>
         public List<string> Render()
         {
-            return this
+            return List
                 .Select(o => RenderItem(o))
                 .ToList();
         }
@@ -122,24 +156,21 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <returns>The rendered item</returns>
         public string RenderItem(object item)
         {
-            string rendered = Format != null
-                ? string.Format("{0:" + Format + "}", item)
-                : item?.ToString() ?? DisplayNullAs;
             return TargetWidth.HasValue
-                ? TextUtil.Crop(rendered, TargetWidth.Value, truncateMarker: TruncateMarker.LongEllipsis)
-                : rendered;
+                ? TextUtil.Crop(Format(item), TargetWidth.Value, truncateMarker: TruncateMarker.LongEllipsis)
+                : Format(item);
         }
 
-        /// <summary>
-        /// Renders the individual item at position <c>index</c>.
-        /// </summary>
-        /// <param name="index">The 0-based index of the item in the column (list)</param>
-        /// <returns>The rendered item</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException"></exception>
-        public string RenderItemAt(int index)
-        {
-            return RenderItem(this[index]);
-        }
+        ///// <summary>
+        ///// Renders the individual item at position <c>index</c>.
+        ///// </summary>
+        ///// <param name="index">The 0-based index of the item in the column (list)</param>
+        ///// <returns>The rendered item</returns>
+        ///// <exception cref="System.ArgumentOutOfRangeException"></exception>
+        //public string RenderItemAt(int index)
+        //{
+        //    return RenderItem(this[index]);
+        //}
 
         /// <summary>
         /// Renders an individual cell with padding if applicable.

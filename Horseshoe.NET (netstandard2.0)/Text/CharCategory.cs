@@ -3,79 +3,71 @@
 namespace Horseshoe.NET.Text
 {
     /// <summary>
-    /// Dictates which <c>char</c>s to reveal.
+    /// Indicates a <c>char</c>'s basic category e.g. alpha, symbol, etc.
+    /// For more granular categorization please see <c>System.Globalization.UnicodeCategory</c>.
     /// </summary>
     [Flags]
     public enum CharCategory
     {
         /// <summary>
-        /// Default value.
+        /// No <c>char</c> categories.  Default value.
         /// </summary>
-        None = 0,
+        NotDefined = 0,
 
         /// <summary>
-        /// ASCII spaces and non-breaking spaces.
+        /// Represents alphabetic <c>char</c>s.  
+        /// If <c>IsASCII == true</c> includes Latin ASCII letters.
+        /// If <c>IsASCII == false</c> includes letters from other scripts / Unicode blocks e.g. extended Latin, Greek, Cyrillic, etc.
+        /// If <c>IsASCII == null</c> includes all of the above.
         /// </summary>
-        Spaces = 1,
+        Alpha = 1,
 
         /// <summary>
-        /// Horizontal tabs (\t [9]) and new lines (\r [13] and \n [10]).
+        /// Represents numeric <c>char</c>s.
+        /// If <c>IsASCII == true</c> includes ASCII <c>char</c>s <c>0 - 9</c>.
+        /// If <c>IsASCII == false</c> includes numeric <c>char</c>s in other scripts / Unicode blocks e.g. Roman, Arabic numerals, etc.
+        /// If <c>IsASCII == null</c> includes all of the above.
         /// </summary>
-        OtherWhitespaces = 2,
+        Numeric = 2,
 
         /// <summary>
-        /// ASCII spaces, non-breaking spaces, horizontal tabs (\t [9]) and new lines (\r [13] and \n [10]).
+        /// Represents a combination of <c>Alpha</c> and <c>Numeric</c>
         /// </summary>
-        AllWhitespaces = 3,
+        AlphaNumeric = 3,  // combination
 
         /// <summary>
-        /// Numeric ASCII <c>char</c>s (0 - 9).
+        /// Symbols including operators, punctuation, shapes, etc.
         /// </summary>
-        AsciiNumeric = 4,
+        Symbol = 4,
 
         /// <summary>
-        /// Alphabetic ASCII <c>char</c>s (A - Z, a - z).
+        /// Horizontal tab (\t [9]), ASCII space ([32]) and Unicode non-breaking space ([160])
         /// </summary>
-        AsciiAlphabetic = 8,
+        WhitespacesSansNewLines = 8,
 
         /// <summary>
-        /// Alphanumeric ASCII <c>char</c>s (0 - 9, A - Z, a - z).
+        /// New lines (\r [13] and \n [10])
         /// </summary>
-        AsciiAlphanumeric = 12,
+        NewLines = 16,
 
         /// <summary>
-        /// Non-alphanumeric ASCII printable <c>char</c>s (not including whitespaces).
+        /// Represents a combination of all whitespaces i.g. horizontal tab (\t [9]) and new lines (\r [13] and \n [10]), ASCII space ([32]) and Unicode non-breaking space ([160])
         /// </summary>
-        AsciiSymbols = 16,
+        AllWhitespaces = 24,
 
         /// <summary>
-        /// All ASCII printable <c>char</c>s (not including whitespaces).
+        /// Represents a combination of <c>Alpha</c>, <c>Numeric</c>, <c>Symbol</c> and <c>AllWhitespace</c>.
         /// </summary>
-        AllAsciiPrintables = 28,
+        AllPrintables = 31,
 
         /// <summary>
-        /// Unicode (i.e. Non-ASCII) printable <c>char</c>s (not including non-breaking space).
+        /// ASCII and Unicode controls plus byte-order-mark ([65279]) and Unicode replacement char ([65533])
         /// </summary>
-        UnicodePrintables = 32,
+        Nonprintable = 32,
 
         /// <summary>
-        /// Printable ASCII and Unicode <c>char</c>s (not including whitespaces).
+        /// Represents a combinatino of all <c>char</c> categories.
         /// </summary>
-        AllPrintables = 60,
-
-        /// <summary>
-        /// Printable ASCII and Unicode <c>char</c>s and all whitespaces.
-        /// </summary>
-        AllPrintablesAndWhitespaces = 63,
-
-        /// <summary>
-        /// ASCII and Unicode control <c>char</c>s (not including whitespaces) and any Unicode <c>char</c>s considered by Horseshoe.NET to be non-printable.
-        /// </summary>
-        Nonprintables = 64,
-
-        /// <summary>
-        /// All <c>char</c> categories including whitespaces and non-printables.
-        /// </summary>
-        All = 127
+        All = 63,
     }
 }

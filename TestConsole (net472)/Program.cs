@@ -42,11 +42,11 @@ namespace TestConsole
                 if (textGrid.Columns.Count > i)
                 {
                     var lastIndex = textGrid.Columns[i - 1].Count - 1;
-                    var lastItem = textGrid.Columns[i - 1][lastIndex]?.ToString() ?? "";
+                    var lastItem = textGrid.Columns[i - 1].List[lastIndex]?.ToString() ?? "";
                     if (lastItem.StartsWith("   "))
                     {
-                        textGrid.Columns[i - 1].RemoveAt(lastIndex);
-                        textGrid.Columns[i].Insert(0, lastItem);
+                        textGrid.Columns[i - 1].List.RemoveAt(lastIndex);
+                        textGrid.Columns[i].List.Insert(0, lastItem);
                     }
                 }
             }

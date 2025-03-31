@@ -7,9 +7,11 @@ namespace Horseshoe.NET.Collections
     /// </summary>
     /// <typeparam name="TKey">Type of key</typeparam>
     /// <typeparam name="TValue">Type of value</typeparam>
+    /// <param name="duplicateKey">The duplicate key</param>
+    /// <param name="leftValue">The left dictionary's value of the duplicate key</param>
+    /// <param name="rightValue">The right dictionary's value of the duplicate key</param>
     /// <param name="leftDict">The target or resulting dictionary</param>
-    /// <param name="rightKvps">The dictionary or KVP collection being merged</param>
-    /// <param name="identicalKey">The duplicate key</param>
+    /// <param name="rightDict">The dictionary being merged</param>
     /// <returns>The final value chosen by client code</returns>
-    public delegate TValue DictionaryMerge<TKey, TValue>(IDictionary<TKey, TValue> leftDict, IEnumerable<KeyValuePair<TKey, TValue>> rightKvps, TKey identicalKey);
+    public delegate TValue DictionaryMerge<TKey, TValue>(TKey duplicateKey, TValue leftValue, TValue rightValue, IEnumerable<KeyValuePair<TKey, TValue>> leftDict, IEnumerable<KeyValuePair<TKey, TValue>> rightDict);
 }

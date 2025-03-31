@@ -33,10 +33,10 @@ namespace TestConsole
                     Console.WriteLine(dict2.StringDump());
                     Console.WriteLine("combine: " + DictionaryUtil.CombineRTL(dict1, dict2).StringDump());
                     Console.WriteLine("combine: " + DictionaryUtil.CombineLTR(dict1, dict2).StringDump());
-                    Console.WriteLine("combine: " + DictionaryUtil.Combine(new[] { dict1, dict2 }, options: new MergeOptions<string, string>{ CustomMerge = (leftDict, rightDict, key) => leftDict[key] + "/" + rightDict.First(kvp => kvp.Key == key).Value }).StringDump());
+                    Console.WriteLine("combine: " + DictionaryUtil.Combine(new[] { dict1, dict2 }, options: new MergeOptions<string, string>{ CustomMerge = (key, leftValue, rightValue, leftDict, rightDict) => leftDict.SingleOrDefault(kvp => kvp.Key == key).Value + "/" + rightDict.First(kvp => kvp.Key == key).Value }).StringDump());
                     Console.WriteLine("append: " + dict1.AppendRTL(dict2).StringDump());
                     Console.WriteLine("append: " + dict1.AppendLTR(dict2).StringDump());
-                    Console.WriteLine("append: " + dict1.Append(dict2, options: new MergeOptions<string, string>{ CustomMerge = (leftDict, rightDict, key) => leftDict[key] + "/" + rightDict.First(kvp => kvp.Key == key).Value }).StringDump());
+                    Console.WriteLine("append: " + dict1.Append(dict2, options: new MergeOptions<string, string>{ CustomMerge = (key, leftValue, rightValue, leftDict, rightDict) => leftDict.SingleOrDefault(kvp => kvp.Key == key).Value + "/" + rightDict.First(kvp => kvp.Key == key).Value }).StringDump());
                 }
             ),
             BuildMenuRoutine
@@ -82,8 +82,8 @@ namespace TestConsole
                     finalList.AddRange(namesArray);
                     finalList.AddRange(namesCollection);
                     var textGrid = new TextGrid(finalList, columns: 2);
-                    textGrid.Columns[0].Title = "Padded Array";
-                    textGrid.Columns[1].Title = "Padded Collection";
+                    textGrid.Columns[0].Name = "Padded Array";
+                    textGrid.Columns[1].Name = "Padded Collection";
                     Console.Write(textGrid.Render());
                 }
             ),
@@ -104,10 +104,10 @@ namespace TestConsole
                     {
                         var textGrid = new TextGrid(array, 2);
                         Console.Write(textGrid.Render());
-                        Console.WriteLine("Equivalent?  " + CollectionUtil.IsIdentical(textGrid.Columns[0], textGrid.Columns[1])
-                            + "   **   ignore-case: " + CollectionUtil.IsIdenticalIgnoreCase(textGrid.Columns[0].Cast<string>(), textGrid.Columns[1].Cast<string>())
-                            + "   **   ignore-order: " + CollectionUtil.IsIdentical(textGrid.Columns[0], textGrid.Columns[1], ignoreOrder: true)
-                            + "   **   ignore-both: " + CollectionUtil.IsIdenticalIgnoreCase(textGrid.Columns[0].Cast<string>(), textGrid.Columns[1].Cast<string>(), ignoreOrder: true)
+                        Console.WriteLine("Equivalent?  " + CollectionUtil.IsIdentical(textGrid.Columns[0].List, textGrid.Columns[1].List)
+                            + "   **   ignore-case: " + CollectionUtil.IsIdenticalIgnoreCase(textGrid.Columns[0].List.Cast<string>(), textGrid.Columns[1].List.Cast<string>())
+                            + "   **   ignore-order: " + CollectionUtil.IsIdentical(textGrid.Columns[0].List, textGrid.Columns[1].List, ignoreOrder: true)
+                            + "   **   ignore-both: " + CollectionUtil.IsIdenticalIgnoreCase(textGrid.Columns[0].List.Cast<string>(), textGrid.Columns[1].List.Cast<string>(), ignoreOrder: true)
                             );
                         Console.WriteLine();
                     }

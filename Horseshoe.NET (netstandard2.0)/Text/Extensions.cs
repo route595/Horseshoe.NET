@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 
@@ -46,46 +47,235 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Tests to see if <c>text</c> contains at least one of a group of <c>string</c>s.
+        /// Tests if <c>text</c> contains at least one of the <c>char</c>s in <c>chars</c>s.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAny(this string text, params char[] chars)
+        {
+            return ContainsAny(text, chars as IEnumerable<char>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains at least one of the <c>char</c>s in <c>chars</c>s.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAny(this string text, IEnumerable<char> chars)
+        {
+            if (chars == null || !chars.Any())
+                return false;
+            foreach (char c in chars)
+            {
+                if (text.Contains(c))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains at least one of the <c>char</c>s in <c>chars</c>s, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAnyIgnoreCase(this string text, params char[] chars)
+        {
+            return ContainsAnyIgnoreCase(text, chars as IEnumerable<char>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains at least one of the <c>char</c>s in <c>chars</c>s, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAnyIgnoreCase(this string text, IEnumerable<char> chars)
+        {
+            if (chars == null || !chars.Any())
+                return false;
+            foreach (char c in chars)
+            {
+                if (text.IndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase) > -1)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAll(this string text, params char[] chars)
+        {
+            return ContainsAll(text, chars as IEnumerable<char>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAll(this string text, IEnumerable<char> chars)
+        {
+            if (chars == null || !chars.Any())
+                return false;
+            foreach (char c in chars)
+            {
+                if (!text.Contains(c))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllIgnoreCase(this string text, params char[] chars)
+        {
+            return ContainsAllIgnoreCase(text, chars as IEnumerable<char>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllIgnoreCase(this string text, IEnumerable<char> chars)
+        {
+            if (chars == null || !chars.Any())
+                return false;
+            foreach (char c in chars)
+            {
+                if (text.IndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase) == -1)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>.
         /// </summary>
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAny(this string text, params string[] contentsToSearchFor)
         {
-            return ContainsAny(text, contentsToSearchFor, ignoreCase: false);
+            return ContainsAny(text, contentsToSearchFor as IEnumerable<string>);
         }
 
         /// <summary>
-        /// Tests to see if <c>text</c> contains at least one of a group of <c>string</c>s, not case-sensitive if <c>ignoreCase == true</c>.
+        /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>.
         /// </summary>
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
-        /// <param name="ignoreCase">If <c>true</c> the search is not case-senstive, default is <c>false</c>.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAny(this string text, IEnumerable<string> contentsToSearchFor, bool ignoreCase = false)
+        public static bool ContainsAny(this string text, IEnumerable<string> contentsToSearchFor)
         {
-            if (contentsToSearchFor != null)
+            if (contentsToSearchFor == null)
+                return false;
+            foreach (var content in contentsToSearchFor)
             {
-                if (ignoreCase)
-                {
-                    var upper = text.ToUpper();
-                    foreach (var content in contentsToSearchFor)
-                    {
-                        if (upper.Contains(content.ToUpper()))
-                            return true;
-                    }
-                }
-                else
-                {
-                    foreach (var content in contentsToSearchFor)
-                    {
-                        if (text.Contains(content))
-                            return true;
-                    }
-                }
+                if (text.Contains(content))
+                    return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAnyIgnoreCase(this string text, params string[] contentsToSearchFor)
+        {
+            return ContainsAnyIgnoreCase(text, contentsToSearchFor as IEnumerable<string>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAnyIgnoreCase(this string text, IEnumerable<string> contentsToSearchFor)
+        {
+            if (contentsToSearchFor == null)
+                return false;
+            foreach (var content in contentsToSearchFor)
+            {
+                if (text.IndexOf(content, StringComparison.OrdinalIgnoreCase) > -1)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all items in <c>contentsToSearchFor</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAll(this string text, params string[] contentsToSearchFor)
+        {
+            return ContainsAll(text, contentsToSearchFor as IEnumerable<string>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all items in <c>contentsToSearchFor</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAll(this string text, IEnumerable<string> contentsToSearchFor)
+        {
+            if (contentsToSearchFor == null || !contentsToSearchFor.Any())
+                return false;
+            foreach (var content in contentsToSearchFor)
+            {
+                if (!text.Contains(content))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all items in <c>contentsToSearchFor</c>, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllIgnoreCase(this string text, params string[] contentsToSearchFor)
+        {
+            return ContainsAllIgnoreCase(text, contentsToSearchFor as IEnumerable<string>);
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all items in <c>contentsToSearchFor</c>, not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllIgnoreCase(this string text, IEnumerable<string> contentsToSearchFor)
+        {
+            if (contentsToSearchFor == null || !contentsToSearchFor.Any())
+                return false;
+            foreach (var content in contentsToSearchFor)
+            {
+                if (text.IndexOf(content, StringComparison.OrdinalIgnoreCase) == -1)
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -98,119 +288,140 @@ namespace Horseshoe.NET.Text
             return NET.Extensions.In(chr, 10, 13);
         }
 
-        //internal static void IncrementCleanedWhitespaces(this TraceJournal journal)
-        //{
-        //    if (journal.Data.ContainsKey("text.clean.whitespaces.count"))
-        //    {
-        //        journal.Data["text.clean.whitespaces.count"] = (int)journal.Data["text.clean.whitespaces.count"] + 1;
-        //    }
-        //    else
-        //    {
-        //        journal.Data.Add("text.clean.whitespaces.count", 1);
-        //    }
-        //}
+        /// <summary>
+        /// Returns the highest index of the supplied <c>char</c>s contained in <c>texxt</c>, if applicable, otherwise returns <c>-1</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The highest <c>char</c>'s index</returns>
+        public static int MaxIndexOf(this string text, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            return charsToSearch
+                .Select(c => text.IndexOf(c))
+                .Max();
+        }
 
-        //internal static void IncrementCleanedNonprintables(this TraceJournal journal)
-        //{
-        //    if (journal.Data.ContainsKey("text.clean.nonprintables.count"))
-        //    {
-        //        journal.Data["text.clean.nonprintables.count"] = (int)journal.Data["text.clean.nonprintables.count"] + 1;
-        //    }
-        //    else
-        //    {
-        //        journal.Data.Add("text.clean.nonprintables.count", 1);
-        //    }
-        //}
+        /// <summary>
+        /// Returns the highest index of the supplied <c>char</c>s contained in <c>texxt</c>, if applicable, otherwise returns <c>-1</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="startIndex">Where in <c>text</c> to start searching.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The highest <c>char</c>'s index</returns>
+        public static int MaxIndexOf(this string text, int startIndex, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            return charsToSearch
+                .Select(c => text.IndexOf(c, startIndex))
+                .Max();
+        }
 
-        //internal static void IncrementCleanedUnicode(this TraceJournal journal)
-        //{
-        //    if (journal.Data.ContainsKey("text.clean.unicode.count"))
-        //    {
-        //        journal.Data["text.clean.unicode.count"] = (int)journal.Data["text.clean.unicode.count"] + 1;
-        //    }
-        //    else
-        //    {
-        //        journal.Data.Add("text.clean.unicode.count", 1);
-        //    }
-        //}
+        /// <summary>
+        /// Returns the highest index of the supplied <c>char</c>s contained in <c>texxt</c>, if applicable, otherwise returns <c>-1</c>.  Not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The highest <c>char</c>'s index</returns>
+        public static int MaxIndexOfIgnoreCase(this string text, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            return charsToSearch
+                .Select(c => text.IndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase))
+                .Max();
+        }
 
-        //internal static void IncrementCleanedOther(this TraceJournal journal)
-        //{
-        //    if (journal.Data.ContainsKey("text.clean.other.count"))
-        //    {
-        //        journal.Data["text.clean.other.count"] = (int)journal.Data["text.clean.other.count"] + 1;
-        //    }
-        //    else
-        //    {
-        //        journal.Data.Add("text.clean.other.count", 1);
-        //    }
-        //}
+        /// <summary>
+        /// Returns the highest index of the supplied <c>char</c>s contained in <c>texxt</c>, if applicable, otherwise returns <c>-1</c>.  Not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="startIndex">Where in <c>text</c> to start searching.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The highest <c>char</c>'s index</returns>
+        public static int MaxIndexOfIgnoreCase(this string text, int startIndex, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            return charsToSearch
+                .Select(c => text.IndexOf(new string(c, 1), startIndex, StringComparison.OrdinalIgnoreCase))
+                .Max();
+        }
 
-        ///// <summary>
-        ///// Gets the count of whitespace <c>char</c>s that were eliminated or converted during a 'clean' operation.
-        ///// </summary>
-        ///// <param name="journal"></param>
-        ///// <returns>Affected whitespace <c>char</c> count</returns>
-        //public static int GetCleanedWhitespaceCharacters(this TraceJournal journal)
-        //{
-        //    if (journal.Data.TryGetValue("text.clean.whitespaces.count", out object count))
-        //        return (int)count;
-        //    return 0;
-        //}
+        /// <summary>
+        /// Returns the lowest index of the supplied <c>char</c>s if at least one is contained in <c>texxt</c>, otherwise returns <c>-1</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The lowest <c>char</c>'s index</returns>
+        public static int MinIndexOf(this string text, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            var nonNegIndices = charsToSearch
+                .Select(c => text.IndexOf(c))
+                .Where(i => i > -1);
+            if (nonNegIndices.Any())
+                return nonNegIndices.Min();
+            return -1;
+        }
 
-        ///// <summary>
-        ///// Gets the count of nonprintable <c>char</c>s that were eliminated or converted during a 'clean' operation.
-        ///// </summary>
-        ///// <param name="journal"></param>
-        ///// <returns>Affected nonprintable <c>char</c> count</returns>
-        //public static int GetCleanedNonprintableCharacters(this TraceJournal journal)
-        //{
-        //    if (journal.Data.TryGetValue("text.clean.nonprintables.count", out object count))
-        //        return (int)count;
-        //    return 0;
-        //}
+        /// <summary>
+        /// Returns the lowest index of the supplied <c>char</c>s if at least one is contained in <c>texxt</c>, otherwise returns <c>-1</c>.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="startIndex">Where in <c>text</c> to start searching.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The lowest <c>char</c>'s index</returns>
+        public static int MinIndexOf(this string text, int startIndex, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            var nonNegIndices = charsToSearch
+                .Select(c => text.IndexOf(c, startIndex))
+                .Where(i => i > -1);
+            if (nonNegIndices.Any())
+                return nonNegIndices.Min();
+            return -1;
+        }
 
-        ///// <summary>
-        ///// Gets the count of Unicode <c>char</c>s that were eliminated or converted during a 'clean' operation.
-        ///// </summary>
-        ///// <param name="journal"></param>
-        ///// <returns>Affected Unicode <c>char</c> count</returns>
-        //public static int GetCleanedUnicodeCharacters(this TraceJournal journal)
-        //{
-        //    if (journal.Data.TryGetValue("text.clean.unicode.count", out object count))
-        //        return (int)count;
-        //    return 0;
-        //}
+        /// <summary>
+        /// Returns the lowest index of the supplied <c>char</c>s if at least one is contained in <c>texxt</c>, otherwise returns <c>-1</c>.  Not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The lowest <c>char</c>'s index</returns>
+        public static int MinIndexOfIgnoreCase(this string text, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            var nonNegIndices = charsToSearch
+                .Select(c => text.IndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase))
+                .Where(i => i > -1);
+            if (nonNegIndices.Any())
+                return nonNegIndices.Min();
+            return -1;
+        }
 
-        ///// <summary>
-        ///// Gets the count of other <c>char</c>s that were eliminated or converted during a 'clean' operation.
-        ///// </summary>
-        ///// <param name="journal"></param>
-        ///// <returns>Other affected <c>char</c> count</returns>
-        //public static int GetCleanedOtherCharacters(this TraceJournal journal)
-        //{
-        //    if (journal.Data.TryGetValue("text.clean.other.count", out object count))
-        //        return (int)count;
-        //    return 0;
-        //}
-
-        ///// <summary>
-        ///// Gets the total count of <c>char</c>s that were eliminated or converted during a 'clean' operation.
-        ///// </summary>
-        ///// <param name="journal"></param>
-        ///// <returns></returns>
-        //public static int GetTotalCleanedCharacters(this TraceJournal journal)
-        //{
-        //    var total = 0;
-        //    if (journal.Data.TryGetValue("text.clean.whitespaces.count", out object whitespacesCount))
-        //        total += (int)whitespacesCount;
-        //    if (journal.Data.TryGetValue("text.clean.nonprintables.count", out object nonprintablesCount))
-        //        total += (int)nonprintablesCount;
-        //    if (journal.Data.TryGetValue("text.clean.unicode.count", out object unicodeCount))
-        //        total += (int)unicodeCount;
-        //    if (journal.Data.TryGetValue("text.clean.other.count", out object otherCount))
-        //        total += (int)otherCount;
-        //    return total;
-        //}
+        /// <summary>
+        /// Returns the lowest index of the supplied <c>char</c>s if at least one is contained in <c>texxt</c>, otherwise returns <c>-1</c>.  Not case-sensitive.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="startIndex">Where in <c>text</c> to start searching.</param>
+        /// <param name="charsToSearch">A group of <c>char</c>s to search for.</param>
+        /// <returns>The lowest <c>char</c>'s index</returns>
+        public static int MinIndexOfIgnoreCase(this string text, int startIndex, params char[] charsToSearch)
+        {
+            if (charsToSearch == null || !charsToSearch.Any())
+                return -1;
+            var nonNegIndices = charsToSearch
+                .Select(c => text.IndexOf(new string(c, 1), startIndex, StringComparison.OrdinalIgnoreCase))
+                .Where(i => i > -1);
+            if (nonNegIndices.Any())
+                return nonNegIndices.Min();
+            return -1;
+        }
     }
 }

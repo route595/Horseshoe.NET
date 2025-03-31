@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>

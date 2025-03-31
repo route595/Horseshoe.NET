@@ -4,7 +4,6 @@ using System.Linq;
 
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.Text;
-using Horseshoe.NET.Text.TextClean;
 
 namespace TestConsole
 {
@@ -18,7 +17,7 @@ namespace TestConsole
                 () =>
                 {
                     var phrase1 = "Å¢t Øñę\u0000";
-                    var categories = new[] { CharCategory.None, CharCategory.UnicodePrintables, CharCategory.AllPrintablesAndWhitespaces, CharCategory.Nonprintables, CharCategory.All };
+                    var categories = new[] { CharCategory.NotDefined, CharCategory.AllPrintables , CharCategory.Nonprintable, CharCategory.All };
                     Console.Write("phrase: ");
                     Console.WriteLine(phrase1);
                     foreach(var category in categories)
@@ -49,69 +48,23 @@ namespace TestConsole
             BuildMenuRoutine
             (
                 "Scan for duplicates in CharLib",
-                /* 
-output on 10/26/2022, then cleaned up...
-Original : symbols - h - unicode: ['h'-8462] - pos: 1
-Duplicate: symbols - h - unicode: ['h'-8462] - pos: 3
-Original : symbols - h - unicode: ['?'-8463] - pos: 2
-Duplicate: symbols - h - unicode: ['?'-8463] - pos: 4
-Original : symbols - l - unicode: ['?'-737] - pos: 2
-Duplicate: symbols - l - unicode: ['?'-737] - pos: 3
-Original : symbols - m - unicode: ['ⁿ'-8319] - pos: 2
-Duplicate: symbols - n - unicode: ['ⁿ'-8319] - pos: 1
-Original : symbols - s - unicode: ['?'-738] - pos: 1
-Duplicate: symbols - s - unicode: ['?'-738] - pos: 2
-Original : symbols - x - unicode: ['?'-735] - pos: 1
-Duplicate: symbols - x - unicode: ['?'-735] - pos: 4
-Original : symbols - x - unicode: ['?'-739] - pos: 2
-Duplicate: symbols - x - unicode: ['?'-739] - pos: 5
-Original : symbols - | - unicode: ['?'-8286] - pos: 1
-Duplicate: symbols - | - unicode: ['?'-8286] - pos: 7
-Original : symbols - / - unicode: ['/'-8260] - pos: 0
-Duplicate: symbols - / - unicode: ['/'-8260] - pos: 1
-Original : symbols - t - unicode: ['+'-8224] - pos: 1
-Duplicate: complex symbols - [dagger] - unicode: ['+'-8224] - pos: 0
-                 */
                 () =>
                 {
                     var trackingDict = new Dictionary<int, string>();
-                    foreach (var category_convDict in CharLib.AllUnicodeToASCIIConversions)
+                    foreach (var unicodeCharArray_Replacement_KVP in CharLib.UnicodeToASCIIConversions)
                     {
-                        foreach (var replacement_unicodeCharArray in category_convDict.Value)
+                        for (int i = 0; i < unicodeCharArray_Replacement_KVP.Value.Length; i++)
                         {
-                            for (int i = 0; i < replacement_unicodeCharArray.Value.Length; i++)
+                            char unicodeChar = unicodeCharArray_Replacement_KVP.Value[i];
+                            string display = unicodeCharArray_Replacement_KVP.Key + " - " + CharInfo.Get(unicodeChar) + " - pos: " + i;
+                            if (trackingDict.ContainsKey(unicodeChar))
                             {
-                                char unicodeChar = replacement_unicodeCharArray.Value[i];
-                                string display = category_convDict.Key + " - " + replacement_unicodeCharArray.Key + " - unicode: " + TextUtil.Reveal(string.Concat(unicodeChar), RevealOptions.All) + " - pos: " + i;
-                                if (trackingDict.ContainsKey(unicodeChar))
-                                {
-                                    Console.WriteLine("Original : " + trackingDict[unicodeChar]);
-                                    Console.WriteLine("Duplicate: " + display);
-                                }
-                                else
-                                {
-                                    trackingDict.Add(unicodeChar, display);
-                                }
+                                Console.WriteLine("Original : " + trackingDict[unicodeChar]);
+                                Console.WriteLine("Duplicate: " + display);
                             }
-                        }
-                    }
-                    foreach (var category_convDict in CharLib.AllUnicodeToASCIIComplexConversions)
-                    {
-                        foreach (var replacement_unicodeCharArray in category_convDict.Value)
-                        {
-                            for (int i = 0; i < replacement_unicodeCharArray.Value.Length; i++)
+                            else
                             {
-                                char unicodeChar = replacement_unicodeCharArray.Value[i];
-                                string display = category_convDict.Key + " - " + replacement_unicodeCharArray.Key + " - unicode: " + TextUtil.Reveal(string.Concat(unicodeChar), RevealOptions.All) + " - pos: " + i;
-                                if (trackingDict.ContainsKey(unicodeChar))
-                                {
-                                    Console.WriteLine("Original : " + trackingDict[unicodeChar]);
-                                    Console.WriteLine("Duplicate: " + display);
-                                }
-                                else
-                                {
-                                    trackingDict.Add(unicodeChar, display);
-                                }
+                                trackingDict.Add(unicodeChar, display);
                             }
                         }
                     }

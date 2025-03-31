@@ -1,7 +1,7 @@
 ﻿namespace Horseshoe.NET.DataImport
 {
     /// <summary>
-    /// How to handle data errors
+    /// How to handle parse/convert errors
     /// </summary>
     public enum DataErrorHandlingPolicy
     {
@@ -11,13 +11,13 @@
         Throw,
 
         /// <summary>
-        /// (Popular) Causes data errors to be stored in the <c>DataImport</c> instance
+        /// Causes errors to be stored in <c>DataImportRow</c> instances
         /// </summary>
         Embed,
 
         /// <summary>
-        /// Ignores any errors and replaces them with blank or <c>null</c>
+        /// Ignores any errors and replaces the parsed value with the default
         /// </summary>
-        IgnoreAndUseDefaultValue
+        Ignore
     }
 }

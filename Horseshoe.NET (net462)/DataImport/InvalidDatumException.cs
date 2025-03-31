@@ -22,7 +22,7 @@ namespace Horseshoe.NET.DataImport
         /// <summary>
         /// The size of the column if fixed-width
         /// </summary>
-        public int FixedWidth { get; set; }
+        public int Width { get; set; }
 
         /// <summary>
         /// Position information, free text (e.g. row 4 col 3)
@@ -35,13 +35,13 @@ namespace Horseshoe.NET.DataImport
         /// <param name="message">a message</param>
         /// <param name="datum">the invalid datum</param>
         /// <param name="columnName">the column name where the invalid datum was encountered</param>
-        /// <param name="fixedWidth">the size of the column if fixed-width</param>
-        /// <param name="position">position information, free text (e.g. row 4 col 3)</param>
-        public InvalidDatumException(string message, object datum, string columnName = null, int fixedWidth = 0, string position = null) : base(ToMessageString(message, datum, columnName, fixedWidth, position))
+        /// <param name="width">the size of the column if fixed-width</param>
+        /// <param name="position">Position or cell reference, free text (e.g. row 4 col 3)</param>
+        public InvalidDatumException(string message, object datum, string columnName = null, int width = 0, string position = null) : base(ToMessageString(message, datum, columnName, width, position))
         {
             Datum = datum;
             ColumnName = columnName;
-            FixedWidth = fixedWidth;
+            Width = width;
             Position = position;
         }
 
@@ -51,23 +51,23 @@ namespace Horseshoe.NET.DataImport
         /// <param name="innerException">the root exception</param>
         /// <param name="datum">the invalid datum</param>
         /// <param name="columnName">the column name where the invalid datum was encountered</param>
-        /// <param name="fixedWidth">the size of the column if fixed-width</param>
-        /// <param name="position">position information, free text (e.g. row 4 col 3)</param>
-        public InvalidDatumException(Exception innerException, object datum, string columnName = null, int fixedWidth = 0, string position = null) : base(ToMessageString(innerException.Message, datum, columnName, fixedWidth, position), innerException)
+        /// <param name="width">the size of the column if fixed-width</param>
+        /// <param name="position">Position or cell reference, free text (e.g. row 4 col 3)</param>
+        public InvalidDatumException(Exception innerException, object datum, string columnName = null, int width = 0, string position = null) : base(ToMessageString(innerException.Message, datum, columnName, width, position), innerException)
         {
             Datum = datum;
             ColumnName = columnName;
-            FixedWidth = fixedWidth;
+            Width = width;
             Position = position;
         }
 
-        static string ToMessageString(string message, object datum, string columnName, int fixedWidth, string position)
+        static string ToMessageString(string message, object datum, string columnName, int width, string position)
         {
             return
                 (!string.IsNullOrEmpty(message) ? message + " -- " : "") +
                 "{ Value: \"" + (datum?.ToString() ?? TextConstants.Null).Replace("\"", "\\\"") + "\"" + 
                 (columnName != null ? "; Column: \"" + columnName + "\"" : "") +
-                (fixedWidth > 0 ? "; Fixed Width: " + fixedWidth : "") +
+                (width > 0 ? "; Fixed Width: " + width : "") +
                 (position != null ? "; Position: \"" + position + "\"": "") +
                 " }";
         }

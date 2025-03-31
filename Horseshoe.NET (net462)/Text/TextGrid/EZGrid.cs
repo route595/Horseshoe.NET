@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,7 +43,7 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <param name="rowData"></param>
         public void AddRow(params object[] rowData)
         {
-            if (rowData != null)
+            if (rowData == null)
                 rowData = Array.Empty<object>();
 
             while (Columns.Count < rowData.Length)
@@ -54,18 +53,18 @@ namespace Horseshoe.NET.Text.TextGrid
 
                 // pad column to fit grid
                 if (MaxCount > 0)
-                    column.AddRange(Enumerable.Range(0, MaxCount).Select(i => PadValue));
+                    column.List.AddRange(Enumerable.Range(0, MaxCount).Select(i => PadValue));
             }
 
             for (int i = 0; i < Columns.Count; i++)
             {
                 // append each datum to a column
                 if (rowData.Length > i)
-                    Columns[i].Add(rowData[i]);
+                    Columns[i].List.Add(rowData[i]);
 
                 // pad the rest of the columns for which there wasn't enough data
                 else
-                    Columns[i].Add(PadValue);
+                    Columns[i].List.Add(PadValue);
             }
         }
     }

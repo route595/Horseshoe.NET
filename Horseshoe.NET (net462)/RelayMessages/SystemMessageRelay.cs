@@ -110,6 +110,75 @@ namespace Horseshoe.NET.RelayMessages
         }
 
         /// <summary>
+        /// The base mechanism for relaying system messages i.e. messages sent from within Horseshoe.NET[.Xxxxx] methods.
+        /// </summary>
+        /// <param name="name">A variable name or value name.</param>
+        /// <param name="value">A value.</param>
+        /// <param name="dump">If <c>true</c>, displays the object's properties in JSON-like format, default is <c>false</c>.</param>
+        /// <param name="cropToLength">Reduce size of the relayed messages by cropping to this length.</param>
+        /// <param name="cropPosition">Where in the relayed message to crop, default is <c>HorizontalPosition.Center</c>.</param>
+        /// <param name="group">A category that implementations may use for message grouping, searching or filtering.</param>
+        /// <param name="id">An optional message ID that implementations may use for more granular and precise message handling.</param>
+        /// <param name="indent">Instructions for indenting relayed messages.</param>
+        public static void RelayValue(string name, object value, bool dump = false, int? cropToLength = null, HorizontalPosition cropPosition = HorizontalPosition.Center, string group = null, int? id = null, Indent indent = null)
+        {
+            if (listeners == null)
+                return;
+
+            var returnStr = dump
+                ? ObjectUtil.DumpToString(value)
+                : ValueUtil.Display(value);
+
+            if (cropToLength.HasValue)
+                returnStr = TextUtil.Crop(returnStr, cropToLength.Value, position: cropPosition, truncateMarker: TruncateMarker.LongEllipsis);
+
+            RelayMessage
+            (
+                name + ": " + returnStr,
+                group: group,
+                id: id,
+                indent: indent
+            );
+        }
+
+        /// <summary>
+        /// The base mechanism for relaying system messages i.e. messages sent from within Horseshoe.NET[.Xxxxx] methods.
+        /// </summary>
+        /// <param name="name">A variable name or value name.</param>
+        /// <param name="valueFunc">A function/lambda which returns a value to relay to calling code.</param>
+        /// <param name="dump">If <c>true</c>, displays the object's properties in JSON-like format, default is <c>false</c>.</param>
+        /// <param name="cropToLength">Reduce size of the relayed messages by cropping to this length.</param>
+        /// <param name="cropPosition">Where in the relayed message to crop, default is <c>HorizontalPosition.Center</c>.</param>
+        /// <param name="group">A category that implementations may use for message grouping, searching or filtering.</param>
+        /// <param name="id">An optional message ID that implementations may use for more granular and precise message handling.</param>
+        /// <param name="indent">Instructions for indenting relayed messages.</param>
+        public static void RelayValue(string name, Func<object> valueFunc, bool dump = false, int? cropToLength = null, HorizontalPosition cropPosition = HorizontalPosition.Center, string group = null, int? id = null, Indent indent = null)
+        {
+            if (listeners == null)
+                return;
+
+            string returnStr;
+
+            if (valueFunc != null)
+                returnStr = dump
+                    ? ObjectUtil.DumpToString(valueFunc.Invoke())
+                    : ValueUtil.Display(valueFunc.Invoke());
+            else
+                returnStr = "[null-func]";
+
+            if (cropToLength.HasValue)
+                returnStr = TextUtil.Crop(returnStr, cropToLength.Value, position: cropPosition, truncateMarker: TruncateMarker.LongEllipsis);
+
+            RelayMessage
+            (
+                name + ": " + returnStr,
+                group: group,
+                id: id,
+                indent: indent
+            );
+        }
+
+        /// <summary>
         /// Relays a message detailing the current method, e.g. <c>MyMethod(int myParam)</c>.
         /// This relayed message will, by default, increment indentation of subsequent messages.
         /// See also <see cref="RelayMethodReturnValue(object, bool, int?, HorizontalPosition, string, int?, Indent)"/>
