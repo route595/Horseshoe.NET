@@ -8,6 +8,23 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
 
 ## Code Examples
 
+#### Horseshoe.NET.Comparison    (introducing the 'Criterinator' search tool)
+
+```c#
+var filteredEmployees = SearchEmployeesByLastName("Finkleman", ignoreCase: true);
+
+IEnumerable<Employee> SearchEmployeesByLastName(ICriterinator<string> lastNameCriterinator)
+{
+    return allEmployees.Where(e => lastNameCriterinator.IsMatch(e.LastName))
+}
+
+IEnumerable<Employee> SearchEmployeesByLastNameContains(string lastNameOrPartial, bool ignoreCase = false)
+{
+    return ignoreCase 
+        ? SearchEmployeesByLastName(Criterinator.ContainsIgnoreCase(lastNameOrPartial))
+        : SearchEmployeesByLastName(Criterinator.Contains(lastNameOrPartial))
+}
+
 #### Horseshoe.NET.ConsoleX
 
 ```c#

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.SqlDb.Meta
@@ -29,11 +29,13 @@ namespace Horseshoe.NET.SqlDb.Meta
 
         public static DbVersion Lookup(string versionName, bool ignoreCase = false)
         {
-            var comparator = Comparator.Equals(versionName.ToUpper().StartsWith("SQL") ? versionName : "SQL" + versionName, ignoreCase: ignoreCase);
+            var criterinator = ignoreCase
+                ? Criterinator.EqualsIgnoreCase(versionName.ToUpper().StartsWith("SQL") ? versionName : "SQL" + versionName)
+                : Criterinator.Equals(versionName.ToUpper().StartsWith("SQL") ? versionName : "SQL" + versionName);
             try
             {
                 return LookupAll()
-                    .Single(v => comparator.IsMatch(v.Name));
+                    .Single(v => criterinator.IsMatch(v.Name));
             }
             catch
             {

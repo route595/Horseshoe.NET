@@ -65,7 +65,7 @@ namespace Horseshoe.NET.Text
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAny(this string text, IEnumerable<char> chars)
         {
-            if (chars == null || !chars.Any())
+            if (text == null || chars == null || !chars.Any())
                 return false;
             foreach (char c in chars)
             {
@@ -94,7 +94,7 @@ namespace Horseshoe.NET.Text
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAnyIgnoreCase(this string text, IEnumerable<char> chars)
         {
-            if (chars == null || !chars.Any())
+            if (text == null || chars == null || !chars.Any())
                 return false;
             foreach (char c in chars)
             {
@@ -105,15 +105,13 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
-        /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s.
+        /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>.
         /// </summary>
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="chars">A group of <c>char</c>s to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAll(this string text, params char[] chars)
-        {
-            return ContainsAll(text, chars as IEnumerable<char>);
-        }
+        public static bool ContainsAll(this string text, params char[] chars) =>
+            ContainsAll(text, chars as IEnumerable<char>);
 
         /// <summary>
         /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s.
@@ -123,7 +121,7 @@ namespace Horseshoe.NET.Text
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAll(this string text, IEnumerable<char> chars)
         {
-            if (chars == null || !chars.Any())
+            if (text == null || chars == null || !chars.Any())
                 return false;
             foreach (char c in chars)
             {
@@ -139,10 +137,8 @@ namespace Horseshoe.NET.Text
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="chars">A group of <c>char</c>s to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAllIgnoreCase(this string text, params char[] chars)
-        {
-            return ContainsAllIgnoreCase(text, chars as IEnumerable<char>);
-        }
+        public static bool ContainsAllIgnoreCase(this string text, params char[] chars) =>
+            ContainsAllIgnoreCase(text, chars as IEnumerable<char>);
 
         /// <summary>
         /// Tests if <c>text</c> contains all of the <c>char</c>s in <c>chars</c>s, not case-sensitive.
@@ -152,7 +148,7 @@ namespace Horseshoe.NET.Text
         /// <returns><c>true</c> or <c>false</c></returns>
         public static bool ContainsAllIgnoreCase(this string text, IEnumerable<char> chars)
         {
-            if (chars == null || !chars.Any())
+            if (text == null || chars == null || !chars.Any())
                 return false;
             foreach (char c in chars)
             {
@@ -163,15 +159,145 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInSequence(this string text, params char[] chars) =>
+            ContainsAllInSequence(text, chars as IEnumerable<char>);
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInSequence(this string text, IEnumerable<char> chars)
+        {
+            if (text == null || chars == null || !chars.Any())
+                return false;
+
+            int runningPos = -1;
+            int pos;
+            foreach (char c in chars)
+            {
+                pos = runningPos == -1
+                    ? text.IndexOf(c)
+                    : text.IndexOf(c, runningPos);
+                if (pos <= runningPos)
+                    return false;
+                runningPos = pos;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInSequenceIgnoreCase(this string text, params char[] chars) =>
+            ContainsAllInSequenceIgnoreCase(text, chars as IEnumerable<char>);
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInSequenceIgnoreCase(this string text, IEnumerable<char> chars)
+        {
+            if (text == null || chars == null || !chars.Any())
+                return false;
+
+            int runningPos = -1;
+            int pos;
+            foreach (char c in chars)
+            {
+                pos = runningPos == -1
+                    ? text.IndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase)
+                    : text.IndexOf(new string(c, 1), runningPos, StringComparison.OrdinalIgnoreCase);
+                if (pos <= runningPos)
+                    return false;
+                runningPos = pos;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s ONLY in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInStrictSequence(this string text, params char[] chars) =>
+            ContainsAllInStrictSequence(text, chars as IEnumerable<char>);
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s ONLY in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInStrictSequence(this string text, IEnumerable<char> chars)
+        {
+            if (text == null || chars == null || !chars.Any())
+                return false;
+
+            int runningPos = -1;
+            int pos;
+            foreach (char c in chars)
+            {
+                pos = text.IndexOf(c);
+                if (pos <= runningPos)
+                    return false;
+                runningPos = text.LastIndexOf(c);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s ONLY in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInStrictSequenceIgnoreCase(this string text, params char[] chars) =>
+            ContainsAllInStrictSequenceIgnoreCase(text, chars as IEnumerable<char>);
+
+        /// <summary>
+        /// Tests if <c>text</c> contains all of the supplied <c>char</c>s ONLY in the supplied order.
+        /// </summary>
+        /// <param name="text">A <c>string</c> to search.</param>
+        /// <param name="chars">A group of <c>char</c>s to search for.</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool ContainsAllInStrictSequenceIgnoreCase(this string text, IEnumerable<char> chars)
+        {
+            if (text == null || chars == null || !chars.Any())
+                return false;
+
+            int runningPos = -1;
+            int pos;
+            foreach (char c in chars)
+            {
+                pos = text.IndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase);
+                if (pos <= runningPos)
+                    return false;
+                runningPos = text.LastIndexOf(new string(c, 1), StringComparison.OrdinalIgnoreCase);
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>.
         /// </summary>
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAny(this string text, params string[] contentsToSearchFor)
-        {
-            return ContainsAny(text, contentsToSearchFor as IEnumerable<string>);
-        }
+        public static bool ContainsAny(this string text, params string[] contentsToSearchFor) =>
+            ContainsAny(text, contentsToSearchFor as IEnumerable<string>);
 
         /// <summary>
         /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>.
@@ -197,10 +323,8 @@ namespace Horseshoe.NET.Text
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAnyIgnoreCase(this string text, params string[] contentsToSearchFor)
-        {
-            return ContainsAnyIgnoreCase(text, contentsToSearchFor as IEnumerable<string>);
-        }
+        public static bool ContainsAnyIgnoreCase(this string text, params string[] contentsToSearchFor) =>
+            ContainsAnyIgnoreCase(text, contentsToSearchFor as IEnumerable<string>);
 
         /// <summary>
         /// Tests if <c>text</c> contains at least one item in <c>contentsToSearchFor</c>, not case-sensitive.
@@ -226,10 +350,8 @@ namespace Horseshoe.NET.Text
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAll(this string text, params string[] contentsToSearchFor)
-        {
-            return ContainsAll(text, contentsToSearchFor as IEnumerable<string>);
-        }
+        public static bool ContainsAll(this string text, params string[] contentsToSearchFor) =>
+            ContainsAll(text, contentsToSearchFor as IEnumerable<string>);
 
         /// <summary>
         /// Tests if <c>text</c> contains all items in <c>contentsToSearchFor</c>.
@@ -255,10 +377,8 @@ namespace Horseshoe.NET.Text
         /// <param name="text">A <c>string</c> to search.</param>
         /// <param name="contentsToSearchFor">A group of <c>string</c> to search for.</param>
         /// <returns><c>true</c> or <c>false</c></returns>
-        public static bool ContainsAllIgnoreCase(this string text, params string[] contentsToSearchFor)
-        {
-            return ContainsAllIgnoreCase(text, contentsToSearchFor as IEnumerable<string>);
-        }
+        public static bool ContainsAllIgnoreCase(this string text, params string[] contentsToSearchFor) =>
+            ContainsAllIgnoreCase(text, contentsToSearchFor as IEnumerable<string>);
 
         /// <summary>
         /// Tests if <c>text</c> contains all items in <c>contentsToSearchFor</c>, not case-sensitive.
@@ -283,10 +403,8 @@ namespace Horseshoe.NET.Text
         /// </summary>
         /// <param name="chr"></param>
         /// <returns></returns>
-        public static bool IsNewLine(this char chr)
-        {
-            return NET.Extensions.In(chr, 10, 13);
-        }
+        public static bool IsNewLine(this char chr) =>
+            NET.Extensions.In(chr, 10, 13);
 
         /// <summary>
         /// Returns the highest index of the supplied <c>char</c>s contained in <c>texxt</c>, if applicable, otherwise returns <c>-1</c>.

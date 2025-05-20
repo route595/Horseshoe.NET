@@ -4,11 +4,13 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.Compare;
-using Horseshoe.NET.Primitives;
+using Horseshoe.NET.Comparison;
 
 namespace Horseshoe.NET.ObjectsTypesAndValues
 {
+    /// <summary>
+    /// Extension methods for <c>object</c>s
+    /// </summary>
     public static class ObjectExtensions
     {
         /// <summary>
@@ -76,16 +78,38 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// Filters a collection of properties by name.
         /// </summary>
         /// <param name="properties">A collection of properties</param>
+        /// <param name="namesOrPartials">The full or partial property name(s) to search for.  If multiple names supplied only one need match.</param>
         /// <param name="mode">The search text matching strategy i.e. <c>Contains</c>, <c>StartsWith</c>, <c>EndsWith</c> or <c>Equals</c></param>
-        /// <param name="propertyNameSearchValues">The full or partial property name to search for</param>
         /// <param name="ignoreCase">If <c>true</c>, filter will include properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A filtered property collection</returns>
-        public static IEnumerable<PropertyInfo> NamedLike(this IEnumerable<PropertyInfo> properties, CompareMode mode, StringValues propertyNameSearchValues, bool ignoreCase = false)
+        public static IEnumerable<PropertyInfo> NamedLike(this IEnumerable<PropertyInfo> properties, StringValues namesOrPartials, LikeMode mode = default, bool ignoreCase = false)
         {
-            if (propertyNameSearchValues.Count > 0)
-                return properties
-                    .Where(p => Comparator.IsMatch(p.Name, mode, ObjectValues.FromStringValues(propertyNameSearchValues), ignoreCase: ignoreCase));
-            return properties;
+            ICriterinator<string> criterinator;
+            switch (namesOrPartials.Count)
+            {
+                case 1:
+                    criterinator = ignoreCase
+                        ? Criterinator.LikeIgnoreCase(mode, namesOrPartials.Single())
+                        : Criterinator.Like(mode, namesOrPartials.Single());
+                    break;
+                default:
+                    criterinator = ignoreCase
+                        ? Criterinator.LikeAnyIgnoreCase(mode, namesOrPartials)
+                        : Criterinator.LikeAny(mode, namesOrPartials);
+                    break;
+            }
+            return NamedLike(properties, criterinator);
+        }
+
+        /// <summary>
+        /// Filters a collection of properties by name.
+        /// </summary>
+        /// <param name="properties">A collection of properties</param>
+        /// <param name="criterinator">If <c>true</c>, filter will include properties that are identically named if not for the letter case, default is <c>false</c>.</param>
+        /// <returns>A filtered property collection</returns>
+        public static IEnumerable<PropertyInfo> NamedLike(this IEnumerable<PropertyInfo> properties, ICriterinator<string> criterinator)
+        {
+            return properties.Where(p => criterinator.IsMatch(p.Name));
         }
     }
 }

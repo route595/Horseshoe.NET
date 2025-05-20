@@ -189,12 +189,7 @@ namespace Horseshoe.NET.DataImport
             var list = new List<string>();
             foreach (var value in GetColumnValuesInternal(columnIndex))
             {
-                if (column.DisplayFormatter != null)
-                    list.Add(column.DisplayFormatter.Invoke(value));
-                else if ((format ?? column.DisplayFormat) != null)
-                    list.Add(string.Format("{0:" + (format ?? column.DisplayFormat) + "}", value));
-                else
-                    list.Add(value?.ToString() ?? column.DisplayNullAs);
+                list.Add(column.Format(value));
             }
             return list;
         }

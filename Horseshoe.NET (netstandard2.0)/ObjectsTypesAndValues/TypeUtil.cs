@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.ObjectsTypesAndValues
@@ -194,7 +194,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         public static PropertyInfo GetInstanceProperty(Type type, string propertyName, bool ignoreCase = false)
         {
             var props = GetInstanceProperties(type)
-                .NamedLike(CompareMode.Equals, propertyName, ignoreCase: ignoreCase)
+                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
                 .ToArray();
 
             switch (props.Length)
@@ -222,7 +222,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         public static PropertyInfo GetInstanceProperty<T>(string propertyName, bool ignoreCase = false) where T : class
         {
             var props = GetInstanceProperties<T>()
-                .NamedLike(CompareMode.Equals, propertyName, ignoreCase: ignoreCase)
+                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
                 .ToArray();
 
             switch (props.Length)
@@ -269,7 +269,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         public static PropertyInfo GetStaticProperty(Type type, string propertyName, bool ignoreCase = false)
         {
             var props = GetStaticProperties(type)
-                .NamedLike(CompareMode.Equals, propertyName, ignoreCase: ignoreCase)
+                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
                 .ToArray();
 
             switch (props.Length)
@@ -294,7 +294,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         public static PropertyInfo GetStaticProperty<T>(string propertyName, bool ignoreCase = false) where T : class
         {
             var props = GetStaticProperties<T>()
-                .NamedLike(CompareMode.Equals, propertyName, ignoreCase: ignoreCase)
+                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
                 .ToArray();
 
             switch (props.Length)
@@ -331,13 +331,13 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// </param>
         /// <param name="propertyFilter"></param>
         /// <returns>A property value array.</returns>
-        public static PropertyValue[] GetStaticPropertyValues(Type type, Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, CompareMode propertyNameCompareMode = default, string propertyNameCriteria = null, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null)
+        public static PropertyValue[] GetStaticPropertyValues(Type type, Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, LikeMode propertyNameCompareMode = default, string propertyNameCriteria = null, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null)
         {
             if (type == null)
                 return null;
             return GetStaticProperties(type)
                 .OfPropertyType(propertyTypeFilter, strictType: strictPropertyTypeFilter)
-                .NamedLike(propertyNameCompareMode, propertyNameCriteria, ignoreCase: propertyNameIgnoreCase)
+                .NamedLike(propertyNameCriteria, propertyNameCompareMode, ignoreCase: propertyNameIgnoreCase)
                 .Where(p => propertyFilter?.Invoke(p) ?? true)
                 .Select(prop => new PropertyValue(prop, prop.GetValue(null)))
                 .ToArray();
@@ -362,11 +362,11 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// </param>
         /// <param name="propertyFilter"></param>
         /// <returns>A property value array.</returns>
-        public static PropertyValue[] GetStaticPropertyValues<T>(Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, CompareMode propertyNameCompareMode = default, StringValues propertyNameCriteria = default, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null) where T : class
+        public static PropertyValue[] GetStaticPropertyValues<T>(Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, LikeMode propertyNameCompareMode = default, StringValues propertyNameCriteria = default, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null) where T : class
         {
             return GetStaticProperties<T>()
                 .OfPropertyType(propertyTypeFilter, strictType: strictPropertyTypeFilter)
-                .NamedLike(propertyNameCompareMode, propertyNameCriteria, ignoreCase: propertyNameIgnoreCase)
+                .NamedLike(propertyNameCriteria, propertyNameCompareMode, ignoreCase: propertyNameIgnoreCase)
                 .Where(p => propertyFilter?.Invoke(p) ?? true)
                 .Select(prop => new PropertyValue(prop, prop.GetValue(null)))
                 .ToArray();

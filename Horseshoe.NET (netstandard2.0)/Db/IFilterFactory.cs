@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 using Horseshoe.NET.Primitives;
 
 namespace Horseshoe.NET.Db

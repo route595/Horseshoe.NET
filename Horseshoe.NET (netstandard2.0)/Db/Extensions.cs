@@ -191,16 +191,16 @@ namespace Horseshoe.NET.Db
             );
         }
 
-        /// <summary>
-        /// Specifies a provider to set as this filter's default.
-        /// </summary>
-        /// <param name="filter">A filter.</param>
-        /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
-        /// <returns>The filter.</returns>
-        public static IFilter On(this IFilter filter, DbProvider provider)
-        {
-            filter.Provider = provider;
-            return filter;
-        }
+        ///// <summary>
+        ///// Specifies a provider to set as this filter's default.
+        ///// </summary>
+        ///// <param name="filter">A filter.</param>
+        ///// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
+        ///// <returns>The filter.</returns>
+        //public static IFilter On(this IFilter filter, DbProvider provider)
+        //{
+        //    filter.Provider = provider;
+        //    return filter;
+        //}
     }
 }

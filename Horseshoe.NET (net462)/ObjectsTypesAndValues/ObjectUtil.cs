@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.ObjectsTypesAndValues
@@ -172,13 +172,13 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// </param>
         /// <param name="propertyFilter"></param>
         /// <returns>A property value array</returns>
-        public static PropertyValue[] GetInstancePropertyValues(object instance, Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, CompareMode propertyNameCompareMode = default, StringValues propertyNameCriteria = default, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null)
+        public static PropertyValue[] GetInstancePropertyValues(object instance, Type propertyTypeFilter = null, bool strictPropertyTypeFilter = false, LikeMode propertyNameCompareMode = default, StringValues propertyNameCriteria = default, bool propertyNameIgnoreCase = false, Func<PropertyInfo, bool> propertyFilter = null)
         {
             if (instance == null)
                 return null;
             return TypeUtil.GetInstanceProperties(instance.GetType())
                 .OfPropertyType(propertyTypeFilter, strictType: strictPropertyTypeFilter)
-                .NamedLike(propertyNameCompareMode, propertyNameCriteria, ignoreCase: propertyNameIgnoreCase)
+                .NamedLike(propertyNameCriteria, propertyNameCompareMode, ignoreCase: propertyNameIgnoreCase)
                 .Where(p => propertyFilter?.Invoke(p) ?? true)
                 .Select(prop => new PropertyValue(prop, prop.GetValue(instance)))
                 .ToArray();

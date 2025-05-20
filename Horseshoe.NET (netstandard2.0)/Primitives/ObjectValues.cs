@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Primitives;
 
 namespace Horseshoe.NET.Primitives
@@ -13,17 +14,17 @@ namespace Horseshoe.NET.Primitives
     /// This <c>struct</c> is mainly used internally, however, feel free to use it.
     /// </para>
     /// <para>
-    /// Note: There are significant limitations in <c>ObjectValues</c> when compared with <see cref="StringValues"/>
+    /// Note: Although <see cref="StringValues"/> extends the <c>IList&lt;string&gt;</c> interface several of its methods
+    /// (i.e. the mutatable methods) are not available. The same applies to <see cref="ObjectValues"/>.  
+    /// </para>
+    /// <para>
+    /// Note: There are other limitations in <c>ObjectValues</c> when compared with <see cref="StringValues"/>
     /// that you should be aware of.  
     /// </para>
     /// <para>
-    /// First, although <see cref="StringValues"/> extends the <c>IList&lt;string&gt;</c>
-    /// interface several of its methods (i.e. the mutatable methods) are not available and appear to be hidden from code completion 
-    /// (e.g. <c>Add()</c>, <c>Clear()</c>, etc.).  
-    /// </para>
-    /// <para>
-    /// Second, a <c>string</c> can be implicitly cast to <see cref="StringValues"/>
-    /// via implicit operator.  However, <c>object</c> cannot be used in an implicit cast so <c>ObjectValues</c> is not quite as robust.
+    /// For example, a <c>string</c> can be implicitly cast to <see cref="StringValues"/> via implicit operator.  
+    /// However, <c>object</c> cannot be used in an implicit cast so <c>ObjectValues</c> is not quite as robust.
+    /// Instead use ObjectValues.From(myObject) to create an <c>ObjectValues</c> from an <c>object</c>.
     /// </para>
     /// </remarks>
     public readonly struct ObjectValues : IList<object>, IReadOnlyList<object>, IEquatable<ObjectValues>, IEquatable<object>, IEquatable<object[]>
@@ -48,26 +49,33 @@ namespace Horseshoe.NET.Primitives
         /// </summary>
         public bool IsReadOnly => true;
 
-        ///// <summary>
-        ///// Creates a new <c>ObjectValues</c>.  Disabling... passing in a collection of objects often lands here.
-        ///// </summary>
-        ///// <param name="obj">An <c>object</c>.</param>
-        //public ObjectValues(object obj)
-        //{
-        //    _objects = obj == null 
-        //        ? new List<object>()
-        //        : new List<object> { obj };
-        //}
+        /// <summary>
+        /// Creates a new <c>ObjectValues</c>.  Parameterless constructors allowed since C# 10.
+        /// </summary>
+        public ObjectValues() : this(Enumerable.Empty<object>())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <c>ObjectValues</c>.  Disable if passing in a collection of objects ever lands here.
+        /// </summary>
+        /// <param name="obj">An <c>object</c>.</param>
+        public ObjectValues(object obj)
+        {
+            _objects = obj == null
+                ? new List<object>()
+                : new List<object> { obj };
+        }
 
         /// <summary>
         /// Creates a new <c>ObjectValues</c> from the supplied collection.
         /// </summary>
         /// <param name="coll">A collection of <c>object</c>s.</param>
-        public ObjectValues(IEnumerable<object> coll)
+        public ObjectValues(IEnumerable coll)
         {
             _objects = coll == null
                 ? new List<object>()
-                : new List<object>(coll);
+                : new List<object>(coll.Cast<object>());
         }
 
         /// <summary>
@@ -162,6 +170,26 @@ namespace Horseshoe.NET.Primitives
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _objects.GetEnumerator();
+        }
+
+        public Type GetItemType()
+        {
+            if (_objects.Count > 0 && !_objects.Any(o => o == null))
+            {
+                Type type = null;
+                for (int i = 0; i < _objects.Count; i++)
+                {
+                    if (i == 0)
+                    {
+                        type = _objects[0].GetType();   // first iteration - set the type
+                        continue;
+                    }
+                    if (type != _objects[i].GetType())  // if the type is different, return 'object'
+                        return typeof(object);
+                }
+                return type;                            // return the item type
+            }
+            return typeof(object);                      // fallback - return 'object'
         }
 
         #region equality stuff
@@ -353,19 +381,115 @@ namespace Horseshoe.NET.Primitives
 
         #endregion
 
-        /// <summary>
-        /// Creates a new <c>ObjectValues</c> from a single or array of <c>object</c>s.
-        /// </summary>
-        /// <param name="objs">A single or array of <c>object</c>s.</param>
-        /// <returns>An <c>ObjectValues</c>.</returns>
-        public static ObjectValues From(params object[] objs) => new ObjectValues(objs);
+        #region implicit operators
 
         /// <summary>
-        /// Creates a new <c>ObjectValues</c> from a single or array of <c>strings</c>s.
+        /// Implicitly converts an <c>object[]</c> to an <see cref="ObjectValues"/>.
         /// </summary>
-        /// <param name="stringValues">A single or array of <c>strings</c>s.</param>
-        /// <returns>An <c>ObjectValues</c>.</returns>
-        public static ObjectValues FromStringValues(StringValues stringValues) => new ObjectValues(stringValues);
+        /// <param name="array">An <c>object[]</c></param>
+        public static implicit operator ObjectValues(object[] array) => new ObjectValues(array);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="List{Object}"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="list">A <see cref="List{Object}"/></param>
+        public static implicit operator ObjectValues(List<object> list) => new ObjectValues(list);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="StringValues"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="values">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(StringValues values) => new ObjectValues(values);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="string"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(string value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="byte"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(byte value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts an <see cref="sbyte"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(sbyte value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="short"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(short value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="ushort"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(ushort value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts an <see cref="int"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(int value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="uint"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(uint value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="long"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(long value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="ulong"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(ulong value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="decimal"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(decimal value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="float"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(float value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="double"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(double value) => From(value);
+
+        /// <summary>
+        /// Implicitly converts a <see cref="DateTime"/> to an <see cref="ObjectValues"/>.
+        /// </summary>
+        /// <param name="value">A <see cref="StringValues"/></param>
+        public static implicit operator ObjectValues(DateTime value) => From(value);
+
+        #endregion
+
+        /// <summary>
+        /// Creates a new <see cref="ObjectValues"/> from the supplied <c>object</c>.
+        /// </summary>
+        /// <param name="objs">An object</param>
+        /// <returns>A new <see cref="ObjectValues"/></returns>
+        public static ObjectValues From(params object[] objs)
+        {
+            return new ObjectValues(objs);
+        }
 
         /// <summary>
         /// An <see cref="ObjectValues"/> with an empty backing list.

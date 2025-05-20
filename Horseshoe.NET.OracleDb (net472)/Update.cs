@@ -30,7 +30,7 @@ namespace Horseshoe.NET.OracleDb
         (
             string tableName,
             IEnumerable<DbParameter> columns,
-            Filter where,
+            IFilter where,
             OracleDbConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
             Action<OracleConnection> peekConnection = null,
@@ -64,7 +64,7 @@ namespace Horseshoe.NET.OracleDb
             OracleConnection conn,
             string tableName,
             IEnumerable<DbParameter> columns,
-            Filter where,
+            IFilter where,
             OracleTransaction transaction = null,
             int? commandTimeout = null,
             Action<OracleCommand> peekCommand = null

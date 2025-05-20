@@ -4,8 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
-using Horseshoe.NET.Collections;
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 using Horseshoe.NET.Db;
 using Horseshoe.NET.Text;
 
@@ -437,11 +436,11 @@ namespace Horseshoe.NET.SqlDb.Meta
                 }
             }
 
-            public static IEnumerable<DbObject> SearchByName(Db database, IComparator<string> comparator, SqlObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
+            public static IEnumerable<DbObject> SearchByName(Db database, ICriterinator<string> criterinator, SqlObjectType? objectType = null, Credential? credentials = null, int? commandTimeout = null)
             {
                 using (var conn = SqlDbUtil.LaunchConnection(connectionInfo: new SqlDbConnectionInfo { DataSource = database.Server ?? throw new UtilityException("No Server ancestor exists for the supplied Database"), Credentials = credentials }))
                 {
-                    return SearchByName(conn, database, comparator, objectType: objectType, commandTimeout: commandTimeout);
+                    return SearchByName(conn, database, criterinator, objectType: objectType, commandTimeout: commandTimeout);
                 }
             }
 
@@ -464,8 +463,10 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbObject> SearchByName(SqlConnection conn, Db database, string partialName, bool ignoreCase = false, SqlObjectType? objectType = null, int? commandTimeout = null)
             {
-                var comparator = Comparator.Contains(partialName, ignoreCase: ignoreCase);
-                return SearchByName(conn, database, comparator, objectType: objectType, commandTimeout: commandTimeout);
+                var criterinator = ignoreCase 
+                    ? Criterinator.ContainsIgnoreCase(partialName)
+                    : Criterinator.Contains(partialName);
+                return SearchByName(conn, database, criterinator, objectType: objectType, commandTimeout: commandTimeout);
             }
         }
 
@@ -718,12 +719,10 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> SearchByName(SqlConnection conn, DbObject obj, string partialName, bool ignoreCase = false, int? commandTimeout = null)
             {
-                var comparator = Comparator.Contains
-                (
-                    partialName,
-                    ignoreCase: ignoreCase
-                );
-                return SearchByName(conn, obj, comparator, commandTimeout: commandTimeout);
+                var criterinator = ignoreCase 
+                    ? Criterinator.ContainsIgnoreCase(partialName)
+                    : Criterinator.Contains(partialName);
+                return SearchByName(conn, obj, criterinator, commandTimeout: commandTimeout);
             }
 
             public static IEnumerable<DbColumn> SearchByValue(DbObject obj, object value, Predicate<DbColumn> filter = null, Credential? credentials = null, int? commandTimeout = null)
@@ -746,7 +745,7 @@ namespace Horseshoe.NET.SqlDb.Meta
                     //    matchingColumns.Add(column);
                     //}
                     dictinctValues = GetDistinctValues(conn, column, commandTimeout);
-                    if (value is Comparator<string> stringComparator)
+                    if (value is ICriterinator<string> stringComparator)
                     {
                         foreach (object dictinctValue in dictinctValues)
                         {
@@ -775,12 +774,12 @@ namespace Horseshoe.NET.SqlDb.Meta
 
             public static IEnumerable<DbColumn> SearchTextColumnsByValue(DbObject obj, string value, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return SearchTextColumnsByCriteria(obj, Comparator.Equals(value, ignoreCase: ignoreCase), commandTimeout: commandTimeout);
+                return SearchTextColumnsByCriteria(obj, ignoreCase ? Criterinator.EqualsIgnoreCase(value) : Criterinator.Equals(value), commandTimeout: commandTimeout);
             }
 
             public static IEnumerable<DbColumn> SearchTextColumnsByValue(SqlConnection conn, DbObject obj, string value, bool ignoreCase = false, int? commandTimeout = null)
             {
-                return SearchTextColumnsByCriteria(conn, obj, Comparator.Equals(value, ignoreCase: ignoreCase), commandTimeout: commandTimeout);
+                return SearchTextColumnsByCriteria(conn, obj, ignoreCase ? Criterinator.EqualsIgnoreCase(value) : Criterinator.Equals(value), commandTimeout: commandTimeout);
             }
 
             public static IEnumerable<DbColumn> SearchTextColumnsByCriteria(DbObject obj, ICriterinator<string> comparator, int? commandTimeout = null)

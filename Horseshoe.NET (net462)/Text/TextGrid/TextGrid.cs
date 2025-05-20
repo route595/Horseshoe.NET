@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
+using Horseshoe.NET.Comparison;
+using Horseshoe.NET.Format;
 using Horseshoe.NET.ObjectsTypesAndValues;
 
 namespace Horseshoe.NET.Text.TextGrid
@@ -18,16 +21,21 @@ namespace Horseshoe.NET.Text.TextGrid
         public List<Column> Columns { get; } = new List<Column>();
 
         /// <summary>
+        /// The columns that will be rendered.
+        /// </summary>
+        public List<Column> VisibleColumns => Columns.Where(c => !c.Hidden).ToList();
+
+        /// <summary>
         /// The longest of the column counts.
         /// </summary>
-        public int MaxCount => Columns.Any() ? Columns.Max(c => c.Count) : 0;
+        public int MaxVisibleCount => VisibleColumns.Any() ? VisibleColumns.Max(c => c.Count) : 0;
 
         /// <summary>
         /// The desired width of the grid.
         /// </summary>
         public int? TargetWidth { get; set; }
 
-        public int TitleHeight => Columns.Max(c => c.Title.Count);
+        public int TitleHeight => VisibleColumns.Max(c => c.Title.Count);
 
         /// <summary>
         /// Which borders to render on the <c>TextGrid</c>.
@@ -101,22 +109,22 @@ namespace Horseshoe.NET.Text.TextGrid
         public int CombinedBorderWidths =>
             (HasOuterLeftBorder ? 1 : 0) +
             (HasOuterRightBorder ? 1 : 0) +
-            (HasVerticalInnerBorders ? Columns.Count - 1 : 0);  // (1 per border) * (columns - 1)
+            (HasVerticalInnerBorders ? VisibleColumns.Count - 1 : 0);  // (1 per border) * (columns - 1)
 
         /// <summary>
         /// Gets the combined horizontal cell padding
         /// </summary>
         public int CombinedHorizontalCellPadding =>
             // |^cell 1 |^cell 2 |^cell 3 |
-            (IsPaddingCellLeft ? Columns.Count - (IsPaddingCellLeftExceptLeftmost ? 1 : 0) : 0) +
+            (IsPaddingCellLeft ? VisibleColumns.Count - (IsPaddingCellLeftExceptLeftmost ? 1 : 0) : 0) +
             // | cell 1^| cell 2^| cell 3^|
-            (IsPaddingCellRight ? Columns.Count - (IsPaddingCellRightExceptRightmost ? 1 : 0) : 0);
+            (IsPaddingCellRight ? VisibleColumns.Count - (IsPaddingCellRightExceptRightmost ? 1 : 0) : 0);
 
         /// <summary>
         /// Gets the combined final width of the rendered columns.
         /// </summary>
         public int CombinedRenderedTextWidth =>
-            Columns.Sum(c => c.WidthToRender);
+            VisibleColumns.Sum(c => c.WidthToRender);
 
         /// <summary>
         /// Gets the total width of the grid.
@@ -214,46 +222,40 @@ namespace Horseshoe.NET.Text.TextGrid
         }
 
         /// <summary>
-        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
+        /// Generates a new column and adds it to the grid.
         /// </summary>
-        public Column AddColumn()
+        /// <param name="title">Column title, optional.</param>
+        public Column AddColumn(string title = null)
         {
-            var column = new Column
-            {
-                Parent = this
-            };
-            Columns.Add(column);
+            var column = new Column { Title = title };
+            AddColumns(column);
             return column;
         }
 
         /// <summary>
-        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
+        /// Generates a new column and adds it to the grid.
         /// </summary>
         /// <param name="capacity">Specifies the initial capacity.</param>
-        public Column AddColumn(int capacity)
+        /// <param name="title">Column title, optional.</param>
+        public Column AddColumn(int capacity, string title = null)
         {
-            var column = new Column(capacity)
-            {
-                Parent = this
-            };
-            Columns.Add(column);
+            var column = new Column(capacity) { Title = title };
+            AddColumns(column);
             return column;
         }
 
         /// <summary>
-        /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
+        /// Generates a new column and adds it to the grid.
         /// </summary>
         /// <param name="collection">Elements to copy into this <c>Column</c>.</param>
-        public Column AddColumn(IEnumerable<object> collection)
+        /// <param name="title">Column title, optional.</param>
+        public Column AddColumn(IEnumerable<object> collection, string title = null)
         {
-            var column = new Column(collection)
-            {
-                Parent = this
-            };
-            Columns.Add(column);
+            var column = new Column(collection) { Title = title };
+            AddColumns(column);
             return column;
         }
-
+         
         /// <summary>
         /// The preferred method for adding a column to the grid (as opposed to adding it to the <c>Columns</c> collection)
         /// </summary>
@@ -300,25 +302,101 @@ namespace Horseshoe.NET.Text.TextGrid
         }
 
         /// <summary>
+        /// Quickly formats all columns of a specified type with the specified format.
+        /// </summary>
+        /// <param name="type">A column runtime type</param>
+        /// <param name="format">A format</param>
+        /// <param name="customPostRenderer">A user-supplied post-renderer for adding custom formatting to the output string prior to padding.</param>
+        public void FormatColumnsByType(Type type, string format, Func<string, object, string> customPostRenderer = null)
+        {
+            foreach (var col in Columns)
+            {
+                if (col.DataType == type)
+                    col.Formatter = new Formatter(format, customPostRenderer: customPostRenderer);
+            }
+        }
+
+        /// <summary>
+        /// Quickly formats all columns of a specified type with the specified format.
+        /// </summary>
+        /// <param name="type">A column runtime type</param>
+        /// <param name="customFormatter">A user-supplied custom formatter</param>
+        public void FormatColumnsByType(Type type, Func<object,string> customFormatter)
+        {
+            foreach (var col in Columns)
+            {
+                if (col.DataType == type)
+                    col.Formatter = customFormatter;
+            }
+        }
+
+        /// <summary>
+        /// Quickly formats all columns having the specified text in the title with the specified format.
+        /// </summary>
+        /// <param name="titleOrPartial">A column title or partial title ot search</param>
+        /// <param name="format">A format</param>
+        /// <param name="ignoreCase">If <c>true</c>, performs a case insensitive search</param>
+        /// <param name="customPostRenderer">A user-supplied post-renderer for adding custom formatting to the output string prior to padding.</param>
+        public void FormatColumnsByTitle(string titleOrPartial, string format, bool ignoreCase = false, Func<string, object, string> customPostRenderer = null)
+        {
+            var criterinator = ignoreCase
+                ? Criterinator.ContainsIgnoreCase(titleOrPartial)
+                : Criterinator.Contains(titleOrPartial);
+            var colsToFormat = Columns.Where(c => criterinator.IsMatch(c.Title));
+            foreach (var col in colsToFormat)
+                col.Formatter = new Formatter(format, customPostRenderer: customPostRenderer);
+        }
+
+        /// <summary>
+        /// <param name="ignoreCase">If <c>true</c>, performs a case insensitive search</param>
+        /// </summary>
+        /// <param name="titleOrPartial">A column title or partial title ot search</param>
+        /// <param name="formatter">A formatter</param>
+        public void FormatColumnsByTitle(string titleOrPartial, Func<object, string> formatter, bool ignoreCase = false)
+        {
+            var criterinator = ignoreCase
+                ? Criterinator.ContainsIgnoreCase(titleOrPartial)
+                : Criterinator.Contains(titleOrPartial);
+            var colsToFormat = Columns.Where(c => criterinator.IsMatch(c.Title));
+            foreach (var col in colsToFormat)
+                col.Formatter = formatter;
+        }
+
+        /// <summary>
+        /// Gets a column based on the title which may have been inferred from a class property name.
+        /// </summary>
+        /// <param name="titleOrPropertyName">The column title or the class property name from which it was inferred</param>
+        /// <param name="ignoreCase">Whether to ignore the title case of the column title when comparing to the argument</param>
+        /// <returns>The matching column</returns>
+        public Column GetColumnByTitle(string titleOrPropertyName, bool ignoreCase = false)
+        {
+            if (Columns == null)
+                return null;
+            var col = Columns.SingleOrDefault(c => ignoreCase ? string.Equals(c.Title, titleOrPropertyName, StringComparison.OrdinalIgnoreCase) : c.Title == titleOrPropertyName);
+            if (col == null && !titleOrPropertyName.Any(c => c == ' '))
+                col = Columns.SingleOrDefault(c => c.Title == TextUtil.SpaceOutTitleCase(titleOrPropertyName));
+            return col;
+        }
+
+        /// <summary>
         /// Renders this text grid.
         /// </summary>
+        /// <param name="targetWidth">The final width to attempt to achieve.</param>
+        /// <param name="configureGrid">An optional function to pass in which configures the generated <c>TextGrid</c>.</param>
         /// <returns>A <c>string</c> representation of this text grid for displaying to a console or other text based output</returns>
         /// <exception cref="ValidationException"></exception>
-        public string Render(int? targetWidth = null, BorderPolicy? borderPolicy = null, CellPaddingPolicy? paddingPolicy = null)
+        public string Render(int? targetWidth = null, Action<TextGrid> configureGrid = null)
         {
             if (targetWidth.HasValue)
                 TargetWidth = targetWidth.Value;
-            if (borderPolicy.HasValue)
-                BorderPolicy = borderPolicy.Value;
-            if (paddingPolicy.HasValue)
-                PaddingPolicy = paddingPolicy.Value;
+            configureGrid?.Invoke(this);
+
+            var visibleColumns = VisibleColumns;  // local cache for performance
 
             if (TargetWidth.HasValue)
             {
-                if (TargetWidth < 1)
-                {
-                    throw new ValidationException("TextGrid must be at least one character wide");
-                }
+                if (TargetWidth < 0)
+                    throw new ValidationException("TextGrid width may not be a negative number");
 
                 // resize columns, e.g. 100w @ 3c => 33w, 33w, 34w
                 var targetCombinedCellWidth = TargetWidth.Value - TotalExtra;
@@ -326,25 +404,25 @@ namespace Horseshoe.NET.Text.TextGrid
                 {
                     throw new ValidationException("TextGrid must be at least one character wide before borders and padding are added");
                 }
-                var cellWidth = (int)Math.Floor(targetCombinedCellWidth / (double)Columns.Count);
+                var cellWidth = (int)Math.Floor(targetCombinedCellWidth / (double)visibleColumns.Count);
                 var runningCombinedCellWidth = 0;
 
-                for (int i = 0; i < Columns.Count; i++)
+                for (int i = 0, visibleCount = visibleColumns.Count; i < visibleCount; i++)
                 {
-                    if (i < Columns.Count - 1)  // all columns except last
+                    if (i < visibleCount - 1)  // all columns except last
                     {
-                        Columns[i].TargetWidth = cellWidth;
+                        visibleColumns[i].TargetWidth = cellWidth;
                         runningCombinedCellWidth += cellWidth;
                     }
                     else                        // last column
                     {
-                        Columns[i].TargetWidth = targetCombinedCellWidth - runningCombinedCellWidth;
+                        visibleColumns[i].TargetWidth = targetCombinedCellWidth - runningCombinedCellWidth;
                     }
                 }
             }
             else
             {
-                foreach (var col in Columns)
+                foreach (var col in visibleColumns)
                 {
                     col.TargetWidth = null;
                 }
@@ -360,7 +438,7 @@ namespace Horseshoe.NET.Text.TextGrid
             //}
 
             // prerender the columns
-            foreach (var col in Columns)
+            foreach (var col in visibleColumns)
             {
                 col.Prerender();
             }
@@ -375,7 +453,7 @@ namespace Horseshoe.NET.Text.TextGrid
             {
                 RenderTopHorizontalOuterBorder(sbld);
             }
-            if (Columns.Any(c => c.Title.Any()))
+            if (visibleColumns.Any(c => c.Title.Any()))
             {
                 RenderColumnTitleCells(sbld);
                 if (HasHorizontalInnerBorders)
@@ -383,9 +461,9 @@ namespace Horseshoe.NET.Text.TextGrid
                     RenderHorizontalInnerBorder(sbld);
                 }
             }
-            if (MaxCount > 0)
+            if (MaxVisibleCount > 0)
             {
-                for (int i = 0, max = MaxCount; i < max; i++)
+                for (int i = 0, max = MaxVisibleCount; i < max; i++)
                 {
                     if (i > 0 && HasHorizontalInnerBorders)
                     {
@@ -453,15 +531,16 @@ namespace Horseshoe.NET.Text.TextGrid
         private void RenderColumnTitleCells(StringBuilder sbld)
         {
             var cells = new List<string[]>();
-            for (int i = 0; i < Columns.Count; i++)
+            var visibleColumns = VisibleColumns;  // local cache for performance
+            for (int i = 0; i < visibleColumns.Count; i++)
             {
                 var leftPadding = i == 0
                     ? (IsPaddingCellLeft && !IsPaddingCellLeftExceptLeftmost ? 1 : 0)
                     : (IsPaddingCellLeft || (BorderPolicy == BorderPolicy.None && PaddingPolicy == CellPaddingPolicy.None) ? 1 : 0);
-                var rightPadding = i == Columns.Count - 1
+                var rightPadding = i == visibleColumns.Count - 1
                     ? (IsPaddingCellRight && !IsPaddingCellRightExceptRightmost ? 1 : 0)
                     : (IsPaddingCellRight ? 1 : 0);
-                cells.Add(Columns[i].RenderTitleCell(leftPadding, rightPadding, IsPaddingCellTop ? 1 : 0, IsPaddingCellBottom ? 1 : 0));
+                cells.Add(visibleColumns[i].RenderTitleCell(leftPadding, rightPadding, IsPaddingCellTop ? 1 : 0, IsPaddingCellBottom ? 1 : 0));
             }
             string separator = HasVerticalInnerBorders ? "│" : "";
             for (int i = 0; i < cells.First().Length; i++)
@@ -495,13 +574,13 @@ namespace Horseshoe.NET.Text.TextGrid
         /// </summary>
         /// <typeparam name="T">The type of item to store and display in this <c>TextGrid</c>.</typeparam>
         /// <param name="collection">A collection of items.</param>
-        /// <param name="formatGrid"></param>
+        /// <param name="configureGrid">An optional function to pass in which configures the generated <c>TextGrid</c>.</param>
         /// <returns></returns>
-        public static TextGrid FromCollection<T>(IEnumerable<T> collection, Action<TextGrid> formatGrid = null) where T : class, new()
+        public static TextGrid FromCollection<T>(IEnumerable<T> collection, Action<TextGrid> configureGrid = null) where T : class, new()
         {
             var props = TypeUtil.GetInstanceProperties<T>();
             var cols = props
-                .Select(p => new Column() { Name = TextUtil.SpaceOutTitleCase(p.Name) })
+                .Select(InferColumn)
                 .ToList();
             foreach (var t in collection ?? Enumerable.Empty<T>())
             {
@@ -513,8 +592,28 @@ namespace Horseshoe.NET.Text.TextGrid
             //var grid = new TextGrid { BorderPolicy = borderPolicy, CellPaddingLeft = cellPadding, CellPaddingRight = 1 };
             var grid = new TextGrid(cols);
             //cols.ForEach(c => grid.Columns.Add(c));
-            formatGrid?.Invoke(grid);
+            configureGrid?.Invoke(grid);
             return grid;
+        }
+
+        private static Column InferColumn(PropertyInfo prop)
+        {
+            var col = new Column
+            {
+                Title = TextUtil.SpaceOutTitleCase(prop.Name),
+                DataType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType
+            };
+            if (col.DataType.IsNumeric() || col.DataType == typeof(DateTime))
+            {
+                col.TitleAlign = HorizontalAlign.Right;
+                col.ItemAlign = HorizontalAlign.Right;
+            }
+            else if (col.DataType == typeof(bool))
+            {
+                col.TitleAlign = HorizontalAlign.Center;
+                col.ItemAlign = HorizontalAlign.Center;
+            }
+            return col;
         }
 
         /// <summary>

@@ -87,7 +87,7 @@ namespace TestConsole
                     };
                     var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, PaddingPolicy = CellPaddingPolicy.Vertical };
                     var col1 = new Column { Name = "Person" };
-                    var col2 = new Column { Name = "Hourly Wage", DisplayFormat = "C" };
+                    var col2 = new Column { Name = "Hourly Wage", Formatter = "C" };
                     foreach(var pw in personWages)
                     {
                         col1.List.Add(pw.Person);
@@ -113,7 +113,7 @@ namespace TestConsole
                     };
                     var grid = new TextGrid{ BorderPolicy = BorderPolicy.All, PaddingPolicy = CellPaddingPolicy.Vertical };
                     var col1 = new Column { Name = "Person" };
-                    var col2 = new Column { Name = "Hourly Wage", DisplayFormat = "C" };
+                    var col2 = new Column { Name = "Hourly Wage", Formatter = "C" };
                     foreach(var pw in personWages)
                     {
                         col1.List.Add(pw.Person);

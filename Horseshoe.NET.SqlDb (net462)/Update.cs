@@ -30,7 +30,7 @@ namespace Horseshoe.NET.SqlDb
         (
             string tableName,
             IEnumerable<DbParameter> columns,
-            Filter where,
+            IFilter where,
             SqlDbConnectionInfo connectionInfo = null,
             int? commandTimeout = null,
             Action<SqlConnection> peekConnection = null,
@@ -63,7 +63,7 @@ namespace Horseshoe.NET.SqlDb
             SqlConnection conn,
             string tableName,
             IEnumerable<DbParameter> columns,
-            Filter where,
+            IFilter where,
             SqlTransaction transaction = null,
             int? commandTimeout = null,
             Action<SqlCommand> peekCommand = null

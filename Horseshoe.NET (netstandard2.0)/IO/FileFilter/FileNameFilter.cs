@@ -1,7 +1,6 @@
-﻿using Microsoft.Extensions.Primitives;
+﻿using System.Collections.Generic;
 
-using Horseshoe.NET.Compare;
-using Horseshoe.NET.Primitives;
+using Horseshoe.NET.Comparison;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
@@ -11,49 +10,53 @@ namespace Horseshoe.NET.IO.FileFilter
     public class FileNameFilter : FileFilter
     {
         /// <summary>
-        /// Everything needed to perform a standard comparison bundled into a single class.
+        /// Everything needed to perform a standard comparison
         /// </summary>
-        public IComparator<string> Comparator { get; }
+        public ICriterinator<string> Criterinator { get; }
+
+        /// <summary>
+        /// Creates a search filter with 'ContainsAny' criterinator
+        /// </summary>
+        /// <param name="namesOrPartialsToInclude">File names (or partial names) to include in the search results</param>
+        public FileNameFilter(params string[] namesOrPartialsToInclude) : this(namesOrPartialsToInclude as IEnumerable<string>, default)
+        {
+        }
+
+        /// <summary>
+        /// Creates a search filter with 'ContainsAny' (or 'ContainsAnyIgnoreCase') criterinator
+        /// </summary>
+        /// <param name="namesOrPartialsToInclude">File names (or partial names) to include in the search results</param>
+        /// <param name="filterMode">i.e. 'Include' or 'IncludeAllExcept'</param>
+        /// <param name="ignoreCase">if <c>true</c>, creates a criterinator that is not case-sensitive.  Default is <c>false</c>.</param>
+        public FileNameFilter(IEnumerable<string> namesOrPartialsToInclude, FilterMode filterMode = default, bool ignoreCase = false) : this(ignoreCase? Comparison.Criterinator.ContainsAnyIgnoreCase(namesOrPartialsToInclude) : Comparison.Criterinator.ContainsAny(namesOrPartialsToInclude), filterMode)
+        {
+        }
 
         /// <summary>
         /// Creates a new <c>FileNameFilter</c>.
         /// </summary>
-        /// <param name="mode">Specifies how file names should match the search value(s) to be included in the results.</param>
-        /// <param name="fileNameCriteria">
+        /// <param name="criterinator">
         /// <para>
-        /// File [partial] name(s) upon which to perform the comparison search.
+        /// Internal mechanism for performing the comparison search.
         /// </para>
         /// <para>
-        /// Examples of search values (see quotes):
+        /// Examples of <c>ICriterinator</c> usage in file filter or search
         /// <code>
-        /// filter = new FileNameFilter(TextMatch.Equals, "bill calculator.xls");
-        /// filter = new FileNameFilter(TextMatch.EndsWith, ".bak");
-        /// filter = new FileNameFilter(TextMatch.In, new[] { "readme.md", "readme.txt" });
-        /// filter = new FileNameFilter(TextMatch.Between, new[] { "a", "gzz" });
+        /// var criterinator = Compare.Equals("bill calculator.xls");
+        ///                  = Compare.EndsWithIgnoreCase(".bak");
+        ///                  = Compare.EqualsAnyIgnoreCase("readme.md", "readme.txt");
+        /// var filteredFiles = files.Where(f => criterinator.IsMatch(f.Name));
         /// </code>
         /// </para>
-        /// </param>
-        /// <param name="ignoreCase">
         /// <para>
-        /// Set to <c>true</c> (recommended) to ignore the letter case of the file names being compared by this filter, default is <c>false</c>.
-        /// </para>
-        /// <para>
-        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
-        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
+        /// Note. While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
+        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. using 'IgnoreCase' criterinators.
         /// </para>
         /// </param>
         /// <param name="filterMode">Optional, dictates which items to include based on criteria matching.</param>
-        public FileNameFilter(CompareMode mode, StringValues fileNameCriteria, bool ignoreCase = false, FilterMode filterMode = default)
+        public FileNameFilter(ICriterinator<string> criterinator, FilterMode filterMode = default)
         {
-            // validation
-            switch (mode)
-            {
-                case CompareMode.IsNull:
-                case CompareMode.IsNullOrWhitespace:
-                    throw new ValidationException("This compare mode is not compatible with this filter: " + mode);
-            }
-
-            Comparator = new Comparator<string> { Mode = mode, Criteria = ObjectValues.FromStringValues(fileNameCriteria), IgnoreCase = ignoreCase };
+            Criterinator = criterinator;
             FilterMode = filterMode;
         }
 
@@ -64,7 +67,7 @@ namespace Horseshoe.NET.IO.FileFilter
         /// <returns><c>true</c> or <c>false</c></returns>
         public override bool IsMatch(FilePath file)
         {
-            return Comparator.IsMatch(file.Name);
+            return Criterinator.IsMatch(file.Name);
         }
     }
 }

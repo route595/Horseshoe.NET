@@ -15,11 +15,12 @@ var apiResponse = Get.AsJson<WebServiceResponse<string>>
 apiResponse.Data;    // { "requestedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
 
 // HTTP call with JWT authorization
+var token = "eyjg73ls0...";
 var apiResponse = Get.AsJson<WebServiceResponse<string>>
 (
     "https://site.com/service/endpoint", 
     alterHeaders: (hdrs) =>
-        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + "blabla")
+        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + token)
 );
 apiResponse.Data;    // { "authorizedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
 ```

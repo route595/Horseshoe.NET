@@ -106,6 +106,11 @@ namespace Horseshoe.NET.Text
             return list.ToArray();
         }
 
+        private static bool IsAscii(char c)
+        {
+            return c <= 127;
+        }
+
         /// <summary>
         /// Looks up character info such as Unicode attributes based on 
         /// </summary>
@@ -121,30 +126,30 @@ namespace Horseshoe.NET.Text
             displayValue = "'" + c + "'[" + (int)c + "]";
             script = null;
             
-            if (c <= 127)
+            if (IsAscii(c))
             {
                 isASCII = true;
 
                 // whitespace incl. ASCII (space [32], tab [9], carriage return [13], line feed [10]) and Unicode (non-breaking space [160])
                 switch (c)
                 {
-                    case ' ':   // 32
+                    case ' ':   // 32 - space
                         category = CharCategory.WhitespacesSansNewLines;
                         displayValue = TextConstants.Space;
                         return;
-                    case '\t':  // 9
+                    case '\t':  // 9 - tab
                         category = CharCategory.WhitespacesSansNewLines;
                         displayValue = TextConstants.HorizontalTab;
                         return;
-                    case '\r':  // 13
+                    case '\r':  // 13 - carriage return
                         category = CharCategory.NewLines;
                         displayValue = TextConstants.CarriageReturn;
                         return;
-                    case '\n':  // 10
+                    case '\n':  // 10 - line feed
                         category = CharCategory.NewLines;
                         displayValue = TextConstants.LineFeed;
                         return;
-                    case '\u00A0':  // 160
+                    case '\u00A0':  // 160 - non-breaking space
                         category = CharCategory.WhitespacesSansNewLines;
                         displayValue = TextConstants.NonBreakingSpace;
                         return;

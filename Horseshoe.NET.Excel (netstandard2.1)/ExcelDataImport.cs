@@ -73,7 +73,7 @@ namespace Horseshoe.NET.Excel
 
         public void AddColumn(string name, Type dataType = null, Func<object, object> sourceParser = null, Func<object, string> displayFormatter = null)
         {
-            AddColumn(new Column{ Name = name, DataType = dataType, SourceParser = sourceParser, DisplayFormatter = displayFormatter });
+            AddColumn(new Column{ Name = name, DataType = dataType, SourceParser = sourceParser, Formatter = displayFormatter });
         }
 
         public void ImportRaw(List<object> rawImportedRow, int sourceRowNumber)

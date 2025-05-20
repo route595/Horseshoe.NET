@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Primitives;
+
+using Horseshoe.NET.Text.TextGrid;
+using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.Finance
 {
@@ -25,6 +29,51 @@ namespace Horseshoe.NET.Finance
             if (list.Any())
                 return list.ToArray();
             return "[account]";
+        }
+
+        public static void FormatDecimalColumnsAsCurrency(this TextGrid textGrid, int? decimalDigits = null)
+        {
+            int _decimalDigits = decimalDigits ?? System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits;
+            textGrid.FormatColumnsByType(typeof(decimal), "C" + _decimalDigits);
+        }
+
+        public static void FormatDecimalColumnsAsCurrency_Custom(this TextGrid textGrid, int? decimalDigits = null)
+        {
+            //int _decimalDigits = decimalDigits ?? System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits;
+            textGrid.FormatColumnsByType
+            (
+                typeof(decimal),
+                value => 
+                {
+                    if (value is decimal decimalValue)
+                        return Math.Abs(decimalValue).ToString("C") + (decimalValue > 0 ? '+' : ' ');
+                    return value.ToString(); 
+                }
+                //decimalDigits.HasValue ? "C" + decimalDigits : "C",
+                //customPostRenderer: (formattedStr, origValue) =>
+                //{
+                //    if (origValue is decimal dec && dec >= 0m)
+                //        formattedStr = "+ " + formattedStr + " ";
+                //    return formattedStr;
+                //}
+            );
+            textGrid.FormatColumnsByTitle
+            (
+                "Running Total",
+                value => 
+                {
+                    if (value is decimal decimalValue)
+                        return Math.Abs(decimalValue).ToString("C") + (decimalValue < 0 ? '-' : ' ');
+                    return value.ToString(); 
+                }
+                //decimalDigits.HasValue ? "C" + decimalDigits : "C",
+                //customPostRenderer: (formattedStr, origValue) =>
+                //{
+                //    if (origValue is decimal dec && dec > 0m)
+                //        formattedStr += " ";
+                //    return formattedStr;
+                //}
+            );
         }
     }
 }

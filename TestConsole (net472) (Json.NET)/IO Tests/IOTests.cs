@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-using Horseshoe.NET;
-using Horseshoe.NET.Compare;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.IO;
-using Horseshoe.NET.IO.FileFilter;
 
 namespace TestConsole.IOTests
 {

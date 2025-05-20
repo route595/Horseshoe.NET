@@ -6,11 +6,6 @@
     public interface IFilter
     {
         /// <summary>
-        /// A DB provider may lend hints about how to render column names, SQL expressions, etc.
-        /// </summary>
-        DbProvider? Provider { get; set; }
-
-        /// <summary>
         /// Renders the filter as a SQL expression.
         /// </summary>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>

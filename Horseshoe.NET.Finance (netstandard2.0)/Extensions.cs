@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Primitives;
+
+using Horseshoe.NET.Text.TextGrid;
 
 namespace Horseshoe.NET.Finance
 {
@@ -25,6 +28,40 @@ namespace Horseshoe.NET.Finance
             if (list.Any())
                 return list.ToArray();
             return "[account]";
+        }
+
+        public static void FormatDecimalColumnsAsCurrency(this TextGrid textGrid, int? decimalDigits = null)
+        {
+            int _decimalDigits = decimalDigits ?? System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits;
+            textGrid.FormatColumnsByType(typeof(decimal), "C" + _decimalDigits);
+        }
+
+        public static void FormatDecimalColumnsAsCurrency_Custom(this TextGrid textGrid, int? decimalDigits = null)
+        {
+            //int _decimalDigits = decimalDigits ?? System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits;
+            textGrid.FormatColumnsByType
+            (
+                typeof(decimal),
+                decimalDigits.HasValue ? "C" + decimalDigits : "C",
+                (str, obj) =>
+                {
+                    if (obj is decimal dec && dec > 0m)
+                        str += "+";
+                    return str;
+                }
+            );
+            textGrid.FormatColumnsByTitle("Running Total", (obj) =>
+            {
+                if (obj is decimal dec)
+                {
+                    string cur = decimalDigits.HasValue
+                        ? dec.ToString("C" + decimalDigits)
+                        : dec.ToString("C");
+                    return string.Format(cur, Math.Abs(dec)) + (dec < 0m ? "-" : " ");
+                }
+                return "[non-decimal]";
+
+            });
         }
     }
 }

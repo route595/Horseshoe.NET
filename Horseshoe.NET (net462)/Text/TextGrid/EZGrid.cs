@@ -52,8 +52,8 @@ namespace Horseshoe.NET.Text.TextGrid
                 var column = AddColumn();
 
                 // pad column to fit grid
-                if (MaxCount > 0)
-                    column.List.AddRange(Enumerable.Range(0, MaxCount).Select(i => PadValue));
+                if (MaxVisibleCount > 0)
+                    column.List.AddRange(Enumerable.Range(0, MaxVisibleCount).Select(i => PadValue));
             }
 
             for (int i = 0; i < Columns.Count; i++)

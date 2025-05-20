@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-
-using Horseshoe.NET.Compare;
-using Horseshoe.NET.Primitives;
+﻿using Horseshoe.NET.Comparison;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
@@ -11,49 +8,37 @@ namespace Horseshoe.NET.IO.FileFilter
     public class DirectoryNameFilter : DirectoryFilter
     {
         /// <summary>
-        /// Everything needed to perform a standard comparison bundled into a single class.
+        /// Everything needed to perform a standard comparison 
         /// </summary>
-        public IComparator<string> Comparator { get; }
+        public ICriterinator<string> Criterinator { get; }
 
         /// <summary>
         /// Creates a new <c>DirectoryNameFilter</c>.
         /// </summary>
-        /// <param name="mode">Specifies how directory names should match the search value(s) to be included in the results.</param>
-        /// <param name="directoryNameCriteria">
+        /// <param name="criterinator">
         /// <para>
-        /// Directory [partial] name(s) upon which to perform the comparison search.
+        /// Internal mechanism for performing the comparison search.
         /// </para>
         /// <para>
-        /// Examples of search values (see quotes):
+        /// Examples of <c>ICriterinator</c> usage in directory filter or search
         /// <code>
-        /// filter = new DirectoryNameFilter(CompareMode.Equals, "Documents");
-        /// filter = new DirectoryNameFilter(CompareMode.EndsWith, "_bak");
-        /// filter = new DirectoryNameFilter(CompareMode.In, new[] { "bin", "obj" });
-        /// filter = new DirectoryNameFilter(CompareMode.Between, new[] { "a", "gzz" });
+        /// var criterinator = Compare.Equals("Documents");
+        ///                  = Compare.EqualsAny("bin", "obj");
+        ///                  = Compare.ContainsIgnoreCase("Preferences");
+        ///                  = Compare.EndsWith("_bak");
+        ///                  = Compare.Between("aaa", "gzz");
+        /// var filteredDirs = dirs.Where(d => criterinator.IsMatch(d.Name));
         /// </code>
         /// </para>
-        /// </param>
-        /// <param name="ignoreCase">
         /// <para>
-        /// Set to <c>true</c> (recommended) to ignore the letter case of the directory names being compared by this filter, default is <c>false</c>.
-        /// </para>
-        /// <para>
-        /// While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
-        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. setting this parameter to <c>true</c>.
+        /// Note. While operating systems like Windows are not case-sensitive, others are.  So are <c>string</c>s in practically every programming
+        /// language.  As such, Horseshoe.NET requires opt-in for case-insensitivity, i.e. using 'IgnoreCase' criterinators.
         /// </para>
         /// </param>
         /// <param name="filterMode">Optional, dictates which items to include based on criteria matching.</param>
-        public DirectoryNameFilter(CompareMode mode, StringValues directoryNameCriteria, bool ignoreCase = false, FilterMode filterMode = default)
+        public DirectoryNameFilter(ICriterinator<string> criterinator, FilterMode filterMode = default)
         {
-            // validation
-            switch (mode)
-            {
-                case CompareMode.IsNull:
-                case CompareMode.IsNullOrWhitespace:
-                    throw new ValidationException("This compare mode is not compatible with this filter: " + mode);
-            }
-
-            Comparator = new Comparator<string> { Mode = mode, Criteria = ObjectValues.FromStringValues(directoryNameCriteria), IgnoreCase = ignoreCase };
+            Criterinator = criterinator;
             FilterMode = filterMode;
         }
 
@@ -64,7 +49,7 @@ namespace Horseshoe.NET.IO.FileFilter
         /// <returns><c>true</c> or <c>false</c></returns>
         public override bool IsMatch(DirectoryPath dir)
         {
-            return Comparator.IsMatch(dir.Name);
+            return Criterinator.IsMatch(dir.Name);
         }
     }
 }

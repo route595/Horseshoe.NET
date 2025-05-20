@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 using Horseshoe.NET.Db;
 using Horseshoe.NET.RelayMessages;
@@ -28,7 +28,7 @@ namespace Horseshoe.NET.SqlDb
         public static int Table
         (
             string tableName,
-            Filter where,
+            IFilter where,
             SqlDbConnectionInfo connectionInfo = null,
             bool drop = false,
             bool purge = false,
@@ -64,7 +64,7 @@ namespace Horseshoe.NET.SqlDb
         (
             SqlConnection conn,
             string tableName,
-            Filter where,
+            IFilter where,
             SqlTransaction transaction = null,
             bool drop = false,
             bool purge = false,

@@ -28,7 +28,7 @@ namespace Horseshoe.NET.OracleDb
         public static int Table
         (
             string tableName,
-            Filter where,
+            IFilter where,
             OracleDbConnectionInfo connectionInfo = null,
             bool drop = false,
             bool purge = false,
@@ -65,7 +65,7 @@ namespace Horseshoe.NET.OracleDb
         (
             OracleConnection conn,
             string tableName,
-            Filter where,
+            IFilter where,
             OracleTransaction transaction = null,
             bool drop = false,
             bool purge = false,

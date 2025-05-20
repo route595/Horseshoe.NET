@@ -12,7 +12,7 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
 - Horseshoe.NET
   - Horseshoe.NET.Bootstrap
   - Horseshoe.NET.Collections
-  - Horseshoe.NET.Compare
+  - Horseshoe.NET.Comparison   (introducing the 'Criterinator' search tool)
   - Horseshoe.NET.ConsoleX
     - Horseshoe.NET.ConsoleX.Plugins
   - Horseshoe.NET.Crypto
@@ -22,7 +22,7 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
   - Horseshoe.NET.Db
   - Horseshoe.NET.Dotnet
   - Horseshoe.NET.Email
-    - Horseshoe.NET.Email.Sms
+    - Horseshoe.NET.Email.EmailToSms
   - Horseshoe.NET.IO
     - Horseshoe.NET.IO.FileFilter
     - Horseshoe.NET.IO.FileTraversal
@@ -69,6 +69,24 @@ user.OU;                                     // "Contractors"
 user.RawOU;                                  // LDAP://OU=Contractors,DC=mybiz,DC=com
 ADUtil.ListOUs();                            // (lists all OUs in Active Directory)
 ADEngine.GetDomainContext().ConnectedServer; // (lists name of connected domain controller)
+```
+
+#### Horseshoe.NET.Comparison    (introducing the 'Criterinator' search tool)
+
+```c#
+var filteredEmployees = SearchEmployeesByLastName("Finkleman", ignoreCase: true);
+
+IEnumerable<Employee> SearchEmployeesByLastName(ICriterinator<string> lastNameCriterinator)
+{
+    return allEmployees.Where(e => lastNameCriterinator.IsMatch(e.LastName))
+}
+
+IEnumerable<Employee> SearchEmployeesByLastNameContains(string lastNameOrPartial, bool ignoreCase = false)
+{
+    return ignoreCase 
+        ? SearchEmployeesByLastName(Criterinator.ContainsIgnoreCase(lastNameOrPartial))
+        : SearchEmployeesByLastName(Criterinator.Contains(lastNameOrPartial))
+}
 ```
 
 #### Horseshoe.NET.Configuration
@@ -225,6 +243,42 @@ FinanceEngine
 // Jan 2028 │                                  │ $450.00 $438.03 $ 11.97 $  667.73 │ $450.00 $438.03 $ 11.97
 // Feb 2028 │                                  │ $450.00 $442.77 $  7.23 $  224.96 │ $450.00 $442.77 $  7.23
 // Mar 2028 │                                  │ $227.40 $224.96 $  2.44 $    0.00 │ $227.40 $224.96 $  2.44
+
+var planningItems = new List<BudgetPlanningItem>
+{
+    new BudgetPlanningItem { Name = "Paycheck", Amount = 3000m, Recurrence = "w-2"},
+    new BudgetPlanningItem { Name = "Retirement Pension", Amount = 900m, Recurrence = "last"},
+    new BudgetPlanningItem { Name = "Grocery allowance ($400/mo)", Amount = -200m, Recurrence = "1,15"},
+    ...
+};
+var budget = Budget.GenerateSimpleBudget(planningItems);
+TextGrid.FromCollection(budget).Render();
+
+//    Date Name                               Amount Running Total
+//  ------ -----------------------------  ---------- -------------
+//   Apr 1 Bill Payment #1                   $30.00     $1,970.00
+//   Apr 1 Grocery allowance ($400/mo)      $200.00     $1,770.00
+//   Apr 1 Eating out allowance ($150/mo)    $75.00     $1,695.00
+//   Apr 1 Insurance                        $200.00     $1,495.00
+//   Apr 1 Mortgage                       $1,000.00       $495.00
+//   Apr 1 Gas allowance ($300/mo)          $150.00       $345.00
+//   Apr 1 Bill Payment #5                   $30.00       $315.00
+//   Apr 1 Amazon allowance ($60/mo)         $30.00       $285.00
+//   Apr 2 Bill Payment #2                   $60.00       $225.00
+//   Apr 2 Bill Payment #6                   $60.00       $165.00
+//   Apr 3 Bill Payment #7                   $90.00        $75.00
+//   Apr 3 Bill Payment #3                   $90.00        $15.00-
+//   Apr 4 Paycheck                       $3,000.00+    $2,985.00
+//   Apr 4 Tithing                          $300.00     $2,685.00
+//   Apr 4 Bill Payment #8                  $120.00     $2,565.00
+//   Apr 4 Bill Payment #4                  $120.00     $2,445.00
+//  Apr 15 Grocery allowance ($400/mo)      $200.00     $2,245.00
+//  Apr 15 Eating out allowance ($150/mo)    $75.00     $2,170.00
+//  Apr 15 Amazon allowance ($60/mo)         $30.00     $2,140.00
+//  Apr 15 Gas allowance ($300/mo)          $150.00     $1,990.00
+//  Apr 18 Paycheck                       $3,000.00+    $4,990.00
+//  Apr 18 Tithing                          $300.00     $4,690.00
+//  Apr 30 Retirement Pension               $900.00+    $5,590.00
 ```
 
 #### Horseshoe.NET.Http
@@ -238,11 +292,12 @@ var apiResponse = Get.AsJson<WebServiceResponse<string>>
 apiResponse.Data;    // { "requestedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
 
 // HTTP call with JWT authorization
+var token = "eyjg73ls0...";
 var apiResponse = Get.AsJson<WebServiceResponse<string>>
 (
     "https://site.com/service/endpoint", 
     alterHeaders: (hdrs) =>
-        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + "blabla")
+        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + token)
 );
 apiResponse.Data;    // { "authorizedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
 ```

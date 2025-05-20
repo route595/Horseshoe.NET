@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 
 namespace Horseshoe.NET
 {
@@ -40,9 +40,11 @@ namespace Horseshoe.NET
         /// <exception cref="AssemblyException"></exception>
         public static Assembly Find(string name, bool ignoreCase = false)
         {
-            var comparator = Comparator.Equals(name, ignoreCase: ignoreCase);
+            var criterinator = ignoreCase
+                ? Criterinator.EqualsIgnoreCase(name)
+                : Criterinator.Equals(name);
             var list = List()
-                .Where(a => comparator.IsMatch(a.GetName().Name))
+                .Where(a => criterinator.IsMatch(a.GetName().Name))
                 .ToList();
             switch (list.Count)
             {

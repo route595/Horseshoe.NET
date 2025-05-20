@@ -1,11 +1,9 @@
-﻿using System.Linq;
-
-namespace Horseshoe.NET.Db
+﻿namespace Horseshoe.NET.Db
 {
     /// <summary>
     /// A filter that negates another filter. Used in generating SQL 'WHERE' clauses in C#.
     /// </summary>
-    public class NotFilter : Filter
+    public class NotFilter : IFilter
     {
         /// <summary>
         /// A filter to negate.
@@ -16,6 +14,7 @@ namespace Horseshoe.NET.Db
         /// Creates a new "Not" filter.
         /// </summary>
         /// <param name="filter">A filter to negate.</param>
+        /// <exception cref="ValidationException"></exception>
         public NotFilter(IFilter filter)
         {
             if (filter is NotFilter)
@@ -28,36 +27,31 @@ namespace Horseshoe.NET.Db
         /// </summary>
         /// <param name="provider">A DB provider may lend hints about how to render column names, SQL expressions, etc.</param>
         /// <returns>A SQL expression.</returns>
-        public override string Render(DbProvider? provider = null)
+        public string Render(DbProvider? provider = null)
         {
-            if (Filter is Filter filter)
+            var rendered = Filter.Render(provider: provider);
+            if (Filter is LiteralFilter literalFilter && literalFilter.SystemGenerated)
             {
-                var columnExpression = filter.ColumnName.Render(provider: provider ?? Provider ?? DbSettings.DefaultProvider);
-                switch (filter.Mode)
-                {
-                    case Compare.CompareMode.Equals:
-                        return columnExpression + " <> " + DbUtil.Sqlize(filter.Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
-                    case Compare.CompareMode.Contains:
-                        return columnExpression + " NOT LIKE '%" + filter.Criteria[0] + "%'";
-                    case Compare.CompareMode.StartsWith:
-                        return columnExpression + " NOT LIKE '" + filter.Criteria[0] + "%'";
-                    case Compare.CompareMode.EndsWith:
-                        return columnExpression + " NOT LIKE '%" + filter.Criteria[0] + "'";
-                    case Compare.CompareMode.In:
-                        return filter.Criteria.Count == 0
-                            ? "1 = 1"
-                            : columnExpression + " NOT IN ( " + string.Join(", ", filter.Criteria.Select(val => DbUtil.Sqlize(val, provider: provider ?? Provider ?? DbSettings.DefaultProvider))) + " )";
-                    case Compare.CompareMode.Between:
-                        return columnExpression + " NOT BETWEEN " + DbUtil.Sqlize(filter.Criteria[0], provider: provider ?? Provider ?? DbSettings.DefaultProvider) + " AND " + DbUtil.Sqlize(filter.Criteria[1], provider: provider ?? Provider ?? DbSettings.DefaultProvider);
-                    case Compare.CompareMode.IsNull:
-                        return columnExpression + " IS NOT NULL";
-                }
+                if (rendered.Contains(" = "))
+                    return rendered.Replace(" = ", " <> ");
+                if (rendered.Contains(" < "))
+                    return rendered.Replace(" < ", " >= ");
+                if (rendered.Contains(" <= "))
+                    return rendered.Replace(" <= ", " > ");
+                if (rendered.Contains(" > "))
+                    return rendered.Replace(" > ", " <= ");
+                if (rendered.Contains(" >= "))
+                    return rendered.Replace(" >= ", " < ");
+                if (rendered.Contains(" LIKE "))
+                    return rendered.Replace(" LIKE ", " NOT LIKE ");
+                if (rendered.Contains(" IN "))
+                    return rendered.Replace(" IN ", " NOT IN ");
+                if (rendered.Contains(" BETWEEN "))
+                    return rendered.Replace(" BETWEEN ", " NOT BETWEEN ");
+                if (rendered.Contains(" IS NULL "))
+                    return rendered.Replace(" IS NULL", " IS NOT NULL");
             }
-
-            var rendered = Filter.Render(provider: provider ?? Provider ?? DbSettings.DefaultProvider);
-            return (rendered.StartsWith("(") && rendered.EndsWith(")"))
-                ? "NOT " + rendered
-                : "NOT ( " + rendered + " )";
+            return "NOT ( " + rendered + " )";
         }
     }
 }

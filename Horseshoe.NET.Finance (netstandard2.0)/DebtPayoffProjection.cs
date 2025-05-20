@@ -74,7 +74,7 @@ namespace Horseshoe.NET.Finance
 
         public TextGrid RenderToTextGrid(string dateFormat = "MMM yyyy")
         {
-            var dateColumn = new Column { Title = "Date", DisplayFormat = dateFormat };
+            var dateColumn = new Column { Name = "Date", Formatter = dateFormat };
             //var date = DateUtil.GetMonthStart(basedOnDateTime: startDate);
             var accountColumns = this
                 .Select(cap => new Column(cap.Select(mp => mp.Render(cap))) { Title = cap.GetTitleElements() })

@@ -28,7 +28,7 @@ namespace Horseshoe.NET.SqlDb
         public static int Table
         (
             string tableName,
-            Filter where,
+            IFilter where,
             SqlDbConnectionInfo connectionInfo = null,
             bool drop = false,
             bool purge = false,
@@ -64,7 +64,7 @@ namespace Horseshoe.NET.SqlDb
         (
             SqlConnection conn,
             string tableName,
-            Filter where,
+            IFilter where,
             SqlTransaction transaction = null,
             bool drop = false,
             bool purge = false,

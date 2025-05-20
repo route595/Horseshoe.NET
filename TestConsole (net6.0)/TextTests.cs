@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Horseshoe.NET.ConsoleX;
+using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
 
 namespace TestConsole
@@ -67,6 +68,23 @@ namespace TestConsole
                                 trackingDict.Add(unicodeChar, display);
                             }
                         }
+                    }
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Contains all?",
+                () =>
+                {
+                    var testChars = new[] { 'a', 'c' };
+                    var testStrings = new[] { "abc", "abcabc", "cba", "cbacba", "", null };
+                    var maxLen = testStrings.Max(s => ValueUtil.Display(s).Length);
+                    Console.WriteLine("Testing " + ValueUtil.Display(testChars) + " on " + ValueUtil.Display(testStrings));
+                    foreach (var testString in testStrings)
+                    {
+                        Console.WriteLine("ContainsAll                : " + ValueUtil.Display(testString).PadRight(maxLen) + " -> " + testString.ContainsAll(testChars));
+                        Console.WriteLine("ContainsAllInSequence      : " + ValueUtil.Display(testString).PadRight(maxLen) + " -> " + testString.ContainsAllInSequence(testChars));
+                        Console.WriteLine("ContainsAllInStrictSequence: " + ValueUtil.Display(testString).PadRight(maxLen) + " -> " + testString.ContainsAllInStrictSequence(testChars));
                     }
                 }
             ),

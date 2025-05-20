@@ -61,7 +61,7 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <summary>
         /// Creates a new <c>Column</c>.
         /// </summary>
-        public Column()
+        public Column() : base()
         {
             List = new List<object>();
         }

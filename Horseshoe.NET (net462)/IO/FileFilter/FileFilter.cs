@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.Extensions.Primitives;
 
-using Horseshoe.NET.Compare;
+using Horseshoe.NET.Comparison;
 
 namespace Horseshoe.NET.IO.FileFilter
 {
@@ -76,10 +76,9 @@ namespace Horseshoe.NET.IO.FileFilter
         /// </param>
         /// <param name="filterMode">Optional, dictates which items to include based on criteria matching.</param>
         /// <returns>A group file filter</returns>
-        public static FileFilter CreateFileExtensionFilter(StringValues fileExtensions, bool ignoreCase = false, FilterMode filterMode = default)
+        public static FileFilter CreateFileExtensionFilter(StringValues fileExtensions, FilterMode filterMode = default, bool ignoreCase = false)
         {
-            var regex = "^" + string.Join("|", fileExtensions.Select(ext => ".*" + ext.Replace(".", "\\."))) + "$";
-            return new FileNameFilter(CompareMode.Regex, regex, ignoreCase: ignoreCase, filterMode: filterMode);
+            return new FileNameFilter(fileExtensions.Select(ext => ".*" + ext.Replace(".", "\\.")), filterMode, ignoreCase: ignoreCase);
         }
     }
 }

@@ -49,7 +49,7 @@ namespace TestConsole.Finance
                     };
                     accounts = PromptX.List
                     (
-                        accounts, 
+                        accounts,
                         renderer: act => act.Name + " " + act.Balance.ToString("C") + " " + act.APR.ToString("P2"),
                         selectionMode: ListSelectionMode.OneOrMore
                     ).SelectedItems;
@@ -69,13 +69,75 @@ namespace TestConsole.Finance
                         {
                             writer.WriteLine($"{(projection.Snowballing ? "Snowballing" : "Projecting")} payoff of {accounts.Length} accounts, {(projection.SnowballOrder == SnowballOrder.SameAsSourceCreditAccountCollection ? "not sorted": $"sorted by {projection.SnowballOrder}")}, monthly budget = {projection.MinimumMonthlyBudget:C}{(projection.Snowballing && projection.ExtraSnowballAmount > 0m ? $" + {projection.ExtraSnowballAmount:C} = {projection.TotalMonthlyBudget:C}" : "")}");
                             textGrid = projection.RenderToTextGrid();
-                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].DisplayFormat + "}", textGrid.Columns[0].List.Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
+                            writer.WriteLine($"Paid {projection.Sum(cap => cap.Account.Balance):C} off in {string.Format("{0:" + textGrid.Columns[0].Formatter?.DisplayFormat + "}", textGrid.Columns[0].List.Last())} ({projection.NumberOfMonths} months ({projection.NumberOfMonths / 12m:N2} years)) with a total of {projection.TotalInterest:C} paid in interest.");
                             writer.WriteLine();
                         }
                         writer.WriteLine(textGrid.Render());
                     }
                     Console.WriteLine("Opening temp file...");
                     Process.Start(tempFilePath);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Simple Budget",
+                () =>
+                {
+                    var planningItems = new List<BudgetPlanningItem>
+                    {
+                        new BudgetPlanningItem { Name = "Bill Payment #1", Amount = -30m, TransactionDate = new DateTime(2025, 1, 1), Recurrence = "m" },
+                        new BudgetPlanningItem { Name = "Bill Payment #2", Amount = -60m, TransactionDate = new DateTime(2025, 1, 2), Recurrence = "m" },
+                        new BudgetPlanningItem { Name = "Bill Payment #3", Amount = -90m, TransactionDate = new DateTime(2025, 1, 3), Recurrence = "m" },
+                        new BudgetPlanningItem { Name = "Bill Payment #4", Amount = -120m, TransactionDate = new DateTime(2025, 1, 4), Recurrence = "m" },
+
+                        new BudgetPlanningItem { Name = "Paycheck", Amount = 3000m, Recurrence = "w-2", TransactionDate = new DateTime(2025, 3, 21) },
+                        //new BudgetPlanningItem { Name = "Tithing", Amount = -300m, Recurrence = "w-2", TransactionDate = new DateTime(2025, 3, 21) },
+                        new BudgetPlanningItem { Name = "Retirement Pension", Amount = 900m, Recurrence = "last", TransactionDate = new DateTime(2025, 1, 1) },
+                        new BudgetPlanningItem { Name = "Mortgage", Amount = -1000m, Recurrence = "m", TransactionDate = new DateTime(2025, 1, 1) },
+                        new BudgetPlanningItem { Name = "Insurance", Amount = -200m, Recurrence = "m", TransactionDate = new DateTime(2025, 1, 1) },
+                        new BudgetPlanningItem { Name = "Grocery allowance ($400/mo)", Amount = -200m, Recurrence = "1,15", TransactionDate = new DateTime(2025, 1, 1) },
+                        new BudgetPlanningItem { Name = "Gas allowance ($300/mo)", Amount = -150m, Recurrence = "1,15", TransactionDate = new DateTime(2025, 1, 1) },
+                        new BudgetPlanningItem { Name = "Eating out allowance ($150/mo)", Amount = -75m, Recurrence = "1,15", TransactionDate = new DateTime(2025, 1, 1) },
+                        new BudgetPlanningItem { Name = "Amazon allowance ($60/mo)", Amount = -30m, Recurrence = "1,15", TransactionDate = new DateTime(2025, 1, 1) },
+
+                        new BudgetPlanningItem { Name = "Bill Payment #5", Amount = -30m, TransactionDate = new DateTime(2025, 1, 1), Recurrence = "m" },
+                        new BudgetPlanningItem { Name = "Bill Payment #6", Amount = -60m, TransactionDate = new DateTime(2025, 1, 2), Recurrence = "m" },
+                        new BudgetPlanningItem { Name = "Bill Payment #7", Amount = -90m, TransactionDate = new DateTime(2025, 1, 3), Recurrence = "m" },
+                        new BudgetPlanningItem { Name = "Bill Payment #8", Amount = -120m, TransactionDate = new DateTime(2025, 1, 4), Recurrence = "m" },
+                    };
+                    var config = new BudgetConfig
+                    {
+                        From = new DateTime(2025, 4, 1),
+                        To = new DateTime(2025, 6, 1).AddDays(-1),
+                        StartingAmount = 2000m,
+                        PeekBudgetPreSort = _budget => _budget.ItemSort = BudgetItemSort.IncomeFirst,
+                        PeekBudgetPostSortPreCalc = _budget => BudgetSpecialProcessing.CalculateTithingOnIncomeByBudgetItemName(_budget, new[] { "Paycheck", "VA Pension" })
+                    };
+
+                    // generate the budget
+                    var budget = Budget.GenerateSimpleBudget
+                    (
+                        planningItems, 
+                        config: config
+                    );
+
+                    // prepare to configure TextGrid
+                    void configureGrid (TextGrid grid)
+                    {
+                        var dateCol = grid.GetColumnByTitle("TransactionDate");
+                        if (dateCol != null)
+                        {
+                            dateCol.Formatter = "MMM d";
+                            grid.Columns.Remove(dateCol);
+                            grid.Columns.Insert(0, dateCol);
+                        }
+                        grid.FormatDecimalColumnsAsCurrency_Custom();
+                    }
+
+                    // output the budget in a configured TextGrid
+                    Console.WriteLine($"Budget from {budget.From:MMM d, yyyy} to {budget.To:MMM d, yyyy} starting with {budget.StartingAmount:C2}.");
+                    Console.WriteLine();
+                    Console.Write(TextGrid.FromCollection(budget).Render(configureGrid: configureGrid));
                 }
             )
         };
