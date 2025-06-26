@@ -70,8 +70,8 @@
     <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.7.0.0\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.5, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.5\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.6, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.6\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Oracle.ManagedDataAccess, Version=4.122.23.1, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
       <HintPath>..\packages\Oracle.ManagedDataAccess.23.6.1\lib\net472\Oracle.ManagedDataAccess.dll</HintPath>
@@ -124,8 +124,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mathematics Tests\GeomTests.cs" />
     <Compile Include="RelayTests.cs" />
-    <Compile Include="Finance Tests\FinanceTests.cs" />
+    <Compile Include="Mathematics Tests\FinanceTests.cs" />
     <Compile Include="IO Tests\FileTraversalTests.cs" />
     <Compile Include="XmlDocTests.cs" />
     <Compile Include="ExcelDataImportTests.cs" />
@@ -207,10 +208,6 @@
       <Project>{02332b12-2b0b-400b-ab0c-22d467f73cc4}</Project>
       <Name>Horseshoe.NET.Excel %28net472%29</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Finance %28net462%29\Horseshoe.NET.Finance %28net462%29.csproj">
-      <Project>{fb501495-cefe-4f5d-82b8-0865456c7477}</Project>
-      <Name>Horseshoe.NET.Finance %28net462%29</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Http %28net462%29\Horseshoe.NET.Http %28net462%29.csproj">
       <Project>{813933b9-2418-4242-8ab8-d4e461d18207}</Project>
       <Name>Horseshoe.NET.Http %28net462%29</Name>
@@ -222,6 +219,10 @@
     <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions %28net462%29\Horseshoe.NET.Jwt.Abstractions %28net462%29.csproj">
       <Project>{ac884940-d7f6-4209-866f-6b48a646d975}</Project>
       <Name>Horseshoe.NET.Jwt.Abstractions %28net462%29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Horseshoe.NET.Mathematics %28net462%29\Horseshoe.NET.Mathematics %28net462%29.csproj">
+      <Project>{db115abe-149d-4738-97dc-10d269ce5561}</Project>
+      <Name>Horseshoe.NET.Mathematics %28net462%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Odbc %28net462%29\Horseshoe.NET.Odbc %28net462%29.csproj">
       <Project>{04bf23fb-7b5f-40f2-a775-13090372aeca}</Project>

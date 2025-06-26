@@ -23,6 +23,7 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
   - Horseshoe.NET.Dotnet
   - Horseshoe.NET.Email
     - Horseshoe.NET.Email.EmailToSms
+  - Horseshoe.NET.Format
   - Horseshoe.NET.IO
     - Horseshoe.NET.IO.FileFilter
     - Horseshoe.NET.IO.FileTraversal
@@ -40,13 +41,16 @@ A large portion of this code base is dedicated to replacing verbose, repetitive 
 - Horseshoe.NET.Caching.Abstractions (namespace Horseshoe.NET.Caching)
 - Horseshoe.NET.Configuration
 - Horseshoe.NET.Excel
-- Horseshoe.NET.Finance
 - Horseshoe.NET.Http
   - Horseshoe.NET.Http.Mvc
   - Horseshoe.NET.Http.ReportingServices
   - Horseshoe.NET.Http.WebForms (.NET Framework only)
 - Horseshoe.NET.Jwt
 - Horseshoe.NET.Jwt.Abstractions (namespace Horseshoe.NET.Jwt)
+- Horseshoe.NET.Mathematics  (new)
+  - Horseshoe.NET.Mathematics.Finance
+  - Horseshoe.NET.Mathematics.Geometry
+    - Horseshoe.NET.Mathematics.Geometry.Trigonometry
 - Horseshoe.NET.Odbc
 - Horseshoe.NET.OracleDb
 - Horseshoe.NET.SecureIO
@@ -191,7 +195,47 @@ var results = dataImport.ExportToStringArrays();
 // [ "Diane"  ,  "56", "green" , "broccoli + cheese" ]
 ```
 
-#### Horseshoe.NET.Finance
+#### Horseshoe.NET.Http
+
+```c#
+// basic HTTP call
+var apiResponse = Get.AsJson<WebServiceResponse<string>>
+(
+    "https://site.com/service/endpoint"
+);
+apiResponse.Data;    // { "requestedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
+
+// HTTP call with JWT authorization
+var token = "eyjg73ls0...";
+var apiResponse = Get.AsJson<WebServiceResponse<string>>
+(
+    "https://site.com/service/endpoint", 
+    alterHeaders: (hdrs) =>
+        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + token)
+);
+apiResponse.Data;    // { "authorizedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
+```
+
+#### Horseshoe.NET.Jwt
+
+```c#
+// mint a token
+// note: the same digital signature crypto key that creates the digital signature is also used to validate it
+TokenService.CreateAccessToken 
+(
+    tokenKey,            // e.g. encoding.GetBytes("ah476&ewj^!09")
+    roles,               // e.g. { "All Contractors", "Domain Admin" }
+    keyId,               // e.g. "0001"
+    lifespanInSeconds,   // default is 3600 (1 hour)
+    securityAlgorithm    // default is "HS256"
+);                                            // "eyjg73ls0..." (encoded JWT)
+
+// parse a token
+// note: If ADFS '/token' provided the JWT roles will include Active Directory group memberships
+TokenService.ParseToken("eyjg73ls0...");      // -> token as instance of AccessToken
+```
+
+#### Horseshoe.NET.Mathematics.Finance
 
 ```c#
 FinanceEngine
@@ -281,44 +325,26 @@ TextGrid.FromCollection(budget).Render();
 //  Apr 30 Retirement Pension               $900.00+    $5,590.00
 ```
 
-#### Horseshoe.NET.Http
+# Horseshoe.NET.Mathematics.Geometry[.Trigonometry]
+
+A suite of methods representing geometric and trigonometric formulas and shape objects that can often self-populate angle and length values in the case of incomplete construction.
+
+## Code Examples
 
 ```c#
-// basic HTTP call
-var apiResponse = Get.AsJson<WebServiceResponse<string>>
-(
-    "https://site.com/service/endpoint"
-);
-apiResponse.Data;    // { "requestedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
+RightTriangle rightTriangle = new RightTriangle(a: 60.0, ac: 45.0, precision: 4);
+Console.WriteLine(rightTriangle);
 
-// HTTP call with JWT authorization
-var token = "eyjg73ls0...";
-var apiResponse = Get.AsJson<WebServiceResponse<string>>
-(
-    "https://site.com/service/endpoint", 
-    alterHeaders: (hdrs) =>
-        hdrs.Add(HttpRequestHeader.Authorization, "Bearer " + token)
-);
-apiResponse.Data;    // { "authorizedItems" : [ { "name": "Item ABC"}, { "name": "Item DEF"}... ] }
-```
-
-#### Horseshoe.NET.Jwt
-
-```c#
-// mint a token
-// note: the same digital signature crypto key that creates the digital signature is also used to validate it
-TokenService.CreateAccessToken 
-(
-    tokenKey,            // e.g. encoding.GetBytes("ah476&ewj^!09")
-    roles,               // e.g. { "All Contractors", "Domain Admin" }
-    keyId,               // e.g. "0001"
-    lifespanInSeconds,   // default is 3600 (1 hour)
-    securityAlgorithm    // default is "HS256"
-);                                            // "eyjg73ls0..." (encoded JWT)
-
-// parse a token
-// note: If ADFS '/token' provided the JWT roles will include Active Directory group memberships
-TokenService.ParseToken("eyjg73ls0...");      // -> token as instance of AccessToken
+// Complete triangle: (1 iteration)
+//               B:30°
+//                /|
+//  (hypotenuse) / |
+//           AB /  | BC
+//      len=90 /   | len=77.9423
+//            /   _|
+//           /)__|_|
+//      A:60°  AC   C:90°
+//             len=45
 ```
 
 #### Horseshoe.NET.OleDb|Odbc|OracleDb|SqlDb

@@ -5,7 +5,7 @@
     <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>4.0.3</Version>
+    <Version>4.0.4</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A set of common methods and classes for generating and handling JWTs and a subset of basic OAuth operations.</Description>
@@ -26,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.36" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>

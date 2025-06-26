@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DB115ABE-149D-4738-97DC-10D269CE5561}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Horseshoe.NET.Mathematics</RootNamespace>
+    <AssemblyName>Horseshoe.NET.Mathematics</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>portable</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.6, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.6\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Finance\Account.cs" />
+    <Compile Include="Finance\AltCreditAccountPayoffInfo.cs" />
+    <Compile Include="Finance\BankAccount.cs" />
+    <Compile Include="Finance\Budget.cs" />
+    <Compile Include="Finance\BudgetConfig.cs" />
+    <Compile Include="Finance\BudgetItem.cs" />
+    <Compile Include="Finance\BudgetItemSort.cs" />
+    <Compile Include="Finance\BudgetPlanningItem.cs" />
+    <Compile Include="Finance\BudgetSpecialProcessing.cs" />
+    <Compile Include="Finance\CompoundingPeriod.cs" />
+    <Compile Include="Finance\Constants.cs" />
+    <Compile Include="Finance\CreditAccount.cs" />
+    <Compile Include="Finance\CreditAccountPayoffInfo.cs" />
+    <Compile Include="Finance\CreditCardAccount.cs" />
+    <Compile Include="Finance\DebtPayoffProjection.cs" />
+    <Compile Include="Finance\Extensions.cs" />
+    <Compile Include="Finance\FinanceEngine.cs" />
+    <Compile Include="Finance\FinanceException.cs" />
+    <Compile Include="Finance\LineOfCreditAccount.cs" />
+    <Compile Include="Finance\MonthlyPaymentInfo.cs" />
+    <Compile Include="Finance\MortgageAccount.cs" />
+    <Compile Include="Finance\OptionalColumnDisplayPref.cs" />
+    <Compile Include="Finance\Recurrence\DaysOfMonthRecurrence.cs" />
+    <Compile Include="Finance\Recurrence\NoRecurrence.cs" />
+    <Compile Include="Finance\Recurrence\PeriodicRecurrence.cs" />
+    <Compile Include="Finance\Recurrence\Recurrence.cs" />
+    <Compile Include="Finance\Recurrence\RecurrenceInterval.cs" />
+    <Compile Include="Finance\Settings.cs" />
+    <Compile Include="Finance\SnowballOrder.cs" />
+    <Compile Include="Geometry\Calc.cs" />
+    <Compile Include="Geometry\CalcBase.cs" />
+    <Compile Include="Geometry\CalcConstants.cs" />
+    <Compile Include="Geometry\CalcExtensions.cs" />
+    <Compile Include="Geometry\CalcUtil.cs" />
+    <Compile Include="Geometry\Triangle.cs" />
+    <Compile Include="Geometry\Trigonometry\RightTriangle.cs" />
+    <Compile Include="Geometry\Trigonometry\Trig.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET %28net462%29\Horseshoe.NET %28net462%29.csproj">
+      <Project>{109113d1-c040-4265-896d-c949f9c60569}</Project>
+      <Name>Horseshoe.NET %28net462%29</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="assembly-signing-key.snk" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

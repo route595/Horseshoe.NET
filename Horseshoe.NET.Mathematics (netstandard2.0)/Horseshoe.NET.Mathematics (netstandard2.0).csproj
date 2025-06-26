@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Horseshoe.NET.Mathematics</RootNamespace>
+    <AssemblyName>Horseshoe.NET.Mathematics</AssemblyName>
+    <Version>4.0.4</Version>
+    <Authors>Carl Thomas</Authors>
+    <Company>Route 595</Company>
+    <Description>A suite of methods representing mathematical formulas e.g. financial, geometric, trigonometric... more to follow</Description>
+    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
+  </ItemGroup>
+
+</Project>

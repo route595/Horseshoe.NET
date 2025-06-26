@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,10 +46,10 @@
     <ProjectReference Include="..\Horseshoe.NET.Caching.Abstractions (netstandard2.0)\Horseshoe.NET.Caching.Abstractions (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Excel (netstandard2.1)\Horseshoe.NET.Excel (netstandard2.1).csproj" />
-    <ProjectReference Include="..\Horseshoe.NET.Finance (netstandard2.0)\Horseshoe.NET.Finance (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Jwt (net6.0)\Horseshoe.NET.Jwt (net6.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj" />
+    <ProjectReference Include="..\Horseshoe.NET.Mathematics (netstandard2.0)\Horseshoe.NET.Mathematics (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Odbc (netstandard2.0)\Horseshoe.NET.Odbc (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.OracleDb (netstandard2.1)\Horseshoe.NET.OracleDb (netstandard2.1).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.SecureIO (netstandard2.0)\Horseshoe.NET.SecureIO (netstandard2.0).csproj" />

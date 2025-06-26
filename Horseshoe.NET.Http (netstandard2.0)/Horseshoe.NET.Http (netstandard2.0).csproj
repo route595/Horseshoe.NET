@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.Http</RootNamespace>
     <AssemblyName>Horseshoe.NET.Http</AssemblyName>
-    <Version>4.0.3</Version>
+    <Version>4.0.4</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>Web service and web API boilerplate code.</Description>
@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
