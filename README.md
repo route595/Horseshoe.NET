@@ -177,7 +177,7 @@ plaintext = Decrypt.String(ciphertext, b64Options);  // "H1ghW@y2Hev3n"
 // ╠═══╣─────────┼─────┼───────────┼───────────────────╢
 // ║ 3 ║ Abigail │  22 │ blue      │ raspberry sorbet  ║
 // ╠═══╣─────────┼─────┼───────────┼───────────────────╢
-// ║ 4 ║ Fred    │ 101 │ yello     │ grapefruit        ║
+// ║ 4 ║ Fred    │ 101 │ yellow    │ grapefruit        ║
 // ╠═══╣─────────┼─────┼───────────┼───────────────────╢
 // ║ 5 ║ Diane   │  56 │ green     │ broccoli + cheese ║
 // ╚═══╩═════════╧═════╧═══════════╧═══════════════════╝
@@ -325,11 +325,7 @@ TextGrid.FromCollection(budget).Render();
 //  Apr 30 Retirement Pension               $900.00+    $5,590.00
 ```
 
-# Horseshoe.NET.Mathematics.Geometry[.Trigonometry]
-
-A suite of methods representing geometric and trigonometric formulas and shape objects that can often self-populate angle and length values in the case of incomplete construction.
-
-## Code Examples
+#### Horseshoe.NET.Mathematics.Geometry[.Trigonometry]
 
 ```c#
 RightTriangle rightTriangle = new RightTriangle(a: 60.0, ac: 45.0, precision: 4);
@@ -429,7 +425,7 @@ Sftp.DeleteFile
 #### Horseshoe.NET.Text
 
 ```c#
-var phrase = "Å¢t Øñę\u0000”;
+var phrase = "Å¢t Øñę\u0000";
 TextClean.ToAsciiPrintable(phrase);  // -> "Act One" (Unicode -> ASCII, [NUL] -> "")
 TextUtil.Reveal(phrase, options: RevealOptions.All);
 // "Å¢t Øñę" -> ['Å'-197]['¢'-162]['t'-116][space]['Ø'-216]['ñ'-241]['ę'-281][NUL]

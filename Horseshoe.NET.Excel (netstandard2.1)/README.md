@@ -17,7 +17,7 @@ An Excel file import utility for .NET (uses NPOI)
 // ╠═══╣─────────┼─────┼───────────┼───────────────────╢
 // ║ 3 ║ Abigail │  22 │ blue      │ raspberry sorbet  ║
 // ╠═══╣─────────┼─────┼───────────┼───────────────────╢
-// ║ 4 ║ Fred    │ 101 │ yello     │ grapefruit        ║
+// ║ 4 ║ Fred    │ 101 │ yellow    │ grapefruit        ║
 // ╠═══╣─────────┼─────┼───────────┼───────────────────╢
 // ║ 5 ║ Diane   │  56 │ green     │ broccoli + cheese ║
 // ╚═══╩═════════╧═════╧═══════════╧═══════════════════╝
