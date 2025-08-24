@@ -7,7 +7,7 @@ namespace Horseshoe.NET.Mathematics.Geometry
     /// <summary>
     /// Geometric calculations extension methods
     /// </summary>
-    public static class CalcExtensions
+    public static class GeomExtensions
     {
         /// <summary>
         /// Converts degrees to radians

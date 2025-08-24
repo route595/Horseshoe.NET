@@ -20,18 +20,22 @@ namespace Horseshoe.NET.RelayMessages
         RelayerOfExceptions Exception { get; }
 
         /// <summary>
-        /// Add this to suspend output to console for all but the matching group(s).
+        /// An optional way to dynamically filter relayed messages by group (e.g. namespaces).
         /// <para>
         /// For example...
         /// <code>
         /// var relay = new RelayToConsole()
         /// {
-        ///     GroupFilter = (grp) => grp.StartsWith("Authentication")
+        ///     GroupFilter = new GroupFilter("InternalUsers.Authentication", "ExternalUsers.Authentication")
+        ///     -or-
+        ///     GroupFilter = new GroupFilter("Authentication", likeMode: LikeMode.Contains)
+        ///     -or-
+        ///     GroupFilter = new GroupFilter(grp => grp.Contains("Authentication"))
         /// };
         /// </code>
         /// </para>
         /// </summary>
-        Func<string, bool> GroupFilter { get; }
+        GroupFilter GroupFilter { get; }
 
         /// <summary>
         /// An optional indicator to prepend to an exception message.  For example,

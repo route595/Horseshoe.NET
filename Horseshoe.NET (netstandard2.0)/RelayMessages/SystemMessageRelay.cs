@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.Primitives;
 
+using Horseshoe.NET.Comparison;
 using Horseshoe.NET.Dotnet;
 using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
@@ -371,7 +373,7 @@ namespace Horseshoe.NET.RelayMessages
                 returnStr,
                 group: group,
                 id: id,
-                indent: indent ?? Indent.DecrementNext
+                indent: indent ?? Indent.Decrement
             );
         }
 
@@ -420,6 +422,76 @@ namespace Horseshoe.NET.RelayMessages
             {
                 if (listener is IIndentedMessageRelay indentedListener)
                     indentedListener.DecrementIndentation();
+            }
+        }
+
+        /// <summary>
+        /// Contains methods for adding message relay listeners 
+        /// </summary>
+        public static class Subscribe
+        {
+            /// <summary>
+            /// Adds a listener to the Horseshoe.NET message relay system that relays messages to the console.
+            /// </summary>
+            /// <param name="groups">A list of message relay groups (e.g. namespaces) whose messages to process.</param>
+            public static IMessageRelay Console(params string[] groups)
+            {
+                return Console(groups, likeMode: LikeMode.Equals, ignoreCase: false, indentInterval: 2, indentExceptionsInlineWithMessages: false);
+            }
+
+            /// <summary>
+            /// Adds a listener to the Horseshoe.NET message relay system that relays messages to the console.
+            /// </summary>
+            /// <param name="groups">A list of message relay groups (e.g. namespaces) whose messages to process.</param>
+            /// <param name="likeMode">A message relay group matching strategy (i.e. 'Equals', 'Contains', 'StartsWith' or 'EndsWith').</param>
+            /// <param name="ignoreCase">Whether to take case sensitivity into account when matching message relay groups to the criteria.</param>
+            /// <param name="indentInterval">Indicates how many spaces to increment or decrement, default is <c>2</c>.</param>
+            /// <param name="indentExceptionsInlineWithMessages">If <c>true</c>, indents exceptions at the same level as the last relayed message.  Default is <c>false</c>.</param>
+            public static IMessageRelay Console(StringValues groups, LikeMode likeMode = LikeMode.Equals, bool ignoreCase = false, int indentInterval = 2, bool indentExceptionsInlineWithMessages = false)
+            {
+                var listener = new RelayToConsole
+                (
+                    indentInterval: indentInterval,
+                    indentExceptionsInlineWithMessages: indentExceptionsInlineWithMessages
+                )
+                {
+                    GroupFilter = groups.Count == 1 && groups.Single() == "*"
+                        ? new GroupFilter(_ => true)
+                        : new GroupFilter(groups, likeMode: likeMode, ignoreCase: ignoreCase)
+                };
+
+                AddListener(listener);
+                return listener;
+            }
+        }
+
+        /// <summary>
+        /// Contains methods for removing message relay listeners 
+        /// </summary>
+        public static class Unsubscribe
+        {
+            /// <summary>
+            /// Removes all message relay listeners from the Horseshoe.NET message relay system.
+            /// </summary>
+            public static void All()
+            {
+                if (listeners != null)
+                {
+                    listeners.Clear();
+                    listeners = null;
+                }
+            }
+
+            /// <summary>
+            /// Removes a specific message relay listener from the Horseshoe.NET message relay system.
+            /// </summary>
+            /// <param name="listener">A message relay listener</param>
+            public static void Listener(IMessageRelay listener)
+            {
+                if (listeners != null)
+                {
+                    listeners.Remove(listener);
+                }
             }
         }
     }

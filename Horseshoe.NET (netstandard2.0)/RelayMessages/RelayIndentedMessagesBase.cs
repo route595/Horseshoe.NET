@@ -13,7 +13,7 @@ namespace Horseshoe.NET.RelayMessages
         private int? LastIndentLevel { get; set; }
 
         /// <inheritdoc cref="IMessageRelay.GroupFilter"/>
-        public Func<string, bool> GroupFilter { get; set; }
+        public GroupFilter GroupFilter { get; set; }
 
         /// <inheritdoc cref="IMessageRelay.ExceptionLeadingIndicator"/>
         public string ExceptionLeadingIndicator { get; }
@@ -41,7 +41,7 @@ namespace Horseshoe.NET.RelayMessages
         public RelayerOfMessages Message => (message, group, id, indent) =>
         {
             // check group filter
-            if (GroupFilter != null && !GroupFilter.Invoke(group))
+            if (GroupFilter != null && !GroupFilter.IsMatch(group))
                 return;
 
             // process indentation requests
@@ -90,6 +90,10 @@ namespace Horseshoe.NET.RelayMessages
         /// <inheritdoc cref="IMessageRelay.Exception"/>
         public RelayerOfExceptions Exception => (exception, group, inlineWithMessages) =>
         {
+            // check group filter
+            if (GroupFilter != null && !GroupFilter.IsMatch(group))
+                return;
+
             var renderedException = (ExceptionLeadingIndicator ?? "") + (exception != null ? exception.GetType().FullName + ": " + exception.Message : "[null-exception]") + (ExceptionTrailingIndicator ?? "");
             
             if (inlineWithMessages || IndentExceptionsInlineWithMessages)
@@ -98,10 +102,6 @@ namespace Horseshoe.NET.RelayMessages
                 return;
             }
             
-            // check group filter
-            if (GroupFilter != null && !GroupFilter.Invoke(group))
-                return;
-
             ResetIndentation();
             RenderToOutput(renderedException);
         };

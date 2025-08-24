@@ -172,6 +172,8 @@ namespace Horseshoe.NET.Dotnet
         public static string ReconstructMethod(MethodBase method, bool includeDeclaringType = false, bool includeParams = false, DotnetLanguage lang = default)
         {
             StringBuilder strb = new StringBuilder(method.Name);
+            if (method.Name == ".ctor")
+                strb.Insert(0, method.DeclaringType.Name); // constructor
             if (includeDeclaringType)
             {
                 strb.Insert(0, '.')

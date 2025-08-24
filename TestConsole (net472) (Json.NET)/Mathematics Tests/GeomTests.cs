@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
+using Horseshoe.NET.ConsoleX;
+using Horseshoe.NET.Comparison;
+using Horseshoe.NET.RelayMessages;
+using Horseshoe.NET.Mathematics;
 using Horseshoe.NET.Mathematics.Geometry;
 using Horseshoe.NET.Mathematics.Geometry.Trigonometry;
-using Horseshoe.NET.ConsoleX;
 
 namespace TestConsole.MathematicsTests
 {
@@ -47,6 +49,21 @@ namespace TestConsole.MathematicsTests
                     Console.WriteLine(rightTriangle);
                     rightTriangle = new RightTriangle(a: 60, ac: 45, precision: 4);
                     Console.WriteLine(rightTriangle);
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "Right Triangle w/ message relay",
+                () =>
+                {
+                    // Register listener
+                    var listener = SystemMessageRelay.Subscribe.Console(MathConstants.MessageRelayGroup, LikeMode.StartsWith);
+
+                    RightTriangle rightTriangle = new RightTriangle(a: 60, ac: 45, precision: 4);
+                    Console.WriteLine(rightTriangle);
+
+                    // De-register listener
+                    SystemMessageRelay.Unsubscribe.Listener(listener);
                 }
             )
         };

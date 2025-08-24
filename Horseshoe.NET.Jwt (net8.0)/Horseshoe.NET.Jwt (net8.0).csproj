@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>Horseshoe.NET.Jwt</AssemblyName>
-    <Version>4.0.4</Version>
+    <Version>4.0.5</Version>
     <Company>Route 595</Company>
     <Authors>Carl Thomas</Authors>
     <Description>A set of common methods and classes for generating and handling JWTs and a subset of basic OAuth operations.</Description>
@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.17" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>

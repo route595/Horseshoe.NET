@@ -36,14 +36,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.ActiveDirectory (netstandard2.0)\Horseshoe.NET.ActiveDirectory (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Caching (netstandard2.0)\Horseshoe.NET.Caching (netstandard2.0).csproj" />
-    <ProjectReference Include="..\Horseshoe.NET.Caching.Abstractions (netstandard2.0)\Horseshoe.NET.Caching.Abstractions (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Excel (netstandard2.1)\Horseshoe.NET.Excel (netstandard2.1).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />

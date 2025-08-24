@@ -46,8 +46,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.6, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.6\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.8, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.8\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -211,10 +211,6 @@
     <ProjectReference Include="..\Horseshoe.NET.Caching %28net462%29\Horseshoe.NET.Caching %28net462%29.csproj">
       <Project>{de153057-d8c2-42bf-8296-23c8a1033921}</Project>
       <Name>Horseshoe.NET.Caching %28net462%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Horseshoe.NET.Caching.Abstractions %28net462%29\Horseshoe.NET.Caching.Abstractions %28net462%29.csproj">
-      <Project>{5e0a20d5-552b-4f78-b99c-c4bac765abbd}</Project>
-      <Name>Horseshoe.NET.Caching.Abstractions %28net462%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Horseshoe.NET.Configuration %28net462%29\Horseshoe.NET.Configuration %28net462%29.csproj">
       <Project>{b30f21c3-d24d-4726-af26-779728c339b3}</Project>
