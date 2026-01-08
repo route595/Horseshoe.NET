@@ -61,6 +61,21 @@ namespace TestConsole.CSharpTests
                             Console.WriteLine($"    {obj} is an object");
                     }
                 }
+            ),
+            BuildMenuRoutine
+            (
+                "Action and Func",
+                () =>
+                {
+                    Action action = () => { Console.WriteLine(); };
+                    Action<string> actionStr = (str) => { Console.WriteLine(str); };
+                    Func<bool> func = () => true;
+                    Func<string, bool> funcStr = (str) => string.IsNullOrEmpty(str);
+                    foreach(var obj in new object[]{ action, actionStr, func, funcStr })
+                    {
+                        Console.WriteLine(obj.GetType().Name + " - " + obj.GetType().FullName);
+                    }
+                }
             )
         };
 

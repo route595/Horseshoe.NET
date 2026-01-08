@@ -11,12 +11,13 @@ namespace Horseshoe.NET.Text.TextGrid
     /// </summary>
     public class Column : ColumnBase
     {
+        private StringValues? _title;
+        private List<string> _renderedList { get; set; }
+
         /// <summary>
         /// The list of items contained in this column
         /// </summary>
         public List<object> List { get; }
-
-        private List<string> _renderedList { get; set; }
 
         /// <summary>
         /// The parent <c>TextGrid</c>
@@ -26,7 +27,11 @@ namespace Horseshoe.NET.Text.TextGrid
         /// <summary>
         /// Column titles, if set, are rendered across the top of the grid above each column.
         /// </summary>
-        public StringValues Title { get; set; }
+        public StringValues Title
+        {
+            get => _title.HasValue ? _title.Value : (Name == null ? StringValues.Empty : new StringValues(Name)); 
+            set => _title = value;
+        }
 
         /// <summary>
         /// The alignment of the title.
@@ -132,8 +137,6 @@ namespace Horseshoe.NET.Text.TextGrid
         {
             _renderedList = Render();
             CalculatedWidth = _renderedList.Any() ? _renderedList.Max(s => s.Length) : 0;
-            if (!Title.Any() && Name != null)
-                Title = Name;
             if (Title.Any() && Title.Max(s => (s ?? "").Length) > CalculatedWidth)
                 CalculatedWidth = Title.Max(s => (s ?? "").Length);
         }

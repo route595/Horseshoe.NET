@@ -7,17 +7,15 @@
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <Company>Route 595</Company>
     <Authors>Carl Thomas</Authors>
-    <Version>4.0.5</Version>
+    <Version>4.0.6</Version>
     <Description>Services for Active Directory authentication and LDAP querying.</Description>
-    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2026 Route 595</Copyright>
     <AssemblyName>Horseshoe.NET.ActiveDirectory</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
-    <PackageReference Include="System.DirectoryServices" Version="9.0.8" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.8" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.DirectoryServices" Version="10.0.1" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

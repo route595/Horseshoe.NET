@@ -64,13 +64,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Primitives">
-      <Version>9.0.8</Version>
+      <Version>10.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Office.Interop.Excel">
-      <Version>15.0.4795.1001</Version>
+      <Version>16.0.18925.20022</Version>
     </PackageReference>
     <PackageReference Include="NPOI">
-      <Version>2.7.4</Version>
+      <Version>2.7.5</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

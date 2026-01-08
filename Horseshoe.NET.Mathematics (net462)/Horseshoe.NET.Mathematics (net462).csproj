@@ -38,23 +38,23 @@
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.8, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.9.0.8\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=10.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.10.0.1\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -67,12 +67,28 @@
     <Compile Include="Finance\Account.cs" />
     <Compile Include="Finance\AltCreditAccountPayoffInfo.cs" />
     <Compile Include="Finance\BankAccount.cs" />
-    <Compile Include="Finance\Budget.cs" />
-    <Compile Include="Finance\BudgetConfig.cs" />
-    <Compile Include="Finance\BudgetItem.cs" />
-    <Compile Include="Finance\BudgetItemSort.cs" />
-    <Compile Include="Finance\BudgetPlanningItem.cs" />
-    <Compile Include="Finance\BudgetSpecialProcessing.cs" />
+    <Compile Include="Finance\Budget\Budget.cs" />
+    <Compile Include="Finance\Budget\BudgetItemBase.cs" />
+    <Compile Include="Finance\Budget\BudgetItem.cs" />
+    <Compile Include="Finance\Budget\BudgetItemSort.cs" />
+    <Compile Include="Finance\Budget\IncomeCategory.cs" />
+    <Compile Include="Finance\Budget\ExpenseCategory.cs" />
+    <Compile Include="Finance\Budget\IBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\IExpensePlanningItem.cs" />
+    <Compile Include="Finance\Budget\IIncomePlanningItem.cs" />
+    <Compile Include="Finance\Budget\IOneTimeBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\ITransferPlanningItem.cs" />
+    <Compile Include="Finance\Budget\OneTimeTransferBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\OneTimeIncomeBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\OneTimeExpenseBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\Variance.cs" />
+    <Compile Include="Finance\Budget\RecurringTransferBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\RecurringIncomeBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\RecurringExpenseBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\BudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\AutoDisbursement.cs" />
+    <Compile Include="Finance\Budget\BudgetItemOrdering.cs" />
+    <Compile Include="Finance\Budget\RecurrenceType.cs" />
     <Compile Include="Finance\CompoundingPeriod.cs" />
     <Compile Include="Finance\Constants.cs" />
     <Compile Include="Finance\CreditAccount.cs" />
@@ -81,16 +97,17 @@
     <Compile Include="Finance\DebtPayoffProjection.cs" />
     <Compile Include="Finance\Extensions.cs" />
     <Compile Include="Finance\FinanceEngine.cs" />
+    <Compile Include="Finance\FinanceUtil.cs" />
     <Compile Include="Finance\FinanceException.cs" />
+    <Compile Include="Finance\I18nKey.cs" />
+    <Compile Include="Finance\I18nService.cs" />
     <Compile Include="Finance\LineOfCreditAccount.cs" />
     <Compile Include="Finance\MonthlyPaymentInfo.cs" />
     <Compile Include="Finance\MortgageAccount.cs" />
     <Compile Include="Finance\OptionalColumnDisplayPref.cs" />
-    <Compile Include="Finance\Recurrence\DaysOfMonthRecurrence.cs" />
-    <Compile Include="Finance\Recurrence\NoRecurrence.cs" />
-    <Compile Include="Finance\Recurrence\PeriodicRecurrence.cs" />
-    <Compile Include="Finance\Recurrence\Recurrence.cs" />
-    <Compile Include="Finance\Recurrence\RecurrenceInterval.cs" />
+    <Compile Include="Finance\Budget\IRecurringBudgetPlanningItem.cs" />
+    <Compile Include="Finance\Budget\Recurrence.cs" />
+    <Compile Include="Finance\Budget\RecurrenceInterval.cs" />
     <Compile Include="Finance\Settings.cs" />
     <Compile Include="Finance\SnowballOrder.cs" />
     <Compile Include="Geometry\GeomException.cs" />

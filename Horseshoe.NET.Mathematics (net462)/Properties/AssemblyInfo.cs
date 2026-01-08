@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.Mathematics")]
-[assembly: AssemblyCopyright("Copyright © 2020-2025 Route 595")]
+[assembly: AssemblyCopyright("Copyright © 2020-2026 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("4.0.5.0")]
-[assembly: AssemblyFileVersion("4.0.5.0")]
+[assembly: AssemblyVersion("4.0.6.0")]
+[assembly: AssemblyFileVersion("4.0.6.0")]

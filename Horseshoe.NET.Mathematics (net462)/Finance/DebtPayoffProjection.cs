@@ -43,7 +43,7 @@ namespace Horseshoe.NET.Mathematics.Finance
 
             // build projection
             AddRange(creditAccounts.Select(ca => new CreditAccountPayoffInfo(ca, snowballing)));
-            StartDate = DateUtil.GetMonthStart(startDate);
+            StartDate = DateUtil.MonthStart(startDate);
             Snowballing = snowballing;
             MinimumMonthlyBudget = creditAccounts.Sum(a => a.MinimumPaymentAmount);
             ExtraSnowballAmount = extraSnowballAmount;

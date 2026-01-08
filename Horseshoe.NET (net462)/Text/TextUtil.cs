@@ -432,6 +432,51 @@ namespace Horseshoe.NET.Text
         }
 
         /// <summary>
+        /// Inserts spaces into title case text such as C# object property names.
+        /// </summary>
+        /// <param name="titleCaseText">A text <c>string</c>.</param>
+        /// <returns>The altered text.</returns>
+        public static string SpaceOutTitleCase2(string titleCaseText)
+        {
+            if (titleCaseText == null)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < titleCaseText.Length; i++)
+            {
+                char c = titleCaseText[i];
+                if (i > 0)
+                {
+                    char prevC = titleCaseText[i - 1];
+                    //                         v
+                    // case #1 -- MyString > My String
+                    //
+                    if (char.IsLower(prevC) && char.IsUpper(c))
+                    {
+                        sb.Append(" ");
+                    }
+                    //                                v
+                    // case #2 -- MySOAString > My SOA String
+                    //                   012345678910
+                    else if (char.IsUpper(prevC) && char.IsUpper(c) && titleCaseText.Length >= i + 2 && char.IsLower(titleCaseText[i + 1]))
+                    {
+                        sb.Append(" ");
+                    }
+                    //                            v   v
+                    // case #3 -- My123String > My 123 String
+                    //
+                    else if ((char.IsDigit(prevC) && char.IsLetter(c)) || (char.IsLetter(prevC) && char.IsDigit(c)))
+                    {
+                        sb.Append(" ");
+                    }
+                }
+                sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Creates a <c>SecureString</c> instance from text.
         /// </summary>
         /// <param name="unsecureString">A text <c>string</c>.</param>

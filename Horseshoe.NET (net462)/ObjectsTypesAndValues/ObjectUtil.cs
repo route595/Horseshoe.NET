@@ -259,25 +259,54 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         }
 
         /// <summary>
-        /// Generates a JSON-like string representation of an object's properties.
+        /// Generates a JSON-like string representation of an object's properties.  The caller can decide which properties to include or exclude.
         /// </summary>
-        /// <param name="value">A value</param>
+        /// <param name="obj">An object</param>
+        /// <param name="overrideType">An optional type whose members to display. This type must be assignable to <c>obj</c>'s type.</param>
+        /// <param name="propertiesToInclude">Optional, case-sensitive names of properties to include in the output (trumps <c>propertiesToExclude</c>).</param>
+        /// <param name="propertiesToExclude">Optional, case-sensitive names of properties to exclude from the output (trumped by <c>propertiesToInclude</c>).</param>
+        /// <param name="excludeAdditionalPropertiesIf">Optionally excludes a property from the output (processed after <c>propertiesToInclude|Exclude</c>).</param>
+        /// <param name="valueDisplayOptions">Settings that determine how certain values are formatted for display.</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
+        /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A JSON-like string representation of an object</returns>
-        public static string DumpToString(object value)
+        public static string DumpToString
+        (
+            object obj, 
+            Type overrideType = null,
+            IEnumerable<string> propertiesToInclude = null, 
+            IEnumerable<string> propertiesToExclude = null,
+            Func<PropertyInfo, object, bool> excludeAdditionalPropertiesIf = null,
+            ValueDisplayOptions valueDisplayOptions = null,
+            BindingFlags bindingFlags = BindingFlags.Public,
+            bool ignoreCase = false
+        )
         {
-            if (value == null)
+            if (obj == null)
                 return TextConstants.Null;
-            var type = value.GetType();
-            var props = type.GetProperties();
+
+            if (overrideType != null && !overrideType.IsAssignableFrom(obj.GetType()))
+                throw new TypeException("The supplied override type '" + overrideType.FullName + "' is not compatible with the object's type '" + obj.GetType().FullName + "'.");
+            
+            var props = TypeUtil.GetInstanceProperties(overrideType ?? obj.GetType(), propertiesToInclude: propertiesToInclude, propertiesToExclude: propertiesToExclude, bindingFlags: bindingFlags, ignoreCase: ignoreCase);
+
+            if (excludeAdditionalPropertiesIf != null)
+            {
+                props = props
+                    .Where(p => !excludeAdditionalPropertiesIf(p, p.GetValue(obj, null)))
+                    .ToArray();
+            }
+
             var strb = new StringBuilder("{ ");
             for (int i = 0; i < props.Length; i++)
             {
                 strb.AppendIf(i > 0, ", ")
                     .Append(props[i].Name)
                     .Append(": ")
-                    .Append(ValueUtil.Display(props[i].GetValue(value, null)));
+                    .Append(ValueUtil.Display(props[i].GetValue(obj, null), options: valueDisplayOptions));
             }
             strb.Append(" }");
+
             return strb.ToString();
         }
 

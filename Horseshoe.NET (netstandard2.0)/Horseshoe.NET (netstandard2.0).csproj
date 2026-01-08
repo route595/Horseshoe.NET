@@ -6,19 +6,19 @@
 	<LangVersion>10</LangVersion>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
-    <Version>4.0.5</Version>
+    <Version>4.0.6</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A suite of .NET utilities with a dual purpose: simplify coding tasks and offer a variety of exciting new features to .NET developers.</Description>
-    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2026 Route 595</Copyright>
     <AssemblyName>Horseshoe.NET</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Text.Json" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="System.Text.Json" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

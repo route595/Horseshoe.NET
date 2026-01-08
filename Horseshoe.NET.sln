@@ -29,10 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Jwt (net462)"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt (net6.0)", "Horseshoe.NET.Jwt (net6.0)\Horseshoe.NET.Jwt (net6.0).csproj", "{C1FD5B97-E214-4EB4-B177-8CD61AFB9380}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Jwt.Abstractions (net462)", "Horseshoe.NET.Jwt.Abstractions (net462)\Horseshoe.NET.Jwt.Abstractions (net462).csproj", "{AC884940-D7F6-4209-866F-6B48A646D975}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Jwt.Abstractions (netstandard2.1)", "Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj", "{2DD58269-14C1-4710-940C-F1D600EFF817}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Horseshoe.NET.Odbc (net462)", "Horseshoe.NET.Odbc (net462)\Horseshoe.NET.Odbc (net462).csproj", "{04BF23FB-7B5F-40F2-A775-13090372AECA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Horseshoe.NET.Odbc (netstandard2.0)", "Horseshoe.NET.Odbc (netstandard2.0)\Horseshoe.NET.Odbc (netstandard2.0).csproj", "{809C50BD-A8E2-4C58-B3F0-2B71C8F52280}"
@@ -145,14 +141,6 @@ Global
 		{C1FD5B97-E214-4EB4-B177-8CD61AFB9380}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1FD5B97-E214-4EB4-B177-8CD61AFB9380}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1FD5B97-E214-4EB4-B177-8CD61AFB9380}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AC884940-D7F6-4209-866F-6B48A646D975}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC884940-D7F6-4209-866F-6B48A646D975}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC884940-D7F6-4209-866F-6B48A646D975}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC884940-D7F6-4209-866F-6B48A646D975}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2DD58269-14C1-4710-940C-F1D600EFF817}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2DD58269-14C1-4710-940C-F1D600EFF817}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2DD58269-14C1-4710-940C-F1D600EFF817}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2DD58269-14C1-4710-940C-F1D600EFF817}.Release|Any CPU.Build.0 = Release|Any CPU
 		{04BF23FB-7B5F-40F2-A775-13090372AECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{04BF23FB-7B5F-40F2-A775-13090372AECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04BF23FB-7B5F-40F2-A775-13090372AECA}.Release|Any CPU.ActiveCfg = Release|Any CPU

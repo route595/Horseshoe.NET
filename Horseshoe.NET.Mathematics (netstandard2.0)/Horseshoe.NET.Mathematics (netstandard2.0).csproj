@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.Mathematics</RootNamespace>
     <AssemblyName>Horseshoe.NET.Mathematics</AssemblyName>
-    <Version>4.0.5</Version>
+    <Version>4.0.6</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A suite of methods representing mathematical formulas e.g. financial, geometric, trigonometric... more to follow</Description>
-    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2026 Route 595</Copyright>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

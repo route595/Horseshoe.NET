@@ -5,11 +5,11 @@
     <RootNamespace>Horseshoe.NET.Jwt</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>4.0.5</Version>
+    <Version>4.0.6</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>A set of common methods and classes for generating and handling JWTs and a subset of basic OAuth operations.</Description>
-    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2026 Route 595</Copyright>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>Horseshoe.NET.Jwt</AssemblyName>
@@ -26,14 +26,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.36" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Horseshoe.NET (netstandard2.0)\Horseshoe.NET (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Configuration (netstandard2.0)\Horseshoe.NET.Configuration (netstandard2.0).csproj" />
     <ProjectReference Include="..\Horseshoe.NET.Http (netstandard2.0)\Horseshoe.NET.Http (netstandard2.0).csproj" />
-    <ProjectReference Include="..\Horseshoe.NET.Jwt.Abstractions (netstandard2.1)\Horseshoe.NET.Jwt.Abstractions (netstandard2.1).csproj" />
   </ItemGroup>
 
 </Project>

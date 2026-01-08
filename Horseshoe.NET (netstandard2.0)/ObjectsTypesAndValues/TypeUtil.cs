@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Horseshoe.NET.Collections;
+using Horseshoe.NET.Comparison;
+using Horseshoe.NET.Text;
+using Microsoft.Extensions.Primitives;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Extensions.Primitives;
-
-using Horseshoe.NET.Comparison;
-using Horseshoe.NET.Text;
 
 namespace Horseshoe.NET.ObjectsTypesAndValues
 {
@@ -149,6 +150,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
                     };
                 return null;
             }
+
             if (inheritedType != null && !inheritedType.IsAssignableFrom(type))
             {
                 throw new TypeException("\"" + inheritedType.FullName + "\" is not assignable from " + "\"" + type.FullName + "\"");
@@ -164,21 +166,65 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// Gets the public instance properties of <c>type</c>.
         /// </summary>
         /// <param name="type">A reference type.</param>
+        /// <param name="propertiesToInclude">Optional, case-sensitive names of properties to include in the output (trumps <c>propertiesToExclude</c>).</param>
+        /// <param name="propertiesToExclude">Optional, case-sensitive names of properties to exclude from the output (trumped by <c>propertiesToInclude</c>).</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
+        /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property array.</returns>
         /// <exception cref="AssertionFailedException">If <c>type</c> is not a reference type.</exception>
-        public static PropertyInfo[] GetInstanceProperties(Type type)
+        public static PropertyInfo[] GetInstanceProperties
+        (
+            Type type,
+            IEnumerable<string> propertiesToInclude = null,
+            IEnumerable<string> propertiesToExclude = null,
+            BindingFlags bindingFlags = BindingFlags.Public,
+            bool ignoreCase = false
+        )
         {
-            AssertIsReferenceType(type);
-            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            //AssertIsReferenceType(type);
+
+            var props = type.GetProperties(BindingFlags.Instance | bindingFlags);
+
+            if (!CollectionUtil.IsNullOrEmpty(propertiesToInclude))
+            {
+                props = props
+                    .Where(p => propertiesToInclude.Contains(p.Name, ignoreCase ? CaseInsensitiveStringEqualityComparer.Default : StringEqualityComparer.Default))
+                    .ToArray();
+            }
+            else if (!CollectionUtil.IsNullOrEmpty(propertiesToExclude))
+            {
+                props = props
+                    .Where(p => !propertiesToExclude.Contains(p.Name, ignoreCase ? CaseInsensitiveStringEqualityComparer.Default : StringEqualityComparer.Default))
+                    .ToArray();
+            }
+
+            return props;
         }
 
         /// <summary>
         /// Gets the public instance properties of <c>T</c>
         /// </summary>
         /// <typeparam name="T">A reference type</typeparam>
+        /// <param name="propertiesToInclude">Optional, case-sensitive names of properties to include in the output (trumps <c>propertiesToExclude</c>).</param>
+        /// <param name="propertiesToExclude">Optional, case-sensitive names of properties to exclude from the output (trumped by <c>propertiesToInclude</c>).</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
+        /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property array</returns>
-        public static PropertyInfo[] GetInstanceProperties<T>() where T : class =>
-            typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        public static PropertyInfo[] GetInstanceProperties<T>
+        (
+            IEnumerable<string> propertiesToInclude = null,
+            IEnumerable<string> propertiesToExclude = null,
+            BindingFlags bindingFlags = BindingFlags.Public,
+            bool ignoreCase = false
+        ) where T : class =>
+            GetInstanceProperties
+            (
+                typeof(T), 
+                propertiesToInclude: propertiesToInclude, 
+                propertiesToExclude: propertiesToExclude, 
+                bindingFlags: bindingFlags,
+                ignoreCase: ignoreCase
+            );
 
         /// <summary>
         /// Gets the public instance property of <c>type</c> whose name matches <c>propertyName</c>.
@@ -188,26 +234,20 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// </summary>
         /// <param name="type">A reference type</param>
         /// <param name="propertyName">The property name</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
         /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property</returns>
         /// <exception cref="ObjectMemberException"></exception>
-        public static PropertyInfo GetInstanceProperty(Type type, string propertyName, bool ignoreCase = false)
+        public static PropertyInfo GetInstanceProperty(Type type, string propertyName, BindingFlags bindingFlags = BindingFlags.Public, bool ignoreCase = false)
         {
-            var props = GetInstanceProperties(type)
-                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
-                .ToArray();
+            var props = GetInstanceProperties(type, propertiesToInclude: new[] { propertyName }, bindingFlags: bindingFlags, ignoreCase: ignoreCase);
 
             switch (props.Length)
             {
-                case 0:
-                    throw new ObjectMemberException("No property appears to match this name: " + propertyName) 
-                    { 
-                        IsStrictSensitive = true 
-                    };
                 case 1:
                     return props[0];
                 default:
-                    throw new ObjectMemberException(props.Length + " properties appear to match this name: " + propertyName);
+                    throw new ObjectMemberException(props.Length + " properties match this name: " + propertyName) { IsStrictSensitive = props.Length == 0 };
             }
         }
 
@@ -216,23 +256,20 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// </summary>
         /// <typeparam name="T">A reference type</typeparam>
         /// <param name="propertyName">The property name</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
         /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property</returns>
         /// <exception cref="ObjectMemberException"></exception>
-        public static PropertyInfo GetInstanceProperty<T>(string propertyName, bool ignoreCase = false) where T : class
+        public static PropertyInfo GetInstanceProperty<T>(string propertyName, BindingFlags bindingFlags = BindingFlags.Public, bool ignoreCase = false) where T : class
         {
-            var props = GetInstanceProperties<T>()
-                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
-                .ToArray();
+            var props = GetInstanceProperties<T>(propertiesToInclude: new[] { propertyName }, bindingFlags: bindingFlags, ignoreCase: ignoreCase);
 
             switch (props.Length)
             {
-                case 0:
-                    throw new ObjectMemberException("No properties appear to match this name: " + propertyName);
                 case 1:
                     return props[0];
                 default:
-                    throw new ObjectMemberException(props.Length + " properties appear to match this name: " + propertyName);
+                    throw new ObjectMemberException(props.Length + " properties match this name: " + propertyName) { IsStrictSensitive = props.Length == 0 };
             }
         }
 
@@ -240,46 +277,85 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// Gets the public static properties of <c>type</c>.
         /// </summary>
         /// <param name="type">A reference type.</param>
+        /// <param name="propertiesToInclude">Optional, case-sensitive names of properties to include in the output (trumps <c>propertiesToExclude</c>).</param>
+        /// <param name="propertiesToExclude">Optional, case-sensitive names of properties to exclude from the output (trumped by <c>propertiesToInclude</c>).</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
+        /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property array.</returns>
         /// <exception cref="AssertionFailedException">If <c>type</c> is not a reference type</exception>
-        public static PropertyInfo[] GetStaticProperties(Type type)
+        public static PropertyInfo[] GetStaticProperties
+        (
+            Type type,
+            IEnumerable<string> propertiesToInclude = null,
+            IEnumerable<string> propertiesToExclude = null,
+            BindingFlags bindingFlags = BindingFlags.Public,
+            bool ignoreCase = false
+        )
         {
             AssertIsReferenceType(type);
-            return type.GetProperties(BindingFlags.Static | BindingFlags.Public);
+
+            var props = type.GetProperties(BindingFlags.Static | bindingFlags);
+
+            if (!CollectionUtil.IsNullOrEmpty(propertiesToInclude))
+            {
+                props = props
+                    .Where(p => propertiesToInclude.Contains(p.Name, ignoreCase ? CaseInsensitiveStringEqualityComparer.Default : StringEqualityComparer.Default))
+                    .ToArray();
+            }
+            else if (!CollectionUtil.IsNullOrEmpty(propertiesToExclude))
+            {
+                props = props
+                    .Where(p => !propertiesToExclude.Contains(p.Name, ignoreCase ? CaseInsensitiveStringEqualityComparer.Default : StringEqualityComparer.Default))
+                    .ToArray();
+            }
+
+            return props;
         }
 
         /// <summary>
         /// Gets the public static properties of <c>T</c>.
         /// </summary>
         /// <typeparam name="T">A reference type.</typeparam>
+        /// <param name="propertiesToInclude">Optional, case-sensitive names of properties to include in the output (trumps <c>propertiesToExclude</c>).</param>
+        /// <param name="propertiesToExclude">Optional, case-sensitive names of properties to exclude from the output (trumped by <c>propertiesToInclude</c>).</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
+        /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property array.</returns>
-        public static PropertyInfo[] GetStaticProperties<T>() where T : class
-        {
-            return typeof(T).GetProperties(BindingFlags.Static | BindingFlags.Public);
-        }
+        public static PropertyInfo[] GetStaticProperties<T>
+        (
+            IEnumerable<string> propertiesToInclude = null,
+            IEnumerable<string> propertiesToExclude = null,
+            BindingFlags bindingFlags = BindingFlags.Public,
+            bool ignoreCase = false
+        ) where T : class =>
+            GetStaticProperties
+            (
+                typeof(T),
+                propertiesToInclude: propertiesToInclude,
+                propertiesToExclude: propertiesToExclude,
+                bindingFlags: bindingFlags,
+                ignoreCase: ignoreCase
+            );
 
         /// <summary>
         /// Gets the public static property of <c>type</c> whose name matches <c>propertyName</c>
         /// </summary>
         /// <param name="type">A reference type</param>
         /// <param name="propertyName">The property name</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
         /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property</returns>
         /// <exception cref="ObjectMemberException"></exception>
-        public static PropertyInfo GetStaticProperty(Type type, string propertyName, bool ignoreCase = false)
+        public static PropertyInfo GetStaticProperty(Type type, string propertyName, BindingFlags bindingFlags = BindingFlags.Public, bool ignoreCase = false)
         {
-            var props = GetStaticProperties(type)
-                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
-                .ToArray();
+            var props = GetStaticProperties(type, propertiesToInclude: new[] { propertyName }, bindingFlags: bindingFlags, ignoreCase: ignoreCase);
 
             switch (props.Length)
             {
-                case 0:
-                    throw new ObjectMemberException("No properties appear to match this name: " + propertyName);
                 case 1:
                     return props[0];
                 default:
-                    throw new ObjectMemberException(props.Length + " properties appear to match this name: " + propertyName);
+                    throw new ObjectMemberException(props.Length + " properties match this name: " + propertyName) { IsStrictSensitive = props.Length == 0 };
             }
         }
 
@@ -288,23 +364,20 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// </summary>
         /// <typeparam name="T">A reference type</typeparam>
         /// <param name="propertyName">The property name</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
         /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <returns>A property</returns>
         /// <exception cref="ObjectMemberException"></exception>
-        public static PropertyInfo GetStaticProperty<T>(string propertyName, bool ignoreCase = false) where T : class
+        public static PropertyInfo GetStaticProperty<T>(string propertyName, BindingFlags bindingFlags = BindingFlags.Public, bool ignoreCase = false) where T : class
         {
-            var props = GetStaticProperties<T>()
-                .NamedLike(propertyName, LikeMode.Equals, ignoreCase: ignoreCase)
-                .ToArray();
+            var props = GetStaticProperties<T>(propertiesToInclude: new[] { propertyName }, bindingFlags: bindingFlags, ignoreCase: ignoreCase);
 
             switch (props.Length)
             {
-                case 0:
-                    throw new ObjectMemberException("No properties appear to match this name: " + propertyName);
                 case 1:
                     return props[0];
                 default:
-                    throw new ObjectMemberException(props.Length + " properties appear to match this name: " + propertyName);
+                    throw new ObjectMemberException(props.Length + " properties match this name: " + propertyName) { IsStrictSensitive = props.Length == 0 };
             }
         }
 

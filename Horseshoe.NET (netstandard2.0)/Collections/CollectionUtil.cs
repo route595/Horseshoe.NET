@@ -599,6 +599,26 @@ namespace Horseshoe.NET.Collections
         }
 
         /// <summary>
+        /// Tests whether a collection is <c>null</c> or contains no items.
+        /// </summary>
+        /// <typeparam name="T">The type of collection</typeparam>
+        /// <param name="collection">A collection</param>
+        /// <returns><c>true</c> or <c>false</c></returns>
+        public static bool IsNullOrEmpty<T>(IEnumerable<T> collection)
+        {
+            if (collection == null)
+                return true;
+
+            if (collection is T[] array)
+                return array.Length == 0;
+
+            if (collection is List<T> list)
+                return list.Count == 0;
+
+            return !collection.Any();
+        }
+
+        /// <summary>
         /// Dumps a collection to a single line of text with the specified separator optionally rendering only the
         /// first <c>n</c> items and terminating the result with a remaining count indicator, e.g. "14 more...".
         /// </summary>

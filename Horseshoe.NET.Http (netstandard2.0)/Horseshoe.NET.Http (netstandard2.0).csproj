@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Horseshoe.NET.Http</RootNamespace>
     <AssemblyName>Horseshoe.NET.Http</AssemblyName>
-    <Version>4.0.5</Version>
+    <Version>4.0.6</Version>
     <Authors>Carl Thomas</Authors>
     <Company>Route 595</Company>
     <Description>Web service and web API boilerplate code.</Description>
-    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2026 Route 595</Copyright>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>assembly-signing-key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

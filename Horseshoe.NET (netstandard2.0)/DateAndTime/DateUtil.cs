@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horseshoe.NET.DateAndTime
 {
@@ -114,6 +116,7 @@ namespace Horseshoe.NET.DateAndTime
                 case 8:   // Aug
                 case 10:  // Oct
                 case 12:  // Dec
+                default:
                     return 31;
                 case 4:   // Apr
                 case 6:   // Jun
@@ -122,34 +125,211 @@ namespace Horseshoe.NET.DateAndTime
                     return 30;
                 case 2:   // Feb
                     return IsLeapYear(year) ? 29 : 28;
-                default:
-                    return -1;
             }
         }
 
         /// <summary>
-        /// Gets the <c>DateTime</c> representing the beginning of the month.
+        /// Gets the <c>DateTime</c> representing the first day of the month of a supplied <c>DateTime</c>, if any, otherwise of the month of the current system date.
         /// </summary>
         /// <param name="basedOnDateTime">An optional <c>DateTime</c> upon which to base the result <c>DateTime</c>.</param>
         /// <returns>A <c>DateTime</c>.</returns>
-        public static DateTime GetMonthStart(DateTime? basedOnDateTime = null)
+        public static DateTime MonthStart(DateTime? basedOnDateTime = null)
         {
             if (!basedOnDateTime.HasValue)
             {
                 basedOnDateTime = DateTime.Today;
             }
-            return GetMonthStart(basedOnDateTime.Value.Year, basedOnDateTime.Value.Month);
+            return MonthStart(basedOnDateTime.Value.Year, basedOnDateTime.Value.Month);
         }
 
         /// <summary>
-        /// Gets the <c>DateTime</c> representing the beginning of the specified month.
+        /// Gets the <c>DateTime</c> representing the beginning of the specified year and month.
         /// </summary>
         /// <param name="year">A year</param>
         /// <param name="month">A month</param>
         /// <returns>A <c>DateTime</c>.</returns>
-        public static DateTime GetMonthStart(int year, int month)
+        public static DateTime MonthStart(int year, int month)
         {
             return new DateTime(year, month, 1);
+        }
+
+        /// <summary>
+        /// Gets the <c>DateTime</c> representing the last day of the month of a supplied <c>DateTime</c>, if any, otherwise of the month of the current system date.
+        /// </summary>
+        /// <param name="basedOnDateTime">An optional <c>DateTime</c> upon which to base the result <c>DateTime</c>.</param>
+        /// <returns>A <c>DateTime</c>.</returns>
+        public static DateTime MonthEnd(DateTime? basedOnDateTime = null)
+        {
+            if (!basedOnDateTime.HasValue)
+            {
+                basedOnDateTime = DateTime.Today;
+            }
+            return MonthEnd(basedOnDateTime.Value.Year, basedOnDateTime.Value.Month);
+        }
+
+        /// <summary>
+        /// Gets the <c>DateTime</c> representing the last day of the specified year and month.
+        /// </summary>
+        /// <param name="year">A year</param>
+        /// <param name="month">A month</param>
+        /// <returns>A <c>DateTime</c>.</returns>
+        public static DateTime MonthEnd(int year, int month)
+        {
+            return new DateTime(year, month, GetNumberOfDaysInMonth(year, month));
+        }
+
+        /// <summary>
+        /// Returns the earliest <see cref="DateTime"/> value from the specified date array.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method ignores date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">An array of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The minimum <see cref="DateTime"/> value in the <paramref name="dates"/> array, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Min(params DateTime[] dates)
+        {
+            return Min(dates.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Returns the earliest <see cref="DateTime"/> value from the specified date collection.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method ignores date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">A collection of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The minimum <see cref="DateTime"/> value in the <paramref name="dates"/> collection, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Min(IEnumerable<DateTime> dates)
+        {
+            if (dates == null)
+                return DateTime.MinValue;
+
+            return Min2(dates.Where(date => date != DateTime.MinValue && date != DateTime.MaxValue));
+        }
+
+        /// <summary>
+        /// Returns the earliest <see cref="DateTime"/> value from the specified date array.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method does not ignore date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">An array of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The minimum <see cref="DateTime"/> value in the <paramref name="dates"/> array, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Min2(params DateTime[] dates)
+        {
+            return Min2(dates.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Returns the earliest <see cref="DateTime"/> value from the specified date collection.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method does not ignore date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">A collection of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The minimum <see cref="DateTime"/> value in the <paramref name="dates"/> collection, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Min2(IEnumerable<DateTime> dates)
+        {
+            if (dates == null)
+                return DateTime.MinValue;
+
+            DateTime? min = null;
+
+            foreach (var date in dates)
+            {
+                if (min == null || date < min)
+                    min = date;
+            }
+            return min ?? DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Returns the latest <see cref="DateTime"/> value from the specified date array.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method ignores date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">An array of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The maximum <see cref="DateTime"/> value in the <paramref name="dates"/> array, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Max(params DateTime[] dates)
+        {
+            return Max(dates.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Returns the latest <see cref="DateTime"/> value from the specified date collection.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method ignores date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">A collection of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The maximum <see cref="DateTime"/> value in the <paramref name="dates"/> collection, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Max(IEnumerable<DateTime> dates)
+        {
+            if (dates == null)
+                return DateTime.MinValue;
+
+            return Max2(dates.Where(date => date != DateTime.MinValue && date != DateTime.MaxValue));
+        }
+
+        /// <summary>
+        /// Returns the latest <see cref="DateTime"/> value from the specified date array.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method does not ignore date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">An array of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The maximum <see cref="DateTime"/> value in the <paramref name="dates"/> array, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Max2(params DateTime[] dates)
+        {
+            return Max2(dates.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Returns the latest <see cref="DateTime"/> value from the specified date collection.
+        /// </summary>
+        /// <remarks>
+        /// Note, this method does not ignore date values equal to <c><see cref="DateTime.MinValue"/></c> and <c><see cref="DateTime.MaxValue"/></c>.
+        /// </remarks>
+        /// <param name="dates">A collection of <see cref="DateTime"/> values to evaluate.</param>
+        /// <returns>
+        /// The maximum <see cref="DateTime"/> value in the <paramref name="dates"/> collection, or 
+        /// <c><see cref="DateTime.MinValue"/></c> if no dates were supplied.
+        /// </returns>
+        public static DateTime Max2(IEnumerable<DateTime> dates)
+        {
+            if (dates == null)
+                return DateTime.MinValue;
+
+            DateTime? max = null;
+
+            foreach (var date in dates)
+            {
+                if (max == null || date > max)
+                    max = date;
+            }
+            return max ?? DateTime.MinValue;
         }
     }
 }

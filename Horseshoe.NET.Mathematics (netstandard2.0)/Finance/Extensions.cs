@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.Extensions.Primitives;
 
 using Horseshoe.NET.Text.TextGrid;
-using System.Text.RegularExpressions;
 
 namespace Horseshoe.NET.Mathematics.Finance
 {
@@ -37,7 +36,7 @@ namespace Horseshoe.NET.Mathematics.Finance
             textGrid.FormatColumnsByType(typeof(decimal), "C" + _decimalDigits);
         }
 
-        public static void FormatDecimalColumnsAsCurrency_Custom(this TextGrid textGrid, int? decimalDigits = null)
+        public static void FormatDecimalColumnsAsCustomAccounting(this TextGrid textGrid)
         {
             //int _decimalDigits = decimalDigits ?? System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits;
             textGrid.FormatColumnsByType

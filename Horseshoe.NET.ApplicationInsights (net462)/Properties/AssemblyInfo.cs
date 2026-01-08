@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Route 595")]
 [assembly: AssemblyProduct("Horseshoe.NET.ApplicationInsights")]
-[assembly: AssemblyCopyright("Copyright © 2020-2025 Route 595")]
+[assembly: AssemblyCopyright("Copyright © 2020-2026 Route 595")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

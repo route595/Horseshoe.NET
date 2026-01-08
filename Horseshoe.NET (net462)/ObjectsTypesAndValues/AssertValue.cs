@@ -112,5 +112,29 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         {
             InSet(value, possibleValues as IEnumerable<T>);
         }
+
+        /// <summary>
+        /// Ensures that <c>value</c> is not null, empty, or whitespace.
+        /// </summary>
+        /// <param name="value">The value to evaluate</param>
+        /// <param name="paramName"></param>
+        /// <exception cref="AssertionFailedException"></exception>
+        public static void IsNotNullOrEmpty(string value, string paramName = "string")
+        {
+            if (string.IsNullOrEmpty(value))
+                throw new AssertionFailedException(paramName + " cannot be null or empty");
+        }
+
+        /// <summary>
+        /// Ensures that <c>value</c> is not null, empty, or whitespace.
+        /// </summary>
+        /// <param name="value">The value to evaluate</param>
+        /// <param name="paramName"></param>
+        /// <exception cref="AssertionFailedException"></exception>
+        public static void IsNotNullOrWhitespace(string value, string paramName = "string")
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new AssertionFailedException(paramName + " cannot be null, empty, or whitespace");
+        }
     }
 }

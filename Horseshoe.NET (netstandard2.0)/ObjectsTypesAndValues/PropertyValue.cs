@@ -51,7 +51,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
         /// <inheritdoc />
         public override string ToString()
         {
-            return Property.Name + " = " + (Value?.ToString() ?? TextConstants.Null);
+            return Property.Name + " = " + ValueUtil.Display(Value);
         }
     }
 }

@@ -87,6 +87,8 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
             ICriterinator<string> criterinator;
             switch (namesOrPartials.Count)
             {
+                case 0:
+                    return properties;
                 case 1:
                     criterinator = ignoreCase
                         ? Criterinator.LikeIgnoreCase(mode, namesOrPartials.Single())
@@ -95,7 +97,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
                 default:
                     criterinator = ignoreCase
                         ? Criterinator.LikeAnyIgnoreCase(mode, namesOrPartials)
-                        : Criterinator.LikeAny(mode, namesOrPartials);
+                        : Criterinator.LikeAny(mode);
                     break;
             }
             return NamedLike(properties, criterinator);

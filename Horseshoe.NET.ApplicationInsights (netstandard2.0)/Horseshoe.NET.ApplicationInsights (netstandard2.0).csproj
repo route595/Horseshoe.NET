@@ -6,16 +6,16 @@
     <AssemblyName>Horseshoe.NET.ApplicationInsights</AssemblyName>
     <Version>4.0.4</Version>
     <Description>Easily add Application Insights to an app with these few shortcuts.</Description>
-    <Copyright>Copyright © 2020-2025 Route 595</Copyright>
+    <Copyright>Copyright © 2020-2026 Route 595</Copyright>
     <Company>Route 595</Company>
     <Authors>Carl Thomas</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.23.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
-    <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.1" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -194,5 +194,33 @@ namespace Horseshoe.NET.DateAndTime
         {
             return !(date.Hour == 0 && date.Minute == 0 && date.Second == 0 && date.Millisecond == 0);
         }
+
+        /// <summary>
+        /// Gets the <c>DateTime</c> representing the first day of the month of this <c>DateTime</c>.
+        /// </summary>
+        public static DateTime MonthStart(this DateTime date) =>
+            DateUtil.MonthStart(date);
+
+        /// <summary>
+        /// Gets the <c>DateTime</c> representing the last day of the month of this <c>DateTime</c>.
+        /// </summary>
+        public static DateTime MonthEnd(this DateTime date) =>
+            DateUtil.MonthEnd(date);
+
+        /// <summary>
+        /// Returns the year and month of a date/time as an <c>int</c> value, e.g. <c>"Jan 30, 2002" -&gt; 200201</c>
+        /// </summary>
+        /// <param name="date">A date/time</param>
+        /// <returns></returns>
+        public static int YYYYMM(this DateTime date) =>
+            date.Year * 100 + date.Month;
+
+        /// <summary>
+        /// Returns the year, month and day of a date/time as an <c>int</c> value, e.g. <c>"Jan 30, 2002" -&gt; 20020130</c>
+        /// </summary>
+        /// <param name="date">A date/time</param>
+        /// <returns></returns>
+        public static int YYYYMMDD(this DateTime date) =>
+            date.Year * 10000 + date.Month * 100 + date.Day;
     }
 }

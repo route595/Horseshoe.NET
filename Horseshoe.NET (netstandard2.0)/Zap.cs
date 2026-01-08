@@ -421,17 +421,17 @@ namespace Horseshoe.NET
         /// </summary>
         /// <typeparam name="T">A runtime type.</typeparam>
         /// <param name="obj">An object to convert.</param>
-        /// <param name="defaultValue">An optional, last resort value to return.</param>
         /// <param name="numberStyle">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If supplied, indicates the expected number format.</param>
         /// <param name="provider">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional format provider, e.g. <c>CultureInfo.GetCultureInfo("en-US")</c>.</param>
-        /// <param name="dateTimeStyle">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time format.</param>
-        /// <param name="dateFormat">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates exact format from which the date/time will be parsed.</param>
-        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US"), this is used to set a value for <c>provider</c> if not supplied.</param>
+        /// <param name="dateTimeStyle">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the expected date/time style.</param>
+        /// <param name="dateFormat">Applies to <c>To&lt;[datetime]&gt;()</c>. If supplied, indicates the exact format from which the date/time will be parsed.</param>
+        /// <param name="locale">Applies to <c>To&lt;[numeric-type-or-datetime]&gt;()</c>. An optional locale (e.g. "en-US") used to infer the format provider (if not supplied).</param>
         /// <param name="trueValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>true</c>.</param>
         /// <param name="falseValues">Applies to <c>To&lt;bool&gt;()</c>. A pipe delimited list of <c>string</c> values that evaluate to <c>false</c>.</param>
         /// <param name="encoding">Applies to <c>To&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
-        /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
+        /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an <c>enum</c> value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <param name="strict">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If <c>true</c>, throws an exception if value does not fall within the numerical min/max values of the target type.  Default is <c>false</c>.</param>
+        /// <param name="defaultValue">The value to return if converting from a null object or an empty string.</param>
         /// <returns>The value of <c>obj</c> converted to <c>T</c>.</returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ConversionException"></exception>
@@ -442,7 +442,6 @@ namespace Horseshoe.NET
         public static T To<T>
         (
             object obj,
-            T defaultValue = default,
             NumberStyles? numberStyle = null,
             IFormatProvider provider = null,
             DateTimeStyles? dateTimeStyle = null,
@@ -452,10 +451,11 @@ namespace Horseshoe.NET
             string falseValues = "n|no|f|false|0",
             Encoding encoding = null,
             bool ignoreCase = false,
-            bool strict = false
+            bool strict = false,
+            T defaultValue = default
         )
         {
-            object value = To
+            return (T)To
             (
                 typeof(T),
                 obj,
@@ -468,11 +468,9 @@ namespace Horseshoe.NET
                 falseValues: falseValues,
                 encoding: encoding,
                 ignoreCase: ignoreCase,
-                strict: strict
+                strict: strict,
+                defaultValue: defaultValue
             );
-            if (value != null)
-                return (T)value;
-            return defaultValue;
         }
 
         /// <summary>
@@ -492,6 +490,7 @@ namespace Horseshoe.NET
         /// <param name="encoding">Applies to <c>To&lt;byte[]&gt;()</c>. An optional text encoding, e.g. UTF8.</param>
         /// <param name="ignoreCase">Applies to <c>To&lt;[enum-type-or-bool]&gt;()</c>. If <c>true</c>, the letter case of an enum value <c>string</c> is ignored when converting to the actual <c>enum</c> value, default is <c>false</c>.</param>
         /// <param name="strict">Applies to <c>To&lt;[numeric-type]&gt;()</c>. If <c>true</c>, throws an exception if value does not fall within the numerical min/max values of the target type.  Default is <c>false</c>.</param>
+        /// <param name="defaultValue">The value to return if converting from a null object or an empty string.</param>
         /// <returns>The value of <c>obj</c> converted to <c>type</c>.</returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ConversionException"></exception>
@@ -512,19 +511,20 @@ namespace Horseshoe.NET
             string falseValues = "n|no|f|false|0", 
             Encoding encoding = null,
             bool ignoreCase = false,
-            bool strict = false
+            bool strict = false, 
+            object defaultValue = null
         )
         {
             // null check
             if (Object(obj) == null)
-                return null;
+                return defaultValue;
 
             // intervention: zap string value
             if (obj is string _stringValue0) 
             {
                 _stringValue0 = _stringValue0.Trim();
                 if (_stringValue0.Length == 0)
-                    return null;
+                    return defaultValue;
                 if (type == typeof(string))
                     return _stringValue0;
                 obj = _stringValue0;
@@ -711,9 +711,13 @@ namespace Horseshoe.NET
                             .Cast<object>()
                             .FirstOrDefault(o => (int)o == enumIntValue);
                     }
+                    catch (InvalidCastException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
-                        throw new InvalidCastException("Cannot cast " + type.FullName + " to " + typeof(int).FullName, ex);
+                        throw new InvalidCastException($"Encountered {ex.GetType().Name} when casting {type.FullName} to {typeof(int).FullName}", ex);
                     }
 
                     return enumValue 

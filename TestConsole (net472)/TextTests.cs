@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Horseshoe.NET;
 using Horseshoe.NET.ConsoleX;
 using Horseshoe.NET.ObjectsTypesAndValues;
 using Horseshoe.NET.Text;
@@ -147,6 +148,58 @@ namespace TestConsole
                     catch
                     {
                         Console.WriteLine(" failed");
+                    }
+                }
+            ),
+            BuildMenuRoutine
+            (
+                "TextAttributes",
+                () =>
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("===== Entire string: =====");
+                    var inputs = new[]
+                    {
+                        "[name=startDate,type=dtm,value=20250205]", // '=' delimiter
+                        "[name:startDate,type:dtm,value:20250205]", // ':' delimiter
+                        "[name:startDate,type=dtm,value:20250205]", // mixed delimiters: error
+                        "[name=startDate,value=20250205][name=endDate,value=20250205]"
+                    };
+                    foreach (var input in inputs)
+                    {
+                        Console.WriteLine("Input: " + input);
+                        try
+                        {
+                            var list = TextAttribute.Parse(input);
+                            foreach (var attr in list)
+                            {
+                                Console.WriteLine("  Attribute: " + attr);
+                            }
+                        }
+                        catch(Exception ex) 
+                        {
+                            Console.WriteLine("  " + ex.RenderMessage());
+                        }
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("=====  Starts with:  =====");
+                    inputs = new[]
+                    {
+                        "[name=startDate,type=dtm,value=20250205]post-text",
+                        "[name=startDate,value=20250205][name=endDate,value=20250205]yadda-yadda"
+                    };
+                    foreach (var input in inputs)
+                    {
+                        Console.WriteLine("Input: " + input);
+                        TextAttribute.TryParseStartsWith(input, out TextAttribute.List list, out string remainingInput);
+                        Console.WriteLine("Remaining Input: " + remainingInput);
+                        if (list != null)
+                        {
+                            foreach (var attr in list)
+                            {
+                                Console.WriteLine("  Attribute: " + attr);
+                            }
+                        }
                     }
                 }
             )

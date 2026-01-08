@@ -574,14 +574,51 @@ namespace Horseshoe.NET.Text.TextGrid
         /// </summary>
         /// <typeparam name="T">The type of item to store and display in this <c>TextGrid</c>.</typeparam>
         /// <param name="collection">A collection of items.</param>
+        /// <param name="overrideType">An optional type whose members to display. This type must be assignable to <c>T</c>'s type.</param>
+        /// <param name="propertiesToInclude">Optional, case-sensitive names of properties to include in the output (trumps <c>propertiesToExclude</c>).</param>
+        /// <param name="propertiesToExclude">Optional, case-sensitive names of properties to exclude from the output (trumped by <c>propertiesToInclude</c>).</param>
+        /// <param name="excludeAdditionalPropertiesIf">Optionally excludes a property from the output (processed after <c>propertiesToInclude|Exclude</c>).</param>
+        /// <param name="bindingFlags">Specifies flags that control binding and the way in which the search for members and types is conducted by reflection.</param>
+        /// <param name="ignoreCase">If <c>true</c>, allows mapping of properties that are identically named if not for the letter case, default is <c>false</c>.</param>
         /// <param name="configureGrid">An optional function to pass in which configures the generated <c>TextGrid</c>.</param>
         /// <returns></returns>
-        public static TextGrid FromCollection<T>(IEnumerable<T> collection, Action<TextGrid> configureGrid = null) where T : class, new()
+        public static TextGrid FromCollection<T>
+        (
+            IEnumerable<T> collection, 
+            Type overrideType = null,
+            IEnumerable<string> propertiesToInclude = null,
+            IEnumerable<string> propertiesToExclude = null,
+            Func<PropertyInfo, bool> excludeAdditionalPropertiesIf = null,
+            BindingFlags bindingFlags = BindingFlags.Public,
+            bool ignoreCase = false,
+            Action<TextGrid> configureGrid = null
+        ) where T : class, new()
         {
-            var props = TypeUtil.GetInstanceProperties<T>();
+            if (overrideType != null && !overrideType.IsAssignableFrom(typeof(T)))
+                throw new TypeException("The supplied override type '" + overrideType.FullName + "' is not compatible with the type parameter's type '" + typeof(T).FullName + "'.");
+
+            var props = TypeUtil.GetInstanceProperties
+            (
+                overrideType,
+                propertiesToInclude: propertiesToInclude,
+                propertiesToExclude: propertiesToExclude,
+                bindingFlags: bindingFlags,
+                ignoreCase: ignoreCase
+            );
+
+            if (excludeAdditionalPropertiesIf != null)
+            {
+                props = props
+                    .Where(p => !excludeAdditionalPropertiesIf(p))
+                    .ToArray();
+            }
+
+            // create columns from properties
             var cols = props
                 .Select(InferColumn)
                 .ToList();
+
+            // populate columns from collection item properties
             foreach (var t in collection ?? Enumerable.Empty<T>())
             {
                 for (int i = 0; i < cols.Count; i++)
@@ -589,9 +626,8 @@ namespace Horseshoe.NET.Text.TextGrid
                     cols[i].List.Add(props[i].GetValue(t));
                 }
             }
-            //var grid = new TextGrid { BorderPolicy = borderPolicy, CellPaddingLeft = cellPadding, CellPaddingRight = 1 };
+
             var grid = new TextGrid(cols);
-            //cols.ForEach(c => grid.Columns.Add(c));
             configureGrid?.Invoke(grid);
             return grid;
         }

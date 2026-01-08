@@ -30,12 +30,28 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
             return false;
         }
 
+        private static ValueDisplayOptions _defaultDisplayOptions = new ValueDisplayOptions();
+
+        /// <summary>
+        /// Sets default display options for the <c>Display()</c> method.
+        /// </summary>
+        /// <param name="includeEnumTypeName">If <c>true</c>, enum values will be displayed with their type name as a prefix (e.g., "DayOfWeek.Monday").  Default is <c>false</c>.</param>
+        /// <param name="alwaysShowTimeForDateTime">If <c>true</c>, DateTime values will always display the time component, even if it is 00:00:00.  Default is <c>false</c>.</param>
+        public static void SetDefaultDisplayOptions(bool? includeEnumTypeName = null, bool? alwaysShowTimeForDateTime = null)
+        {
+            if (includeEnumTypeName.HasValue)
+                _defaultDisplayOptions.IncludeEnumTypeName = includeEnumTypeName.Value;
+            if (alwaysShowTimeForDateTime.HasValue)
+                _defaultDisplayOptions.AlwaysShowTimeForDateTime = alwaysShowTimeForDateTime.Value;
+        }
+
         /// <summary>
         /// Formats a value based on runtime type
         /// </summary>
         /// <param name="value">A value</param>
+        /// <param name="options">Settings that determine how certain values are formatted for display</param>
         /// <returns>A formatted object</returns>
-        public static string Display(object value)
+        public static string Display(object value, ValueDisplayOptions options = null)
         {
             if (value == null)
                 return TextConstants.Null;
@@ -49,7 +65,7 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
             if (value is DateTime dateTime)
                 value = dateTime.ToShortDateString() +
                 (
-                    dateTime.HasTime()
+                    dateTime.HasTime() || (options ?? _defaultDisplayOptions).AlwaysShowTimeForDateTime
                     ? " " + dateTime.ToShortTimeString()
                     : ""
                 );
@@ -85,7 +101,9 @@ namespace Horseshoe.NET.ObjectsTypesAndValues
 
             var type = value.GetType();
             if (type.IsEnum)
-                return type.Name + "." + value;
+                return (options ?? _defaultDisplayOptions).IncludeEnumTypeName
+                    ? type.Name + "." + value
+                    : value.ToString();
 
             return value.ToString();
         }
